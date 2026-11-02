@@ -61,6 +61,21 @@ interface Translations {
 }
 
 const translations: Translations = {
+  settingsTrainingProfile: { ru: "Режим тренировки", en: "Training profile" },
+  settingsSoundHaptics: { ru: "Звук и вибрация", en: "Sound & haptics" },
+  settingsLanguageAccess: { ru: "Язык и доступность", en: "Language & accessibility" },
+  settingsCloudBackups: { ru: "Облако и резервные копии", en: "Cloud & backups" },
+  settingsHelpAbout: { ru: "Помощь и о приложении", en: "Help & about" },
+  settingsOn: { ru: "Вкл.", en: "On" },
+  settingsOff: { ru: "Выкл.", en: "Off" },
+  settingsPersonalize: { ru: "Персонализация", en: "Personalize" },
+  settingsSynapseSummary: { ru: "Показ, движение, размер", en: "Visibility, movement, size" },
+  settingsDataSupport: { ru: "Данные и поддержка", en: "Data & support" },
+  settingsHelpSummary: { ru: "Обучение, отзывы, обновления", en: "Tutorial, feedback, updates" },
+  settingsPresetCount: { ru: "Все пресеты: {n}", en: "All {n} presets" },
+  settingsCustomize: { ru: "Настроить палитру", en: "Customize palette" },
+  settingsTransferOptions: { ru: "Другие способы переноса", en: "More transfer options" },
+  settingsOwnerTools: { ru: "Инструменты владельца", en: "Owner tools" },
   gemPaletteTitle: { ru: "Палитра кристаллов", en: "Crystal palette" },
   gemPaletteEnabled: { ru: "Использовать цвета кристаллов", en: "Use crystal colours" },
   gemPaletteHint: { ru: "Только шапки и навигация «Авроры». У каждого профиля свой пресет; цвета заданий и выбор светлой/тёмной темы не меняются.", en: "Aurora headers and navigation only. Each profile has its own preset; game colours and the light/dark setting stay unchanged." },

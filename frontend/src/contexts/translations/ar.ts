@@ -1,6 +1,21 @@
 // AUTO-GENERATED translation overlay (ar). Источник: транскреация с EN-базы (856 ключей).
 // ⚠️ НЕ ПОДКЛЮЧЁН в LANGUAGES — ждёт RTL-захода (I18nManager). Не править руками.
 const t: Record<string, string> = {
+  settingsTrainingProfile: "نمط التدريب",
+  settingsSoundHaptics: "الصوت والاهتزاز",
+  settingsLanguageAccess: "اللغة وإمكانية الوصول",
+  settingsCloudBackups: "السحابة والنسخ الاحتياطي",
+  settingsHelpAbout: "المساعدة وحول التطبيق",
+  settingsOn: "مفعّل",
+  settingsOff: "معطّل",
+  settingsPersonalize: "التخصيص",
+  settingsSynapseSummary: "الظهور والحركة والحجم",
+  settingsDataSupport: "البيانات والدعم",
+  settingsHelpSummary: "الشرح والملاحظات والتحديثات",
+  settingsPresetCount: "جميع الإعدادات المسبقة: {n}",
+  settingsCustomize: "تخصيص الألوان",
+  settingsTransferOptions: "خيارات نقل أخرى",
+  settingsOwnerTools: "أدوات المالك",
   gemPaletteTitle: "لوحة ألوان الكريستال",
   gemPaletteEnabled: "استخدام ألوان الكريستال",
   gemPaletteHint: "لرؤوس الصفحات والتنقل في Aurora فقط. لكل ملف إعداد مسبق؛ لا تتغير ألوان الألعاب أو إعدادات الوضع الفاتح والداكن.",

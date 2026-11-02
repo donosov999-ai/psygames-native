@@ -5,6 +5,21 @@
 //   Аббревиатуры тестов (Stroop/SDMT/WCST/N-back/BART/SET/Cloze...) оставлены латиницей — международные термины.
 //   ⚠️ Стилистику деванагари подтвердить носителем. При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  settingsTrainingProfile: "अभ्यास मोड",
+  settingsSoundHaptics: "ध्वनि और कंपन",
+  settingsLanguageAccess: "भाषा और सुलभता",
+  settingsCloudBackups: "क्लाउड और बैकअप",
+  settingsHelpAbout: "सहायता और ऐप की जानकारी",
+  settingsOn: "चालू",
+  settingsOff: "बंद",
+  settingsPersonalize: "निजीकरण",
+  settingsSynapseSummary: "दिखावट, गति, आकार",
+  settingsDataSupport: "डेटा और सहायता",
+  settingsHelpSummary: "परिचय, प्रतिक्रिया, अपडेट",
+  settingsPresetCount: "सभी {n} प्रीसेट",
+  settingsCustomize: "रंग-पट्टिका बदलें",
+  settingsTransferOptions: "अन्य स्थानांतरण विकल्प",
+  settingsOwnerTools: "मालिक के उपकरण",
   gemPaletteTitle: "क्रिस्टल पैलेट",
   gemPaletteEnabled: "क्रिस्टल रंग इस्तेमाल करें",
   gemPaletteHint: "केवल Aurora शीर्षक और नेविगेशन के लिए। हर प्रोफ़ाइल का अपना प्रीसेट है; खेल के रंग और हल्की/गहरी थीम नहीं बदलते।",

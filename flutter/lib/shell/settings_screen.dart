@@ -23,6 +23,18 @@ import 'profiles.dart';
 import 'progress_transfer.dart';
 import 'shared_state.dart';
 import 'update_check.dart';
+import 'app_theme.dart';
+import 'chrome_art.dart';
+import 'crystal_palette.dart';
+import 'feedback_fab.dart';
+import 'gem_palette_material.dart';
+import 'gem_palette_presets.dart';
+import 'game_pet.dart';
+import 'native_tabs.dart';
+import 'aurora_glass.dart';
+import 'game_colors.dart';
+
+part 'settings_redesign.dart';
 
 /// 🔴 НАСТРОЙКИ НА FLUTTER — ПЕРЕНОС ПО ФУНКЦИЯМ ВЕБ-ЭКРАНА (задача eae0879c).
 ///
@@ -37,12 +49,15 @@ import 'update_check.dart';
 /// здесь `'1'` вместо `'true'` — веб прочтёт «выключено», и человек увидит, что тумблер
 /// не держится. Сторож — `test/settings_screen_test.dart`.
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key, required this.state, this.cloudPilot});
+  const SettingsScreen({super.key, required this.state, this.cloudPilot, this.originTab, this.onFeedback});
 
   final SharedState state;
   /// No default backend or fake user data in released settings. Test host injects
   /// the isolated pilot; omission keeps the current product purely local.
   final CloudPilot? cloudPilot;
+  /// Retain the real originating tab; Settings is not a sixth tab.
+  final String? originTab;
+  final VoidCallback? onFeedback;
 
   static const sound = '${SharedState.prefix}sound_enabled';
   static const volume = '${SharedState.prefix}volume';
@@ -119,10 +134,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _version = '';
   Profiles _profiles = Profiles.current;
   bool _updChecking = false;
+  _SettingsPane _pane = _SettingsPane.root;
+  bool _paletteSaving = false;
+
+  void _showPane(_SettingsPane pane) => setState(() => _pane = pane);
+  void _redraw() { if (mounted) setState(() {}); }
 
   @override
   void initState() {
     super.initState();
+    // Initialize the existing renderer, without enabling or writing a palette.
+    if (parseUiTemplate(_s.get(uiTemplateKey)) == UiTemplate.aurora) {
+      unawaited(GemPaletteEngine.initialize().then((_) => _redraw()));
+    }
     unawaited(LangNames.load().then((n) {
       if (mounted) setState(() => _names = n);
     }).catchError((_) {}));
@@ -218,6 +242,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               label: Text(labels[template]!),
               selected: selected == template,
               onSelected: (_) async {
+                _pane = _SettingsPane.appearance;
                 await _s.set(uiTemplateKey, template.id);
                 AppLook.refresh(_s);
                 if (mounted) setState(() {});
@@ -633,6 +658,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (parseUiTemplate(_s.get(uiTemplateKey)) == UiTemplate.aurora) {
+      return _redesigned(context);
+    }
     final dark = AppLook.isDark(_s);
     Color tok(String n) => AppLook.token(n, dark: dark);
     final accent = AppLook.accentOf(_s);

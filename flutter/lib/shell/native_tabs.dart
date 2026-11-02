@@ -95,12 +95,14 @@ const _lightNavAssets = <String, String>{
 };
 
 class NativeTabBar extends StatelessWidget {
-  const NativeTabBar({super.key, required this.active, required this.onTap, required this.accent});
+  const NativeTabBar({super.key, required this.active, required this.onTap, required this.accent, this.allowReselect = false});
 
   /// Маршрут подсвеченной вкладки; `null` — ни одной.
   final String? active;
   final ValueChanged<String> onTap;
   final Color accent;
+  /// A nested screen may use the active origin tab to return to that tab.
+  final bool allowReselect;
   static const auroraExtraHeight = 12.0;
 
   @override
@@ -157,7 +159,7 @@ class NativeTabBar extends StatelessWidget {
                     key: ValueKey('native-tab-${t.route}'),
                     // ⚠️ Вся высота вкладки нажимается, а не только значок (веб: порог 48 из
                     // tap-target-audit, подпись входит в цель).
-                    onTap: active == t.route ? null : () => onTap(t.route),
+                    onTap: active == t.route && !allowReselect ? null : () => onTap(t.route),
                     child: PilotPressResponse(enabled: underline, child: SizedBox(
                       height: NativeTabs.height + (underline ? auroraExtraHeight : 0),
                       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [

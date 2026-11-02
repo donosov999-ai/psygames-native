@@ -2,6 +2,21 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  settingsTrainingProfile: "Trainingsprofil",
+  settingsSoundHaptics: "Ton und Haptik",
+  settingsLanguageAccess: "Sprache und Barrierefreiheit",
+  settingsCloudBackups: "Cloud und Sicherungen",
+  settingsHelpAbout: "Hilfe und Infos",
+  settingsOn: "Ein",
+  settingsOff: "Aus",
+  settingsPersonalize: "Personalisieren",
+  settingsSynapseSummary: "Anzeige, Bewegung, Größe",
+  settingsDataSupport: "Daten und Support",
+  settingsHelpSummary: "Einführung, Feedback, Updates",
+  settingsPresetCount: "Alle {n} Vorlagen",
+  settingsCustomize: "Palette anpassen",
+  settingsTransferOptions: "Weitere Übertragungsoptionen",
+  settingsOwnerTools: "Inhaberwerkzeuge",
   gemPaletteTitle: "Kristallpalette",
   gemPaletteEnabled: "Kristallfarben verwenden",
   gemPaletteHint: "Nur Aurora-Kopfzeilen und Navigation. Jedes Profil hat eine Vorgabe; Spielfarben und Hell/Dunkel bleiben unverändert.",

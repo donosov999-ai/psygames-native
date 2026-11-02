@@ -71,4 +71,17 @@ void main() {
     expect(a.lastError, 'StateError');
     await a.dispose();
   });
+  test('failed diagnostic observer cannot break the sound queue or disposal', () async {
+    final b = FakeSound()..fail = true;
+    var reports = 0;
+    final a = GameEffectAudio(backend: b, enabled: () => true, onError: (_) {
+      reports++;
+      throw StateError('closed review panel');
+    });
+    a.emit(GameSound.transfer, '1');
+    await a.settled;
+    expect(reports, 1);
+    expect(a.lastError, 'StateError');
+    await a.dispose();
+  });
 }

@@ -1,6 +1,21 @@
 // AUTO-GENERATED translation overlay (ja). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  settingsTrainingProfile: "トレーニングモード",
+  settingsSoundHaptics: "サウンドと振動",
+  settingsLanguageAccess: "言語とアクセシビリティ",
+  settingsCloudBackups: "クラウドとバックアップ",
+  settingsHelpAbout: "ヘルプとアプリ情報",
+  settingsOn: "オン",
+  settingsOff: "オフ",
+  settingsPersonalize: "カスタマイズ",
+  settingsSynapseSummary: "表示・動き・サイズ",
+  settingsDataSupport: "データとサポート",
+  settingsHelpSummary: "チュートリアル・フィードバック・更新",
+  settingsPresetCount: "全 {n} 件のプリセット",
+  settingsCustomize: "パレットを調整",
+  settingsTransferOptions: "その他の転送方法",
+  settingsOwnerTools: "所有者用ツール",
   gemPaletteTitle: "クリスタル配色",
   gemPaletteEnabled: "クリスタルの色を使う",
   gemPaletteHint: "Aurora のヘッダーとナビゲーション専用です。プロフィールごとにプリセットがあり、ゲームの色とライト／ダーク設定は変わりません。",

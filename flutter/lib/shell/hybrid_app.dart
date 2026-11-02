@@ -1428,9 +1428,11 @@ class _HybridAppState extends State<HybridApp> {
     WarmupStepInfo? stepInfo,
   }) async {
     final game = HybridApp.native[route];
+    final settingsOriginTab = NativeTabs.activeTab(_nativeTab ?? _pagePath);
     // Игра без отметки готовности остаётся в классической теме и под «Авророй» — см. [AuroraGameScope].
     final build = route == '/settings'
-        ? (SharedState s) => SettingsScreen(state: s, cloudPilot: widget.cloudPilot)
+        ? (SharedState s) => SettingsScreen(state: s, cloudPilot: widget.cloudPilot,
+            originTab: settingsOriginTab, onFeedback: () => unawaited(_openFeedback('/settings')))
         : game != null
             ? (SharedState s) => AuroraGameScope(route: route, child: game(s))
             : HybridApp.shell[route];
