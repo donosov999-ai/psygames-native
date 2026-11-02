@@ -5,10 +5,11 @@ import 'package:flutter_animate/flutter_animate.dart';
 const goodsMotionPilot = bool.fromEnvironment('PSYGAMES_GOODS_MOTION', defaultValue: false);
 
 class GoodsFlight {
-  const GoodsFlight(this.id, this.type, this.from, this.to);
+  const GoodsFlight(this.id, this.type, this.from, this.to, {this.ready = false});
   final int id;
   final int type;
   final Rect from, to;
+  final bool ready;
 }
 
 class GoodsMotion extends ChangeNotifier {
@@ -40,8 +41,18 @@ class GoodsMotion extends ChangeNotifier {
     if (a == null || b == null) return false;
     final id = ++_epoch;
     hiddenItem = hide;
-    flight = GoodsFlight(id, type, a, Rect.fromLTWH(b.center.dx - a.width / 2, b.bottom - a.height - 4, a.width, a.height));
+    final fallback = Rect.fromLTWH(b.center.dx - a.width / 2, b.bottom - a.height - 3, a.width, a.height);
+    flight = GoodsFlight(id, type, a, fallback);
     _onLand = onLand;
+    // The accepted board is rebuilt in this frame. Measure the actual arriving
+    // item there: its slot/size depends on the new row and the niche capacity.
+    // A clearing triple has no surviving item; its landing is the shelf centre.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_epoch != id || flight == null) return;
+      final target = hide == null ? null : _rect(_items[hide]);
+      flight = GoodsFlight(id, type, a, target ?? fallback, ready: true);
+      notifyListeners();
+    });
     notifyListeners();
     return true;
   }
@@ -81,16 +92,38 @@ class GoodsMotionLayer extends StatelessWidget {
       final f = motion.flight;
       return Stack(key: motion.root, clipBehavior: Clip.none, children: [
         child,
-        if (f != null) Positioned.fromRect(
-          rect: f.from,
-          child: IgnorePointer(child: ExcludeSemantics(child:
-            Image.asset('assets/goods/good${f.type}.webp', fit: BoxFit.contain)
-              .animate(key: ValueKey('goods-flight-${f.id}'), onComplete: (_) => motion.complete(f.id))
-              .move(end: f.to.topLeft - f.from.topLeft, duration: 260.ms, curve: Curves.easeInOutCubic)
-              .then().scale(begin: const Offset(1.08, .94), end: const Offset(1, 1), duration: 90.ms),
-          )),
-        ),
+        if (f != null)
+          if (f.ready) _GoodsFlightView(key: ValueKey('goods-flight-${f.id}'), flight: f, onLand: () => motion.complete(f.id))
+          else Positioned.fromRect(rect: f.from, child: IgnorePointer(child: ExcludeSemantics(
+            child: Image.asset('assets/goods/good${f.type}.webp', fit: BoxFit.contain)))),
       ]);
+    },
+  );
+}
+
+class _GoodsFlightView extends StatefulWidget {
+  const _GoodsFlightView({super.key, required this.flight, required this.onLand});
+  final GoodsFlight flight;
+  final VoidCallback onLand;
+  @override
+  State<_GoodsFlightView> createState() => _GoodsFlightViewState();
+}
+
+class _GoodsFlightViewState extends State<_GoodsFlightView> {
+  bool _landing = false;
+  @override
+  Widget build(BuildContext context) => TweenAnimationBuilder<Rect?>(
+    tween: RectTween(begin: widget.flight.from, end: widget.flight.to),
+    duration: 260.ms,
+    curve: Curves.easeInOutCubic,
+    onEnd: () { if (!_landing) setState(() => _landing = true); },
+    builder: (context, rect, _) {
+      final image = Image.asset('assets/goods/good${widget.flight.type}.webp', fit: BoxFit.contain);
+      return Positioned.fromRect(rect: rect!, child: IgnorePointer(child: ExcludeSemantics(
+        child: _landing ? image.animate(autoPlay: false, onInit: (c) => c.forward(), onComplete: (_) => widget.onLand())
+          .scale(begin: const Offset(1.08, .94), end: const Offset(1, 1), alignment: Alignment.bottomCenter, duration: 90.ms)
+          : image,
+      )));
     },
   );
 }

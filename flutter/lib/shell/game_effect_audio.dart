@@ -7,11 +7,11 @@ import 'package:flutter_soloud/flutter_soloud.dart' as so;
 const gameSfxEngine = String.fromEnvironment('PSYGAMES_SFX_ENGINE', defaultValue: 'off');
 enum GameSound { selection, transfer, landing, group, victory }
 const _files = <GameSound, String>{
-  GameSound.selection: 'click_001.ogg',
-  GameSound.transfer: 'glass_001.ogg',
-  GameSound.landing: 'drop_001.ogg',
-  GameSound.group: 'confirmation_001.ogg',
-  GameSound.victory: 'bong_001.ogg',
+  GameSound.selection: 'click_001.wav',
+  GameSound.transfer: 'glass_001.wav',
+  GameSound.landing: 'drop_001.wav',
+  GameSound.group: 'confirmation_001.wav',
+  GameSound.victory: 'bong_001.wav',
 };
 
 abstract class GameSoundBackend {
@@ -23,15 +23,21 @@ abstract class GameSoundBackend {
 /// Deduplication and lifecycle belong here, not in either audio engine.
 /// No music/voice/practice audio APIs or global stopAll are used.
 class GameEffectAudio {
-  GameEffectAudio({this.backend, required this.enabled});
+  GameEffectAudio({this.backend, required this.enabled, this.onError});
   final GameSoundBackend? backend;
   final bool Function() enabled;
+  final void Function(String)? onError;
   double volume = .3;
   bool _suspended = false, _closed = false;
   int _epoch = 0;
   Future<void> _work = Future.value();
   final _seen = <String>{};
   String? lastError;
+  void _error(Object error) {
+    lastError = error.runtimeType.toString();
+    // Diagnostics must not throw into gameplay, including an already closed UI.
+    try { if (!_closed) onError?.call(lastError!); } catch (_) { /* diagnostic only */ }
+  }
 
   void emit(GameSound sound, String token) {
     if (_closed || _suspended || !enabled() || backend == null) return;
@@ -41,7 +47,7 @@ class GameEffectAudio {
     _work = _work.then((_) async {
       if (!current()) return;
       try { await backend!.play(sound, volume.clamp(0, 1), current); }
-      catch (e) { lastError = e.runtimeType.toString(); } // sound can never fail a game
+      catch (e) { _error(e); } // sound can never fail a game
     });
   }
 
@@ -52,7 +58,7 @@ class GameEffectAudio {
 
   Future<void> stop() async {
     _epoch++;
-    try { await backend?.stop(); } catch (e) { lastError = e.runtimeType.toString(); }
+    try { await backend?.stop(); } catch (e) { _error(e); }
   }
 
   void reset() { _seen.clear(); unawaited(stop()); }
@@ -61,7 +67,7 @@ class GameEffectAudio {
     _closed = true;
     await stop();
     await _work;
-    try { await backend?.dispose(); } catch (e) { lastError = e.runtimeType.toString(); }
+    try { await backend?.dispose(); } catch (e) { _error(e); }
   }
 }
 

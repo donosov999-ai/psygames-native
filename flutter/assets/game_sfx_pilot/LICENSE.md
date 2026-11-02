@@ -1,5 +1,10 @@
 # Five short effects · Kenney Interface Sounds · CC0
 
+02.11.2026: the comparison adapters use additional mono 44.1 kHz PCM16 WAV
+conversions of these exact originals. Both engines receive the same WAV, with
+no loudness normalization. OGG originals are retained. Reproduce on macOS:
+`afconvert -f WAVE -d LEI16@44100 -c 1 NAME.ogg NAME.wav`.
+
 Source: https://kenney.nl/assets/interface-sounds
 Mirror used for pilot: https://github.com/GeorgeQLe/assets-sfx-ui
 

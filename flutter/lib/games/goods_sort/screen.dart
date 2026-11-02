@@ -13,6 +13,7 @@ import '../../shell/game_clock.dart';
 import '../../shell/game_effect_audio.dart';
 import '../../shell/reward_effects.dart';
 import '../../shell/app_haptics.dart';
+import '../../shell/audio_host.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
@@ -22,6 +23,7 @@ import 'model.dart';
 import 'sets.dart';
 import 'solver.dart';
 import 'motion.dart';
+import 'feedback.dart';
 
 /// «СОРТИРОВКА ТОВАРОВ» на общем каркасе — первый экран раздела на Flutter.
 ///
@@ -46,9 +48,12 @@ import 'motion.dart';
 /// под полем: игра по-прежнему начинается сразу, а витрина открывается одним
 /// нажатием и закрывается выбором.
 class GoodsSortScreen extends StatefulWidget {
-  const GoodsSortScreen({super.key, required this.state});
+  const GoodsSortScreen({super.key, required this.state, this.feedback, this.reviewAction});
 
   final SharedState state;
+  /// Optional, session-only comparison harness. Ordinary routes pass neither.
+  final GoodsFeedbackOptions? feedback;
+  final PauseAction? reviewAction;
 
   @override
   State<GoodsSortScreen> createState() => _GoodsSortScreenState();
@@ -57,7 +62,6 @@ class GoodsSortScreen extends StatefulWidget {
 /// Сколько разбор вправе думать на нажатии. Задача 747a6ece: время разбора на
 /// эмуляторе Android ≤ 1 с; остаток секунды — на сборку шагов и переход.
 const Duration _lessonDeadline = Duration(milliseconds: 700);
-const _eventHapticsPilot = bool.fromEnvironment('PSYGAMES_EVENT_HAPTICS', defaultValue: false);
 
 /// Снимок партии для отмены: ход необратим по частям — каскад троек, закрытие
 /// полок и приход из очереди случаются разом.
@@ -77,7 +81,40 @@ class _Snapshot {
 
 class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingObserver {
   final _motion = GoodsMotion();
-  late final GameEffectAudio _audio;
+  late GameEffectAudio _audio;
+  late final GoodsFeedbackOptions _feedback;
+  GoodsAudioEngine? _activeEngine;
+  Future<void> _audioSwitch = Future.value();
+  int _audioRevision = 0;
+  bool get _soundEnabled => _feedback.engine != GoodsAudioEngine.off &&
+      appSoundOn(widget.state) && widget.state.get('${SharedState.prefix}game_sfx_enabled') != 'false';
+  double get _soundVolume => ((int.tryParse(widget.state.get('${SharedState.prefix}volume') ?? '') ?? 80).clamp(0, 100) / 100) * .3;
+
+  void _preferencesChanged() {
+    _audio.volume = _soundVolume;
+    if (!_soundEnabled) unawaited(_audio.stop());
+  }
+
+  void _feedbackChanged() {
+    // Invalidates a pending landing before changing presentation options.
+    _motion.cancel();
+    _celebrate = false;
+    if (_activeEngine != _feedback.engine) {
+      _activeEngine = _feedback.engine;
+      final revision = ++_audioRevision;
+      unawaited(_audio.suspend(true));
+      _audioSwitch = _audioSwitch.then((_) async {
+        await _audio.dispose();
+        if (!mounted || revision != _audioRevision) return;
+        _feedback.audioError.value = null;
+        _audio = GameEffectAudio(backend: _feedback.createBackend(), enabled: () => _soundEnabled,
+          onError: (error) { if (mounted) _feedback.reportAudioError(error); })
+          ..volume = _soundVolume;
+        await _audio.suspend(_effectsHeld);
+      });
+    }
+    if (mounted) setState(() {});
+  }
   int _soundId = 0;
   bool _background = false;
   bool _celebrate = false;
@@ -153,6 +190,10 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
     _cancelNext();
     _releaseHoldListener();
     WidgetsBinding.instance.removeObserver(this);
+    _audioRevision++;
+    widget.state.writes.removeListener(_preferencesChanged);
+    _feedback.removeListener(_feedbackChanged);
+    if (widget.feedback == null) _feedback.dispose();
     unawaited(_audio.dispose());
     _motion.dispose();
     super.dispose();
@@ -161,8 +202,13 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
   @override
   void initState() {
     super.initState();
-    _audio = GameEffectAudio(backend: pilotSoundBackend(), enabled: () =>
-      gameSfxEngine != 'off' && widget.state.get('${SharedState.prefix}game_sfx_enabled') != 'false');
+    _feedback = widget.feedback ?? GoodsFeedbackOptions();
+    _activeEngine = _feedback.engine;
+    _audio = GameEffectAudio(backend: _feedback.createBackend(), enabled: () => _soundEnabled,
+      onError: (error) { if (mounted) _feedback.reportAudioError(error); })
+      ..volume = _soundVolume;
+    _feedback.addListener(_feedbackChanged);
+    widget.state.writes.addListener(_preferencesChanged);
     WidgetsBinding.instance.addObserver(this);
     _releaseHoldListener = onGameHold((_) => _syncEffects());
     _ladder = LevelLadder(gameId: 'goods_sort', store: SharedLevelStore(widget.state));
@@ -356,7 +402,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
   }
 
   void _pick(GoodsPick p) {
-    if (_won || _lost || _motion.busy || isGameHeld()) return;
+    if (_won || _lost || _motion.busy || _effectsHeld) return;
     if (!_usable(p.cell)) return;
     setState(() {
       if (_sel != null && _sel!.cell == p.cell && _sel!.index == p.index) {
@@ -373,7 +419,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
   }
 
   void _tapNiche(int i) {
-    if (_won || _lost || _motion.busy || isGameHeld()) return;
+    if (_won || _lost || _motion.busy || _effectsHeld) return;
     final sel = _sel;
     if (sel == null) return;
     setState(() {
@@ -384,7 +430,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
 
   /// Ход: взятый товар уезжает в нишу, ядро разбирает тройки, препятствия стареют.
   void _move(GoodsPick pick, int to) {
-    if (_won || _lost || _nextPending || _motion.busy || isGameHeld()) return;
+    if (_won || _lost || _nextPending || _motion.busy || _effectsHeld) return;
     if (!_canDrop(pick, to)) return;
     final board = _board!;
     final level = _level!;
@@ -404,10 +450,18 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
       _audio.emit(GameSound.landing, soundToken);
       if (report.clearedTypes.isNotEmpty) _audio.emit(GameSound.group, soundToken);
       if (_won) _audio.emit(GameSound.victory, soundToken);
+      if (_won && _feedback.rewards) setState(() => _celebrate = true);
+      // A single existing system signal for the accepted move, at landing.
+      // Practice owners keep their own signals. No vibration library/pattern.
+      if (_feedback.haptics && !GamePreset.isPreset) {
+        final haptics = AppHaptics(widget.state);
+        unawaited(_won ? haptics.win() : haptics.hit());
+      }
     }
     final animated = _motion.begin(pick.cell, pick.index, pick.type, to,
       onLand: landed,
-      hide: played.board.cells[to].isNotEmpty && played.board.cells[to].last == pick.type
+      hide: !report.clearedTypes.contains(pick.type) &&
+          played.board.cells[to].isNotEmpty && played.board.cells[to].last == pick.type
           ? '$to:${played.board.cells[to].length - 1}' : null);
     final after = played.board;
 
@@ -445,7 +499,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
 
     if (levelWon(after.cells, level.goal, queueLength: after.queue.length, back: after.back)) {
       _won = true;
-      _celebrate = rewardEffectsPilot;
+      _celebrate = false; // start only when the accepted move visibly lands
       _scheduleNext();
     } else if (movesExhausted(_moves, level.moveLimit, after.cells, level.goal)) {
       _lost = true;
@@ -454,12 +508,6 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
       unawaited(_recordResult(false));
     }
     if (!animated) landed();
-    // One existing system signal per accepted move, never per animation frame.
-    // Practice owners keep their own signals; untested new patterns stay off.
-    if (_eventHapticsPilot && !GamePreset.isPreset) {
-      final haptics = AppHaptics(widget.state);
-      unawaited(_won ? haptics.win() : haptics.hit());
-    }
   }
 
   // ⚠️ СОСЕДИ НИШИ ПЕРЕЕХАЛИ В `GoodsPlay.neighbours`: по ним снимается заслон,
@@ -624,7 +672,14 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
 
   @override
   Widget build(BuildContext context) {
-    _motion.enabled = goodsMotionPilot && !MediaQuery.disableAnimationsOf(context) && !_effectsHeld;
+    _motion.enabled = _feedback.motion && !MediaQuery.disableAnimationsOf(context) &&
+        !MediaQuery.accessibleNavigationOf(context) && !_effectsHeld;
+    if (!_motion.enabled && _motion.busy) {
+      // System Reduce Motion can change while a flight is in progress.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_motion.enabled) _motion.cancel();
+      });
+    }
     final level = _level;
     final board = _board;
     if (level == null || board == null) {
@@ -671,8 +726,8 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
           _move(pick, to);
         }),
       ),
-        if (_won && _celebrate && !_effectsHeld && rewardEffectsPilot)
-          Positioned.fill(child: VictorySparks(key: ValueKey('goods-victory-$_deal'))),
+        if (_won && _celebrate && !_effectsHeld && _feedback.rewards)
+          Positioned.fill(child: VictorySparks(key: ValueKey('goods-victory-$_deal'), enabled: true)),
       ]),
       auxRow: AuxBar(children: [
         AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _history.isEmpty ? null : _undo),
@@ -714,6 +769,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
             ])
           : null,
       pauseActions: [
+        if (widget.reviewAction != null) widget.reviewAction!,
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
         if (_history.isNotEmpty) PauseAction(label: L.t('btn_undo'), icon: Icons.undo, onPressed: _undo),
       ],

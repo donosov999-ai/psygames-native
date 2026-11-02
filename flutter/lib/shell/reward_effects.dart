@@ -23,7 +23,8 @@ class RewardStar extends StatelessWidget {
 }
 
 class VictorySparks extends StatefulWidget {
-  const VictorySparks({super.key});
+  const VictorySparks({super.key, this.enabled = rewardEffectsPilot});
+  final bool enabled;
   @override
   State<VictorySparks> createState() => _VictorySparksState();
 }
@@ -31,7 +32,7 @@ class _VictorySparksState extends State<VictorySparks> {
   final game = _Sparks();
   @override
   Widget build(BuildContext context) {
-    if (!rewardEffectsPilot || MediaQuery.disableAnimationsOf(context)) return const SizedBox.shrink();
+    if (!widget.enabled || MediaQuery.disableAnimationsOf(context) || MediaQuery.accessibleNavigationOf(context)) return const SizedBox.shrink();
     return IgnorePointer(child: ExcludeSemantics(child: GameWidget(game: game)));
   }
 }
