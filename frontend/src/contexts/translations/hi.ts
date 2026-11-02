@@ -16,7 +16,6 @@ const t: Record<string, string> = {
   settingsSynapseSummary: "दिखावट, गति, आकार",
   settingsDataSupport: "डेटा और सहायता",
   settingsHelpSummary: "परिचय, प्रतिक्रिया, अपडेट",
-  settingsTheme: "थीम",
   settingsPresetCount: "सभी {n} प्रीसेट",
   settingsCustomize: "रंग-पट्टिका बदलें",
   settingsTransferOptions: "अन्य स्थानांतरण विकल्प",

@@ -72,7 +72,6 @@ const translations: Translations = {
   settingsSynapseSummary: { ru: "Показ, движение, размер", en: "Visibility, movement, size" },
   settingsDataSupport: { ru: "Данные и поддержка", en: "Data & support" },
   settingsHelpSummary: { ru: "Обучение, отзывы, обновления", en: "Tutorial, feedback, updates" },
-  settingsTheme: { ru: "Тема", en: "Theme" },
   settingsPresetCount: { ru: "Все пресеты: {n}", en: "All {n} presets" },
   settingsCustomize: { ru: "Настроить палитру", en: "Customize palette" },
   settingsTransferOptions: { ru: "Другие способы переноса", en: "More transfer options" },

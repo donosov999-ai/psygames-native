@@ -7,6 +7,16 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.57",
+   "date": "2026-11-02",
+   "items": [
+    "Settings: compact sections for appearance, sound, Synapse, language, backups and help; Classic remains available",
+    "Goods Sort: items land precisely in their new shelf position with a soft settling effect",
+    "Victory sparks appear after the last item lands; rapid taps, pause and undo cancel stale effects",
+    "Game rules, stars and saved progress remain unchanged; experimental sound and haptics stay off"
+   ]
+  },
+  {
    "version": "v2.56.56",
    "date": "2026-11-01",
    "items": [

@@ -12,7 +12,6 @@ const t: Record<string, string> = {
   settingsSynapseSummary: "표시, 움직임, 크기",
   settingsDataSupport: "데이터 및 지원",
   settingsHelpSummary: "튜토리얼, 의견, 업데이트",
-  settingsTheme: "테마",
   settingsPresetCount: "전체 프리셋 {n}개",
   settingsCustomize: "팔레트 조정",
   settingsTransferOptions: "다른 전송 방법",

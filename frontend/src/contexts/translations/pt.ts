@@ -13,7 +13,6 @@ const t: Record<string, string> = {
   settingsSynapseSummary: "Exibição, movimento, tamanho",
   settingsDataSupport: "Dados e suporte",
   settingsHelpSummary: "Tutorial, comentários, atualizações",
-  settingsTheme: "Tema",
   settingsPresetCount: "Todos os {n} ajustes",
   settingsCustomize: "Personalizar paleta",
   settingsTransferOptions: "Mais opções de transferência",

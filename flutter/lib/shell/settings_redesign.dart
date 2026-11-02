@@ -524,7 +524,7 @@ extension _SettingsRedesign on _SettingsScreenState {
     final palette = CrystalPalette.read(_s);
     final options = [...profileGemPresets, ...extraGemPresets];
     return [
-      _sectionLabel(L.t('settingsTheme')),
+      _sectionLabel(L.t('themeLabel')),
       _choices(context, [
         for (final item in [
           ('light', L.t('theme_light'), Icons.light_mode_outlined),

@@ -13,7 +13,6 @@ const t: Record<string, string> = {
   settingsSynapseSummary: "显示、移动、大小",
   settingsDataSupport: "数据与支持",
   settingsHelpSummary: "教程、反馈、更新",
-  settingsTheme: "主题",
   settingsPresetCount: "全部 {n} 个预设",
   settingsCustomize: "自定义配色",
   settingsTransferOptions: "更多传输方式",

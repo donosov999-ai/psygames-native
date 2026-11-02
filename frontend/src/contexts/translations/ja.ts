@@ -12,7 +12,6 @@ const t: Record<string, string> = {
   settingsSynapseSummary: "表示・動き・サイズ",
   settingsDataSupport: "データとサポート",
   settingsHelpSummary: "チュートリアル・フィードバック・更新",
-  settingsTheme: "テーマ",
   settingsPresetCount: "全 {n} 件のプリセット",
   settingsCustomize: "パレットを調整",
   settingsTransferOptions: "その他の転送方法",
