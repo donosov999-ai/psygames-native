@@ -105,7 +105,8 @@ void main() {
       contains('["#feedback"].attach()'),
       contains('["#feedback"].record()'),
       contains('["#feedback"].tab("dialog")'),
-      contains('["#feedback"].send()'),
+      // Текст поля — вместе с «Отправить» (задача 8a54415a): на iPhone до веба доходила только первая правка.
+      contains('["#feedback"].send("Новый текст")'),
       contains('["#feedback"].close()'),
     ]);
   });
@@ -161,7 +162,7 @@ void main() {
     expect(js, isEmpty);
     expect(t.widget<TextField>(key('feedback-text')).focusNode!.hasFocus, isTrue);
     await t.tap(key('feedback-go'));
-    expect(js.single, contains('["#feedback"].sendShort()'));
+    expect(js.single, contains('["#feedback"].sendShort('));
     js.clear();
     ScreenUi.model(route).value = {
       ...m,
@@ -177,7 +178,7 @@ void main() {
     await t.pump();
     await t.tap(key('feedback-keep'));
     await t.tap(key('feedback-go'));
-    expect(js, [contains('["#feedback"].drop()'), contains('["#feedback"].sendSilent()')]);
+    expect(js, [contains('["#feedback"].drop()'), contains('["#feedback"].sendSilent(')]);
   });
 
   testWidgets('🔴 голос: идёт запись — красная рамка, полоска уровня долей ширины; заметка — прослушать и убрать', (t) async {

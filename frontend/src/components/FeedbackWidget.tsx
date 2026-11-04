@@ -509,9 +509,13 @@ export default function FeedbackWidget() {
     drop: () => dropNote(),
     play: () => playNote(),
     attach: () => setAttachShot((v) => !v),
-    send: () => { void submit(); },
-    sendSilent: () => { setSilentAck(true); void submit(true); },
-    sendShort: () => { setShortAckFor(text.trim()); void submit(false, true); },
+    // 🔴 Оболочка шлёт с «Отправить» ТЕКСТ СВОЕГО ПОЛЯ (задача 8a54415a): на iPhone до веба доходила
+    // только первая правка, и в базу уходило «I» — 7 из 7 однословных отзывов, все с iOS.
+    // Источник истины — поле оболочки В МОМЕНТ нажатия, а не самый длинный из прошлых текстов:
+    // иначе после сокращения сообщения ушёл бы старый длинный (замечание Кодекса 04.11).
+    send: (v) => { void submit(false, false, v); },
+    sendSilent: (v) => { setSilentAck(true); void submit(true, false, v); },
+    sendShort: (v) => { setShortAckFor((typeof v === 'string' ? v : text).trim()); void submit(false, true, v); },
     clearError: () => setSendError(null),
   };
   hostModelRef.current = hosted ? feedbackModel({
@@ -530,17 +534,20 @@ export default function FeedbackWidget() {
    * чтение `silentAck` вернуло бы старое `false`. Отправка молча не произошла бы.
    */
   /** Правило и его замер — в `services/liveFieldText.ts`. */
-  const живойТекст = (): string => текстОтправки(text, (inputRef.current as any)?.value);
+  // Оболочка передала текст своего поля — он и уходит (даже пустой: человек стёр). Нет аргумента
+  // (старая оболочка, обычный веб) — прежнее правило: живое поле против отставшего состояния.
+  const живойТекст = (изОболочки?: unknown): string =>
+    typeof изОболочки === 'string' ? изОболочки : текстОтправки(text, (inputRef.current as any)?.value);
 
-  const submit = async (ackSilent = false, ackShort = false) => {
+  const submit = async (ackSilent = false, ackShort = false, изОболочки?: unknown) => {
     // Голосом БЕЗ текста — полноценный репорт: ради этого запись и делали.
     // Раньше здесь стояло `if (!text.trim())`, а кнопка при этом была активна,
     // если есть запись, — человек жал «Отправить», не происходило ничего, и он
     // решал, что отзывы не уходят (репорт Rulon, v1.170). Условие должно
     // совпадать с условием доступности кнопки, иначе кнопка врёт.
-    if ((!text.trim() && !note) || sendingRef.current) return;
     // Живое поле спрашивается ОДИН раз и здесь: дальше по функции текст один.
-    const текст = живойТекст();
+    const текст = живойТекст(изОболочки);
+    if ((!текст.trim() && !note) || sendingRef.current) return;
     /**
      * 🔴 НЕМУЮ ЗАПИСЬ НЕ ОТПРАВЛЯЕМ МОЛЧА.
      *
