@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.58',
+    date: '2026-11-04',
+    en: [
+      'Pause in every game with levels: “Easier level” and “Harder level”',
+      'Mental rotation: the board no longer jumps after an answer, the review fits on screen',
+      'Klotski (Slide): a “drag the block” hint until your first move',
+      'One feedback bug per screen: in games it sits in the header; Workout and section menus now have it too',
+      'Pause / Workout practices: a single pause button — the shared one',
+    ],
+    ru: [
+      'Пауза в каждой игре с уровнями: «Уровень проще» и «Уровень сложнее»',
+      'Ментальная ротация: поле больше не прыгает после ответа, разбор помещается на экране',
+      'Клоцки: подсказка «тяни блок» до первого хода',
+      'Один жук отзыва на экран: в играх — в шапке; на «Зарядке» и в меню разделов он теперь тоже есть',
+      'Практики «Пауза / Зарядка»: одна кнопка паузы — общая',
+    ],
+  },
+  {
     version: '2.56.57',
     date: '2026-11-02',
     en: [
