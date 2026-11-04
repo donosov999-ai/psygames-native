@@ -80,8 +80,8 @@ void main() {
   testWidgets('«Аврора», вкладка: заголовок, «Игр и режимов: N» по каталогу, шестерёнка ведёт в настройки', (t) async {
     final opened = <String>[];
     await open(t, UiTemplate.aurora, embedded: true, onOpen: opened.add);
-    final catalog = Catalog.fromJson(_asset('assets/catalog.json'), _asset('assets/hubs.json'));
-    final n = catalog.entries.where((e) => !e.hub).length;
+    // Одно число с настройками, магазинами и сайтом — PUBLIC_GAME_COUNT, не записи каталога.
+    final n = (_asset('assets/profiles.json')['flags']['PUBLIC_GAME_COUNT'] as num).toInt();
     expect(n, greaterThan(100), reason: 'считаются игры и режимы за развилками, а не только плитки');
     expect(t.widget<Text>(key('catalog-count')).data, 'Игр и режимов: $n');
     await t.tap(key('catalog-settings'));
