@@ -255,6 +255,10 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       _shadow?.recordDeal(level: _dealLevel, given: _given!, pool: _genPool, mode: Leniency.normal);
     }
     final ok = engine.start(_gameIndex, step.params, widget.seed ?? DateTime.now().millisecondsSinceEpoch % 100000);
+    // Новая доска — незаконченный жест прошлой не держит ввод: иначе следующее нажатие
+    // отбрасывалось бы (`_press` ждёт `_pointer == null`).
+    _pointer = null;
+    _dealPos = engine.statePos;
     setState(() {
       _failure = ok ? null : L.f('puzzleErrBuild', {'params': step.params});
       _won = false;
@@ -356,6 +360,9 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
    * даёт правую кнопку сама.
    */
   int? _pointer;
+
+  /// Позиция истории движка сразу после раздачи: ход сделан, когда `statePos` ушёл дальше.
+  int _dealPos = 0;
   int _button = 0;
   ({int x, int y})? _last;
 
@@ -703,6 +710,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
         lost: _lost,
         reviewAfterLoss: _reviewAfterLoss,
         status: _status,
+        moved: (_engine?.statePos ?? 0) > _dealPos,
         onDigit: _digit,
         onArrow: _arrow,
         onDiagonal: _diagonal,
@@ -756,6 +764,7 @@ class _Toolbar extends StatelessWidget {
     required this.lost,
     required this.reviewAfterLoss,
     required this.status,
+    this.moved = true,
     required this.onDigit,
     required this.onArrow,
     required this.onDiagonal,
@@ -771,6 +780,9 @@ class _Toolbar extends StatelessWidget {
   final bool lost;
   final bool reviewAfterLoss;
   final String status;
+
+  /// На этой доске уже был ход — подсказка «тяни» больше не нужна.
+  final bool moved;
   final void Function(int) onDigit;
   final void Function(int side) onArrow;
   final void Function(String digit) onDiagonal;
@@ -843,9 +855,13 @@ class _Toolbar extends StatelessWidget {
       // Своя подпись тычка у режима, где общая «отмечает клетку» ничего не объясняет (`тычок`).
       final tap = mode.tapKey;
       final idle = mode.dragOnly ? L.t('puzzleDragHint') : tap != null ? L.t(tap) : L.t('puzzleTapHint');
+      // 🔴 «Тяни» — до первого хода, даже если движок уже пишет статус. У «Клоцек» строка
+      // всегда непустая («Moves: 0»), и подсказку не видел никто: жалоба d8d32a1a «блок не
+      // перетаскивается, ничего не работает» — тычок у Slide хода не даёт по замыслу автора.
+      final untouched = mode.dragOnly && !moved;
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        child: Text(status.isEmpty ? idle : status,
+        child: Text(status.isEmpty || untouched ? idle : status,
             textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
       );
     }
