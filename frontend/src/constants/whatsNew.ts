@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.59',
+    date: '2026-11-04',
+    en: [
+      'Feedback: the message is sent exactly as written in the field — a shortened text no longer reverts to an older one',
+      'Games tab: the header shows the same count as Settings and the store — 131 games and modes',
+    ],
+    ru: [
+      'Отзыв: сообщение уходит ровно таким, как в поле — сокращённый текст больше не подменяется прежним',
+      'Вкладка «Игры»: в шапке то же число, что в настройках и магазине — 131 игра и режим',
+    ],
+  },
+  {
     version: '2.56.58',
     date: '2026-11-04',
     en: [
