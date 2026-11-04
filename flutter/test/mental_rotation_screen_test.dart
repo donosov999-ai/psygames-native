@@ -227,6 +227,43 @@ void main() {
     expect(card.bottom, lessThanOrEqualTo(640), reason: 'карточка ответа не уходит за экран');
   });
 
+  // 🔴 Жалоба e30392f6 (11.10, уровень 7, раунд 6/10): «почему ездит вверх-вниз и я не вижу ответ
+  // правильный». Нижняя панель росла после ответа (подписи под вариантами + «Следующий раунд»),
+  // а эталон в разборе сжимался — поле прыгало, разбор уходил под край. Держим: поле и ряд вариантов
+  // стоят на месте до ответа, на разборе и в следующем раунде; разбор целиком в поле.
+  testWidgets('🔴 поле не ездит: до ответа, на разборе и в следующем раунде — те же места', (tester) async {
+    const seed = 'проба-промах';
+    await boot(tester, size: const Size(360, 640), rng: createRng(seed));
+    await tester.tap(find.byKey(const Key('заданий5')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('начать')));
+    await tester.pump();
+
+    final field = find.byKey(const Key('game-field'));
+    final fieldBefore = tester.getRect(field);
+    final optionBefore = tester.getRect(find.byKey(const Key('вариант0')));
+
+    final replay = createRng(seed);
+    final plan = planTaskKinds(1, 5, replay);
+    final task = buildTask(plan[0], 1, replay);
+    final wrong = task.correctIdx == 0 ? 1 : 0;
+    await tester.tap(find.byKey(Key('вариант$wrong')));
+    await tester.pump();
+    expect(find.byKey(const Key('следующий-раунд')), findsOneWidget, reason: 'промах — разбор');
+
+    expect(tester.getRect(field), fieldBefore, reason: 'поле не меняет места и высоты от ответа');
+    expect(tester.getRect(find.byKey(const Key('вариант0'))), optionBefore, reason: 'ряд вариантов не прыгает');
+    final review = tester.getRect(find.byKey(const Key('разбор')));
+    expect(review.bottom, lessThanOrEqualTo(fieldBefore.bottom), reason: 'объяснение разбора видно без прокрутки');
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.byKey(const Key('следующий-раунд')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 900));
+    expect(tester.getRect(field), fieldBefore, reason: 'в следующем раунде поле на том же месте');
+    expect(tester.getRect(find.byKey(const Key('вариант0'))), optionBefore);
+  });
+
   testWidgets('🔴 уход с экрана гасит таймеры партии', (tester) async {
     await boot(tester);
     await tester.tap(find.byKey(const Key('начать')));

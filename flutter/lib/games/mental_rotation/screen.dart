@@ -363,6 +363,16 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
           ? AuxBar(
               children: [
                 AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _startRun),
+                // 🔴 «Следующий раунд» — в тулбаре, а не кнопкой под вариантами: она растила
+                // нижнюю панель, и поле с эталоном прыгало вверх-вниз (жалоба e30392f6, 11.10).
+                // Управление — в тулбар (CHATS_RULES.md §1в). Высота ряда от неё не меняется.
+                if (_reviewing)
+                  AuxAction(
+                    key: const Key('следующий-раунд'),
+                    icon: Icons.arrow_forward,
+                    label: _records.length < _trials ? mrWord('reviewNextRound') : mrWord('reviewFinishLevel'),
+                    onPressed: _nextTrial,
+                  ),
                 AuxAction(
                   icon: Icons.rotate_right,
                   label: mrWord('rotateManually'),
@@ -634,20 +644,6 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
                     ],
                   ],
                 ),
-                if (_reviewing)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        key: const Key('следующий-раунд'),
-                        onPressed: _nextTrial,
-                        child: Text(
-                          _records.length < _trials ? mrWord('reviewNextRound') : mrWord('reviewFinishLevel'),
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -748,8 +744,11 @@ class _OptionCard extends StatelessWidget {
       key: Key('вариант$index'),
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
+      // 🔴 ГАБАРИТ КАРТОЧКИ НЕ МЕНЯЕТСЯ ОТ ОТВЕТА (жалоба e30392f6 «поле ездит вверх-вниз»): место
+      // под подпись из двух строк есть всегда, а толстая рамка ответа съедает поле, а не растит
+      // карточку. Иначе нижняя панель росла после каждого ответа и поле с эталоном прыгало.
       child: Container(
-        padding: const EdgeInsets.all(4),
+        padding: EdgeInsets.all(4 + (3 - width)),
         decoration: BoxDecoration(
           border: Border.all(color: border, width: width),
           borderRadius: BorderRadius.circular(12),
@@ -758,19 +757,22 @@ class _OptionCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             child,
-            if (note != null)
-              SizedBox(
-                width: side,
-                child: Text(
-                  note!,
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
+            SizedBox(
+              width: side,
+              height: MediaQuery.textScalerOf(context).scale(11) * 1.3 * 2,
+              child: note == null
+                  ? null
+                  : Text(
+                      note!,
+                      maxLines: 2,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11,
+                        height: 1.2,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+            ),
           ],
         ),
       ),
@@ -799,9 +801,13 @@ class _TaskField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    // Эталон занимает большую часть поля; в разборе часть высоты уходит на объяснение.
-    final base = (height * (reviewing ? 0.42 : 0.62)).clamp(120.0, 320.0).toDouble();
+    // 🔴 Эталон ОДНОГО размера в игре и в разборе (жалоба e30392f6): раньше в разборе он сжимался
+    // с 0.62 до 0.42 высоты поля — вместе с ростом нижней панели это и было «ездит вверх-вниз».
+    // Долю взяли такую, чтобы разбор (подсказка, кадры, шаг) помещался под эталоном без прокрутки.
+    final base = (height * 0.44).clamp(120.0, 320.0).toDouble();
     return ListView(
+      // Своя прокрутка на каждое задание: прошлое положение не переносится в новый раунд.
+      key: ObjectKey(task),
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
       children: [
         // Вид задания подписан в поле, а не в шапке: шапка — про счётчики, а смена задания
