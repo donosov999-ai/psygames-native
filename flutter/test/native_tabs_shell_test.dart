@@ -860,6 +860,8 @@ void main() {
     expect(find.byKey(const Key('warmup-picker')), findsOneWidget);
     expect(find.byType(NativeTabBar), findsOneWidget);
     expect(t.widget<NativeTabBar>(find.byType(NativeTabBar)).active, '/warmup-picker');
+    // Один жук bugFX и здесь (канон §bugFX, 04.11): экран поверх страницы входа не имел вовсе.
+    expect(find.byKey(const Key('feedback-fab')), findsOneWidget);
     page().js.clear();
     await t.tap(find.byKey(const Key('warmup-picker-start')));
     await t.pump();
