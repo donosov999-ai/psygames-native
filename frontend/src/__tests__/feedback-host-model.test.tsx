@@ -203,6 +203,51 @@ describe('Форма отзыва под оболочкой', () => {
     expect(mockSend.mock.calls[0][0].message).toBe('Pause menu button does nothing');
   });
 
+  // Замечание Кодекса 04.11: «самый длинный» отправлял старый текст после сокращения. Источник истины —
+  // поле оболочки в момент нажатия.
+  it('🔴 сократил сообщение — уходит КОРОТКОЕ актуальное, не старое длинное', async () => {
+    const { act } = await смонтировать();
+    await act('open', '/games/hanoi', '/__psy_shot/5.png');
+    await act('text', 'I cannot continue the game after the pause menu', 1);
+    await act('send', 'Pause button fails on resume');
+    expect(mockSend.mock.calls[0][0].message).toBe('Pause button fails on resume');
+  });
+
+  it('🔴 та же длина, другой текст — уходит текущий', async () => {
+    const { act } = await смонтировать();
+    await act('open', '/games/hanoi', '/__psy_shot/6.png');
+    await act('text', 'Level twelve is broken', 1);
+    await act('send', 'Level eleven is broken');
+    expect(mockSend.mock.calls[0][0].message).toBe('Level eleven is broken');
+  });
+
+  it('🔴 стёр текст в поле оболочки — старый не воскресает, пустое не уходит', async () => {
+    const { act } = await смонтировать();
+    await act('open', '/games/hanoi', '/__psy_shot/7.png');
+    await act('text', 'Some old draft text here', 1);
+    await act('send', '');
+    expect(mockSend).not.toHaveBeenCalled();
+  });
+
+  it('🔴 старая оболочка без аргумента — прежнее поведение: уходит состояние веба', async () => {
+    const { act } = await смонтировать();
+    await act('open', '/games/hanoi', '/__psy_shot/8.png');
+    await act('text', 'Old shell sends text by edits only', 1);
+    await act('send');
+    expect(mockSend.mock.calls[0][0].message).toBe('Old shell sends text by edits only');
+  });
+
+  it('🔴 «всё равно отправить» с текстом поля — уходит он, без второго переспроса', async () => {
+    const { act } = await смонтировать();
+    await act('open', '/games/hanoi', '/__psy_shot/9.png');
+    await act('text', 'Long stale state text from the web side', 1);
+    await act('send', 'Bug');
+    expect(mockSend).not.toHaveBeenCalled();
+    await act('sendShort', 'Bug');
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    expect(mockSend.mock.calls[0][0].message).toBe('Bug');
+  });
+
   it('🔴 живое состояние партии из шапки нативной игры — в game_state отчёта; без игры — сброс (задача 75348e44)', async () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports -- тот же экземпляр, что у виджета
     const { readFeedbackGameState, publishFeedbackGameState } = require('@/src/services/feedbackGameState');
