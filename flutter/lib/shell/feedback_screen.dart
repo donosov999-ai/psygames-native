@@ -712,7 +712,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                     sending ? spinner : label(go['label'], _white),
                     _amber,
                     _amber,
-                    sending ? null : () => _act(_s(go['action'])),
+                    sending ? null : () => _act(_s(go['action']), [_field.text]),
                   ),
                 ],
               ),
@@ -727,7 +727,9 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         enabled: enabled,
         child: GestureDetector(
           key: const ValueKey('feedback-send'),
-          onTap: enabled ? () => _act('send') : null,
+          // 🔴 Текст поля — вместе с «Отправить» (задача 8a54415a): на iPhone до веба доходила только первая
+          // правка, и уходило «I». Веб берёт самый полный из своего состояния и этого текста.
+          onTap: enabled ? () => _act('send', [_field.text]) : null,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 15),
             alignment: Alignment.center,
