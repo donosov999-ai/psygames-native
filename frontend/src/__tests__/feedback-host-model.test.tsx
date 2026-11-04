@@ -181,6 +181,28 @@ describe('Форма отзыва под оболочкой', () => {
     expect(last().open).toBe(false);
   });
 
+  // 🔴 Задача 8a54415a: 7 из 7 однословных отзывов — «I», все с iPhone. До веба доходила только первая
+  // правка поля оболочки; «Отправить» брал «I», переспрашивал «слишком коротко», и человек соглашался.
+  // Теперь оболочка шлёт с «Отправить» текст своего поля, и уходит самый полный.
+  it('🔴 «Отправить» из оболочки уходит с ПОЛНЫМ текстом её поля, даже если до веба дошла только первая правка', async () => {
+    const { last, act } = await смонтировать();
+    await act('open', '/games/hanoi', '/__psy_shot/3.png');
+    await act('text', 'I', 1);
+    expect(last().form.text).toBe('I');
+    const full = "I can't continue the game after pause";
+    await act('send', full);
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    expect(mockSend.mock.calls[0][0].message).toBe(full);
+  });
+
+  it('🔴 веб пуст, а поле оболочки полное — «Отправить» не молчит', async () => {
+    const { act } = await смонтировать();
+    await act('open', '/games/hanoi', '/__psy_shot/4.png');
+    await act('send', 'Pause menu button does nothing');
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    expect(mockSend.mock.calls[0][0].message).toBe('Pause menu button does nothing');
+  });
+
   it('🔴 живое состояние партии из шапки нативной игры — в game_state отчёта; без игры — сброс (задача 75348e44)', async () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports -- тот же экземпляр, что у виджета
     const { readFeedbackGameState, publishFeedbackGameState } = require('@/src/services/feedbackGameState');
