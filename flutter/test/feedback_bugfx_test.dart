@@ -97,12 +97,28 @@ void main() {
     expect(t.takeException(), isNull);
   }
 
+  // 🔴 ОДИН ЖУК НА ЭКРАН (канон §bugFX, решение Дениса 04.11): в игре — кнопкой в шапке,
+  // плавающая — только у экрана «только поле», где шапки нет. Раньше проба закрепляла ДВА.
+  testWidgets(
+    'one bugFX per game screen: header in a normal game, FAB only on field-only',
+    (t) async {
+      final semantics = t.ensureSemantics();
+      await mount(t);
+      expect(fab, findsNothing, reason: 'в игре с шапкой плавающий жук — второй вход');
+      expect(header, findsOneWidget);
+      await mount(t, fieldOnly: true);
+      expect(header, findsNothing);
+      expect(fab, findsOneWidget);
+      semantics.dispose();
+    },
+  );
+
   testWidgets(
     'button and header show bug + exact bugFX with localized accessibility',
     (t) async {
       final semantics = t.ensureSemantics();
-      await mount(t);
-      for (final button in [fab, header]) {
+      for (final (fieldOnly, button) in [(false, header), (true, fab)]) {
+        await mount(t, fieldOnly: fieldOnly);
         expect(
           find.descendant(of: button, matching: find.text('bugFX')),
           findsOneWidget,
@@ -112,15 +128,15 @@ void main() {
           findsOneWidget,
         );
         expect(t.getRect(button).height, greaterThanOrEqualTo(48));
+        expect(find.byTooltip(L.t('feedbackFabLabel')), findsOneWidget);
+        expect(find.bySemanticsLabel(L.t('feedbackFabLabel')), findsOneWidget);
       }
-      expect(find.byTooltip(L.t('feedbackFabLabel')), findsNWidgets(2));
-      expect(find.bySemanticsLabel(L.t('feedbackFabLabel')), findsNWidgets(2));
       semantics.dispose();
     },
   );
 
   testWidgets(
-    'game FAB opens existing feedback sheet and leaves the game intact',
+    'game header bugFX opens existing feedback sheet and leaves the game intact',
     (t) async {
       var moves = 0;
       final nav = GlobalKey<NavigatorState>();
@@ -140,7 +156,7 @@ void main() {
         ),
       );
       await t.tap(find.text('Move'));
-      await t.tap(fab);
+      await t.tap(header);
       await t.pumpAndSettle();
       expect(find.byType(FeedbackScreen), findsOneWidget);
       expect(find.byKey(const ValueKey('feedback-sheet')), findsOneWidget);
@@ -173,7 +189,7 @@ void main() {
   );
 
   testWidgets(
-    'hide setting suppresses both game buttons and reacts without remount',
+    'hide setting suppresses the game header bugFX and reacts without remount',
     (t) async {
       await state.set(FabRules.visibleKey, '0');
       await mount(t);
@@ -181,7 +197,7 @@ void main() {
       expect(header, findsNothing);
       await state.set(FabRules.visibleKey, '1');
       await t.pump();
-      expect(fab, findsOneWidget);
+      expect(fab, findsNothing, reason: 'в игре с шапкой плавающего нет и при включённой настройке');
       expect(header, findsOneWidget);
       await state.set(FabRules.visibleKey, '0');
       await t.pump();
@@ -224,13 +240,15 @@ void main() {
     testWidgets('320x568 safe area and readable text at scale $scale', (
       t,
     ) async {
-      await mount(t, scale: scale, onLesson: () {});
+      await mount(t, scale: scale, onLesson: () {}, fieldOnly: true);
       withinSafe(
         t,
         const Size(320, 568),
         const EdgeInsets.only(top: 44, bottom: 34),
       );
-      for (final button in [fab, header]) {
+      for (final fieldOnly in [true, false]) {
+        await mount(t, scale: scale, onLesson: () {}, fieldOnly: fieldOnly);
+        final button = fieldOnly ? fab : header;
         final label = find.descendant(of: button, matching: find.text('bugFX'));
         expect(t.getRect(button).contains(t.getRect(label).topLeft), isTrue);
         expect(
@@ -247,7 +265,7 @@ void main() {
       await state.set(FabRules.spotKey, '{"fx":1,"fy":1}');
       const size = Size(568, 320);
       const padding = EdgeInsets.fromLTRB(44, 0, 44, 21);
-      await mount(t, size: size, padding: padding, scale: 2);
+      await mount(t, size: size, padding: padding, scale: 2, fieldOnly: true);
       withinSafe(t, size, padding);
     },
   );
@@ -274,7 +292,7 @@ void main() {
     (t) async {
       var opened = 0;
       GameExit.feedback = () => opened++;
-      await mount(t);
+      await mount(t, fieldOnly: true);
       final gesture = await t.startGesture(t.getCenter(fab));
       await gesture.moveBy(const Offset(1000, -1000));
       await t.pump();
@@ -289,7 +307,7 @@ void main() {
       expect(saved, isNotNull);
       final dropped = t.getRect(fab);
       await t.pumpWidget(const SizedBox.shrink());
-      await mount(t);
+      await mount(t, fieldOnly: true);
       expect(t.getRect(fab), dropped);
       expect(opened, 0);
     },

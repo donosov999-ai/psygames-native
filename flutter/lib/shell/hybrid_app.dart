@@ -1456,6 +1456,13 @@ class _HybridAppState extends State<HybridApp> {
     // Снимок ключей, которые веб читает при запуске: после нативных настроек сравним.
     final watchedBefore = _watchedSnapshot();
     if (step != null && stepInfo == null) unawaited(_loadStepInfo(step, _openedWarmupOwner));
+    // 🔴 ОДИН ЖУК bugFX НА ЭКРАН (канон §bugFX, решение Дениса 04.11). Экраны оболочки поверх
+    // страницы (вкладка «Зарядка», развилки разделов) входа не имели вовсе: плавающая кнопка
+    // стоит на корневом Scaffold и закрыта маршрутом. Игре — не нужно: у неё жук в шапке каркаса.
+    Widget withFeedbackFab(Widget child) => Stack(fit: StackFit.expand, children: [
+          child,
+          FeedbackFab(state: widget.state, onOpen: () => unawaited(_openFeedback(route))),
+        ]);
     late final MaterialPageRoute<dynamic> page;
     page = MaterialPageRoute<dynamic>(
         // «Заново» в паузе любой игры — пересоздание экрана в RestartScope (restart_scope.dart).
@@ -1465,7 +1472,7 @@ class _HybridAppState extends State<HybridApp> {
         builder: (_) => step == null
             ? _tabsReady && NativeTabs.tabs.any((t) => t.route == route)
                 ? Scaffold(
-                    body: RestartScope(builder: (_) => build(widget.state)),
+                    body: withFeedbackFab(RestartScope(builder: (_) => build(widget.state))),
                     bottomNavigationBar: NativeTabBar(
                       active: route,
                       accent: WebTheme.accent(widget.state),
@@ -1475,7 +1482,9 @@ class _HybridAppState extends State<HybridApp> {
                       },
                     ),
                   )
-                : RestartScope(builder: (_) => build(widget.state))
+                : game == null && route != '/settings'
+                    ? withFeedbackFab(RestartScope(builder: (_) => build(widget.state)))
+                    : RestartScope(builder: (_) => build(widget.state))
             : WarmupStepFrame(
                 info: step,
                 onSkip: () => _skipNativeStep(page, _openedWarmupOwner),

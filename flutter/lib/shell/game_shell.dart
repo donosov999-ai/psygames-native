@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'aurora_glass.dart';
 import 'aux_action.dart';
 import 'aurora_scope.dart';
@@ -256,10 +258,13 @@ class GameShell extends StatelessWidget {
               ),
           ],
         );
+    // 🔴 ОДИН ЖУК bugFX НА ЭКРАН (канон §bugFX, решение Дениса 04.11): в игре — кнопкой в шапке,
+    // как в «Авроре»; плавающая здесь была второй (Classic — шаблон по умолчанию). Плавающая
+    // остаётся только у экрана «только поле», где шапки нет.
     return Scaffold(
-      body: _withFeedback(SafeArea(
+      body: SafeArea(
         child: spot == null ? body : LevelRuleWatcher(spot: spot, child: body),
-      )),
+      ),
     );
   }
 
@@ -516,7 +521,7 @@ class _PauseScreen extends StatelessWidget {
                           () => Navigator.of(context).pop(),
                           primary: true, key: const Key('pause-resume')),
                       if (GameExit.feedback != null)
-                        button(L.t('feedbackFabLabel'), Icons.chat_bubble_outline,
+                        button(L.t('feedbackFabLabel'), Icons.bug_report_outlined,
                             GameExit.feedback!, key: const Key('pause-feedback')),
                       if (ruleKey != null)
                         Padding(
@@ -1052,7 +1057,7 @@ class _Header extends StatelessWidget {
         child: IconButton(
         key: const Key('game-feedback'),
         onPressed: onFeedback,
-        icon: const ExcludeSemantics(child: FeedbackBugMark()),
+        icon: ExcludeSemantics(child: FeedbackBugMark(color: FabRules.color)),
         padding: EdgeInsets.zero,
         constraints: BoxConstraints.tight(size),
         style: IconButton.styleFrom(
@@ -1226,10 +1231,36 @@ class _AuroraHeader extends StatelessWidget {
             ring(context, key: const Key('game-lesson'), icon: Icons.school_outlined, tooltip: L.t('teachButton'), onTap: onLesson!, size: size),
           if (onRules != null) ring(context, icon: Icons.help_outline, tooltip: L.t('btn_rules'), onTap: onRules!, size: size),
         ],
-        // Отзыв — значком жука, как плавающая bugFX: облачко не читалось как «сообщить о проблеме».
+        // Отзыв — КРАСНЫМ жуком bugFX, как везде (канон §bugFX): золотое кольцо с контурным жуком
+        // не читалось как «сообщить о проблеме». Зона нажатия — не меньше 44 px, даже если кольцо
+        // на узком экране меньше.
         if (onFeedback != null)
-          ring(context,
-              key: const Key('game-feedback'), icon: Icons.bug_report_outlined, tooltip: L.t('feedbackFabLabel'), onTap: onFeedback!, size: size),
+          Tooltip(
+            message: L.t('feedbackFabLabel'),
+            child: Semantics(
+              button: true,
+              label: L.t('feedbackFabLabel'),
+              excludeSemantics: true,
+              onTap: onFeedback,
+              child: InkResponse(
+                key: const Key('game-feedback'),
+                onTap: onFeedback,
+                radius: 26,
+                child: SizedBox(
+                  width: math.max(44, size + 8),
+                  height: math.max(44, size),
+                  child: Center(
+                    child: Container(
+                      width: size,
+                      height: size,
+                      decoration: AuroraGlass.ring(Theme.of(context).brightness == Brightness.dark),
+                      child: Center(child: FittedBox(child: FeedbackBugMark(color: FabRules.color))),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
       ]),
     );
   }

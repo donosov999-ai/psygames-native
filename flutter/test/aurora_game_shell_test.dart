@@ -175,7 +175,12 @@ void main() {
     await t.pumpAndSettle();
     expect(rules, 1);
     // Отзыв — значком жука.
-    expect(find.descendant(of: key('game-feedback'), matching: find.byIcon(Icons.bug_report_outlined)), findsOneWidget);
+    // Отзыв — красный жук bugFX (канон §bugFX), зона нажатия не меньше 44 px.
+    expect(find.descendant(of: key('game-feedback'), matching: find.byIcon(Icons.bug_report)), findsOneWidget);
+    expect(find.descendant(of: key('game-feedback'), matching: find.text('bugFX')), findsOneWidget);
+    final bug = t.getSize(key('game-feedback'));
+    expect(bug.width, greaterThanOrEqualTo(44));
+    expect(bug.height, greaterThanOrEqualTo(44));
     // Пауза: «Заново» слева от «Продолжить» в одном ряду; прочие пункты — строками ниже.
     await t.tap(key('game-pause'));
     await t.pumpAndSettle();
