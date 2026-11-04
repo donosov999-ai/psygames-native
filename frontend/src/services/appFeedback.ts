@@ -351,6 +351,15 @@ const AUDIO_CAP_MS = 45000;   // запись — это сам репорт, е
 
 export async function sendFeedback(args: SendArgs): Promise<SendResult> {
   const hadAudio = !!args.audio?.blob;
+  /**
+   * ⏱ СКОЛЬКО ЖДАЛ ЧЕЛОВЕК — ПО ЭТАПАМ, В САМ РЕПОРТ (задача 3a7f4077). Денис: «отправка иногда ждёт
+   * 10–20 с». Замер 29.10: в контексте 7 отзывов за 14 дней нет ни одного времени — чинить было не по чему.
+   * `send_ms`: shot и audio — загрузка вложений, pre — всё до записи строки. Саму запись строка о себе
+   * не знает: её время — разница между pre и тем, что человек видел (снаружи).
+   */
+  const t0 = Date.now();
+  let shotMs: number | null = null;
+  let audioMs: number | null = null;
   try {
     const supabase = getSupabase();
     const person = (globalThis as any).__psygames_active_person as string | undefined;
@@ -379,7 +388,9 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
     const shot_bytes = args.shot ? args.shot.size : null;
     if (args.shot) {
       const name = `${new Date().toISOString().slice(0, 10)}/${Math.random().toString(36).slice(2)}.jpg`;
+      const ts = Date.now();
       shot_up = await putFile(SHOT_BUCKET, name, args.shot, 'image/jpeg', SHOT_CAP_MS);
+      shotMs = Date.now() - ts;
       if (shot_up.startsWith('ok')) shot_path = name;
     }
 
@@ -410,7 +421,9 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
           audio_up = 'too_big';
         } else {
           const name = `${new Date().toISOString().slice(0, 10)}/${Math.random().toString(36).slice(2)}.${extFor(args.audio.mime)}`;
+          const ta = Date.now();
           audio_up = await putFile(AUDIO_BUCKET, name, args.audio.blob, args.audio.mime, AUDIO_CAP_MS);
+          audioMs = Date.now() - ta;
           if (audio_up.startsWith('ok')) audio_path = name;
         }
       } catch (e: any) {
@@ -491,6 +504,7 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
          */
         ...netTrace(),
         net_queued: await queuedCount(),
+        send_ms: { shot: shotMs, audio: audioMs, pre: Date.now() - t0 },
         // Судьба скриншота — по тем же причинам, что и записи: в бакете нашлись ЧЕТЫРЕ
         // осиротевших файла (долиты, но ни в одной строке на них нет ссылки), а понять
         // по репорту, что там случилось, было нельзя.

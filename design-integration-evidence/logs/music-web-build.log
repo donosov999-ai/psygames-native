@@ -1,0 +1,6 @@
+собираю веб-часть с baseUrl="" (expo export)…
+[expo-notifications] Listening to push token changes is not yet fully supported on web. Adding a listener will have no effect.
+(node:13117) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+вложено файлов: 1490, каталогов в pubspec: 88
+✅ веб-часть внутри приложения:  89M

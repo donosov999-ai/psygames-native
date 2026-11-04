@@ -1,0 +1,248 @@
+{
+  "method": "mechanical alpha trim, original proportions retained",
+  "assets": [
+    {
+      "id": "dark-panel",
+      "source": "/Users/denisonosov/.codex/generated_images/01a00bd7-7b65-7130-a62a-2cdc1e6ee88f/exec-6f5f9c0d-9d0c-4471-ac44-4761063a7312.png",
+      "cell": [
+        0,
+        0
+      ],
+      "cell_bounds": [
+        0,
+        0,
+        971,
+        404
+      ],
+      "alpha_crop": [
+        23,
+        112,
+        960,
+        362
+      ],
+      "size": [
+        937,
+        250
+      ],
+      "sha256": "dc285b835fe1a0548c5e40f1b072c240c07fe2a3c4a00a14ded8dfa506225422"
+    },
+    {
+      "id": "light-panel",
+      "source": "/Users/denisonosov/.codex/generated_images/01a00bd7-7b65-7130-a62a-2cdc1e6ee88f/exec-6f5f9c0d-9d0c-4471-ac44-4761063a7312.png",
+      "cell": [
+        0,
+        1
+      ],
+      "cell_bounds": [
+        971,
+        0,
+        1942,
+        404
+      ],
+      "alpha_crop": [
+        12,
+        112,
+        949,
+        362
+      ],
+      "size": [
+        937,
+        250
+      ],
+      "sha256": "3b5b3f4de7b69100bfc1cc818b353fbdc3e73ccd15b0dc7f9619e06704cdb811"
+    },
+    {
+      "id": "dark-panel-selected",
+      "source": "/Users/denisonosov/.codex/generated_images/01a00bd7-7b65-7130-a62a-2cdc1e6ee88f/exec-6f5f9c0d-9d0c-4471-ac44-4761063a7312.png",
+      "cell": [
+        1,
+        0
+      ],
+      "cell_bounds": [
+        0,
+        404,
+        971,
+        809
+      ],
+      "alpha_crop": [
+        22,
+        42,
+        961,
+        299
+      ],
+      "size": [
+        939,
+        257
+      ],
+      "sha256": "c2c83619239f64047cc497a35a5b57f5fdd8daeab510033740ae39805de81ac5"
+    },
+    {
+      "id": "light-panel-selected",
+      "source": "/Users/denisonosov/.codex/generated_images/01a00bd7-7b65-7130-a62a-2cdc1e6ee88f/exec-6f5f9c0d-9d0c-4471-ac44-4761063a7312.png",
+      "cell": [
+        1,
+        1
+      ],
+      "cell_bounds": [
+        971,
+        404,
+        1942,
+        809
+      ],
+      "alpha_crop": [
+        11,
+        40,
+        951,
+        298
+      ],
+      "size": [
+        940,
+        258
+      ],
+      "sha256": "237a607332961dc55f619912ae67f1f0b9fbbf844344957c85d1791fdb48b847"
+    },
+    {
+      "id": "header-dark",
+      "source": "/Users/denisonosov/dev/psygames-game-lab/design-refresh-20261024/home-gem-20261031/header-dark.png",
+      "cell": null,
+      "cell_bounds": null,
+      "alpha_crop": [
+        18,
+        162,
+        2154,
+        551
+      ],
+      "size": [
+        2136,
+        389
+      ],
+      "sha256": "6ad0c66e032ef4d4b27f4c7eca94b9450bb8a26ce53e2e721bce50cbd1d4b863"
+    },
+    {
+      "id": "footer-dark",
+      "source": "/Users/denisonosov/dev/psygames-game-lab/design-refresh-20261024/home-gem-20261031/footer-dark.png",
+      "cell": null,
+      "cell_bounds": null,
+      "alpha_crop": [
+        28,
+        172,
+        2132,
+        563
+      ],
+      "size": [
+        2104,
+        391
+      ],
+      "sha256": "52484803fd96dc3ef78c95433169c92333305d31f7014fda3ba6ec150f40ad92"
+    },
+    {
+      "id": "dark-card",
+      "source": "/Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/assets/aurora_game_chrome/home_panels_pilot/dark_goal.png",
+      "cell": null,
+      "cell_bounds": null,
+      "alpha_crop": [
+        0,
+        0,
+        341,
+        336
+      ],
+      "size": [
+        341,
+        336
+      ],
+      "sha256": "b3369f4f4991348c22cd34ab219b186a1eb183793503df6d7ba8f1485dfb86ec"
+    },
+    {
+      "id": "header-light",
+      "source": "/Users/denisonosov/dev/psygames-game-lab/design-refresh-20261024/home-gem-20261031/header-light.png",
+      "cell": null,
+      "cell_bounds": null,
+      "alpha_crop": [
+        30,
+        173,
+        2143,
+        544
+      ],
+      "size": [
+        2113,
+        371
+      ],
+      "sha256": "dd6690d9589ce74aac2be7ef1b145402c382f43e772a709986314abdb16f73ea"
+    },
+    {
+      "id": "footer-light",
+      "source": "/Users/denisonosov/dev/psygames-game-lab/design-refresh-20261024/home-gem-20261031/footer-light.png",
+      "cell": null,
+      "cell_bounds": null,
+      "alpha_crop": [
+        38,
+        162,
+        2135,
+        562
+      ],
+      "size": [
+        2097,
+        400
+      ],
+      "sha256": "2d4c06bfadad6513e40df426f0e3a2e9df523e9d32862ef71bdcf50fd0a322ce"
+    },
+    {
+      "id": "light-card",
+      "source": "/Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/assets/aurora_game_chrome/home_panels_pilot/light_goal.png",
+      "cell": null,
+      "cell_bounds": null,
+      "alpha_crop": [
+        0,
+        0,
+        370,
+        363
+      ],
+      "size": [
+        370,
+        363
+      ],
+      "sha256": "d585360bac4ce1995d6360f9d287aaaabdd39d6df327595678a205cb493666f2"
+    },
+    {
+      "id": "pet-stage-dark",
+      "source": "/Users/denisonosov/.codex/generated_images/01a00bd7-7b65-7130-a62a-2cdc1e6ee88f/exec-af69a440-bdbb-4970-97fd-436a1c249562.png",
+      "cell": [
+        0,
+        0
+      ],
+      "cell_bounds": [
+        0,
+        0,
+        724,
+        1086
+      ],
+      "size": [
+        724,
+        1086
+      ],
+      "sha256": "6bc1d0c69bd5babaf587dee0ef5b01acfe113221469a4e49665c7205b032fc91"
+    },
+    {
+      "id": "pet-stage-light",
+      "source": "/Users/denisonosov/.codex/generated_images/01a00bd7-7b65-7130-a62a-2cdc1e6ee88f/exec-af69a440-bdbb-4970-97fd-436a1c249562.png",
+      "cell": [
+        0,
+        1
+      ],
+      "cell_bounds": [
+        724,
+        0,
+        1448,
+        1086
+      ],
+      "size": [
+        724,
+        1086
+      ],
+      "sha256": "f9f66b02a4ae8bdef847dc98b788ac00c9c34cbfab3cd1e3db9d7638df8cc23d"
+    }
+  ],
+  "rejected": {
+    "square-sheet-rejected.png": "square cards exceed row boundaries; do not use"
+  }
+}

@@ -669,7 +669,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       },
       auxRow: AuxBar(children: [
         AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _won ? null : _undo),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _deal),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _deal),
         // «Крупнее» — где клетка мельче пальца (или доска уже увеличена). Щипок работает везде.
         if (_zoom.zoomed || _smallCells(step))
           AuxAction(

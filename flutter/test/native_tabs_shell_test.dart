@@ -30,6 +30,7 @@ import 'package:psygames_flutter/shell/info_screens.dart';
 import 'package:psygames_flutter/shell/walking_pet.dart';
 import 'package:psygames_flutter/shell/web_game_screen.dart';
 import 'package:psygames_flutter/shell/web_theme.dart';
+import 'package:psygames_flutter/shell/warmup_screens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart' show WebViewWidget;
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart' as wv;
@@ -189,7 +190,8 @@ void main() {
     }
   }
 
-  String? active(WidgetTester t) => t.widget<NativeTabBar>(find.byType(NativeTabBar)).active;
+  // Верхняя полоса: экран-вкладка поверх страницы рисует свою (см. тест «главная → выбор зарядки»).
+  String? active(WidgetTester t) => t.widgetList<NativeTabBar>(find.byType(NativeTabBar)).last.active;
   bool catalogShown() => find.byType(CatalogScreen).evaluate().isNotEmpty; // скрытая вкладка — вне сцены
 
   testWidgets('🔴 полоса на главной; «Игры» — нативная вкладка, страница уводится router.replace', (t) async {
@@ -238,6 +240,22 @@ void main() {
     await route(t, '/games?search=${Uri.encodeQueryComponent('Мосты')}');
     await settle(t, () => find.byKey(const ValueKey('catalog-search')).evaluate().isNotEmpty);
     expect(t.widget<TextField>(find.byKey(const ValueKey('catalog-search'))).controller!.text, 'Мосты');
+  });
+
+  testWidgets('/games?filter=section:attention — вкладка со списком игр только этого раздела (плитка «Любимых разделов» «Авроры»)', (t) async {
+    await mount(t);
+    await route(t, '/games?filter=section:attention');
+    await settle(t, () => find.byKey(const ValueKey('catalog-flat')).evaluate().isNotEmpty);
+    expect(active(t), '/games');
+    final rows = find.descendant(of: find.byKey(const ValueKey('catalog-flat')), matching: find.byWidgetPredicate(
+        (w) => w.key is ValueKey && '${(w.key! as ValueKey).value}'.startsWith('catalog-row-')));
+    final routes = [for (final e in rows.evaluate()) '${(e.widget.key! as ValueKey).value}'.substring('catalog-row-'.length)];
+    expect(routes, isNotEmpty);
+    final catalog = (jsonDecode(File('assets/catalog.json').readAsStringSync()) as Map)['games'] as List;
+    final attention = {for (final g in catalog.cast<Map>()) if (g['category'] == 'attention') g['route']};
+    final other = {for (final g in catalog.cast<Map>()) if (g['category'] != null && g['category'] != 'attention') g['route']};
+    expect(routes.where((r) => attention.contains(r)), isNotEmpty, reason: 'в списке игры раздела «Внимание»: $routes');
+    expect(routes.where((r) => other.contains(r)), isEmpty, reason: 'игр других разделов нет: $routes');
   });
 
   testWidgets('🔴 на адресе игры полосы нет; назад на /games — снова вкладка с полосой', (t) async {
@@ -818,6 +836,43 @@ void main() {
     page().emit(SharedState.channel, {'op': 'screenUi', 'route': '/', 'model': homeModel()});
     await settle(t, () => find.byKey(const ValueKey('home-header')).evaluate().isNotEmpty);
   }
+
+  // 🔴 Кодекс 31.10: «Зарядка» с главной открывалась маршрутом поверх корневого Scaffold — без вкладок.
+  testWidgets('главная → выбор зарядки: нижние вкладки остаются доступны', (t) async {
+    await mount(t);
+    await nativeHome(t);
+    final list = find.descendant(of: find.byKey(const ValueKey('home-list')), matching: find.byType(Scrollable)).first;
+    await t.scrollUntilVisible(find.byKey(const ValueKey('home-card-warmup')), 200, scrollable: list);
+    await t.ensureVisible(find.byKey(const ValueKey('home-card-warmup')));
+    await t.pump();
+    await t.tap(find.byKey(const ValueKey('home-card-warmup')));
+    expect(page().js.any((script) => script.contains('__psyPush') && script.contains('/warmup-picker')), isTrue);
+    await route(t, '/warmup-picker');
+    for (var i = 0; i < 10; i++) { await t.pump(const Duration(milliseconds: 100)); }
+    expect(find.byType(WarmupPickerScreen), findsOneWidget);
+    page().emit(SharedState.channel, {'op': 'warmupUi', 'screen': 'picker', 'model': {
+      'title': 'Зарядка', 'hint': '', 'back': 'Назад', 'slots': <Object>[],
+      'series': <Object>[], 'own': <Object>[],
+      'start': {'label': 'Начать', 'disabled': false, 'tint': '#f7b733'},
+      'help': <String, Object?>{},
+    }});
+    await t.pump();
+    expect(find.byKey(const Key('warmup-picker')), findsOneWidget);
+    expect(find.byType(NativeTabBar), findsOneWidget);
+    expect(t.widget<NativeTabBar>(find.byType(NativeTabBar)).active, '/warmup-picker');
+    page().js.clear();
+    await t.tap(find.byKey(const Key('warmup-picker-start')));
+    await t.pump();
+    expect(page().js.any((script) => script.contains('__psyWarmupUi.picker.launch')), isTrue);
+    page().js.clear();
+    await t.tap(find.byKey(const ValueKey('native-tab-/')));
+    await t.pump(const Duration(milliseconds: 500));
+    expect(find.byType(WarmupPickerScreen), findsNothing);
+    expect(page().js.any((script) => script.contains('__psyReplace("/")')), isTrue);
+    await route(t, '/');
+    expect(find.byType(WarmupPickerScreen), findsNothing);
+    expect(t.widget<NativeTabBar>(find.byType(NativeTabBar)).active, '/');
+  });
 
   testWidgets('🔴 «Питомец» — нативная вкладка по модели веба; гуляки на ней нет (питомец и так на экране)', (t) async {
     await mount(t);

@@ -6,10 +6,14 @@ import 'package:flutter/rendering.dart';
 
 import 'aurora_home_hero.dart';
 import 'aurora_home_header.dart';
+import 'reward_effects.dart';
+import 'aurora_glass.dart';
+import 'aurora_hub_tile.dart';
 import 'catalog_kit.dart';
 import 'design_template.dart';
 import 'collection_model.dart' show hexOf;
 import 'feedback_fab.dart' show FabRules;
+import 'game_colors.dart';
 import 'home_inputs.dart';
 import 'home_model.dart';
 import 'l10n.dart';
@@ -261,10 +265,12 @@ class _HomeScreenState extends State<HomeScreen> {
           key: const ValueKey('home-screen'),
           color: web.background,
           child: WebTheme.textDefaults(context, Stack(children: [
-            if (bg['image'] != null)
+            if (aurora)
+              Positioned.fill(child: DecoratedBox(decoration: AuroraGlass.backdrop(Theme.of(context).brightness == Brightness.dark, lightPilot: true)))
+            else if (bg['image'] != null)
               Positioned.fill(child: Image.network(_url(_s(bg['image'])), fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox())),
             // Налёт цветом темы (18 / 30 %) — показывает купленный цвет интерфейса.
-            Positioned(
+            if (!aurora) Positioned(
               top: 0, left: 0, right: 0, height: 260,
               child: IgnorePointer(
                 child: DecoratedBox(
@@ -279,7 +285,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             // Вуаль к низу поверх фото: до 45 % почти чисто, к низу не темнее D9.
-            if (bg['veil'] != null)
+            if (!aurora && bg['veil'] != null)
               Positioned.fill(
                 child: IgnorePointer(
                   child: DecoratedBox(
@@ -309,12 +315,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       // «Аврора» (лист 01 Codex): строка «Режим», карточка зарядки с Синапсом и ряд
                       // счётчиков. Данные — те же `header` и карточка `warmup`; Classic — без изменений.
-                      if (aurora) ...[
-                        ...top!.modeAndUpdate(context),
-                        ?_auroraHero(m),
-                        top.stats(context),
-                      ],
-                      for (final b in _list(m['blocks'])) _block(context, b),
+                      if (aurora) ..._auroraList(context, m, top!)
+                      else
+                        for (final b in _list(m['blocks'])) _block(context, b),
                     ],
                   ),
                 ),
@@ -356,7 +359,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 34, vertical: 22),
               decoration: BoxDecoration(color: const Color(0xFFF59E0B), borderRadius: BorderRadius.circular(22)),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                const Text('⭐', style: TextStyle(fontSize: 40)),
+                const RewardStar(),
                 const SizedBox(height: 4),
                 Text(_s(t['title']), style: const TextStyle(color: Color(0xFF3F2B00), fontWeight: FontWeight.w900, fontSize: 24)),
                 const SizedBox(height: 4),
@@ -367,6 +370,33 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
 
+  /*
+   * «АВРОРА», КОМПАКТНАЯ ГЛАВНАЯ (HOME_DESIGN_REF.md, 30.10.2026). Сверху — то, что на рефе:
+   * режим, зарядка, поиск с фильтром, «Продолжить», счётчики, цель, «Сегодня»; затем ряды
+   * маленьких плиток (рекомендации, практики, частые разделы); подсказка лестницы и сундук —
+   * ниже. Блоки те же, что у Classic, и из той же модели веба: ни один не пропадает и не
+   * дублируется, неизвестный новый блок встаёт в конец.
+   */
+  List<Widget> _auroraList(BuildContext context, _M m, AuroraHomeTop top) {
+    const order = ['search', 'resume', '#stats', 'goal', 'today', 'reco', 'practices', 'favourites', 'ladder', 'chest', 'allForks'];
+    final blocks = _list(m['blocks']);
+    final out = <Widget>[...top.modeAndUpdate(context), ?_auroraHero(m)];
+    final used = <int>{};
+    for (final k in order) {
+      if (k == '#stats') {
+        out.add(top.stats(context));
+        continue;
+      }
+      for (var i = 0; i < blocks.length; i++) {
+        if (blocks[i]['kind'] == k && used.add(i)) out.add(_block(context, blocks[i]));
+      }
+    }
+    for (var i = 0; i < blocks.length; i++) {
+      if (!used.contains(i)) out.add(_block(context, blocks[i]));
+    }
+    return out;
+  }
+
   Widget? _auroraHero(_M m) {
     for (final b in _list(m['blocks'])) {
       if (b['kind'] != 'practices') continue;
@@ -376,7 +406,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return AuroraHomeHero(
           title: _s(c['title']),
           sub: _s(c['sub']),
-          cta: L.t('ctaStart'),
+          cta: L.t('homeStartWorkout'),
           onTap: () => widget.onOpen(href),
         );
       }
@@ -399,8 +429,17 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'today':
         return _Today(b: b, onOpen: widget.onOpen);
       case 'reco':
+        if (_isAurora(context)) {
+          return _AuroraMiniBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'sparkles-outline', kit: _kit,
+              onAll: () => widget.onTab('/games'));
+        }
         return _HeroBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'sparkles-outline', iconSize: 20, accent: null);
       case 'practices':
+        // «Все игры ›» и у «Практик», как на рефе 30.10 — тот же переход на вкладку «Игры».
+        if (_isAurora(context)) {
+          return _AuroraMiniBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'leaf-outline', kit: _kit,
+              onAll: () => widget.onTab('/games'));
+        }
         return _HeroBlock(b: b, origin: widget.origin, onOpen: widget.onOpen, act: _act, ion: 'leaf-outline', iconSize: 19, accent: const Color(0xFF10B981));
       case 'favourites':
         return _Favourites(b: b, kit: _kit, state: widget.state, onOpen: widget.onOpen, onTab: widget.onTab);
@@ -800,7 +839,7 @@ Widget _sectionHeader(BuildContext context, {Color? dot, String? ion, double ico
       ],
       if (ion != null) ...[IonIcon(ion, size: iconSize, color: dot), const SizedBox(width: 8)],
       Expanded(child: Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: web.text))),
-      ?trailing,
+      if (trailing != null) _isAurora(context) ? Flexible(child: trailing) : trailing,
     ]),
   );
 }
@@ -826,6 +865,7 @@ class _SearchState extends State<_Search> {
   @override
   Widget build(BuildContext context) {
     final web = WebTheme.of(context);
+    if (_isAurora(context)) return _aurora(context);
     // `HomeCatalogSearch.tsx`: поле 48 и кнопка 44 «Игры · Фильтр», зазор 8, снизу 16.
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -854,29 +894,96 @@ class _SearchState extends State<_Search> {
   }
 }
 
+extension on _SearchState {
+  /// «Аврора» (компактный реф 30.10): поиск и фильтр одной строкой — то же поле и то же действие.
+  Widget _aurora(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final text = auroraToken('text', dark: dark)!;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(children: [
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(image: DecorationImage(
+              image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/${dark ? 'dark' : 'light'}_utility_ladder.png'), fit: BoxFit.fill)),
+            child: TextField(
+              key: const ValueKey('home-search'),
+              controller: _c,
+              style: WebTheme.fieldText(context).copyWith(color: text),
+              textInputAction: TextInputAction.search,
+              onSubmitted: (_) => _go(),
+              decoration: WebTheme.field(context, hint: _s(widget.b['placeholder'])).copyWith(
+                fillColor: Colors.transparent,
+                border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none,
+                prefixIcon: Icon(Icons.search, size: 19, color: text),
+                hintStyle: WebTheme.fieldText(context).copyWith(color: text.withValues(alpha: 0.8)),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 168),
+          child: Container(
+            decoration: BoxDecoration(image: DecorationImage(
+              image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/${dark ? 'dark' : 'light'}_utility_resume.png'), fit: BoxFit.fill)),
+            child: Material(
+            key: const ValueKey('home-search-open'),
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _go,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.tune, size: 18, color: text),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(_s(widget.b['button']),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: text, fontWeight: FontWeight.w600, fontSize: 13)),
+                    ),
+                  ]),
+                ),
+              ),
+            ),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
 class _Ladder extends StatelessWidget {
   const _Ladder({required this.b});
   final _M b;
   @override
   Widget build(BuildContext context) {
     final web = WebTheme.of(context);
+    final aurora = _isAurora(context);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final foreground = aurora ? auroraToken('text', dark: dark)! : web.textSecondary;
     return Container(
       key: const ValueKey('home-ladder'),
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
+      padding: EdgeInsets.symmetric(horizontal: aurora ? 20 : 14, vertical: 10),
+      decoration: aurora ? BoxDecoration(image: DecorationImage(
+        image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/${dark ? 'dark' : 'light'}_utility_ladder.png'), fit: BoxFit.fill)) : BoxDecoration(
         color: web.surface,
         border: Border.all(color: web.border, width: 0.5),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(children: [
-        IonIcon('lock-closed', size: 16, color: web.textSecondary),
+        IonIcon('lock-closed', size: 16, color: foreground),
         const SizedBox(width: 8),
         Flexible(
           child: Text(_s(b['text']),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: web.textSecondary)),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: foreground)),
         ),
       ]),
     );
@@ -890,6 +997,9 @@ class _Chest extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final web = WebTheme.of(context);
+    final aurora = _isAurora(context);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final foreground = aurora ? auroraToken('text', dark: dark)! : web.textSecondary;
     return Semantics(
       button: true,
       label: _s(b['label']),
@@ -899,8 +1009,9 @@ class _Chest extends StatelessWidget {
         onTap: () => onOpen('/collection'),
         child: Container(
           margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
+          padding: EdgeInsets.symmetric(horizontal: aurora ? 20 : 14, vertical: 10),
+          decoration: aurora ? BoxDecoration(image: DecorationImage(
+            image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/${dark ? 'dark' : 'light'}_utility_chest.png'), fit: BoxFit.fill)) : BoxDecoration(
             color: web.surface,
             border: Border.all(color: web.border, width: 0.5),
             borderRadius: BorderRadius.circular(14),
@@ -913,13 +1024,13 @@ class _Chest extends StatelessWidget {
                 Text(_s(b['text']),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: web.textSecondary)),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: foreground)),
                 const SizedBox(height: 6),
                 _progress(_d(b['ratio']), web.border, _accentOf(context), 5, 3),
               ]),
             ),
             const SizedBox(width: 10),
-            IonIcon('chevron-forward', size: 18, color: web.textSecondary),
+            IonIcon('chevron-forward', size: 18, color: foreground),
           ]),
         ),
       ),
@@ -939,8 +1050,6 @@ class _Resume extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final text = auroraToken('text', dark: dark)!;
     final secondary = auroraToken('textSecondary', dark: dark)!;
-    final surface = auroraToken('surface', dark: dark)!;
-    final border = auroraToken('border', dark: dark)!;
     final entry = kit?.byRoute(_s(b['href']));
     final icon = entry == null ? null : kit!.iconFile(entry);
     return Padding(
@@ -948,9 +1057,12 @@ class _Resume extends StatelessWidget {
       child: Semantics(
         button: true,
         label: _s(b['label']),
-        child: Material(
-          color: surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: border)),
+        child: Container(
+          decoration: BoxDecoration(image: DecorationImage(
+            image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/${dark ? 'dark' : 'light'}_utility_resume.png'), fit: BoxFit.fill)),
+          child: Material(
+          color: Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             key: const ValueKey('home-resume'),
@@ -982,7 +1094,7 @@ class _Resume extends StatelessWidget {
               ),
             ),
           ),
-        ),
+        )),
       ),
     );
   }
@@ -1092,15 +1204,25 @@ class _GoalCardState extends State<_GoalCard> {
           ),
         );
     final ask = TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: web.text);
+    // «Аврора», компактная главная: два ответа цели — в одну строку пополам, а не столбиком
+    // во всю ширину (кнопка с выравниванием растягивается и в `Wrap` встаёт отдельной строкой).
+    final aurora = _isAurora(context);
+    Widget pair(Widget a, Widget b) => aurora
+        ? Row(children: [Expanded(child: a), const SizedBox(width: 8), Expanded(child: b)])
+        : Wrap(spacing: 8, runSpacing: 8, children: [a, b]);
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: web.surface, border: Border.all(color: web.border), borderRadius: BorderRadius.circular(14)),
+      padding: EdgeInsets.symmetric(horizontal: aurora ? 20 : 12, vertical: 12),
+      decoration: aurora ? (Theme.of(context).brightness == Brightness.dark
+          ? const BoxDecoration(image: DecorationImage(image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/dark_wide_goal.png'), fit: BoxFit.fill))
+          : const BoxDecoration(image: DecorationImage(image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/light_wide_goal.png'), fit: BoxFit.fill)))
+          : BoxDecoration(color: web.surface, border: Border.all(color: web.border), borderRadius: BorderRadius.circular(14)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Container(width: 4, height: 18, decoration: BoxDecoration(color: _accent, borderRadius: BorderRadius.circular(2))),
           const SizedBox(width: 8),
-          IonIcon('flag-outline', size: 18, color: _accent),
+          if (aurora) Image.asset('assets/aurora_game_chrome/home_icons_approved/goal.png', width: 24, height: 24)
+          else IonIcon('flag-outline', size: 18, color: _accent),
           const SizedBox(width: 8),
           Expanded(
             child: Text(t('dayGoalTitle'), maxLines: 1, overflow: TextOverflow.ellipsis,
@@ -1128,7 +1250,14 @@ class _GoalCardState extends State<_GoalCard> {
               child: Row(children: [
                 Expanded(child: Text(t('dayGoalAsk'), maxLines: 1, overflow: TextOverflow.ellipsis, style: ask)),
                 const SizedBox(width: 8),
-                Text(t('dayGoalSave'), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _accent)),
+                // Потолок ширины: при шрифте ×2 на 320 pt подпись вылезала на 22 px; в обычном размере не влияет.
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 140),
+                  child: Text(t('dayGoalSave'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _accent)),
+                ),
                 const SizedBox(width: 8),
                 IonIcon('chevron-forward', size: 16, color: _accent),
               ]),
@@ -1158,14 +1287,14 @@ class _GoalCardState extends State<_GoalCard> {
             ),
           ),
           const SizedBox(height: 6),
-          Wrap(spacing: 8, runSpacing: 8, children: [
+          pair(
             primary(t('dayGoalSave'), canSave ? _accent : web.border, canSave ? Colors.white : web.textSecondary, () {
               if (!canSave) return;
               widget.act('goalSave', [_draft.text]);
               _draft.clear();
             }, const ValueKey('goal-save')),
             ghost(t('notNow'), () => widget.act('goalDismiss'), const ValueKey('goal-later')),
-          ]),
+          ),
           const SizedBox(height: 10),
           Text(t('dayGoalExamplesTitle'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: web.textSecondary)),
           for (final e in (widget.b['examples'] as List? ?? const []))
@@ -1185,11 +1314,11 @@ class _GoalCardState extends State<_GoalCard> {
           const SizedBox(height: 6),
           Text(t('dayGoalReview'), style: ask),
           const SizedBox(height: 6),
-          Wrap(spacing: 8, runSpacing: 8, children: [
+          pair(
             primary(t('dayGoalYes'), const Color(0xFF22C55E), cssColor(tx['yesFg'], Colors.white),
                 () => widget.act('goalOutcome', ['done']), const ValueKey('goal-yes')),
             ghost(t('dayGoalNo'), () => widget.act('goalOutcome', ['not_today']), const ValueKey('goal-no')),
-          ]),
+          ),
         ],
         if (state == 'closed') ...[
           const SizedBox(height: 6),
@@ -1215,6 +1344,7 @@ class _Today extends StatelessWidget {
     final web = WebTheme.of(context);
     const amber = Color(0xFFF59E0B);
     final rows = _list(b['rows']);
+    final aurora = _isAurora(context);
     return Semantics(
       button: true,
       label: _s(b['title']),
@@ -1224,8 +1354,11 @@ class _Today extends StatelessWidget {
         onTap: () => onOpen('/statistics'),
         child: Container(
           margin: const EdgeInsets.only(bottom: 14),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(color: web.surface, border: Border.all(color: web.border), borderRadius: BorderRadius.circular(16)),
+          padding: EdgeInsets.symmetric(horizontal: aurora ? 20 : 12, vertical: 10),
+          decoration: aurora ? (Theme.of(context).brightness == Brightness.dark
+              ? const BoxDecoration(image: DecorationImage(image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/dark_wide_today.png'), fit: BoxFit.fill))
+              : const BoxDecoration(image: DecorationImage(image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/light_wide_today.png'), fit: BoxFit.fill)))
+              : BoxDecoration(color: web.surface, border: Border.all(color: web.border), borderRadius: BorderRadius.circular(16)),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Row(children: [
               Container(width: 4, height: 18, decoration: BoxDecoration(color: amber, borderRadius: BorderRadius.circular(2))),
@@ -1236,9 +1369,10 @@ class _Today extends StatelessWidget {
               Semantics(
                 button: true,
                 label: _s(b['totalLabel']),
-                // `todayTotalBtn`: 44 в высоту, строке отдаёт 20 (marginVertical −12).
+                // В «Авроре» кнопка целиком помещается внутри графической рамки;
+                // классический вариант сохраняет прежнюю компактную геометрию.
                 child: _tall(
-                  layout: 20,
+                  layout: aurora ? 44 : 20,
                   visible: 44,
                   child: GestureDetector(
                   key: const ValueKey('home-today-total'),
@@ -1265,6 +1399,18 @@ class _Today extends StatelessWidget {
             const SizedBox(height: 6),
             if (b['empty'] != null)
               Text(_s(b['empty']), style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, height: 17 / 12.5, color: web.textSecondary)),
+            // «Аврора», компактная главная (реф 30.10): строки игр — одной строкой «игра +очки · …»,
+            // полный список — в статистике по нажатию на блок, как и раньше.
+            if (aurora && rows.isNotEmpty)
+              Text(
+                [for (final r in rows) '${_s(r['name'])}${r['doubled'] == true ? ' ×2' : ''} +${r['gain']}'].join(' · ') +
+                    (b['more'] != null ? ' …' : ''),
+                key: const ValueKey('home-today-line'),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, height: 18 / 13, color: web.text),
+              ),
+            if (!aurora)
             for (final r in rows)
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
@@ -1294,7 +1440,7 @@ class _Today extends StatelessWidget {
                   ),
                 ]),
               ),
-            if (b['more'] != null)
+            if (b['more'] != null && !aurora)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(_s(b['more']), textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: web.textSecondary)),
@@ -1483,6 +1629,7 @@ class _Favourites extends StatelessWidget {
     final k = kit;
     if (k == null) return const SizedBox.shrink();
     final accent = _accentOf(context);
+    if (Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora) return _aurora(context, k, accent);
     final hubCount = k.visible(state).hubCount;
     return Column(key: const ValueKey('home-favourites'), crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       _sectionHeader(
@@ -1518,6 +1665,61 @@ class _Favourites extends StatelessWidget {
                 ),
             ]),
           ),
+    ]);
+  }
+
+  /*
+   * «АВРОРА», ЛИСТ 01 — «ЛЮБИМЫЕ РАЗДЕЛЫ» ПЛИТКАМИ РАЗДЕЛОВ (решение Дениса 29.10, Q1),
+   * размером «Быстрого доступа» — до 4 в ряд (компактный реф главной 30.10).
+   *
+   * Те же разделы модели веба, что в Classic, но вместо раздела с рядом игр — плитка раздела
+   * с картинкой (две на раздел, тёмная и светлая; `assets/aurora_sections/`), подпись и число
+   * игр кодом. Нажатие ведёт во вкладку «Игры» с этим разделом в фильтре
+   * (`/games?filter=section:<раздел>`, разбор — `hybrid_app.dart`). Быстрый вход в отдельные
+   * игры Денис осознанно отдал вкладке «Игры». Раздел без картинки рисуется прежним блоком.
+   */
+  Widget _aurora(BuildContext context, CatalogKit k, Color accent) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final hubCount = k.visible(state).hubCount;
+    final tiles = <Widget>[];
+    final rest = <Widget>[];
+    for (final s in _list(b['sections'])) {
+      final cat = k.category(_s(s['category']));
+      if (cat == null) continue;
+      final asset = AuroraHubTile.sectionAssetFor(cat.id, dark: dark);
+      if (asset == null) {
+        rest.add(Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            CatalogKit.sectionHeader(context, cat, (s['total'] as num? ?? 0).toInt(), key: ValueKey('home-section-${cat.id}')),
+            CatalogKit.grid(context, [
+              for (final r in (s['routes'] as List? ?? const []))
+                if (k.byRoute('$r') case final g?) (_) => k.tile(state, g, hubCount: hubCount, onTap: () => onOpen(g.route)),
+            ]),
+          ]),
+        ));
+        continue;
+      }
+      tiles.add(_AuroraSectionMini(
+        key: ValueKey('home-section-tile-${cat.id}'),
+        asset: asset,
+        title: cat.title,
+        count: (s['total'] as num?)?.toInt(),
+        onTap: () => onTab('/games?filter=section:${cat.id}'),
+      ));
+    }
+    return Column(key: const ValueKey('home-favourites'), crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      _sectionHeader(
+        context,
+        title: _s(b['title']),
+        trailing: GestureDetector(
+          key: const ValueKey('home-all-games'),
+          onTap: () => onTab('/games'),
+          child: Text(_s(b['allLabel']), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: accent)),
+        ),
+      ),
+      if (tiles.isNotEmpty) Padding(padding: const EdgeInsets.only(bottom: 20), child: _miniGrid(tiles)),
+      ...rest,
     ]);
   }
 }
@@ -1649,4 +1851,267 @@ class _AllForks extends StatelessWidget {
           ),
         ),
       );
+}
+
+
+// ─────────────────── «Аврора»: компактные плитки главной (реф 30.10) ───────────────────
+
+bool _isAurora(BuildContext context) =>
+    Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+
+/// Сетка маленьких плиток — 4 в ряд на телефоне, как «Быстрый доступ» на рефе; при крупном шрифте
+/// и на узком экране колонок меньше, на планшете больше (до 6) — плитка остаётся маленькой, а не
+/// растягивается в карточку. Плитки ряда — одной высоты (по самой высокой): с причиной под
+/// названием и без неё ряд не «скачет».
+Widget _miniGrid(List<Widget> tiles) => Align(
+    alignment: Alignment.centerLeft,
+    child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 600), child: LayoutBuilder(builder: (context, box) {
+      final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
+      final cols = (box.maxWidth / (80 * (scale > 1.3 ? 1.4 : 1.0))).floor().clamp(2, 6);
+      const gap = 10.0;
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        for (var i = 0; i < tiles.length; i += cols)
+          Padding(
+            padding: EdgeInsets.only(top: i == 0 ? 0 : gap),
+            child: IntrinsicHeight(
+              child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                for (var k = i; k < i + cols; k++) ...[
+                  if (k > i) const SizedBox(width: gap),
+                  Expanded(child: k < tiles.length ? tiles[k] : const SizedBox.shrink()),
+                ],
+              ]),
+            ),
+          ),
+      ]);
+    })));
+
+/// «Рекомендуем» и «Практики дня» в «Авроре»: те же карточки модели, но маленькими плитками.
+class _AuroraMiniBlock extends StatelessWidget {
+  const _AuroraMiniBlock({required this.b, required this.origin, required this.onOpen, required this.act, required this.ion, this.kit, this.onAll});
+  final _M b;
+  final String origin;
+  final ValueChanged<String> onOpen;
+  final void Function(String, [List<Object?>]) act;
+  final String ion;
+  final CatalogKit? kit;
+
+  /// «Все игры ›» в строке заголовка, как на рефе 30.10 — переход на вкладку «Игры»; null — без ссылки.
+  final VoidCallback? onAll;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final text = auroraToken('text', dark: dark)!;
+    final secondary = auroraToken('textSecondary', dark: dark)!;
+    final cards = _list(b['cards']);
+    if (cards.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      key: ValueKey('home-${b['kind']}'),
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          IonIcon(ion, size: 18, color: text),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(_s(b['title']),
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: text)),
+          ),
+          if (onAll != null)
+            Flexible(child: Semantics(
+              button: true,
+              child: InkWell(
+                key: ValueKey('home-${b['kind']}-all'),
+                onTap: onAll,
+                borderRadius: BorderRadius.circular(8),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 44),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Flexible(child: Text(L.t('allGames'), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: GameColors.aurora(Theme.of(context).brightness).highlight))),
+                      Icon(Icons.chevron_right, size: 18, color: GameColors.aurora(Theme.of(context).brightness).highlight),
+                    ]),
+                  ),
+                ),
+              ),
+            )),
+        ]),
+        if (_s(b['hint']).isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(_s(b['hint']), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: secondary)),
+          ),
+        const SizedBox(height: 10),
+        _miniGrid([for (final c in cards) _AuroraMiniTile(c: c, origin: origin, onOpen: onOpen, act: act, kit: kit)]),
+      ]),
+    );
+  }
+}
+
+/*
+ * Маленькая плитка карточки: значок, название и знак действия из ДАННЫХ карточки — ▶ у прямого
+ * запуска (`cta.ion == play`), › у перехода к выбору (зарядка, релаксация): плитка не обещает
+ * запуск там, где раньше был выбор. Причина рекомендации («Давно не играли») — в подписи для
+ * чтеца экрана и во всплывающей подсказке; нажатие то же, что у большой карточки Classic.
+ */
+class _AuroraMiniTile extends StatelessWidget {
+  const _AuroraMiniTile({required this.c, required this.origin, required this.onOpen, required this.act, this.kit});
+  final _M c;
+  final String origin;
+  final ValueChanged<String> onOpen;
+  final void Function(String, [List<Object?>]) act;
+  final CatalogKit? kit;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final fg = auroraToken('text', dark: dark)!;
+    final icon = _map(c['icon']);
+    final image = icon['image'];
+    // Значок игры из каталога — цветной, как на рефе 30.10, а не белый глиф: по маршруту без
+    // `?calm=1`, тем же способом, что у «Продолжить». У практик (зарядка, релаксация, вызов) игры
+    // нет — у них прежний глиф модели.
+    final entry = kit?.byRoute(_s(c['href']).split('?').first);
+    final gameIcon = entry == null ? null : kit!.iconFile(entry);
+    final practiceIcon = const {'warmup': 'warmup', 'relaxation': 'relaxation', 'challenge': 'challenge'}[_s(c['id'])];
+    final visualSeed = _s(c['id']).codeUnits.fold<int>(0, (sum, code) => sum * 31 + code);
+    final panel = practiceIcon ?? const ['streak', 'shop', 'achievements', 'friends', 'league'][visualSeed.abs() % 5];
+    final play = _s(_map(c['cta'])['ion']) == 'play';
+    final sub = _s(c['sub']);
+    void open() => c['action'] == 'challenge' ? act('challenge') : onOpen(_s(c['href']));
+    // `onTap` — в самой подписи: `excludeSemantics` срезает действие нажатия у детей, и без него
+    // TalkBack читал плитку, но двойным касанием не открывал (дамп uiautomator 30.10: clickable=false).
+    return Semantics(
+      button: true,
+      label: _s(c['label']),
+      onTap: open,
+      excludeSemantics: true,
+      child: GestureDetector(
+          key: ValueKey('home-card-${c['id']}'),
+          behavior: HitTestBehavior.opaque,
+          onTap: open,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 104),
+            padding: const EdgeInsets.fromLTRB(6, 10, 6, 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              image: DecorationImage(
+                image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/${dark ? 'dark' : 'light'}_$panel.png'),
+                fit: BoxFit.fill,
+              ),
+            ),
+            child: Stack(children: [
+              Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Center(
+                  child: practiceIcon != null
+                      ? Image.asset('assets/aurora_game_chrome/home_icons_approved/$practiceIcon.png', width: 42, height: 42, fit: BoxFit.contain)
+                      : image == null && gameIcon != null
+                      ? ClipRRect(
+                          key: ValueKey('home-card-icon-${c['id']}'),
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.asset('assets/game_icons/$gameIcon', width: 42, height: 42, fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => IonIcon(_s(icon['ion']), size: 30, color: fg)),
+                        )
+                      : image != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(image.toString().startsWith('http') ? '$image' : '$origin$image',
+                              width: 34, height: 34, errorBuilder: (_, _, _) => const SizedBox(width: 34, height: 34)),
+                        )
+                      : IonIcon(_s(icon['ion']), size: 30, color: fg),
+                ),
+                const SizedBox(height: 6),
+                Text(_s(c['title']),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: fg, fontSize: 12, height: 1.15, fontWeight: FontWeight.w700)),
+                if (sub.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(sub,
+                        key: ValueKey('home-card-reason-${c['id']}'),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: fg.withValues(alpha: 0.82), fontSize: 10.5, height: 1.15, fontWeight: FontWeight.w500)),
+                  ),
+                const Spacer(),
+                const SizedBox(height: 4),
+                Icon(play ? Icons.play_arrow_rounded : Icons.chevron_right, size: 20, color: fg),
+              ]),
+              if (c['chip'] != null)
+                Positioned(
+                  top: -4,
+                  right: -2,
+                  child: Text(_s(c['chip']), style: TextStyle(color: fg, fontSize: 10, fontWeight: FontWeight.w900)),
+                ),
+            ]),
+          ),
+        ),
+    );
+  }
+}
+
+/// Плитка раздела «Чаще всего играешь» в «Авроре»: картинка раздела (объект — справа на
+/// иллюстрации 2:1, поэтому кадр берётся с правого края), название отдельной строкой (в одну
+/// строку с числом на ширине 76 pt «Внимание» обрезалось), под ним число игр и › — переход
+/// к списку раздела, не запуск, поэтому не ▶.
+class _AuroraSectionMini extends StatelessWidget {
+  const _AuroraSectionMini({super.key, required this.asset, required this.title, required this.count, required this.onTap});
+  final String asset;
+  final String title;
+  final int? count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final text = auroraToken('text', dark: dark)!;
+    final secondary = auroraToken('textSecondary', dark: dark)!;
+    final seed = asset.codeUnits.fold<int>(0, (sum, code) => sum * 31 + code);
+    final panel = const ['streak', 'shop', 'achievements', 'friends', 'league'][seed.abs() % 5];
+    return Semantics(
+      button: true,
+      label: count == null ? title : '$title, $count',
+      onTap: onTap,
+      excludeSemantics: true,
+      child: Container(
+        decoration: BoxDecoration(image: DecorationImage(
+          image: AssetImage('assets/aurora_game_chrome/home_panels_pilot/${dark ? 'dark' : 'light'}_$panel.png'), fit: BoxFit.fill)),
+        child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
+              child: ClipRRect(borderRadius: BorderRadius.circular(10), child: AspectRatio(
+                aspectRatio: 1.25,
+                child: Image.asset(asset, fit: BoxFit.cover, alignment: const Alignment(0.55, 0)),
+              )),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 5, 4, 4),
+              child: Text(title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, height: 1.15, fontWeight: FontWeight.w700, color: text)),
+            ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                if (count != null) Flexible(child: Text('$count', maxLines: 1, style: TextStyle(fontSize: 11, color: secondary))),
+                Icon(Icons.chevron_right, size: 18, color: text),
+              ]),
+            ),
+          ]),
+        ),
+      )),
+    );
+  }
 }

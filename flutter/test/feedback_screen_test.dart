@@ -249,7 +249,7 @@ void main() {
         'empty': null,
         'write': 'Написать',
         'bubbles': [
-          {'key': 'a', 'me': true, 'fixed': null, 'text': 'Не понял правила', 'at': '2026-10-06 12:30'},
+          {'key': 'a', 'me': true, 'fixed': null, 'text': 'Не понял правила', 'at': '2026-10-06 12:30', 'state': '🔧 В работе'},
           {'key': 'b', 'me': false, 'fixed': '✅ Исправлено в 2.56.15', 'text': 'Починили', 'at': '2026-10-07 09:05'},
         ],
       },
@@ -259,6 +259,8 @@ void main() {
     expect((mine.decoration! as BoxDecoration).color, cssColor(m['primary']));
     expect(t.getRect(key('feedback-bubble-a')).center.dx, greaterThan(t.getRect(key('feedback-bubble-b')).center.dx));
     expect(find.text('✅ Исправлено в 2.56.15'), findsOneWidget);
+    expect(find.text('2026-10-06 12:30 · 🔧 В работе'), findsOneWidget, reason: 'статус моего сообщения виден (3a7f4077)');
+    expect(find.text('2026-10-07 09:05'), findsOneWidget, reason: 'у ответа статуса нет');
     await t.tap(key('feedback-dialog-write'));
     expect(js.single, contains('["#feedback"].tab("form")'));
   });

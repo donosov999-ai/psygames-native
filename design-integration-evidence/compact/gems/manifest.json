@@ -1,0 +1,94 @@
+{
+  "source_sha256": "0f64ccd0f1235a7cf376f7541c98f828101fe86a75b6f7a91aa086fd5c7d21fd",
+  "grid": [
+    2,
+    2
+  ],
+  "method": "RGBA crop, alpha bbox, centered 512 canvas; no repainting",
+  "items": [
+    {
+      "id": "morning",
+      "cell": [
+        0,
+        0,
+        634,
+        619
+      ],
+      "alpha_bbox": [
+        62,
+        45,
+        604,
+        576
+      ],
+      "file": "assets/workout_gems/morning.png",
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "5cd94bca12ec3f3e17a932c0a2fa58f57b27142faff45f67b0675507131f96c0"
+    },
+    {
+      "id": "day",
+      "cell": [
+        634,
+        0,
+        1269,
+        619
+      ],
+      "alpha_bbox": [
+        30,
+        45,
+        574,
+        576
+      ],
+      "file": "assets/workout_gems/day.png",
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "fcc1d03cd0eeea2b575ca81f30d7040ffa38dccf7681a42563da723593ec04cb"
+    },
+    {
+      "id": "evening",
+      "cell": [
+        0,
+        619,
+        634,
+        1239
+      ],
+      "alpha_bbox": [
+        62,
+        23,
+        604,
+        554
+      ],
+      "file": "assets/workout_gems/evening.png",
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "eb5c6decfc1af37396251e77ee2e66677af079e153abb812006ca5d2606d61af"
+    },
+    {
+      "id": "night",
+      "cell": [
+        634,
+        619,
+        1269,
+        1239
+      ],
+      "alpha_bbox": [
+        29,
+        23,
+        574,
+        554
+      ],
+      "file": "assets/workout_gems/night.png",
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "d0ddba00f3235f63c4ccb0217e3b3c9ad33673aa44bcc3890cdd8ee7c73b1707"
+    }
+  ]
+}

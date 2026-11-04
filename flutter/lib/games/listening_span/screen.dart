@@ -304,7 +304,7 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
           tint: const Color(0xFFB45309),
           onPressed: (_phase == LspanPhase.listen || _phase == LspanPhase.recall) && !g.locked ? _reveal : null,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: _phase == LspanPhase.done || _phase == LspanPhase.revealed
           ? Padding(

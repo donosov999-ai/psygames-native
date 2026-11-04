@@ -14,7 +14,7 @@
  * 7.8), но в WKWebView на macOS он воспроизводится ненадёжно, а десктопная сборка
  * живёт именно там. MP3 играет везде без оговорок.
  *
- * ⚠️ ОБЫЧНЫЙ <audio>, А НЕ WEB AUDIO. Приложение везде web (Tauri/WebView), и
+ * ⚠️ ОБЫЧНЫЙ <audio>, А НЕ WEB AUDIO. Фоновая музыка гибрида пока в WebView, и
  * элементу audio не нужен ни разбуженный AudioContext, ни ручная буферизация — он
  * сам тянет файл по мере проигрывания. Звуковые эффекты остаются на Web Audio:
  * там важна миллисекундная задержка, здесь — нет.
@@ -49,9 +49,14 @@ const FADE_MS = 800;
 let el: HTMLAudioElement | null = null;
 let order: number[] = [];
 let pos = 0;
-let fadeTimer: any = null;
+let fadeTimer: ReturnType<typeof setInterval> | null = null;
+let fadeEpoch = 0;
+let playEpoch = 0;
+let starting = false;
+let wanted = false;
+let gain = 1;
+const holds = new Set<string>();
 
-/** Метро отдаёт ассет по-разному: строкой на web и объектом с uri на нативе. */
 function srcUri(src: any): string {
   if (typeof src === 'string') return src;
   if (src && typeof src === 'object') return src.uri || src.default || '';
@@ -67,71 +72,136 @@ function shuffled(n: number): number[] {
   return a;
 }
 
+function cancelFade(): void {
+  fadeEpoch++;
+  if (fadeTimer !== null) clearInterval(fadeTimer);
+  fadeTimer = null;
+}
+
+/** A fade owns a specific element and generation, never the mutable global el. */
 function fadeTo(target: number, done?: () => void): void {
-  if (!el) return;
-  if (fadeTimer) clearInterval(fadeTimer);
-  const from = el.volume;
+  cancelFade();
+  const audio = el;
+  if (!audio) return;
+  const generation = fadeEpoch;
+  const from = audio.volume;
   const steps = Math.max(1, Math.round(FADE_MS / 50));
   let i = 0;
-  fadeTimer = setInterval(() => {
+  const timer = setInterval(() => {
+    if (audio !== el || generation !== fadeEpoch) { clearInterval(timer); return; }
     i++;
-    if (!el) { clearInterval(fadeTimer); fadeTimer = null; return; }
-    el.volume = Math.max(0, Math.min(1, from + (target - from) * (i / steps)));
-    if (i >= steps) { clearInterval(fadeTimer); fadeTimer = null; done?.(); }
+    audio.volume = Math.max(0, Math.min(1, from + (target - from) * i / steps));
+    if (i >= steps) {
+      clearInterval(timer);
+      if (fadeTimer === timer) fadeTimer = null;
+      done?.();
+    }
   }, 50);
+  fadeTimer = timer;
+}
+
+function allowed(): boolean { return wanted && holds.size === 0; }
+
+function resumeCurrent(): void {
+  const audio = el;
+  if (!audio || !allowed() || starting) return;
+  if (!audio.paused) { fadeTo(VOLUME * gain); return; }
+  const epoch = ++playEpoch;
+  starting = true;
+  // Invoke play synchronously: retry from a user gesture must stay in that gesture.
+  try {
+    Promise.resolve(audio.play()).then(() => {
+      if (audio !== el) { audio.pause(); return; }
+      if (epoch !== playEpoch) { if (!allowed()) audio.pause(); return; }
+      starting = false;
+      if (allowed()) fadeTo(VOLUME * gain);
+      else audio.pause();
+    }).catch(() => {
+      if (epoch === playEpoch) starting = false;
+      // Autoplay/interruption rejection is recoverable on the next gesture.
+    });
+  } catch {
+    if (epoch === playEpoch) starting = false;
+  }
 }
 
 function playAt(index: number): void {
-  if (!el || !TRACKS.length) return;
+  if (!el || !TRACKS.length || !order.length) return;
+  cancelFade();
+  playEpoch++;
+  starting = false;
   const t = TRACKS[order[index % order.length]];
   el.src = srcUri(t.src);
   el.volume = 0;
-  // Автозапуск может быть отклонён до первого жеста — это нормально, не шумим в консоль.
-  el.play().then(() => fadeTo(VOLUME)).catch(() => {});
+  resumeCurrent();
 }
 
-/**
- * Запустить фон. Идемпотентно: повторный вызов при играющей музыке ничего не делает.
- * @param preferId начать с этого трека (зарядка вечером → 'evening', дыхание → 'breathing')
- */
-export function startMusic(preferId?: string): void {
-  if (typeof document === 'undefined') return;   // на всякий: SSR-рендер маршрутов
-  if (el) return;
-  el = document.createElement('audio');
-  el.preload = 'none';
-  el.loop = false;   // зацикливаем ПЛЕЙЛИСТ, а не один трек — иначе приедается
-  el.addEventListener('ended', () => { pos++; playAt(pos); });
-
-  order = shuffled(TRACKS.length);
-  const want = preferId ? TRACKS.findIndex((t) => t.id === preferId) : -1;
-  if (want >= 0) {
-    // Нужный трек — первым, остальные следом в перемешанном порядке.
-    order = [want, ...order.filter((i) => i !== want)];
-  }
-  pos = 0;
+function onEnded(): void {
+  if (!el) return;
+  pos++;
   playAt(pos);
 }
 
-/** Остановить с затуханием — обрыв на полуноте слышен и раздражает. */
-export function stopMusic(): void {
-  if (!el) return;
-  const dying = el;
-  el = null;
-  if (fadeTimer) clearInterval(fadeTimer);
-  const from = dying.volume;
-  const steps = Math.max(1, Math.round(FADE_MS / 50));
-  let i = 0;
-  const t = setInterval(() => {
-    i++;
-    dying.volume = Math.max(0, from * (1 - i / steps));
-    if (i >= steps) {
-      clearInterval(t);
-      try { dying.pause(); dying.src = ''; } catch { /* no-op */ }
-    }
-  }, 50);
+/** App-owned playlist: focus changes do not create a new element or reset time. */
+export function startMusic(preferId?: string): void {
+  if (typeof document === 'undefined' || !TRACKS.length) return;
+  wanted = true;
+  if (!el) {
+    el = document.createElement('audio');
+    el.preload = 'none';
+    el.loop = false;
+    el.addEventListener('ended', onEnded);
+    order = shuffled(TRACKS.length);
+    const want = preferId ? TRACKS.findIndex((t) => t.id === preferId) : -1;
+    if (want >= 0) order = [want, ...order.filter((i) => i !== want)];
+    pos = 0;
+    playAt(pos);
+  } else {
+    resumeCurrent();
+  }
 }
 
-/** Играет ли сейчас — для настроек и тестов. */
-export function isMusicPlaying(): boolean {
-  return !!el && !el.paused;
+/** Setting off: stop smoothly, but retain track position for a later explicit on. */
+export function stopMusic(): void {
+  wanted = false;
+  playEpoch++;
+  starting = false;
+  const audio = el;
+  fadeTo(0, () => { if (audio === el && !allowed()) audio?.pause(); });
 }
+
+/** Games/background temporarily pause the SAME player; preference is untouched. */
+export function setMusicSuspended(reason: string, value: boolean): void {
+  const was = holds.has(reason);
+  if (was === value) return;
+  if (value) holds.add(reason); else holds.delete(reason);
+  if (allowed()) resumeCurrent();
+  else {
+    playEpoch++;
+    starting = false;
+    const audio = el;
+    fadeTo(0, () => { if (audio === el && !allowed()) audio?.pause(); });
+  }
+}
+
+export function setMusicGain(value: number): void {
+  gain = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0;
+  if (allowed() && el && !el.paused) fadeTo(VOLUME * gain);
+}
+
+/** Root teardown only, never a page blur. Invalidates all late play promises. */
+export function disposeMusic(): void {
+  wanted = false;
+  playEpoch++;
+  starting = false;
+  cancelFade();
+  const audio = el;
+  el = null;
+  holds.clear();
+  if (audio) {
+    audio.removeEventListener('ended', onEnded);
+    try { audio.pause(); audio.src = ''; } catch { /* platform teardown */ }
+  }
+}
+
+export function isMusicPlaying(): boolean { return !!el && allowed() && !el.paused; }

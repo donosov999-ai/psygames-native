@@ -152,7 +152,7 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
               ? null
               : () => setState(() => game.clearPath(game.paths.keys.last)),
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
         AuxAction(
           icon: Icons.lightbulb_outline,
           label: L.t('puzzleShowSolution'),

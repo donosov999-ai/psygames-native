@@ -138,6 +138,7 @@ import 'warmup_bridge.dart';
 import 'warmup_step_bridge.dart';
 import 'warmup_owner.dart';
 import 'game_pet.dart';
+import 'tab_chrome.dart';
 import 'session_report.dart';
 import 'game_preset.dart';
 import 'game_rules.dart';
@@ -195,6 +196,18 @@ class HybridApp extends StatefulWidget {
         // Настройки на Flutter (задача eae0879c) — пишут те же ключи, что веб; главная открывает их по `/settings`.
         '/settings': (s) => SettingsScreen(state: s),
       };
+
+  /*
+   * 🔴 ЭКРАН ОБОЛОЧКИ ПО МОДЕЛИ СТРАНИЦЫ ОТКРЫВАЕТСЯ УВОДОМ СТРАНИЦЫ, А НЕ ПОВЕРХ НЕЁ.
+   *
+   * Выбор и итог зарядки и мост рисуют модель, которую считает страница НА ЭТОМ ЖЕ адресе
+   * (`warmupUi.ts`). Положенный поверх Главной, экран ждал её вечно: белый экран с кругом —
+   * «нажал Зарядку — приложение висит» (Денис 30.10; замер на эмуляторе: 2.56.44 и 2.56.45,
+   * Classic «Выбрать» и «Аврора» — плитка и «СТАРТ» шапки). Вкладка «Зарядка» шла через страницу
+   * (`_selectTab`) и работала: страница уходит на адрес, присылает `op:'route'`, перехват кладёт
+   * экран и страница шлёт модель. Настройки модели страницы не ждут — их кладём сразу.
+   */
+  static bool opensThroughPage(String route) => shell.containsKey(route) && route != '/settings';
 
   /// Игра перенесена → строится нативно. Ключ — путь маршрута веб-сборки.
   static Map<String, Widget Function(SharedState)> get native => {
@@ -660,7 +673,10 @@ class _HybridAppState extends State<HybridApp> {
     // «Друзья» живут на Dart: на каждом входе свой код и круг спрашиваются заново (`useFocusEffect` веба).
     if (tab == FriendsScreen.route && _nativeTab != tab) enterFriends();
     final search = tab == null ? null : uri.queryParameters['search'];
-    final hubsOnly = tab == '/games' && uri.queryParameters['filter'] == 'hubs';
+    final filter = tab == '/games' ? uri.queryParameters['filter'] : null;
+    final hubsOnly = filter == 'hubs';
+    // Плитка раздела в «Любимых разделах» «Авроры» (Q1 Дениса 29.10): `/games?filter=section:memory`.
+    final section = filter != null && filter.startsWith('section:') ? filter.substring(8) : null;
     if (!mounted) return tab != null;
     final before = _shownIndex();
     if (_nativeTab != tab) _leaveModelWait(_nativeTab);
@@ -677,6 +693,11 @@ class _HybridAppState extends State<HybridApp> {
       if (hubsOnly) {
         _catalogQuery = '';
         _catalogFilter = const CatalogFilter.hubs();
+        _catalogGen++;
+      }
+      if (section != null && section.isNotEmpty) {
+        _catalogQuery = '';
+        _catalogFilter = CatalogFilter.section(section);
         _catalogGen++;
       }
     });
@@ -896,7 +917,7 @@ class _HybridAppState extends State<HybridApp> {
   /// (`router.push`), чтобы «назад» из неё вернул на вкладку «Игры».
   Future<void> _openFromCatalog(String route) async {
     final native = HybridApp.routeOf('${widget.server.origin}$route');
-    if (native != null) {
+    if (native != null && !HybridApp.opensThroughPage(native)) {
       await _openNative(native, query: HybridApp.queryOf(route));
       return;
     }
@@ -1004,6 +1025,7 @@ class _HybridAppState extends State<HybridApp> {
     // они там уже лежат, класть их второй раз в ассеты Flutter значило бы
     // 4,2 МБ впустую.
     PetHost.bind(this, widget.state, widget.server.origin, widget.server.assetRevision);
+    TabChromeHost.bind(this, _openFromCatalog);
     // Синапс (852e4b4a) пишет реплики по партиям в общую память — ту же, что у веба.
     SynapseFeed.state = widget.state;
     SessionReport.sink = (json) async {
@@ -1136,6 +1158,7 @@ class _HybridAppState extends State<HybridApp> {
   void dispose() {
     SessionReport.sink = null;
     PetHost.unbind(this);
+    TabChromeHost.unbind(this);
     if (SynapseFeed.state == widget.state) SynapseFeed.state = null;
     GameExit.home = null;
     GameExit.feedback = null;
@@ -1224,7 +1247,9 @@ class _HybridAppState extends State<HybridApp> {
   String _markNativeOver(String route) {
     final token = '${++_nativeOverSeq} $route';
     _nativeOver = token;
-    unawaited(_c.runJavaScript('window.__psyNativeOver=${jsonEncode(token)};').catchError((Object _) {}));
+    unawaited(_c.runJavaScript('window.__psyNativeOver=${jsonEncode(token)};'
+        'window.__psyMusicNativeRoute=${jsonEncode({'token': token, 'route': route})};'
+        'window.dispatchEvent(new Event("psygames-music-route"));').catchError((Object _) {}));
     return token;
   }
 
@@ -1232,6 +1257,11 @@ class _HybridAppState extends State<HybridApp> {
   /// это тоже фантом. Новый нативный экран за это время ставит свою метку, и старая её не трогает.
   void _unmarkNativeOver(String token) {
     if (_nativeOver == token) _nativeOver = null;
+    // Music ownership is separate from the 1.5s phantom-session quarantine.
+    // An old native screen must not clear the next game's music hold.
+    unawaited(_c.runJavaScript('(function(t){if(window.__psyMusicNativeRoute && window.__psyMusicNativeRoute.token===t){'
+        'window.__psyMusicNativeRoute=null;window.dispatchEvent(new Event("psygames-music-route"));}})(${jsonEncode(token)});')
+        .catchError((Object _) {}));
     unawaited(_c
         .runJavaScript('(function(t){setTimeout(function(){if(window.__psyNativeOver===t)window.__psyNativeOver=null;},1500);})'
             '(${jsonEncode(token)});')
@@ -1247,6 +1277,7 @@ class _HybridAppState extends State<HybridApp> {
     }.toList()
       ..sort();
     return 'window.__psyHostNativeRoutes=${jsonEncode(routes)};'
+        'window.__psyMusicNativeRoute=${jsonEncode(_nativeOver == null || _openedRoute == null ? null : {'token': _nativeOver, 'route': _openedRoute})};'
         // Страница перезагрузилась под открытым нативным экраном — метка возвращается (5f9d4ea0).
         'window.__psyNativeOver=${jsonEncode(_nativeOver)};'
         'window.__psyHostLang=${jsonEncode(widget.state.language)};'
@@ -1398,9 +1429,11 @@ class _HybridAppState extends State<HybridApp> {
     WarmupStepInfo? stepInfo,
   }) async {
     final game = HybridApp.native[route];
+    final settingsOriginTab = NativeTabs.activeTab(_nativeTab ?? _pagePath);
     // Игра без отметки готовности остаётся в классической теме и под «Авророй» — см. [AuroraGameScope].
     final build = route == '/settings'
-        ? (SharedState s) => SettingsScreen(state: s, cloudPilot: widget.cloudPilot)
+        ? (SharedState s) => SettingsScreen(state: s, cloudPilot: widget.cloudPilot,
+            originTab: settingsOriginTab, onFeedback: () => unawaited(_openFeedback('/settings')))
         : game != null
             ? (SharedState s) => AuroraGameScope(route: route, child: game(s))
             : HybridApp.shell[route];
@@ -1428,8 +1461,23 @@ class _HybridAppState extends State<HybridApp> {
     late final MaterialPageRoute<dynamic> page;
     page = MaterialPageRoute<dynamic>(
         // «Заново» в паузе любой игры — пересоздание экрана в RestartScope (restart_scope.dart).
+        // 🔴 Экран-вкладка (`/warmup-picker`), открытый со страницы (карточка «Зарядка» на главной),
+        // ложится маршрутом поверх корневого Scaffold — и нижние вкладки пропадали (Кодекс 31.10,
+        // лаборатория aurora-chrome-parallel). Такой странице — своя полоса вкладок.
         builder: (_) => step == null
-            ? RestartScope(builder: (_) => build(widget.state))
+            ? _tabsReady && NativeTabs.tabs.any((t) => t.route == route)
+                ? Scaffold(
+                    body: RestartScope(builder: (_) => build(widget.state)),
+                    bottomNavigationBar: NativeTabBar(
+                      active: route,
+                      accent: WebTheme.accent(widget.state),
+                      onTap: (target) {
+                        _closeNativeBecausePageMoved();
+                        unawaited(_selectTab(target));
+                      },
+                    ),
+                  )
+                : RestartScope(builder: (_) => build(widget.state))
             : WarmupStepFrame(
                 info: step,
                 onSkip: () => _skipNativeStep(page, _openedWarmupOwner),
@@ -1545,6 +1593,9 @@ class _HybridAppState extends State<HybridApp> {
        * развилку другим видом. Шаг «назад» отсюда не делаем — его сделает сам выбор, когда
        * человек закроет и его.
        */
+      // Плашка набора и смена режима — ЗАМЕНА экрана (a0fd8105): закрыли новый — возвращаемся туда, откуда
+      // открыли прежний (развилка снова откроется в своём кадре), а не в прежнюю игру.
+      if (result.replace) return cameBack;
       if (mounted && cameBack) return _openNative(route, query: query);
       return false;
     }
@@ -1570,6 +1621,10 @@ class _HybridAppState extends State<HybridApp> {
     final bar = _tabsReady && NativeTabs.barVisible(path);
     final shown = _shownIndex();
     final waiting = shown != 0 && _needsModel(_nativeTab);
+    final chromeRoute = waiting ? null : path;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && (_nativeTab ?? _pagePath) == path) TabChromeHost.update(this, chromeRoute);
+    });
     final scaffold = Scaffold(
       // Полоса под часами и фон вкладки — `colors.background` веба, а не цвет семени Material.
       backgroundColor: WebTheme.of(context).background,
@@ -1650,7 +1705,8 @@ class _HybridAppState extends State<HybridApp> {
             // «Что нового»: полный архив и модель на Dart; legacy WEB fixtures — только без state.
             WhatsNewScreen(state: widget.state),
             // «Питомец» (d1e147b0) — вкладка по модели веба; кадры — тем же PetFrames, что у гуляки.
-            PetScreen(origin: widget.server.origin, state: widget.state),
+            PetScreen(origin: widget.server.origin, state: widget.state,
+              active: shown != 0 && path == PetScreen.route && !waiting),
           ],
                 ),
                   ),

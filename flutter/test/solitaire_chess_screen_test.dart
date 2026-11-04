@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/aux_action.dart';
 import 'package:psygames_flutter/games/solitaire_chess/ladder.dart';
 import 'package:psygames_flutter/games/solitaire_chess/lesson.dart';
 import 'package:psygames_flutter/games/solitaire_chess/puzzle.dart';
@@ -137,9 +138,10 @@ void main() {
       await open(tester);
       await tester.tap(find.byKey(const Key('sol-start')));
       await tester.pump();
-      expect(find.byKey(const Key('sol-hint')), findsNothing);
+      // «Подсказка» в нижнем тулбаре есть всегда, до половины времени — неактивна (ряд не прыгает).
+    expect(tester.widget<AuxAction>(find.byKey(const Key('sol-hint'))).onPressed, isNull);
       await wait(tester, solitaireSeconds * 500 + 100);
-      expect(find.byKey(const Key('sol-hint')), findsOneWidget);
+      expect(tester.widget<AuxAction>(find.byKey(const Key('sol-hint'))).onPressed, isNotNull);
       await tester.tap(find.byKey(const Key('sol-hint')));
       await tester.pump();
       expect(find.byKey(const Key('sol-hint-used')), findsOneWidget);

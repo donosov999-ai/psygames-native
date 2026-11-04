@@ -16,6 +16,202 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.57',
+    date: '2026-11-02',
+    en: [
+      'Settings: compact sections for appearance, sound, Synapse, language, backups and help; Classic remains available',
+      'Goods Sort: items land precisely in their new shelf position with a soft settling effect',
+      'Victory sparks appear after the last item lands; rapid taps, pause and undo cancel stale effects',
+      'Game rules, stars and saved progress remain unchanged; experimental sound and haptics stay off',
+    ],
+    ru: [
+      'Настройки: компактные разделы оформления, звука, Синапса, языка, копий и помощи; Classic сохранён',
+      'Сортировка товаров: точное попадание на новое место полки и мягкое приземление',
+      'Искры победы после приземления; быстрые нажатия, пауза и отмена не оставляют старых эффектов',
+      'Правила, звёзды и сохранения прежние; экспериментальные звуки и вибросигналы пока выключены',
+    ],
+  },
+  {
+    version: '2.56.56',
+    date: '2026-11-01',
+    en: [
+      'Workout: compact time-of-day gems connected to the selected programme',
+      'Pet: name, speech, shop and four care actions together inside the scene',
+      'Play with a toy beside your pet without leaving the screen; this does not count as a workout',
+      'Progress: pull to refresh; gentler catalogue entry and improved large-text layouts',
+      'Settings: optional crystal presets for all profiles, hue, lightness and saturation; dark text and icons on pale stones',
+    ],
+    ru: [
+      'Зарядка: компактные камни времени суток соединены с выбранной программой',
+      'Питомец: имя, реплика, магазин и четыре действия ухода внутри одной сцены',
+      '«Поиграть»: игрушка рядом с питомцем без перехода в каталог и без зачёта тренировки',
+      'Прогресс: обновление жестом; мягкое появление каталога и улучшения крупного текста',
+      'Настройки: палитры кристаллов по профилям, оттенок, светлота и насыщенность; тёмные надписи на светлом камне',
+    ],
+  },
+  {
+    version: '2.56.55',
+    date: '2026-11-01',
+    en: [
+      'Aurora: jewel Home, Games, Workout, Progress and Pet screens with matching headers and bottom tabs',
+      'Games stay in a square grid; Workout keeps your real programmes and durations',
+      'Gentle screen-entry effects, a new Pet entrance and animated item moves; respects Reduce Motion',
+      'Summary and History both keep their button backgrounds; improved music continuity between tabs',
+    ],
+    ru: [
+      'Аврора: драгоценное оформление главной, игр, зарядки, прогресса и питомца; единые шапки и нижние вкладки',
+      'Каталог остаётся квадратным; зарядка сохраняет настоящие программы и выбор длительности',
+      'Мягкие эффекты входа, появление питомца и движение товаров; учитывается уменьшение анимации',
+      'Подложки у обеих кнопок «Сводка» и «История»; музыка больше не обрывается при смене вкладок меню',
+    ],
+  },
+  {
+    version: '2.56.54',
+    date: '2026-10-31',
+    en: [
+      'Warm-up opened from the Home card now keeps the bottom tabs',
+    ],
+    ru: [
+      '«Зарядка», открытая с главной, больше не прячет нижние вкладки',
+    ],
+  },
+  {
+    version: '2.56.53',
+    date: '2026-10-31',
+    en: [
+      '“Aurora” look: game buttons moved from the board to the bottom bar — easier to reach: Replay sound in 4 listening games, Undo / Where is the mistake / Hint in Knights and Queens, Hint in 3 chess puzzles',
+      '“Aurora” look: the pause background now fills the whole screen',
+    ],
+    ru: [
+      'Оформление «Аврора»: кнопки игры переехали с поля в нижнюю панель — до них проще дотянуться: «Повторить звук» в 4 играх на слух, «Отменить», «Где ошибка», «Подсказка» в «Конях и ферзях», «Подсказка» в 3 шахматных задачах',
+      'Оформление «Аврора»: фон паузы теперь на весь экран',
+    ],
+  },
+  {
+    version: '2.56.52',
+    date: '2026-10-31',
+    en: [
+      '“Aurora” look: one bottom bar for all games — gem Pause everywhere; Undo, Hint, Notes and Color buttons get the same gems in every game',
+      '“Aurora” look: in 8 more games “Restart” moved from the bottom bar into the pause',
+      '“Aurora” home: “Quick access” title above the tiles and “All games ›” next to “Daily practices”',
+    ],
+    ru: [
+      'Оформление «Аврора»: нижняя панель одна для всех игр — пауза-камень везде; «Отменить», «Подсказка», «Заметки» и «Цвет» — одинаковые камни в каждой игре',
+      'Оформление «Аврора»: ещё в 8 играх «Заново» переехало из нижней панели в паузу',
+      'Главная «Авроры»: заголовок «Быстрый доступ» над плитками и «Все игры ›» у «Практик дня»',
+    ],
+  },
+  {
+    version: '2.56.51',
+    date: '2026-10-31',
+    en: [
+      '“Aurora” look: new game frame “glass and gems” — painted header and bottom bar, glowing background; Sudoku first: see-through board and gem buttons',
+      '“Aurora” look: in 40 more games “Restart” moved from the bottom bar into the pause',
+    ],
+    ru: [
+      'Оформление «Аврора»: новая игровая рамка «стекло и камни» — нарисованные шапка и нижняя панель, сияющий фон; первым — Судоку: прозрачное поле и кнопки-камни',
+      'Оформление «Аврора»: ещё в 40 играх «Заново» переехало из нижней панели в паузу',
+    ],
+  },
+  {
+    version: '2.56.50',
+    date: '2026-10-30',
+    en: [
+      '“Aurora” look: difficulty choice in the pause is one row of three tiles; the selected one is highlighted',
+      '“Aurora” look: Sudoku’s “Restart” moved from the bottom bar into the pause',
+    ],
+    ru: [
+      'Оформление «Аврора»: выбор сложности в паузе — одним рядом из трёх плашек, выбранная подсвечена',
+      'Оформление «Аврора»: у Судоку «Заново» переехало из нижней панели в паузу',
+    ],
+  },
+  {
+    version: '2.56.49',
+    date: '2026-10-30',
+    en: [
+      '“Aurora” look: one standard game screen for every game — glass header and bottom bar with round buttons, “Teacher and rules” under one button',
+      '“Aurora” look: new pause — “Start over” and “Continue” side by side, rules fold out on tap',
+    ],
+    ru: [
+      'Оформление «Аврора»: единый игровой экран для всех игр — стеклянные шапка и нижняя панель с круглыми кнопками, «Разбор и правила» под одной кнопкой',
+      'Оформление «Аврора»: новая пауза — «Начать заново» и «Продолжить» рядом, правила раскрываются по нажатию',
+    ],
+  },
+  {
+    version: '2.56.48',
+    date: '2026-10-30',
+    en: [
+      '“Aurora” look: quick-access captions on the home screen are shown in full; TalkBack reads each tile once',
+    ],
+    ru: [
+      'Оформление «Аврора»: подписи «быстрого доступа» на главной видны целиком; TalkBack читает плитку один раз',
+    ],
+  },
+  {
+    version: '2.56.47',
+    date: '2026-10-30',
+    en: [
+      '“Aurora” look: the profile switch moved up next to the title; streak, coins, achievements, friends and leagues are now one row of quick-access tiles',
+      '“Aurora” look: “All games ›” next to the recommendations; the active bottom tab is underlined',
+    ],
+    ru: [
+      'Оформление «Аврора»: смена профиля — рядом с названием; серия, баллы, достижения, друзья и лиги — один ряд «быстрого доступа»',
+      'Оформление «Аврора»: «Все игры ›» у рекомендаций; активная вкладка внизу подчёркнута',
+    ],
+  },
+  {
+    version: '2.56.46',
+    date: '2026-10-30',
+    en: [
+      'Workout from the home screen no longer hangs on a white screen — the workout choice opens right away',
+      '“Aurora” look: recommendation tiles show the game’s own colour icon',
+    ],
+    ru: [
+      'Зарядка с главной больше не зависает на белом экране — выбор зарядки открывается сразу',
+      'Оформление «Аврора»: на плитках рекомендаций — цветной значок самой игры',
+    ],
+  },
+  {
+    version: '2.56.45',
+    date: '2026-10-30',
+    en: [
+      '“Aurora” look: a compact home screen — recommendations, daily practices and favourite sections as small tiles, four in a row',
+      '“Aurora” look: the bottom bar shows five tabs with captions; the active tab is orange',
+      'Home: “Today” fits in one line; the play sign ▶ is shown only where a game starts right away',
+    ],
+    ru: [
+      'Оформление «Аврора»: компактная главная — рекомендации, практики дня и любимые разделы маленькими плитками, по четыре в ряд',
+      'Оформление «Аврора»: внизу пять вкладок с подписями, активная — оранжевая',
+      'Главная: «Сегодня» — одной строкой; знак ▶ только там, где игра запускается сразу',
+    ],
+  },
+  {
+    version: '2.56.44',
+    date: '2026-10-30',
+    en: [
+      '“Aurora” look: Visual Search and Counting games are redesigned',
+      'Feedback: under each of your messages you can see whether it was received, is in progress or fixed',
+      'Game sets: switching between tiles of a set no longer piles up screens — one “back” returns to the section',
+    ],
+    ru: [
+      'Оформление «Аврора»: игры «Поиска глазами» и «Счёта» перерисованы',
+      'Отзывы: под каждым своим сообщением видно — получено, в работе или исправлено',
+      'Наборы игр: переход между плашками набора больше не копит экраны — одно «назад» возвращает в развилку',
+    ],
+  },
+  {
+    version: '2.56.43',
+    date: '2026-10-29',
+    en: [
+      '“Aurora” look: your favourite sections on Home are illustrated tiles — tap one to open Games filtered to that section',
+      '“Aurora” look: the Sudoku board, cells and number keys are redesigned',
+    ],
+    ru: [
+      'Оформление «Аврора»: любимые разделы на главной — плитки с картинками; нажатие открывает «Игры» с этим разделом',
+      'Оформление «Аврора»: поле «Судоку», клетки и клавиши цифр перерисованы',
+    ],
+  },
+  {
     version: '2.56.42',
     date: '2026-10-29',
     en: [

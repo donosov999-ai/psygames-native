@@ -1,0 +1,12 @@
+PASS src/__tests__/music-preferences-race.test.ts
+PASS src/__tests__/music-lifecycle.test.ts
+PASS src/__tests__/audio-warmup.test.ts
+PASS src/__tests__/speech-sound-toggle.test.ts
+PASS src/__tests__/app-music-host.test.tsx
+PASS src/__tests__/music-library.test.ts
+
+Test Suites: 6 passed, 6 total
+Tests:       35 passed, 35 total
+Snapshots:   0 total
+Time:        4.187 s
+Ran all test suites matching /src\/__tests__\/music-lifecycle.test.ts|src\/__tests__\/app-music-host.test.tsx|src\/__tests__\/music-preferences-race.test.ts|src\/__tests__\/music-library.test.ts|src\/__tests__\/audio-warmup.test.ts|src\/__tests__\/speech-sound-toggle.test.ts/i.

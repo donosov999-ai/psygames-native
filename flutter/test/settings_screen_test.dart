@@ -144,10 +144,11 @@ void main() {
         ),
       ));
       await t.pumpAndSettle();
+      await tap(t, 'settings-open-appearance');
       await t.ensureVisible(find.byKey(const Key('settings-template-aurora')));
       await t.pumpAndSettle();
       expect(t.takeException(), isNull, reason: mode);
-      expect(t.widget<ChoiceChip>(find.byKey(const Key('settings-template-aurora'))).selected, isTrue);
+      expect(t.widget<Semantics>(find.byKey(const Key('settings-template-aurora'))).properties.selected, isTrue);
     }
     await t.binding.setSurfaceSize(null);
   });

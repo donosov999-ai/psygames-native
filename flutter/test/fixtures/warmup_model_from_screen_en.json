@@ -1,0 +1,193 @@
+{
+  "title": "Workout",
+  "hint": "Picked by time of day — you can take any other",
+  "back": "Back",
+  "slots": [
+    {
+      "key": "morning",
+      "title": "Morning",
+      "desc": "Get your head going for the day",
+      "meta": "games: 5 · ~4 min",
+      "note": null,
+      "icon": "sunny-outline",
+      "tint": [
+        "#f7b733",
+        "#fc4a1a"
+      ],
+      "on": true,
+      "off": false,
+      "durs": [
+        {
+          "value": 5,
+          "label": "5 min",
+          "selected": true
+        },
+        {
+          "value": 10,
+          "label": "10 min",
+          "selected": false
+        },
+        {
+          "value": 15,
+          "label": "15 min",
+          "selected": false
+        }
+      ],
+      "ownLens": null,
+      "steps": [
+        "1. Corsi Blocks · ~1 min",
+        "2. SDMT: Symbol→Digit · ~1 min",
+        "3. Flanker: Arrows · ~1 min",
+        "4. Mental Rotation · ~2 min",
+        "5. Task Switching · ~2 min"
+      ]
+    },
+    {
+      "key": "day",
+      "title": "Daytime",
+      "desc": "A short break from work",
+      "meta": "games: 7 · ~6 min",
+      "note": null,
+      "icon": "partly-sunny-outline",
+      "tint": [
+        "#43cea2",
+        "#185a9d"
+      ],
+      "on": false,
+      "off": false,
+      "durs": null,
+      "ownLens": null,
+      "steps": []
+    },
+    {
+      "key": "evening",
+      "title": "Evening",
+      "desc": "Calm games and breathing",
+      "meta": "games: 2 · ~5 min",
+      "note": null,
+      "icon": "moon-outline",
+      "tint": [
+        "#7b4397",
+        "#dc2430"
+      ],
+      "on": false,
+      "off": false,
+      "durs": null,
+      "ownLens": null,
+      "steps": []
+    },
+    {
+      "key": "night",
+      "title": "Night",
+      "desc": "Can’t sleep — unhurried puzzles, then breathing",
+      "meta": "games: 3 · ~4 min",
+      "note": "Not a workout: no points, no streak",
+      "icon": "bed-outline",
+      "tint": [
+        "#2c3e50",
+        "#4ca1af"
+      ],
+      "on": false,
+      "off": false,
+      "durs": null,
+      "ownLens": null,
+      "steps": []
+    }
+  ],
+  "seriesHead": {
+    "title": "Series",
+    "note": "A fixed run of exercises with a single result"
+  },
+  "series": [
+    {
+      "key": "schulte-blocks",
+      "title": "Schulte: Attention",
+      "desc": "Three rules in a row on one field",
+      "meta": "Blocks: 3",
+      "note": "Fixed set — otherwise measurements can’t be compared",
+      "icon": "grid-outline",
+      "tint": [
+        "#0ea5e9",
+        "#4338ca"
+      ],
+      "on": false,
+      "off": false,
+      "durs": null,
+      "ownLens": null,
+      "steps": []
+    },
+    {
+      "key": "proofreading-blocks",
+      "title": "Proofread: Focus",
+      "desc": "Three rules in a row on one field",
+      "meta": "Blocks: 3",
+      "note": "Fixed set — otherwise measurements can’t be compared",
+      "icon": "text-outline",
+      "tint": [
+        "#f59e0b",
+        "#b45309"
+      ],
+      "on": false,
+      "off": false,
+      "durs": null,
+      "ownLens": null,
+      "steps": []
+    },
+    {
+      "key": "chess-blocks",
+      "title": "Board in Mind",
+      "desc": "Three rules in a row on one field",
+      "meta": "Blocks: 3",
+      "note": "Fixed set — otherwise measurements can’t be compared",
+      "icon": "apps-outline",
+      "tint": [
+        "#64748b",
+        "#1e293b"
+      ],
+      "on": false,
+      "off": false,
+      "durs": null,
+      "ownLens": null,
+      "steps": []
+    }
+  ],
+  "ownHead": null,
+  "own": [],
+  "start": {
+    "label": "Start",
+    "disabled": false,
+    "tint": "#f7b733"
+  },
+  "help": {
+    "label": "How to play",
+    "title": "Workout",
+    "gotIt": "Got it",
+    "hint": "Picked by time of day — you can take any other",
+    "rows": [
+      {
+        "icon": "sunny-outline",
+        "tint": "#f7b733",
+        "name": "Morning",
+        "desc": "Get your head going for the day"
+      },
+      {
+        "icon": "partly-sunny-outline",
+        "tint": "#43cea2",
+        "name": "Daytime",
+        "desc": "A short break from work"
+      },
+      {
+        "icon": "moon-outline",
+        "tint": "#7b4397",
+        "name": "Evening",
+        "desc": "Calm games and breathing"
+      },
+      {
+        "icon": "bed-outline",
+        "tint": "#2c3e50",
+        "name": "Night",
+        "desc": "Can’t sleep — unhurried puzzles, then breathing — Not a workout: no points, no streak"
+      }
+    ]
+  }
+}

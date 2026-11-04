@@ -32,6 +32,7 @@ import OrientationGuard from '@/src/components/OrientationGuard';
 import FeedbackWidget from '@/src/components/FeedbackWidget';
 import WalkingPet from '@/src/components/pet/WalkingPet';
 import BottomTabBar from '@/src/components/BottomTabBar';
+import AppMusicHost from '@/src/components/AppMusicHost';
 import { repairWarmupHistoryOnce, loadWarmupHistory } from '@/src/services/warmup';
 import { grantWarmupCompensationOnce } from '@/src/services/tokens';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -129,6 +130,7 @@ function RootLayoutNav() {
   return (
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
+      <AppMusicHost />
       <Stack
         screenOptions={{
           headerShown: false,

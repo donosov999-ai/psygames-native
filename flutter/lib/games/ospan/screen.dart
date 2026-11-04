@@ -200,7 +200,7 @@ class _OspanScreenState extends State<OspanScreen> {
         height: h,
       ),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: _toolbar(context),
       pauseActions: [

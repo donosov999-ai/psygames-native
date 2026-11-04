@@ -460,7 +460,7 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
           tint: GameColors.of(context).hint,
           onPressed: _phase == DsPhase.input ? _reveal : null,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       // Низ — ОТВЕТ: ряд клавиш стоит всю партию и гаснет вне ввода (веб `bottom="answer"`).
       toolbar: playing

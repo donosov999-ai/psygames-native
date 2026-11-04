@@ -227,7 +227,7 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
       ),
       auxRow: AuxBar(
         children: [
-          AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
+          AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
         ],
       ),
       toolbar: switch (_phase) {

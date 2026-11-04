@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/audio_host.dart';
 import '../../shell/game_preset.dart';
+import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -333,6 +334,13 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
         EchoPhase.playing => _playing(context, h),
         EchoPhase.result => _result(context, h),
       },
+      // «Повторить звук» — в нижнем тулбаре каркаса, не кнопкой в центре поля: Денис 31.10 — «управление,
+      // если тулбар позволяет, идёт в него: тянуться в низ экрана проще, чем в центр» (CHATS_RULES.md §1в).
+      auxRow: r == null
+          ? null
+          : AuxBar(children: [
+              AuxAction(key: const Key('echo-replay'), icon: Icons.volume_up, label: L.t('replaySound'), onPressed: _say),
+            ]),
       toolbar: r == null ? null : _options(context, r),
     );
   }
@@ -387,20 +395,6 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
         height: h,
         child: Center(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            InkWell(
-              key: const Key('echo-replay'),
-              borderRadius: BorderRadius.circular(64),
-              onTap: _say,
-              child: Container(
-                width: 128,
-                height: 128,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: _accent.withValues(alpha: 0.12)),
-                child: const Icon(Icons.volume_up, size: 64, color: _accent),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(L.t('replaySound'), style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(height: 16),
             Text(L.t('pwEchoPickSpelling'), textAlign: TextAlign.center),
           ]),
         ),

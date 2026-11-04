@@ -442,7 +442,7 @@ class _HanoiScreenState extends State<HanoiScreen> {
       },
       auxRow: AuxBar(children: [
         AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _history.isEmpty ? null : _undo),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
       ]),
       toolbar: _won
           ? Padding(

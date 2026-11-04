@@ -241,7 +241,7 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
           tint: const Color(0xFFB45309),
           onPressed: playing ? _reveal : null,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: switch (_phase) {
         RspanPhase.judge => _JudgeButtons(last: _lastJudge, onJudge: _judge),

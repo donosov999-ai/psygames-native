@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../shell/game_clock.dart';
+import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -275,6 +276,7 @@ class _SolitaireChessScreenState extends State<SolitaireChessScreen> {
         _Phase.playing => run == null ? const SizedBox.shrink() : _play(run, h),
         _Phase.done => _result(),
       },
+      auxRow: playing ? _aux(run) : null,
       pauseActions: [
         if (playing)
           PauseAction(
@@ -317,6 +319,19 @@ class _SolitaireChessScreenState extends State<SolitaireChessScreen> {
     );
   }
 
+  /*
+   * «Подсказка» — в нижнем тулбаре каркаса, а не кнопкой под доской (стандарт игрового экрана,
+   * Денис 31.10; CHATS_RULES.md §1в). Условие прежнее; до него — неактивная кнопка, ряд не прыгает.
+   */
+  AuxBar _aux(SolitaireRun run) => AuxBar(children: [
+        AuxAction(
+          key: const Key('sol-hint'),
+          icon: Icons.lightbulb_outline,
+          label: L.t('btn_hint'),
+          onPressed: run.verdict == null && run.secondsLeft <= solitaireSeconds / 2 && !(run.hinted) ? () => setState(run.takeHint) : null,
+        ),
+      ]);
+
   Widget _play(SolitaireRun run, double fieldHeight) {
     final scheme = Theme.of(context).colorScheme;
     final left = run.secondsLeft;
@@ -335,7 +350,7 @@ class _SolitaireChessScreenState extends State<SolitaireChessScreen> {
         // кнопок и вердикта; и не шире поля.
         final side = min(
           box.maxWidth - 16,
-          fieldHeight - 210,
+          fieldHeight - 160,
         ).clamp(120.0, 440.0);
         return Column(
           children: [
@@ -393,23 +408,14 @@ class _SolitaireChessScreenState extends State<SolitaireChessScreen> {
                       minimumSize: const Size(130, 48),
                     ),
                   ),
-                if (verdict == null && left <= solitaireSeconds / 2)
-                  run.hinted
-                      ? Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Text(
-                            L.t('hintUsed'),
-                            key: const Key('sol-hint-used'),
-                          ),
-                        )
-                      : OutlinedButton(
-                          key: const Key('sol-hint'),
-                          onPressed: () => setState(run.takeHint),
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(110, 48),
-                          ),
-                          child: Text(L.t('btn_hint')),
-                        ),
+                if (verdict == null && left <= solitaireSeconds / 2 && run.hinted)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      L.t('hintUsed'),
+                      key: const Key('sol-hint-used'),
+                    ),
+                  ),
               ],
             ),
             Text(

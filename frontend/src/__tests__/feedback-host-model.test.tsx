@@ -43,8 +43,9 @@ jest.mock('@/src/services/voiceNote', () => ({
   SILENCE_PEAK: 0.02,
 }));
 jest.mock('@/src/services/feedbackDialog', () => ({
+  dialogStatusLabel: jest.requireActual('@/src/services/feedbackDialog').dialogStatusLabel,
   getMyDialog: () => Promise.resolve([
-    { key: 'a', who: 'me', text: 'Не понял правила', at: '2026-10-06T12:30:00Z' },
+    { key: 'a', who: 'me', text: 'Не понял правила', at: '2026-10-06T12:30:00Z', status: 'in_progress' },
     { key: 'b', who: 'dev', text: 'Починили', at: '2026-10-07T09:05:00Z', fixedIn: '2.56.15' },
   ]),
 }));
@@ -284,6 +285,8 @@ describe('Форма отзыва под оболочкой', () => {
     expect(d.bubbles.map((b: any) => b.me)).toEqual([true, false]);
     expect(d.bubbles[1].fixed).toContain('2.56.15');
     expect(d.bubbles[0].at).toBe('2026-10-06 12:30');
+    expect(d.bubbles[0].state).toMatch(/🔧/);   // моё — со статусом «в работе» (3a7f4077)
+    expect(d.bubbles[1].state).toBeNull();      // ответ — без статуса
     expect(last().footer).toBe(null);
     await act('tab', 'form');
     expect(last().form).not.toBe(null);

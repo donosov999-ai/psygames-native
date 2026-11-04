@@ -8,6 +8,7 @@ import 'package:psygames_flutter/games/pause/practice_haptics.dart';
 import 'package:practice_kit/practice_kit.dart';
 import 'package:psygames_flutter/games/pause/screen.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/voice.dart';
 import 'package:psygames_flutter/shell/app_haptics.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
@@ -186,8 +187,10 @@ void main() {
       final holds = calls.where((c) => c.method == 'play' && c.arguments['continuous'] == true);
       expect(holds, isNotEmpty, reason: 'за 12 с Кегеля — ни одного удержания с вибрацией');
       calls.clear();
-      await tester.tap(find.byKey(const Key('pause-pause')));
+      // Пауза одна — жёлтая каркаса (CHATS_RULES.md §1в): под её меню удержание гаснет.
+      await tester.tap(find.byTooltip(L.t('teachPause')));
       await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
       expect(calls.map((c) => c.method), contains('stop'));
       await tester.pumpWidget(const SizedBox());
     });

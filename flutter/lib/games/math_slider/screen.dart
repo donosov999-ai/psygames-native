@@ -288,7 +288,7 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
           label: L.t('sliderNudgeRight'),
           onPressed: _answering ? () => _nudge(q.scale.keyboardStep) : null,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: _toolbar(context),
       pauseActions: [

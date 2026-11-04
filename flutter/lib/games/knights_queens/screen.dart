@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../shell/game_clock.dart';
+import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -277,6 +278,7 @@ class _KnightsQueensScreenState extends State<KnightsQueensScreen> {
         _Phase.playing => run == null ? const SizedBox.shrink() : _play(run, h),
         _Phase.done => _result(),
       },
+      auxRow: playing ? _aux(run) : null,
       pauseActions: [
         if (playing)
           PauseAction(
@@ -286,6 +288,45 @@ class _KnightsQueensScreenState extends State<KnightsQueensScreen> {
           ),
       ],
     );
+  }
+
+  /*
+   * Служебные действия партии — в нижнем тулбаре каркаса, а не кнопками под доской (стандарт
+   * игрового экрана, Денис 31.10; CHATS_RULES.md §1в). Условия те же, что были у кнопок в поле;
+   * недоступное — неактивной кнопкой, чтобы ряд не прыгал. «Заново» при тупике остаётся в поле:
+   * это выход из тупика, а не служебное действие.
+   */
+  AuxBar _aux(KqRun run) {
+    final verdict = run.verdict;
+    final queens = run is QueensRun ? run : null;
+    final tour = run is TourRun ? run : null;
+    final open = verdict != KqVerdict.solved && verdict != KqVerdict.timeout;
+    return AuxBar(children: [
+      if (tour != null)
+        AuxAction(
+          key: const Key('kq-undo'),
+          icon: Icons.undo,
+          label: L.t('btn_undo'),
+          onPressed: tour.path.length > 1 && open ? () => setState(tour.undo) : null,
+        ),
+      AuxAction(
+        key: const Key('kq-mistake'),
+        icon: Icons.manage_search,
+        label: L.t('puzzleWhereError'),
+        onPressed: (verdict == null || verdict == KqVerdict.stuck) &&
+                (queens?.board.placed.isNotEmpty ?? (tour!.path.length > 1))
+            ? () => setState(run.whereMistake)
+            : null,
+      ),
+      AuxAction(
+        key: const Key('kq-hint'),
+        icon: Icons.lightbulb_outline,
+        label: L.t('btn_hint'),
+        onPressed: verdict == null && run.secondsLeft <= run.seconds / 2 && !run.hinted
+            ? () => setState(run.takeHint)
+            : null,
+      ),
+    ]);
   }
 
   Widget _config() {
@@ -376,7 +417,9 @@ class _KnightsQueensScreenState extends State<KnightsQueensScreen> {
     final seconds = run.seconds;
     return LayoutBuilder(
       builder: (context, box) {
-        final side = min(box.maxWidth - 16, fieldHeight - 230).clamp(
+        // Запас под текстами и рядом под доской; «Отменить», «Где ошибка», «Подсказка» ушли в
+        // нижний тулбар каркаса (он сам вычитается из поля) — запас меньше на их ряд (48 + отступ).
+        final side = min(box.maxWidth - 16, fieldHeight - 170).clamp(
           120.0,
           440.0,
         );
@@ -428,18 +471,6 @@ class _KnightsQueensScreenState extends State<KnightsQueensScreen> {
               runSpacing: 8,
               alignment: WrapAlignment.center,
               children: [
-                if (tour != null && tour.path.length > 1 &&
-                    verdict != KqVerdict.solved &&
-                    verdict != KqVerdict.timeout)
-                  OutlinedButton.icon(
-                    key: const Key('kq-undo'),
-                    onPressed: () => setState(tour.undo),
-                    icon: const Icon(Icons.undo),
-                    label: Text(L.t('btn_undo')),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(110, 48),
-                    ),
-                  ),
                 if (verdict == KqVerdict.stuck)
                   FilledButton.icon(
                     key: const Key('kq-restart'),
@@ -450,34 +481,14 @@ class _KnightsQueensScreenState extends State<KnightsQueensScreen> {
                       minimumSize: const Size(130, 48),
                     ),
                   ),
-                if ((verdict == null || verdict == KqVerdict.stuck) &&
-                    (queens?.board.placed.isNotEmpty ??
-                        (tour!.path.length > 1)))
-                  OutlinedButton(
-                    key: const Key('kq-mistake'),
-                    onPressed: () => setState(run.whereMistake),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(110, 48),
+                if (verdict == null && left <= seconds / 2 && run.hinted)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      L.t('hintUsed'),
+                      key: const Key('kq-hint-used'),
                     ),
-                    child: Text(L.t('puzzleWhereError')),
                   ),
-                if (verdict == null && left <= seconds / 2)
-                  run.hinted
-                      ? Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Text(
-                            L.t('hintUsed'),
-                            key: const Key('kq-hint-used'),
-                          ),
-                        )
-                      : OutlinedButton(
-                          key: const Key('kq-hint'),
-                          onPressed: () => setState(run.takeHint),
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(110, 48),
-                          ),
-                          child: Text(L.t('btn_hint')),
-                        ),
               ],
             ),
             Text(

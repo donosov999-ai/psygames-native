@@ -290,14 +290,31 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     }
     final s = _session;
     if (s == null) return;
+    // Отсчёт перед началом тоже стоит под меню: своей кнопки паузы для него больше нет.
+    if (!current && s['phase'] == 'ready' && _leadUntil != null) {
+      _leadLeft = _leadUntil! - _now;
+      _leadUntil = null;
+      _coveredPause = true;
+      _syncTicker();
+      return;
+    } else if (current && _coveredPause && _leadLeft != null) {
+      _leadUntil = _now + _leadLeft!;
+      _leadLeft = null;
+      _coveredPause = false;
+      _syncTicker();
+      return;
+    }
     if (!current && s['phase'] == 'running') {
       _session = sessionAction(s, 'pause', _now);
       _coveredPause = true;
       _syncTicker();
+      // Как у `act('pause')`: под меню голос не досказывает шаг.
+      unawaited(_voice.cancel());
     } else if (current && _coveredPause && s['phase'] == 'paused') {
       _session = sessionAction(s, 'resume', _now);
       _coveredPause = false;
       _syncTicker();
+      _speak();
     }
   }
 
@@ -872,23 +889,23 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
                     ),
             )
           : null,
+      // 🔴 СВОЕЙ «ПАУЗЫ» НЕТ: пауза одна — жёлтая кнопка каркаса, её меню общее для всех игр
+      // (Денис 04.11: «кнопка пауза и её меню — везде общее»; CHATS_RULES.md §1в). Под меню
+      // подход стоит сам (`_coveredPause`). «Продолжить» здесь — только когда подход встал без
+      // меню: приложение уходило в фон. Ключ свой: `pause-resume` — «Продолжить» меню каркаса.
       auxRow: phase == PausePhase.playing && (wim != null || eye != null)
           ? AuxBar(children: [
-              if (!(wim?.paused ?? eye!.paused))
-                AuxAction(key: const Key('pause-pause'), icon: Icons.pause, label: ps('pause'), onPressed: () => act('pause'))
-              else
-                AuxAction(key: const Key('pause-resume'), icon: Icons.play_arrow, label: ps('resume'), onPressed: () => act('resume')),
-              AuxAction(key: const Key('pause-restart'), icon: Icons.replay, label: ps('restart'), onPressed: _again),
+              if (wim?.paused ?? eye!.paused)
+                AuxAction(key: const Key('pause-practice-resume'), icon: Icons.play_arrow, label: ps('resume'), onPressed: () => act('resume')),
+              AuxAction(inPause: true, key: const Key('pause-restart'), icon: Icons.replay, label: ps('restart'), onPressed: _again),
             ])
           : phase == PausePhase.playing && s != null
           ? AuxBar(children: [
-              if (s['phase'] == 'running' || _leadUntil != null)
-                AuxAction(key: const Key('pause-pause'), icon: Icons.pause, label: ps('pause'), onPressed: () => act('pause'))
-              else
-                AuxAction(key: const Key('pause-resume'), icon: Icons.play_arrow, label: ps('resume'), onPressed: () => act('resume')),
+              if (!(s['phase'] == 'running' || _leadUntil != null))
+                AuxAction(key: const Key('pause-practice-resume'), icon: Icons.play_arrow, label: ps('resume'), onPressed: () => act('resume')),
               AuxAction(key: const Key('pause-skip'), icon: Icons.skip_next, label: pc('skipStepBtn'), onPressed: () => act('skip')),
               AuxAction(key: const Key('pause-extend'), icon: Icons.more_time, label: pc('extend30'), onPressed: () => act('extend')),
-              AuxAction(key: const Key('pause-restart'), icon: Icons.replay, label: ps('restart'), onPressed: _again),
+              AuxAction(inPause: true, key: const Key('pause-restart'), icon: Icons.replay, label: ps('restart'), onPressed: _again),
             ])
           : null,
       // 🔴 Подход гимнастики и стереокартинки — ТОЛЬКО ПОЛЕ (решение Дениса, задача

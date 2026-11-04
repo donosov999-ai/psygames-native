@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/app_theme.dart';
+import 'package:psygames_flutter/shell/aurora_scope.dart';
+import 'package:psygames_flutter/shell/design_template.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/game_shell.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
@@ -114,5 +117,26 @@ void main() {
     addTearDown(GamePreset.clear);
     await open(t, level: 3, best: 5);
     expect(find.text(L.t('pauseEasier')), findsNothing);
+  });
+
+  testWidgets('«Аврора»: «проще / сложнее» — в панели «Уровни · Сложность», а не отдельной строкой', (t) async {
+    t.view.physicalSize = const Size(390, 844);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.reset);
+    final store = _Store()
+      ..m['probe.level'] = 3
+      ..m['probe.best'] = 5;
+    LevelLadder.newScreen();
+    await t.pumpWidget(MaterialApp(
+      theme: applyUiTemplate(classicShellTheme(Brightness.dark), UiTemplate.aurora),
+      home: AuroraGameScope(route: '/games/probe', child: RestartScope(builder: (_) => _Game(store))),
+    ));
+    await t.pumpAndSettle();
+    await t.tap(find.byKey(const Key('game-pause')));
+    await t.pumpAndSettle();
+    final group = find.byKey(const Key('pause-level-group'));
+    expect(group, findsOneWidget, reason: 'пункты уровней собраны в панель');
+    expect(find.descendant(of: group, matching: find.text(L.t('pauseEasier'))), findsOneWidget);
+    expect(find.descendant(of: group, matching: find.text(L.t('pauseHarder'))), findsOneWidget);
   });
 }

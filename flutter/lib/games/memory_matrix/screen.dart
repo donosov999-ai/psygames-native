@@ -374,7 +374,7 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
           tint: const Color(0xFFB45309),
           onPressed: playing ? _reveal : null,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: _phase == MmPhase.done || _phase == MmPhase.revealed
           ? Padding(

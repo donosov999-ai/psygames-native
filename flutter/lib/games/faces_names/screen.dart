@@ -229,6 +229,8 @@ class _FacesNamesScreenState extends State<FacesNamesScreen> {
       field: (context, h) => _field(context, s, lib, h),
       auxRow: AuxBar(children: [
         AuxAction(
+          // Тот же обработчик, что «Заново» в паузе — под «Авророй» только в паузе.
+          inPause: true,
           icon: Icons.refresh,
           label: lib.s(L.locale, 'restart'),
           onPressed: () => setState(() => s.restart(_now)),

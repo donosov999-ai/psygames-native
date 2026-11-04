@@ -246,7 +246,7 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
         ],
       ),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
       ]),
       toolbar: _done
           ? Padding(

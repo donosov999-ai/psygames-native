@@ -25,7 +25,8 @@ jest.mock('@/src/services/voiceNote', () => ({
   canRecord: () => false, shouldWarnSilent: () => false,
   staleWebViewMajor: () => null, SILENCE_PEAK: 0.02,
 }));
-jest.mock('@/src/services/feedbackDialog', () => ({ getMyDialog: () => Promise.resolve([]) }));
+jest.mock('@/src/services/feedbackDialog', () => ({
+  dialogStatusLabel: jest.requireActual('@/src/services/feedbackDialog').dialogStatusLabel, getMyDialog: () => Promise.resolve([]) }));
 jest.mock('@/src/services/pet', () => ({ DEVCHAT_VISIBLE_EVENT: 'test-devchat-visible' }));
 jest.mock('@/src/services/hostScreens', () => ({
   hostDrawsScreen: () => mockHosted,

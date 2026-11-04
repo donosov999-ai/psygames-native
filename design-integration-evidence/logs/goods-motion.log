@@ -1,0 +1,6 @@
+00:00 +0: loading /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/goods_motion_lifecycle_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: opt-in actual screen: legal move, rapid taps, Undo, hold and exit cancel flight
+00:01 +1: disabled motion is immediate and schedules no completion
+00:01 +2: (tearDownAll)
+00:01 +2: All tests passed!

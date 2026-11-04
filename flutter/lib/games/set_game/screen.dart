@@ -259,7 +259,7 @@ class _SetGameScreenState extends State<SetGameScreen> {
           label: L.t('puzzleShowSolution'),
           onPressed: _phase == _Phase.playing && _right == null ? _showSolution : null,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: _phase == _Phase.result
           ? Padding(

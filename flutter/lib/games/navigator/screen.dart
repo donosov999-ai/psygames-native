@@ -181,7 +181,7 @@ class _NavigatorScreenState extends State<NavigatorScreen> with WidgetsBindingOb
         hud: [HudItem(label: L.t('level'), value: '$_level', icon: Icons.flag_outlined)],
         field: (context, h) => _field(context, h, s, session),
         auxRow: AuxBar(children: [
-          AuxAction(icon: Icons.refresh, label: s.t('restart'), onPressed: done ? null : _restart),
+          AuxAction(inPause: true, icon: Icons.refresh, label: s.t('restart'), onPressed: done ? null : _restart),
         ]),
         toolbar: done
             ? Padding(

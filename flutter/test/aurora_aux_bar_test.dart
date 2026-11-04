@@ -56,9 +56,38 @@ void main() {
     final clean = t.getRect(find.text('Очистить'));
     expect(undo.left, greaterThan(pause.right), reason: 'плитки — справа от паузы');
     expect(clean.center.dy, closeTo(undo.center.dy, 1), reason: 'одной строкой');
-    expect(find.text('3'), findsOneWidget, reason: 'число — вместо значка, как в Classic');
+    expect(find.descendant(of: find.byKey(const Key('aux-count')), matching: find.text('3')), findsOneWidget, reason: 'число — счётчиком на значке (реф 30.10)');
     await t.tap(find.text('Отменить'));
-    expect(undone, 1);
+    expect(undone, 1, reason: 'нажимается и подпись под кругом');
+    // Стандарт 30.10: равные колонки на всю ширину — центры кнопок на равном шаге, справа пусто не остаётся.
+    final centers = [for (final l in ['Правила', 'Отменить', 'Карандаш', 'Подсказка', 'Очистить']) t.getRect(find.text(l)).center.dx];
+    final steps = [for (var i = 1; i < centers.length; i++) centers[i] - centers[i - 1]];
+    for (final d in steps) {
+      expect(d, closeTo(steps.first, 1.5));
+    }
+    final width = t.view.physicalSize.width / t.view.devicePixelRatio;
+    expect(width - centers.last, lessThan(steps.first), reason: 'последняя кнопка у правого края, без пустого места');
+  });
+
+  testWidgets('Стандарт 31.10: «Отменить», «Подсказка», «Заметки» — камнем по значку в любой игре, остальное — стеклянный шар', (t) async {
+    await mount(t, UiTemplate.aurora);
+    String? jewelOf(String label) {
+      final images = find.descendant(
+        of: find.ancestor(of: find.text(label), matching: find.byType(AuxAction)),
+        matching: find.byType(Image),
+      );
+      if (images.evaluate().isEmpty) return null;
+      return (t.widget<Image>(images.first).image as AssetImage).assetName.split('/').last;
+    }
+
+    // Игра камень не передаёт (jewelAssetId нет) — каркас берёт его по значку.
+    expect(jewelOf('Правила'), 'dark_hint.webp', reason: 'значок лампочки — камень «Подсказка»');
+    expect(jewelOf('Отменить'), 'dark_undo.webp');
+    expect(jewelOf('Карандаш'), 'dark_notes.webp');
+    expect(jewelOf('Очистить'), isNull, reason: 'камня нет — общий стеклянный шар');
+    final pause = find.descendant(of: find.byKey(const Key('game-pause')), matching: find.byType(Image));
+    expect((t.widget<Image>(pause).image as AssetImage).assetName.split('/').last, 'dark_pause.webp',
+        reason: 'пауза — камень у всех игр, без флага игры');
   });
 
   testWidgets('Classic: прежние круглые значки без подписей', (t) async {
@@ -72,4 +101,31 @@ void main() {
     await mount(t, UiTemplate.aurora, size: const Size(640, 1136), textScale: 2);
     expect(t.takeException(), isNull);
   });
+
+  for (final template in UiTemplate.values) {
+    testWidgets('Стандарт 30.10: дубль пункта паузы (inPause) — ${template == UiTemplate.aurora ? 'в «Авроре» только в паузе' : 'в Classic на месте'}', (t) async {
+      await t.pumpWidget(MaterialApp(
+        theme: applyUiTemplate(classicShellTheme(Brightness.dark), template),
+        home: AuroraGameScope(
+          route: '/games/probe',
+          child: GameShell(
+            title: 'Судоку',
+            field: (_, _) => const SizedBox.expand(),
+            auxRow: AuxBar(children: [
+              AuxAction(icon: Icons.undo, label: 'Отменить', onPressed: () {}),
+              AuxAction(icon: Icons.refresh, label: 'Заново', inPause: true, onPressed: () {}),
+            ]),
+          ),
+        ),
+      ));
+      await t.pump();
+      final aurora = template == UiTemplate.aurora;
+      expect(find.text('Отменить').evaluate().isNotEmpty || find.byTooltip('Отменить').evaluate().isNotEmpty, isTrue);
+      if (aurora) {
+        expect(find.text('Заново'), findsNothing, reason: '«Заново» под «Авророй» — только в паузе');
+      } else {
+        expect(find.byTooltip('Заново'), findsOneWidget, reason: 'Classic не меняется');
+      }
+    });
+  }
 }

@@ -5,9 +5,9 @@ import 'design_template.dart';
 import 'catalog_kit.dart';
 import 'game_tile.dart';
 import 'hub_screen.dart';
-import 'ion_icon.dart';
 import 'l10n.dart';
 import 'shared_state.dart';
+import 'tab_chrome.dart';
 import 'web_theme.dart';
 
 /// ВКЛАДКА «ИГРЫ» НА FLUTTER — ПЛИТКИ ВЕБА, ПОИСК НАД НИМИ, ФИЛЬТР ПОД ПОИСКОМ (задачи 99628ecf, de8ac1eb).
@@ -87,7 +87,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
     setState(() => _kit = kit);
   }
 
-  ({Set<String>? games, Map<String, int> hubCount}) _visible() => _kit!.visible(widget.state);
+  ({Set<String>? games, Map<String, int> hubCount}) _visible() =>
+      _kit!.visible(widget.state);
 
   String? _iconFile(CatalogEntry e) => _kit!.iconFile(e);
 
@@ -113,14 +114,18 @@ class _CatalogScreenState extends State<CatalogScreen> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             children: [
-              if (widget.embedded && _aurora)
-                _auroraHeader(c)
-              else if (widget.embedded)
+              if (widget.embedded && !_aurora)
                 Padding(
                   // Заголовок вкладки — как `app/games.tsx`: 24/800, сверху 8, снизу 14.
                   padding: const EdgeInsets.only(top: 8, bottom: 14),
-                  child: Text(L.t('tabGames'),
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: web.text)),
+                  child: Text(
+                    L.t('tabGames'),
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: web.text,
+                    ),
+                  ),
                 )
               else
                 const SizedBox(height: 8),
@@ -154,64 +159,59 @@ class _CatalogScreenState extends State<CatalogScreen> {
             ],
           );
     // Вкладка без своего Scaffold — поле ввода всё равно обязано стоять на Material.
-    if (widget.embedded) return Material(color: web.background, child: WebTheme.textDefaults(context, body));
-    return Scaffold(appBar: AppBar(title: Text(L.t('tabGames'))), body: body);
-  }
-
-  bool get _aurora => Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
-
-  /// «Аврора» (лист 01, экран «Игры»): заголовок 28/700, под ним — сколько игр и режимов находит
-  /// поиск (все записи, кроме самих развилок), справа — настройки. Classic: прежний заголовок 24/800.
-  Widget _auroraHeader(Catalog c) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final text = auroraToken('text', dark: dark)!;
-    final secondary = auroraToken('textSecondary', dark: dark)!;
-    final count = c.entries.where((e) => !e.hub).length;
-    return Padding(
-      key: const ValueKey('catalog-aurora-header'),
-      padding: const EdgeInsets.only(top: 8, bottom: 12),
-      child: Row(children: [
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text(L.t('tabGames'),
-                maxLines: 1,
-                style: TextStyle(fontSize: 28, height: 1.1, fontWeight: FontWeight.w700, color: text)),
-            const SizedBox(height: 2),
-            Text(L.t('catalogGamesModes').replaceAll('{n}', '$count'),
-                key: const ValueKey('catalog-count'),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 14, color: secondary)),
-          ]),
+    if (widget.embedded) {
+      return Material(
+        color: web.background,
+        child: WebTheme.textDefaults(
+          context,
+          _aurora && c != null
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AuroraTabHeader(
+                      key: const ValueKey('catalog-aurora-header'),
+                      route: '/games',
+                      title: L.t('tabGames'),
+                      subtitle: L
+                          .t('catalogGamesModes')
+                          .replaceAll(
+                            '{n}',
+                            '${c.entries.where((e) => !e.hub).length}',
+                          ),
+                      subtitleKey: const ValueKey('catalog-count'),
+                      settingsKey: const ValueKey('catalog-settings'),
+                      onOpen: widget.onOpen,
+                    ),
+                    Expanded(child: body),
+                  ],
+                )
+              : body,
         ),
-        if (widget.onOpen != null)
-          Semantics(
-            button: true,
-            label: L.t('settings'),
-            child: InkResponse(
-              key: const ValueKey('catalog-settings'),
-              onTap: () => widget.onOpen!('/settings'),
-              radius: 24,
-              child: SizedBox(width: 44, height: 48, child: Center(child: IonIcon('settings-outline', size: 22, color: text))),
-            ),
-          ),
-      ]),
+      );
+    }
+    return Scaffold(
+      appBar: AppBar(title: Text(L.t('tabGames'))),
+      body: body,
     );
   }
+
+  bool get _aurora =>
+      Theme.of(context).extension<UiTemplateTheme>()?.template ==
+      UiTemplate.aurora;
 
   /// «Аврора» (лист 01/02 Codex): фильтр — строка чипов вместо выпадающего списка. Те же
   /// варианты: все игры, все развилки, разделы; навыки — последним чипом, открывает список.
   Widget _auroraChips(Catalog c) {
     Widget chip(String key, String label, CatalogFilter? value) => Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: ChoiceChip(
-            key: ValueKey(key),
-            label: Text(label),
-            selected: _filter == value,
-            showCheckmark: false,
-            onSelected: (_) => setState(() => _filter = value),
-          ),
-        );
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        key: ValueKey(key),
+        label: Text(label),
+        selected: _filter == value,
+        showCheckmark: false,
+        onSelected: (_) => setState(() => _filter = value),
+      ),
+    );
     final skillOn = _filter?.skill == true;
     return Semantics(
       label: L.t('catalogFilter'),
@@ -219,88 +219,136 @@ class _CatalogScreenState extends State<CatalogScreen> {
         key: const ValueKey('catalog-filter'),
         height: 48,
         // Навыки — справа и всегда на виду: в конце длинной строки чипов их бы не нашли.
-        child: Row(children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(children: [
-                chip('catalog-chip-all', L.t('allGames'), null),
-                chip('catalog-chip-hubs', L.t('allForks'), const CatalogFilter.hubs()),
-                for (final cat in c.categories) chip('catalog-chip-${cat.id}', cat.title, CatalogFilter.section(cat.id)),
-              ]),
-            ),
-          ),
-          const SizedBox(width: 4),
-          ChoiceChip(
-            key: const ValueKey('catalog-chip-skills'),
-            label: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 120),
-              child: Text(skillOn ? skillTitle(_filter!.value) : L.t('catalogBySkill'),
-                  maxLines: 1, overflow: TextOverflow.ellipsis),
-            ),
-            selected: skillOn,
-            showCheckmark: false,
-            avatar: const Icon(Icons.tune, size: 18),
-            onSelected: (_) async {
-              final picked = await showModalBottomSheet<CatalogFilter>(
-                context: context,
-                showDragHandle: true,
-                builder: (context) => SafeArea(
-                  child: ListView(shrinkWrap: true, children: [
-                    for (final sk in c.skills)
-                      ListTile(
-                        key: ValueKey('catalog-skill-$sk'),
-                        title: Text(skillTitle(sk)),
-                        onTap: () => Navigator.of(context).pop(CatalogFilter.skill(sk)),
+        child: Row(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    chip('catalog-chip-all', L.t('allGames'), null),
+                    chip(
+                      'catalog-chip-hubs',
+                      L.t('allForks'),
+                      const CatalogFilter.hubs(),
+                    ),
+                    for (final cat in c.categories)
+                      chip(
+                        'catalog-chip-${cat.id}',
+                        cat.title,
+                        CatalogFilter.section(cat.id),
                       ),
-                  ]),
+                  ],
                 ),
-              );
-              if (picked != null && mounted) setState(() => _filter = picked);
-            },
-          ),
-        ]),
+              ),
+            ),
+            const SizedBox(width: 4),
+            ChoiceChip(
+              key: const ValueKey('catalog-chip-skills'),
+              label: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 120),
+                child: Text(
+                  skillOn ? skillTitle(_filter!.value) : L.t('catalogBySkill'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              selected: skillOn,
+              showCheckmark: false,
+              avatar: const Icon(Icons.tune, size: 18),
+              onSelected: (_) async {
+                final picked = await showModalBottomSheet<CatalogFilter>(
+                  context: context,
+                  showDragHandle: true,
+                  builder: (context) => SafeArea(
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        for (final sk in c.skills)
+                          ListTile(
+                            key: ValueKey('catalog-skill-$sk'),
+                            title: Text(skillTitle(sk)),
+                            onTap: () =>
+                                Navigator.of(context)
+                                    .pop(CatalogFilter.skill(sk)),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+                if (picked != null && mounted) setState(() => _filter = picked);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _filterField(Catalog c) {
-    if (Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora) return _auroraChips(c);
-    Widget header(String text) => Text(text.toUpperCase(),
-        style: TextStyle(
-            fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: Theme.of(context).colorScheme.primary));
+    if (Theme.of(context).extension<UiTemplateTheme>()?.template ==
+        UiTemplate.aurora) {
+      return _auroraChips(c);
+    }
+    Widget header(String text) => Text(
+      text.toUpperCase(),
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 0.6,
+        color: Theme.of(context).colorScheme.primary,
+      ),
+    );
     // Подписи над полем нет (рисунок поля веба); что это фильтр, экранный чтец слышит меткой.
     return Semantics(
       label: L.t('catalogFilter'),
       child: DropdownButtonFormField<CatalogFilter?>(
-      key: const ValueKey('catalog-filter'),
-      initialValue: _filter,
-      isExpanded: true,
-      decoration: WebTheme.field(context),
-      dropdownColor: WebTheme.of(context).surface,
-      style: WebTheme.fieldText(context),
-      iconEnabledColor: WebTheme.of(context).textSecondary,
-      items: [
-        DropdownMenuItem<CatalogFilter?>(value: null, child: Text(L.t('allGames'))),
-        DropdownMenuItem<CatalogFilter?>(value: const CatalogFilter.hubs(), child: Text(L.t('allForks'))),
-        DropdownMenuItem<CatalogFilter?>(value: _sectionsHeader, enabled: false, child: header(L.t('catalogBySection'))),
-        for (final cat in c.categories)
+        key: const ValueKey('catalog-filter'),
+        initialValue: _filter,
+        isExpanded: true,
+        decoration: WebTheme.field(context),
+        dropdownColor: WebTheme.of(context).surface,
+        style: WebTheme.fieldText(context),
+        iconEnabledColor: WebTheme.of(context).textSecondary,
+        items: [
           DropdownMenuItem<CatalogFilter?>(
-            value: CatalogFilter.section(cat.id),
-            child: Row(children: [
-              Container(width: 4, height: 16, color: Color(cat.color)),
-              const SizedBox(width: 8),
-              Flexible(child: Text(cat.title, overflow: TextOverflow.ellipsis)),
-            ]),
+            value: null,
+            child: Text(L.t('allGames')),
           ),
-        DropdownMenuItem<CatalogFilter?>(value: _skillsHeader, enabled: false, child: header(L.t('catalogBySkill'))),
-        for (final s in c.skills)
           DropdownMenuItem<CatalogFilter?>(
-            value: CatalogFilter.skill(s),
-            child: Text(skillTitle(s), overflow: TextOverflow.ellipsis),
+            value: const CatalogFilter.hubs(),
+            child: Text(L.t('allForks')),
           ),
-      ],
-      onChanged: (v) => setState(() => _filter = v),
+          DropdownMenuItem<CatalogFilter?>(
+            value: _sectionsHeader,
+            enabled: false,
+            child: header(L.t('catalogBySection')),
+          ),
+          for (final cat in c.categories)
+            DropdownMenuItem<CatalogFilter?>(
+              value: CatalogFilter.section(cat.id),
+              child: Row(
+                children: [
+                  Container(width: 4, height: 16, color: Color(cat.color)),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(cat.title, overflow: TextOverflow.ellipsis),
+                  ),
+                ],
+              ),
+            ),
+          DropdownMenuItem<CatalogFilter?>(
+            value: _skillsHeader,
+            enabled: false,
+            child: header(L.t('catalogBySkill')),
+          ),
+          for (final s in c.skills)
+            DropdownMenuItem<CatalogFilter?>(
+              value: CatalogFilter.skill(s),
+              child: Text(skillTitle(s), overflow: TextOverflow.ellipsis),
+            ),
+        ],
+        onChanged: (v) => setState(() => _filter = v),
       ),
     );
   }
@@ -308,7 +356,19 @@ class _CatalogScreenState extends State<CatalogScreen> {
   /// Без поиска — разделы веба плитками: развилки первыми, потом одиночные, в порядке `GAMES`.
   Widget _sections(Catalog c) {
     final v = _visible();
-    final shown = [for (final g in c.games) if (v.games?.contains(g.id) ?? !g.hidden) g];
+    final shown = [
+      for (final g in c.games)
+        if (v.games?.contains(g.id) ?? !g.hidden) g,
+    ];
+    var entryIndex = 0;
+    final entryOrder = <CatalogEntry, int>{
+      for (final cat in c.categories)
+        for (final g in [
+          ...shown.where((g) => g.category == cat.id && g.hub),
+          ...shown.where((g) => g.category == cat.id && !g.hub),
+        ])
+          g: entryIndex++,
+    };
     return Column(
       key: const ValueKey('catalog-sections'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -318,31 +378,62 @@ class _CatalogScreenState extends State<CatalogScreen> {
             Padding(
               // Раздел — отступ 24 снизу (`CategorySections`, styles.section).
               padding: const EdgeInsets.only(bottom: 24),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                _sectionHeader(cat, shown.where((g) => g.category == cat.id).length),
-                _grid([
-                  ...shown.where((g) => g.category == cat.id && g.hub),
-                  ...shown.where((g) => g.category == cat.id && !g.hub),
-                ], v.hubCount),
-              ]),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _sectionHeader(
+                    cat,
+                    shown.where((g) => g.category == cat.id).length,
+                  ),
+                  _grid(
+                    [
+                      ...shown.where((g) => g.category == cat.id && g.hub),
+                      ...shown.where((g) => g.category == cat.id && !g.hub),
+                    ],
+                    v.hubCount,
+                    entryOrder,
+                  ),
+                ],
+              ),
             ),
       ],
     );
   }
 
   /// Сетка веба — общая с Главной ([CatalogKit.grid]).
-  Widget _grid(List<CatalogEntry> games, Map<String, int> hubCount) => CatalogKit.grid(
-        context,
-        [for (final g in games) (_) => _kit!.tile(widget.state, g, hubCount: hubCount, onTap: () => _open(g))],
-        keys: [for (final g in games) ValueKey('catalog-tile-${g.route}')],
-      );
+  Widget _grid(
+    List<CatalogEntry> games,
+    Map<String, int> hubCount,
+    Map<CatalogEntry, int> entryOrder,
+  ) => CatalogKit.grid(
+    context,
+    [
+      for (final g in games)
+        (_) => CatalogTileEntry(
+          index: entryOrder[g] ?? 6,
+          child: _kit!.tile(
+            widget.state,
+            g,
+            hubCount: hubCount,
+            onTap: () => _open(g),
+          ),
+        ),
+    ],
+    keys: [for (final g in games) ValueKey('catalog-tile-${g.route}')],
+  );
 
   Widget _sectionHeader(CatalogCategory cat, int count) =>
-      CatalogKit.sectionHeader(context, cat, count, key: ValueKey('catalog-section-${cat.id}'));
+      CatalogKit.sectionHeader(
+        context,
+        cat,
+        count,
+        key: ValueKey('catalog-section-${cat.id}'),
+      );
 
   /// Поиск или фильтр — строки найденного по алфавиту, по ВСЕМ играм, в том же окне.
   Widget _flat(Catalog c) {
-    final found = c.find(_query, _filter)..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    final found = c.find(_query, _filter)
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     if (found.isEmpty) {
       return Padding(
         key: const ValueKey('catalog-nothing'),
@@ -353,7 +444,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
     final counts = _visible().hubCount;
     return Column(
       key: const ValueKey('catalog-flat'),
-      children: [for (final e in found) _row(e, hubCount: e.hub ? counts[e.route] : null)],
+      children: [
+        for (final e in found)
+          _row(e, hubCount: e.hub ? counts[e.route] : null),
+      ],
     );
   }
 
@@ -368,16 +462,30 @@ class _CatalogScreenState extends State<CatalogScreen> {
         leading: file != null
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.asset('assets/game_icons/$file',
-                    width: 40, height: 40, fit: BoxFit.cover, excludeFromSemantics: true),
+                child: Image.asset(
+                  'assets/game_icons/$file',
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
+                  excludeFromSemantics: true,
+                ),
               )
             : CircleAvatar(
                 backgroundColor: scheme.secondaryContainer,
-                child: Icon(hubIcon(e.icon), color: scheme.onSecondaryContainer),
+                child: Icon(
+                  hubIcon(e.icon),
+                  color: scheme.onSecondaryContainer,
+                ),
               ),
-        title: Text(e.name, style: const TextStyle(fontWeight: FontWeight.w700)),
+        title: Text(
+          e.name,
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
         subtitle: Text(
-          [if (skill.isNotEmpty && !e.hub) skill, if (e.desc.isNotEmpty) e.desc].join(' · '),
+          [
+            if (skill.isNotEmpty && !e.hub) skill,
+            if (e.desc.isNotEmpty) e.desc,
+          ].join(' · '),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),

@@ -9,6 +9,8 @@ import '../../shell/l10n.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
+import '../../shell/design_template.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
@@ -271,6 +273,8 @@ class _SdmtScreenState extends State<SdmtScreen> {
       auxRow: AuxBar(
         children: [
           AuxAction(
+            // Тот же обработчик, что «Заново» в паузе — под «Авророй» только в паузе.
+            inPause: true,
             icon: Icons.refresh,
             label: L.t('restart'),
             onPressed: () => setState(_reset),
@@ -360,7 +364,7 @@ class _SdmtScreenState extends State<SdmtScreen> {
                   height: layout.pad,
                   child: FilledButton(
                     key: Key('цифра$d'),
-                    style: FilledButton.styleFrom(padding: EdgeInsets.zero),
+                    style: _keyStyle(context),
                     onPressed: () => _press(d),
                     child: Text(
                       '$d',
@@ -395,8 +399,12 @@ class _Field extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    // Поле уменьшается целиком, если рамка игры заняла больше места (стандарт игрового экрана
+    // 30.10, шапка и тулбар по рефу), — а не вылезает за край: размеры считаются от экрана.
     return Center(
-      child: Column(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Легенда ВИДНА всё время: прятать её — мерить память, а не скорость.
@@ -456,13 +464,33 @@ class _Field extends StatelessWidget {
           ),
           if (!playing) ...[
             const SizedBox(height: 8),
-            Text(
-              L.t('sdmtDesc'),
-              style: Theme.of(context).textTheme.bodySmall,
+            SizedBox(
+              width: layout.fieldW,
+              child: Text(
+                L.t('sdmtDesc'),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ),
           ],
         ],
       ),
+      ),
     );
   }
+}
+
+/// «Аврора» (листы 24/27): клавиша — нейтральная плитка `cell`, цифра — `onCell`; акцентом остаётся
+/// только главная кнопка. В Classic — `null`, то есть прежний цвет темы: Classic до ворот Г3/Г4 не
+/// меняется (`flutter/DESIGN_SYSTEM.md`, правило 6).
+ButtonStyle _keyStyle(BuildContext context) {
+  final aurora = Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+  final roles = GameColors.of(context);
+  return FilledButton.styleFrom(
+    padding: EdgeInsets.zero,
+    backgroundColor: aurora ? roles.cell : null,
+    foregroundColor: aurora ? roles.onCell : null,
+    // В светлой «Авроре» клетка белая на белом — без обводки клавиши не видно (снимок 29.10).
+    side: aurora ? BorderSide(color: roles.boardLine) : null,
+  );
 }

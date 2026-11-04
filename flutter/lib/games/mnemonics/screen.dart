@@ -485,7 +485,7 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
       field: (context, h) => _Pad(height: h, child: _field(context, c)),
       auxRow: running
           ? AuxBar(children: [
-              AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => _start(byLevel: _levelRun)),
+              AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => _start(byLevel: _levelRun)),
             ])
           : null,
       toolbar: _toolbar(context),

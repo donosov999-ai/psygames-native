@@ -618,6 +618,11 @@ class _HubScreenState extends State<HubScreen> {
 
 /// Что вернул хаб оболочке: человек выбрал вот этот маршрут.
 class HubCardTap {
-  const HubCardTap(this.route);
+  const HubCardTap(this.route, {this.replace = false});
   final String route;
+
+  /// Переход ЗАМЕНОЙ экрана, а не выбором (плашка набора, смена режима — `router.replace` веба, PR #204):
+  /// закрыв новый экран, человек возвращается туда, откуда открыл ПРЕЖНИЙ, — в развилку, а не в прежнюю игру
+  /// (задача a0fd8105: пять «назад» из «Позиций» после четырёх плашек).
+  final bool replace;
 }

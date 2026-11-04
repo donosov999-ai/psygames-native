@@ -316,6 +316,8 @@ class _CounterScreenState extends State<CounterScreen> {
                 : null,
           ),
           AuxAction(
+            // Тот же обработчик, что «Заново» в паузе — под «Авророй» только в паузе.
+            inPause: true,
             icon: Icons.refresh,
             label: L.t('restart'),
             onPressed: () => setState(_reset),

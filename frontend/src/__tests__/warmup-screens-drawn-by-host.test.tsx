@@ -60,7 +60,12 @@ jest.mock('react-native-safe-area-context', () => {
 jest.mock('@/src/contexts/ThemeContext', () => ({
   useTheme: () => ({ colors: { background: '#fff', surface: '#eee', text: '#000', textSecondary: '#666', border: '#ccc', primary: '#7c6cf0', card: '#eee' } }),
 }));
-jest.mock('@/src/contexts/LanguageContext', () => ({ useLanguage: () => ({ t: (k: string) => k, language: 'ru' }), translateFor: (_l: string, k: string) => k }));
+jest.mock('@/src/contexts/LanguageContext', () => {
+  const exporting = process.env.EXPORT_WORKOUT_UI === '1';
+  const original = exporting ? jest.requireActual('@/src/contexts/LanguageContext') : null;
+  const t = (k: string) => original ? original.translateFor('en', k) : k;
+  return { useLanguage: () => ({ t, language: exporting ? 'en' : 'ru' }), translateFor: (_l: string, k: string) => t(k) };
+});
 jest.mock('@expo/vector-icons', () => ({ Ionicons: 'Ionicons' }));
 jest.mock('expo-linear-gradient', () => {
   const R = require('react');
@@ -105,6 +110,19 @@ beforeEach(() => {
 });
 
 const последняя = (screen: string) => [...posted].reverse().find((m) => m.op === 'warmupUi' && m.screen === screen)?.model;
+
+it('exports real picker model for Flutter design preview when requested', async () => {
+  if (process.env.EXPORT_WORKOUT_UI !== '1') return;
+  оболочка();
+  w.__psyHostLang = 'en';
+  const tr = await открыть(<WarmupPicker />);
+  await act(async () => { w.__psyWarmupUi.picker.pick('morning'); });
+  const model = последняя('picker');
+  expect(model.slots.map((c: any) => c.key)).toEqual(['morning', 'day', 'evening', 'night']);
+  expect(model.slots.filter((c: any) => c.on)).toHaveLength(1);
+  require('fs').writeFileSync('../flutter/test/fixtures/warmup_model_from_screen_en.json', JSON.stringify(model, null, 2) + '\n');
+  await act(async () => { tr.unmount(); });
+});
 
 async function открыть(el: React.ReactElement): Promise<TestRenderer.ReactTestRenderer> {
   let tr!: TestRenderer.ReactTestRenderer;

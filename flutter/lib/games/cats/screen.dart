@@ -269,7 +269,7 @@ class _CatsScreenState extends State<CatsScreen> {
           count: (_hintMax - _hintsUsed).clamp(0, _hintMax),
           onPressed: (_hintsUsed < _hintMax && !_won && !_lost) ? _hint : null,
         ),
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _deal),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _deal),
       ]),
       toolbar: (_won || _lost)
           ? Padding(

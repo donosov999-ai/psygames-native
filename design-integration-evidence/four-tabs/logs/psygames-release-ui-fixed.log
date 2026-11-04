@@ -1,0 +1,5 @@
+00:00 +0: loading /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/approved_release_ui_test.dart
+00:00 +0: central jewel roles preserve the approved shades unchanged
+00:00 +1: approved release config enables UI but not experimental audio/haptics
+00:00 +2: both stores compile the same approved UI file with the real entrypoint
+00:00 +3: All tests passed!

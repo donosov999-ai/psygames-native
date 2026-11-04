@@ -1,0 +1,28 @@
+00:00 +0: loading /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/four_tabs_preview_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: real /games dark: 390.0 en x1.0
+00:02 +1: real /games dark: 320.0 en x2.0
+00:02 +2: real /games dark: 320.0 ar x1.0
+00:03 +3: real /warmup-picker dark: 390.0 en x1.0
+00:04 +4: real /warmup-picker dark: 320.0 en x2.0
+00:05 +5: real /warmup-picker dark: 320.0 ar x1.0
+00:05 +6: real /statistics dark: 390.0 en x1.0
+00:07 +7: real /statistics dark: 320.0 en x2.0
+00:07 +8: real /statistics dark: 320.0 ar x1.0
+00:08 +9: real /pet dark: 390.0 en x1.0
+00:09 +10: real /pet dark: 320.0 en x2.0
+00:09 +11: real /pet dark: 320.0 ar x1.0
+00:10 +12: real /games light: 390.0 en x1.0
+00:11 +13: real /games light: 320.0 en x2.0
+00:12 +14: real /games light: 320.0 ar x1.0
+00:13 +15: real /warmup-picker light: 390.0 en x1.0
+00:14 +16: real /warmup-picker light: 320.0 en x2.0
+00:14 +17: real /warmup-picker light: 320.0 ar x1.0
+00:15 +18: real /statistics light: 390.0 en x1.0
+00:16 +19: real /statistics light: 320.0 en x2.0
+00:17 +20: real /statistics light: 320.0 ar x1.0
+00:17 +21: real /pet light: 390.0 en x1.0
+00:18 +22: real /pet light: 320.0 en x2.0
+00:19 +23: real /pet light: 320.0 ar x1.0
+00:20 +24: (tearDownAll)
+00:20 +24: All tests passed!

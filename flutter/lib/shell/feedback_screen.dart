@@ -333,7 +333,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                           style: TextStyle(fontSize: 13.5, height: 19 / 13.5, color: b['me'] == true ? _white : web.text),
                         ),
                         Text(
-                          _s(b['at']),
+                          // Под моим сообщением — что с ним: получено / в работе / исправлено (3a7f4077).
+                          b['state'] == null ? _s(b['at']) : '${_s(b['at'])} · ${_s(b['state'])}',
                           style: TextStyle(fontSize: 10.5, color: b['me'] == true ? const Color(0xB3FFFFFF) : web.textSecondary),
                         ),
                       ],

@@ -5,7 +5,8 @@
  * Логика ленты — чистая (toBubbles), проверяется поведением; проводка виджета
  * и словарь — устройством.
  */
-import { toBubbles, type DialogRow } from '@/src/services/feedbackDialog';
+import { dialogStatusLabel, toBubbles, type DialogRow } from '@/src/services/feedbackDialog';
+import { LANGUAGES, translateFor } from '@/src/contexts/LanguageContext';
 
 declare function require(id: string): any;
 declare const __dirname: string;
@@ -64,6 +65,23 @@ describe('диалог с разработчиком', () => {
         const overlay = readFileSync(join(__dirname, '..', 'contexts', 'translations', `${lang}.ts`), 'utf8');
         expect(`${lang} ${key}: ${overlay.includes(`"${key}"`)}`).toBe(`${lang} ${key}: true`);
       }
+    }
+  });
+
+  it('🔴 статус — только у моего сообщения; ответы без статуса (3a7f4077)', () => {
+    const b = toBubbles([row({ status: 'in_progress', dev_reply: 'смотрим', dev_replied_at: '2026-10-02T10:00:00Z' })]);
+    expect(b.map((x) => [x.who, x.status])).toEqual([['me', 'in_progress'], ['dev', null]]);
+  });
+
+  it('🔴 подпись статуса на всех 12 языках — не голый ключ; неизвестный статус — без подписи', () => {
+    for (const { code } of LANGUAGES) {
+      const t = (k: string) => translateFor(code, k);
+      for (const st of ['new', 'in_progress', 'fixed', 'done', 'wontfix']) {
+        const label = dialogStatusLabel(t, st);
+        expect({ code, st, label: label?.includes('feedbackStatus') ? label : 'ok' }).toEqual({ code, st, label: 'ok' });
+      }
+      expect(dialogStatusLabel(t, 'robot')).toBeNull();
+      expect(dialogStatusLabel(t, null)).toBeNull();
     }
   });
 });

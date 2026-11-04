@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'shared_state.dart';
 import 'app_look.dart';
 import 'design_template.dart';
+import 'crystal_palette.dart';
 
 /// Тема Classic — одна на приложение и на игры, ещё не перенесённые на «Аврору»
 /// ([AuroraGameScope]). Две копии разошлись бы при первой правке.
@@ -25,7 +26,15 @@ ThemeData appShellTheme(
       colorScheme: base.colorScheme.copyWith(primary: AppLook.accentOf(state)),
     );
   }
-  return applyUiTemplate(base, template);
+  final themed = applyUiTemplate(base, template);
+  if (template != UiTemplate.aurora) return themed;
+  final crystal = CrystalPalette.read(state);
+  return themed.copyWith(
+    scaffoldBackgroundColor: crystal.effective
+        ? crystal.background(brightness == Brightness.dark)
+        : themed.scaffoldBackgroundColor,
+    extensions: [...themed.extensions.values, crystal],
+  );
 }
 
 /// Shared with the WebView; an explicit choice always wins over the profile.

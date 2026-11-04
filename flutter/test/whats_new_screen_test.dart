@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -62,7 +63,16 @@ void main() {
     expect((list.childrenDelegate as SliverChildListDelegate).children.length, entries.length + 1);
     Future<void> checkCard(Map<String, Object?> e) async {
       final card = key('whats-new-${e['version']}');
-      await t.scrollUntilVisible(card, 600, maxScrolls: 500, scrollable: find.descendant(of: key('whats-new-list'), matching: find.byType(Scrollable)).first);
+      // Прыжками по 400 px с кадром на каждый, а не перетаскиванием: рывок на 600 px становился
+      // броском, список пролетал карточку между кадрами и упирался в конец (выпуск 2.56.45,
+      // 333 версии: v2.56.42 не нашлась за 500 рывков). Порядок версий — сверху вниз.
+      final pos = t.state<ScrollableState>(find.descendant(of: key('whats-new-list'), matching: find.byType(Scrollable)).first).position;
+      for (var i = 0; i < 5000 && card.evaluate().isEmpty && pos.pixels < pos.maxScrollExtent; i++) {
+        pos.jumpTo(math.min(pos.pixels + 400, pos.maxScrollExtent));
+        await t.pump();
+      }
+      await t.ensureVisible(card);
+      await t.pump();
       expect(find.descendant(of: card, matching: find.text(e['date'] as String)), findsOneWidget, reason: '${e['version']}');
       for (final it in e['items']! as List) {
         expect(find.descendant(of: card, matching: find.text(it as String)), findsOneWidget, reason: '${e['version']}: $it');

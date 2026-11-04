@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/audio_host.dart';
 import '../../shell/game_preset.dart';
+import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -389,6 +390,13 @@ class _DictationScreenState extends State<DictationScreen> {
         DictationPhase.playing => _playing(context, h),
         DictationPhase.result => _result(context, h),
       },
+      // «Повторить звук» — в нижнем тулбаре каркаса, не кнопкой в центре поля: Денис 31.10 — «управление,
+      // если тулбар позволяет, идёт в него: тянуться в низ экрана проще, чем в центр» (CHATS_RULES.md §1в).
+      auxRow: playing
+          ? AuxBar(children: [
+              AuxAction(key: const Key('dict-replay'), icon: Icons.volume_up, label: L.t('replaySound'), onPressed: _replay),
+            ])
+          : null,
       toolbar: playing ? _answer(context) : null,
     );
   }
@@ -447,22 +455,6 @@ class _DictationScreenState extends State<DictationScreen> {
       height: h,
       child: Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          // Крупный знак — КНОПКА повтора, а не картинка: подпись обязательна.
-          InkWell(
-            key: const Key('dict-replay'),
-            borderRadius: BorderRadius.circular(64),
-            onTap: _replay,
-            child: Container(
-              width: 128,
-              height: 128,
-              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: muted.withValues(alpha: 0.4))),
-              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(Icons.volume_up, size: 44, color: muted),
-                Text(L.t('replaySound'), style: TextStyle(fontSize: 12, color: muted)),
-              ]),
-            ),
-          ),
-          const SizedBox(height: 16),
           Text(L.t('dictationTask'), textAlign: TextAlign.center, style: TextStyle(color: muted)),
         ]),
       ),

@@ -703,7 +703,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
                       : L.t('pairsDuelYourTurn'),
             ),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
+        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
         AuxAction(
           icon: Icons.visibility_outlined,
           label: L.t('puzzleShowSolution'),

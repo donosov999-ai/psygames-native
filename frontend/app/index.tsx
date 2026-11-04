@@ -36,7 +36,7 @@ import { getTodayChallenge, challengeToParams, loadChallengeStreak, setPendingCh
 import { useAllLevelStars } from '@/src/hooks/useAllLevelStars';
 import { playerLevel, nextLock, levelsToNextLock } from '@/src/services/featureLadder';
 import { chestState, earnedTotal, фигурки } from '@/src/services/collection';
-import { sndToken, sndLevelUp, sndStreak, startMusic, stopMusic, getMusicEnabled } from '@/src/services/feedback';
+import { sndToken, sndLevelUp, sndStreak } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
 import { GAMES, visibleInCatalog, GameConfig } from '@/src/constants/games';
 import { filterAllowedGames } from '@/src/constants/profiles';
@@ -443,15 +443,7 @@ function FullHome() {
     })();
   }, [profile?.id, language, обновление]));
   const lvl = levelInfo(tokens);
-  // S1: фоновая музыка меню — играет на главной (если включена в настройках), стоп при уходе в игру.
-  // v1.122.0: ждём getMusicEnabled(). startMusic() читает флаг синхронно, а грузится он из
-  // AsyncStorage асинхронно → на холодном старте вызов приходил раньше, чем флаг, и музыка
-  // молча не включалась у тех, кто её включил.
-  useFocusEffect(useCallback(() => {
-    let alive = true;
-    getMusicEnabled().then((on) => { if (alive && on) startMusic(); }).catch(() => {});
-    return () => { alive = false; stopMusic(); };
-  }, []));
+  // Background music is app-owned in AppMusicHost; a Home blur is not a stop.
 
   useEffect(() => {
     void обновление; // действие оболочки `refresh` (см. ниже) перечитывает экран

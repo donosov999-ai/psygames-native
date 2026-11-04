@@ -92,5 +92,5 @@ Future<void> _pickMode(BuildContext context, SharedState state, AnagramMode curr
     ),
   );
   if (picked == null || picked == current || !context.mounted) return;
-  Navigator.of(context).pop(HubCardTap(anagramModeRoute(picked)));
+  Navigator.of(context).pop(HubCardTap(anagramModeRoute(picked), replace: true));
 }

@@ -1,0 +1,39 @@
+00:00 +0: loading /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/stats_screen_test.dart
+00:00 +0: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots en dark 320.0 x1.0
+00:00 +1: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/stats_screen_test.dart: Aurora dark: both tabs keep backplates before and after switching
+00:00 +2: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/stats_screen_test.dart: Aurora dark: both tabs keep backplates before and after switching
+00:00 +3: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/stats_screen_test.dart: Aurora dark: both tabs keep backplates before and after switching
+00:00 +4: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/stats_screen_test.dart: Aurora dark: both tabs keep backplates before and after switching
+00:00 +5: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots de dark 320.0 x1.0
+00:00 +6: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/stats_screen_test.dart: Aurora light: both tabs keep backplates before and after switching
+00:00 +7: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/stats_screen_test.dart: Aurora light: both tabs keep backplates before and after switching
+00:00 +8: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots de dark 390.0 x1.0
+00:00 +9: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/stats_screen_test.dart: Classic keeps the original non-image tab decoration
+00:00 +10: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots de dark 390.0 x2.0
+00:00 +11: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots de dark 390.0 x2.0
+00:00 +12: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/stats_screen_test.dart: 🔴 сводка: заголовок, охват, герой и баланс — строки модели как есть
+00:00 +13: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots ar dark 320.0 x1.0
+00:00 +14: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/stats_screen_test.dart: 🔴 карточки игр: четыре числа и столбики — из модели, высоты не пересчитываются
+00:00 +15: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/stats_screen_test.dart: 🔴 карточки игр: четыре числа и столбики — из модели, высоты не пересчитываются
+00:00 +16: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots ar dark 390.0 x1.0
+00:00 +17: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/stats_screen_test.dart: вкладка «История»: дни и партии строками модели
+00:00 +18: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots ar dark 390.0 x2.0
+00:00 +19: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/stats_screen_test.dart: 🔴 охват, «Обновить», «Назад» — действия веба, не свой расчёт
+00:00 +20: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots en light 320.0 x1.0
+00:00 +21: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/stats_screen_test.dart: пустая история — на Главную; спрятанная фильтром — «Все игры»
+00:00 +22: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots en light 320.0 x2.0
+00:00 +23: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/stats_screen_test.dart: модель обновилась — экран перерисован без перезапуска
+00:00 +24: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots en light 390.0 x1.0
+00:00 +25: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots en light 390.0 x2.0
+00:00 +26: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots de light 320.0 x1.0
+00:00 +27: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots de light 320.0 x2.0
+00:00 +28: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots de light 390.0 x1.0
+00:00 +29: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots de light 390.0 x2.0
+00:00 +30: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots ar light 320.0 x1.0
+00:00 +31: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots ar light 320.0 x2.0
+00:01 +32: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots ar light 390.0 x1.0
+00:01 +33: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: same five header slots ar light 390.0 x2.0
+00:01 +34: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: entry glint routes, fixed layout and finite end; no replay on rebuild
+00:01 +35: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: Progress reveals upper blocks first; a route exit cancels all pending motion
+00:01 +36: /Users/denisonosov/dev/psygames-game-lab/design-integration-20261101/flutter/test/design/tab_chrome_contract_test.dart: 320pt catalogue keeps two square columns at normal text size
+00:01 +37: All tests passed!

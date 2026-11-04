@@ -53,6 +53,13 @@ dependencies:
   flutter_svg: ^2.2.1
   flutter_tts: ^4.2.5
   just_audio: ^0.10.6
+  # Opt-in real-game effects; dependencies are pinned for reproducible pilots.
+  flutter_animate: 4.5.2
+  flame: 1.38.2
+  flame_audio: 2.12.2
+  flutter_soloud: 5.2.2
+  lottie: 3.8.1
+  liquid_glass_easy: 5.1.0
   # 🔴 Забрать прогресс ПРЕЖНЕЙ версии из контейнера приложения (lib/shell/legacy_import.dart).
   # Tauri-сборка держала его в localStorage WKWebView, а это обычный sqlite внутри
   # нашего же контейнера. Без чтения этих файлов человек после обновления видит нули.
@@ -129,7 +136,21 @@ flutter:
   # ⚠️ Поэтому добавил каталог — добавь строку ЗДЕСЬ и прогоняй
   # `test/assets_bundled_test.dart`: он сверяет файлы на диске с тем, что
   # реально попало в сборку, и краснеет на пропущенном каталоге.
+  shaders:
+    - shaders/gem_palette.frag
   assets:
+    - assets/palette_pilot/
+    # Игровая рамка «Авроры» — пилот Codex «стекло и камни» (31.10): подложки, фон, кнопки-шары;
+    # наборы камней игр — вложенными каталогами (каждый каталог — своей строкой).
+    - assets/aurora_game_chrome/
+    - assets/aurora_tab_panels/
+    - assets/workout_gems/
+    - assets/aurora_game_chrome/sudoku_buttons/
+    - assets/aurora_game_chrome/home_panels_pilot/
+    - assets/aurora_game_chrome/home_icons_approved/
+    - assets/aurora_game_chrome/home_nav_extraction_trial/
+    - assets/game_sfx_pilot/
+    - assets/animation_pilot/
     - assets/levels/
     - assets/digits/candy/
     - assets/digits/elegant/
@@ -181,6 +202,7 @@ flutter:
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/
     - assets/aurora_hubs/
+    - assets/aurora_sections/
     # Превью игр фоном плиток вкладки «Игры» — копия веба (`flutter-catalog-asset-fresh.test.ts`), не править руками.
     - assets/game_thumbs/
     - assets/level_rules.json

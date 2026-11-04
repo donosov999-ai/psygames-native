@@ -45,7 +45,7 @@ import {
 } from '@/src/services/appFeedback';
 import { isRTLLang } from '@/src/services/rtl';
 import { a11yModal } from '@/src/services/a11y';
-import { getMyDialog, type DialogBubble } from '@/src/services/feedbackDialog';
+import { dialogStatusLabel, getMyDialog, type DialogBubble } from '@/src/services/feedbackDialog';
 import { staleWebViewMajor, canRecord, startRecording, shouldWarnSilent, SILENCE_PEAK, type Recorder, type VoiceNote } from '@/src/services/voiceNote';
 import { holdGame } from '@/src/services/gamePause';
 import { нужноПереспросить } from '@/src/services/feedbackTooShort';
@@ -704,6 +704,7 @@ export default function FeedbackWidget() {
                       </Text>
                       <Text style={[styles.bubbleAt, { color: b.who === 'me' ? 'rgba(255,255,255,0.7)' : colors.textSecondary }]}>
                         {(b.at || '').slice(0, 16).replace('T', ' ')}
+                        {b.who === 'me' && dialogStatusLabel(t, b.status) ? ` · ${dialogStatusLabel(t, b.status)}` : ''}
                       </Text>
                     </View>
                   ))}
@@ -1147,6 +1148,7 @@ function feedbackModel(a: {
         fixed: b.fixedIn ? `✅ ${t('dialogFixedIn').replace('{v}', b.fixedIn)}` : null,
         text: b.text || `🎤 ${t('dialogVoiceNote')}`,
         at: (b.at || '').slice(0, 16).replace('T', ' '),
+        state: b.who === 'me' ? dialogStatusLabel(t, b.status) : null,
       })),
       write: t('feedbackTabWrite'),
     },
