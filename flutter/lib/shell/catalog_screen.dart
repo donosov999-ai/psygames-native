@@ -6,6 +6,7 @@ import 'catalog_kit.dart';
 import 'game_tile.dart';
 import 'hub_screen.dart';
 import 'l10n.dart';
+import 'profiles.dart';
 import 'shared_state.dart';
 import 'tab_chrome.dart';
 import 'web_theme.dart';
@@ -83,8 +84,16 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
   Future<void> _boot() async {
     final kit = await CatalogKit.load(catalog: widget.catalog);
+    if (Profiles.current.publicGameCount == 0) await Profiles.load();
     if (!mounted) return;
     setState(() => _kit = kit);
+  }
+
+  /// Одно число на всё приложение: настройки, магазины и сайт называют `PUBLIC_GAME_COUNT`
+  /// (04.11: шапка считала записи каталога — 146 при 131 везде). Без profiles.json — по каталогу.
+  int _gamesAndModes(Catalog c) {
+    final n = Profiles.current.publicGameCount;
+    return n > 0 ? n : c.entries.where((e) => !e.hub).length;
   }
 
   ({Set<String>? games, Map<String, int> hubCount}) _visible() =>
@@ -176,7 +185,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           .t('catalogGamesModes')
                           .replaceAll(
                             '{n}',
-                            '${c.entries.where((e) => !e.hub).length}',
+                            '${_gamesAndModes(c)}',
                           ),
                       subtitleKey: const ValueKey('catalog-count'),
                       settingsKey: const ValueKey('catalog-settings'),
