@@ -13,6 +13,7 @@ import 'package:psygames_flutter/games/pause/breathing.dart';
 import 'package:practice_kit/practice_kit.dart';
 import 'package:psygames_flutter/games/pause/screen.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -54,6 +55,19 @@ void main() {
     ));
     await tester.pump();
     await tester.pump();
+  }
+
+  // Пауза одна — жёлтая каркаса (CHATS_RULES.md §1в): своей кнопки у практики нет.
+  Future<void> shellPause(WidgetTester tester) async {
+    await tester.tap(find.byTooltip(L.t('teachPause')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+  }
+
+  Future<void> shellResume(WidgetTester tester) async {
+    await tester.tap(find.byKey(const Key('pause-resume')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
   }
 
   Future<void> at(WidgetTester tester, int ms) async {
@@ -128,11 +142,9 @@ void main() {
       if (round == 1) {
         // Пауза посреди задержки: минута на паузе задержкой не считается.
         await at(tester, t + 10000);
-        await tester.tap(find.byKey(const Key('pause-pause')));
-        await tester.pump();
+        await shellPause(tester);
         await at(tester, t + 70000);
-        await tester.tap(find.byKey(const Key('pause-resume')));
-        await tester.pump();
+        await shellResume(tester);
         await at(tester, t + 75000);
         expect(tester.widget<Text>(find.byKey(const Key('pause-wim-count'))).data, startsWith('15'),
             reason: '10 с до паузы + 5 с после; 60 с паузы не в счёт');

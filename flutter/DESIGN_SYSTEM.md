@@ -73,7 +73,9 @@
 116 экранов на `GameShell` в 90 папках `lib/games`. Других игровых экранов нет: веб-игр в
 каталоге не осталось, Тэтхэм — один экран на 40 режимов. Что игра передаёт каркасу и чего
 ей рисовать нельзя — `CHATS_RULES.md` §1в. Сторожа: `test/design/restart_only_in_pause_test.dart`,
-`aurora_aux_bar_test.dart`, `aurora_game_shell_test.dart`.
+`no_self_drawn_service_buttons_test.dart`, `every_game_through_shell_test.dart` (замер 04.11, main
+`5eaa54a85`: 96 `screen.dart`, без `GameShell` только 6 хабов-меню; своя пауза была у одной игры —
+«Пауза / Зарядка», убрана), `aurora_aux_bar_test.dart`, `aurora_game_shell_test.dart`.
 
 Рисунки: `~/dev/psygames-game-lab/design-refresh-20261024/sudoku-toolbar-review-20261030/`
 (`header-help-dropdown-v1.png`, `sudoku-even-toolbar-v4.png`, `pause-grouped-levels-v4.png`).
