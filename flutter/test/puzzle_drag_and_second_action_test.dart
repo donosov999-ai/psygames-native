@@ -41,6 +41,7 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'psygames_puzzles_pegs_level_nzt48': '1',
       'psygames_puzzles_mines_level_nzt48': '1',
+      'psygames_puzzles_slide_level_nzt48': '1',
     });
     state = await SharedState.open();
   });
@@ -118,6 +119,39 @@ void main() {
       if (moved) break;
     }
     expect(moved, isTrue, reason: 'ни одна протяжка через соседа не дала хода — жест до движка не доходит');
+  });
+
+  // 🔴 Жалоба d8d32a1a (14.10, планшет, крупный шрифт): «блок не перетаскивается, ничего не
+  // работает». Тычок у «Клоцек» хода не даёт по замыслу автора (`slide.c:1388`), а подсказку
+  // «тяни» перекрывала строка «Moves: 0». Держим: до первого хода — «тяни», протяжка — ход.
+  testWidgets('🔴 «Клоцки»: до первого хода — подсказка «тяни», протяжка блока — это ход', (tester) async {
+    await boot(tester, 'Slide');
+    expect(PuzzleModes.all['Slide']!.dragOnly, isTrue, reason: 'у «Клоцек» ход только протяжкой');
+    expect(find.text(L.t('puzzleDragHint')), findsOneWidget,
+        reason: 'до первого хода под доской «тяни», а не «Moves: 0»');
+
+    final engine = PuzzlesScreen.debugEngine!;
+    final start = engine.statePos;
+    final eng = painterOf(tester).engineSize;
+    final toScreen = screenOf(tester);
+    // Клетка доски — не меньше 1/12 стороны холста: тянем на неё из узлов сетки во все стороны.
+    final cell = math.min(eng.w, eng.h) ~/ 8;
+    var moved = false;
+    for (var gy = cell ~/ 2; gy < eng.h && !moved; gy += cell) {
+      for (var gx = cell ~/ 2; gx < eng.w && !moved; gx += cell) {
+        for (final (dx, dy) in const [(1, 0), (-1, 0), (0, 1), (0, -1)]) {
+          final from = toScreen(gx, gy);
+          await tester.dragFrom(from, toScreen(gx + dx * cell, gy + dy * cell) - from);
+          await tester.pump();
+          if (engine.statePos > start) {
+            moved = true;
+            break;
+          }
+        }
+      }
+    }
+    expect(moved, isTrue, reason: 'ни одна протяжка не сдвинула блок — жест до движка не доходит');
+    expect(find.text(L.t('puzzleDragHint')), findsNothing, reason: 'после хода — статус движка');
   });
 
   testWidgets('🔴 «Сапёр»: второе действие ставит флажок и снимает его, клетку не открывает', (tester) async {
