@@ -57,6 +57,22 @@ class LevelLadder {
 
   int get level => _level;
   int get best => _best;
+
+  /*
+   * 🔴 ЛЕСТНИЦА ОТКРЫТОЙ ИГРЫ — ДЛЯ ПАУЗЫ КАРКАСА («Уровень проще / сложнее», задача 654b5a60).
+   * Веб показывает эти пункты с 10.09 (GameShell.tsx, `текущаяЛестница()`); натив их не знал —
+   * жалоба 1be7fd33 «как уровни поменять — во всех играх». Лестница отмечается при [load];
+   * оболочка, открывая новую игру, зовёт [newScreen] — лестница прошлой игры перестаёт быть текущей.
+   */
+  static LevelLadder? _active;
+  static int _screen = 0;
+  int _loadedOn = -1;
+
+  /// Открыта новая игра: прежняя лестница больше не «текущая».
+  static void newScreen() => _screen++;
+
+  /// Лестница игры на экране; `null` — у игры нет лестницы или она ещё не загружена.
+  static LevelLadder? get current => _active != null && _active!._loadedOn == _screen ? _active : null;
   int get failStreak => _failStreak;
 
   /// 🔴 ИСХОД ПАРТИИ — НАРУЖУ, ДЛЯ СТУПЕНИ-ПЕРЕХОДА (задача 4e3d3443).
@@ -81,6 +97,8 @@ class LevelLadder {
       (_launchParams['ladderGame'] ?? '').isNotEmpty;
 
   Future<void> load() async {
+    _active = this;
+    _loadedOn = _screen;
     _launchParams = GamePreset.params;
     _sessionLaunch = SessionLaunch.capture();
     // Лестницу грузит экран на входе — началась новая партия, и отметка разбора,
