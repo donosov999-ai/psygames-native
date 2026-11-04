@@ -54,6 +54,19 @@ void main() {
     await tester.pump();
   }
 
+  // Пауза одна — жёлтая каркаса (CHATS_RULES.md §1в): своей кнопки у практики нет.
+  Future<void> shellPause(WidgetTester tester) async {
+    await tester.tap(find.byTooltip(L.t('teachPause')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+  }
+
+  Future<void> shellResume(WidgetTester tester) async {
+    await tester.tap(find.byKey(const Key('pause-resume')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+  }
+
   String hudTime(WidgetTester tester) {
     final texts = tester.widgetList<Text>(find.byType(Text)).map((t) => t.data ?? '').toList();
     return texts.firstWhere((t) => RegExp(r'^\d+:\d\d / \d+:\d\d$').hasMatch(t), orElse: () => '');
@@ -75,14 +88,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 16));
     expect(hudTime(tester), '0:30 / 1:00');
 
-    await tester.tap(find.byKey(const Key('pause-pause')));
-    await tester.pump();
+    await shellPause(tester);
     now = 50000;
     await tester.pump(const Duration(milliseconds: 16));
-    expect(hudTime(tester), '0:30 / 1:00', reason: 'на паузе время практики стоит');
-
-    await tester.tap(find.byKey(const Key('pause-resume')));
-    await tester.pump();
+    await shellResume(tester);
+    expect(hudTime(tester), '0:30 / 1:00', reason: 'под меню паузы каркаса время практики стоит');
     expect(reports, isEmpty, reason: 'до конца практики партия не пишется');
     now = 90000;
     await tester.pump(const Duration(milliseconds: 16));
@@ -217,9 +227,9 @@ void main() {
     expect(voice.spoken, hasLength(1), reason: 'первый шаг назван сразу');
     final firstTitle = tester.widgetList<Text>(find.descendant(of: find.byKey(const Key('pause-playing')), matching: find.byType(Text))).first.data!;
     expect(voice.spoken.single, startsWith(firstTitle));
-    await tester.tap(find.byKey(const Key('pause-pause')));
-    await tester.pump();
-    expect(voice.cancels, greaterThan(0), reason: 'на паузе голос замолкает');
+    await shellPause(tester);
+    expect(voice.cancels, greaterThan(0), reason: 'под меню паузы каркаса голос замолкает');
+    await shellResume(tester);
 
     // Тот же старт с «только экран» — ни слова.
     await tester.tap(find.byKey(const Key('pause-restart')));
