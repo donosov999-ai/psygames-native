@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.60',
+    date: '2026-11-05',
+    en: [
+      'The Aurora look is now the default, with a gem colour for each profile — rose, black diamond, sapphire, amber and more. Classic stays one tap away in Settings',
+    ],
+    ru: [
+      'Вид «Аврора» теперь по умолчанию — у каждого профиля свой камень: розовый, чёрный бриллиант, сапфир, янтарь и другие. «Классика» — в один тап в настройках',
+    ],
+  },
+  {
     version: '2.56.59',
     date: '2026-11-04',
     en: [
