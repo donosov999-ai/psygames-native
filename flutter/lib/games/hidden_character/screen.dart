@@ -16,8 +16,9 @@ import 'model.dart';
 
 /// ЭКРАН «КТО СПРЯТАЛСЯ?» — развилка «Головоломки», движок MindLab (решение Дениса
 /// 30.09.2026: «добавляем нативно, дорабатываем потом»). Веб-двойника нет
-/// (`NATIVE_ONLY_GAMES`). Дальше экран ведёт раздел «Судоку» — владелец развилки
-/// «Головоломки» по доске переезда (задача 5c011a93).
+/// (`NATIVE_ONLY_GAMES`). Сначала экран вёл раздел «Судоку» (развилка «Головоломки»,
+/// задача 5c011a93); с 21.10 игра в развилке «Поиск глазами», владелец — раздел «Поиск»
+/// (`OWNERSHIP_145.csv`, строка 43).
 ///
 /// Спрашиваешь «шляпа?» — неподходящие гаснут сами. Когда уверен — выбираешь
 /// персонажа и подтверждаешь. Счёт — вопросы против эталона (наименьшее число
@@ -278,11 +279,14 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-            child: Text(
-              _note,
-              key: const ValueKey('hc-note'),
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            child: _noteBox(
+              context,
+              Text(
+                _note,
+                key: const ValueKey('hc-note'),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
             ),
           ),
           Expanded(
@@ -545,3 +549,22 @@ class FacePainter extends CustomPainter {
 /// роль стоит напрямую.
 Color _auroraOr(BuildContext context, Color role, Color classic) =>
     Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora ? role : classic;
+
+/// «Аврора» (лист 24, «Кто это»): вопрос и ответ — карточкой «текущего вопроса» над героями.
+/// Кнопки «Да / Нет» с листа сюда не переносятся: там на вопрос отвечает игрок, а здесь вопрос
+/// выбирает игрок, отвечает спрятанный герой — другая механика. Classic — прежняя строка.
+Widget _noteBox(BuildContext context, Widget note) {
+  if (Theme.of(context).extension<UiTemplateTheme>()?.template != UiTemplate.aurora) return note;
+  final roles = GameColors.of(context);
+  return Container(
+    key: const ValueKey('hc-note-card'),
+    width: double.infinity,
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    decoration: BoxDecoration(
+      color: roles.cellAlt,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: roles.boardLine),
+    ),
+    child: note,
+  );
+}
