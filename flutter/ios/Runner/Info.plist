@@ -83,5 +83,7 @@
 		<key>CFBundleURLSchemes</key>
 		<array><string>com.psygames.app</string></array>
 	</dict></array>
+	<key>FLTEnableFlutterGPU</key>
+	<true/>
 </dict>
 </plist>
