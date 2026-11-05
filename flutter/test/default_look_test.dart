@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/app_theme.dart';
+import 'package:psygames_flutter/shell/crystal_palette.dart';
 import 'package:psygames_flutter/shell/default_look.dart';
 import 'package:psygames_flutter/shell/design_template.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
@@ -34,5 +35,19 @@ void main() {
     await s.set(uiTemplateKey, UiTemplate.classic.id);
     await seedDefaultLook(s);
     expect(parseUiTemplate(s.get(uiTemplateKey)), UiTemplate.classic);
+  });
+
+  test('палитра профиля включена; камень — по профилю («Женский» — розовый)', () async {
+    final s = await open({'flutter.psygames_active_profile': 'women'});
+    await seedDefaultLook(s);
+    final p = CrystalPalette.read(s);
+    expect(p.enabled, isTrue);
+    expect(p.recipe.id, 'profile-women');
+  });
+
+  test('палитру, выключенную до обновления, не включаем', () async {
+    final s = await open({'flutter.$crystalEnabledKey': '0'});
+    await seedDefaultLook(s);
+    expect(CrystalPalette.read(s).enabled, isFalse);
   });
 }
