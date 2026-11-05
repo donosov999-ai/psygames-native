@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'games/dots_connect/screen.dart';
 import 'games/digit_span/screen.dart';
 import 'games/one_line/screen.dart';
+import 'shell/default_look.dart';
 import 'shell/app_look.dart';
 import 'shell/asset_server.dart';
 import 'shell/feedback_screen.dart';
@@ -83,6 +84,8 @@ Future<void> main() async {
    * страница успела бы записать поверх свои пустые значения.
    */
   await LegacyImport.seedIfEmpty(state);
+  // Вид по умолчанию — «Аврора» (тема по профилю); один раз и только если человек сам не выбирал (default_look.dart).
+  await seedDefaultLook(state);
   // Язык берётся у общей памяти, а не задаётся числом в коде: его пишет веб-половина
   // (ключ `language`), и мост возит его через границу — см. SharedState.extraKeys.
   await L.load(state.language);
