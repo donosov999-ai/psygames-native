@@ -20,6 +20,7 @@ import '../math_slider/model.dart' show numberLocale;
 import '../runner/road.dart';
 import 'campaign.dart';
 import 'level.dart';
+import 'road_3d.dart';
 
 /// ЭКРАН «ЧИСЛОВОГО ЗАБЕГА» — раздел «Счёт», перенос веб-экрана `app/games/number-run.tsx`
 /// на общее ядро дороги раннеров (`../runner/road.dart`).
@@ -427,7 +428,9 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
       return Column(children: [
         SizedBox(height: signH, width: c.maxWidth, child: _sign(course, s)),
         Expanded(
-          child: _phase == _Phase.running
+          child: Road3d.available
+              ? _road3d(c, course, s)
+              : _phase == _Phase.running
               ? GestureDetector(
                   key: const Key('nr-road'),
                   behavior: HitTestBehavior.opaque,
@@ -450,6 +453,37 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
         ),
       ]);
     });
+  }
+
+  /// 3D-дорога (перенос сцены веба). Один и тот же узел на забеге, финале и итоге: сцена не
+  /// пересобирается при смене фазы, финальная лестница стен едет в той же сцене, как в вебе.
+  Widget _road3d(BoxConstraints c, RoadCourse course, RoadState s) {
+    final running = _phase == _Phase.running;
+    final wonFinale = _phase == _Phase.finale || (_phase == _Phase.result && s.status == RoadStatus.won);
+    final flat = wonFinale
+        ? FinaleView(course: course, value: s.sum, t: _finaleT, done: _phase == _Phase.result)
+        : NumberRoadView(course: course, state: s);
+    return GestureDetector(
+      key: const Key('nr-road'),
+      behavior: HitTestBehavior.opaque,
+      onHorizontalDragStart: (d) {
+        if (!running) return;
+        _dragX = d.localPosition.dx;
+        _dragTarget = _s!.target;
+      },
+      onHorizontalDragUpdate: (d) {
+        final start = _dragX;
+        if (!running || start == null) return;
+        _steer(_dragTarget + (d.localPosition.dx - start) / (c.maxWidth * 0.3));
+      },
+      onHorizontalDragEnd: (_) => _dragX = null,
+      child: Road3d(
+        course: course,
+        state: s,
+        finaleT: _phase == _Phase.result && s.status == RoadStatus.won ? finaleDuration(course, s.sum) : _finaleT,
+        fallback: flat,
+      ),
+    );
   }
 
   Widget _sign(RoadCourse course, RoadState s) {

@@ -154,6 +154,7 @@ flutter:
     - assets/game_sfx_pilot/
     - assets/animation_pilot/
     - assets/levels/
+    - assets/number_run/
     - assets/digits/candy/
     - assets/digits/elegant/
     - assets/digits/neon/
