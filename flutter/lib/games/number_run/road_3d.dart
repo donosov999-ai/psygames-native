@@ -689,7 +689,7 @@ class _Road3dState extends State<Road3d> {
       g.add(_boxNode(7.1, boss ? 3.4 : 2.3, boss ? 1.2 : .8, boss ? _guardColor : _ladder[i % _ladder.length], 0, boss ? 1.7 : 1.15, 0));
       g.add(
         _labels.node(_num(walls[i]), const _LabelSpec(font: 170), w: boss ? 4.8 : 3.8, h: boss ? 2.4 : 1.9)
-          ..position = vm.Vector3(0, boss ? 1.8 : 1.25, boss ? .68 : .48),
+          ..position = vm.Vector3(0, boss ? 1.8 : 1.25, boss ? 1.3 : 1.0),
       );
       root.add(g);
       slabs.add(g);
@@ -927,7 +927,12 @@ class _Road3dState extends State<Road3d> {
         _compactScale = h < 360 ? 1.35 : 1;
         if (!_ready) return const ColoredBox(key: Key('nr-road-3d-loading'), color: Color(0xFF57C7DF), child: SizedBox.expand());
         // Высокий портретный экран — шире угол, чтобы три полосы выбора читались целиком (как в вебе).
-        final fov = h > 0 && w / h < .62 ? 65.0 : 55.0;
+        // Сверх веба: на очень высоком экране (iPhone, Android 9:20) трёхзначное число на крайней полосе
+      // уходило за край (кадр стенда 06.11) — угол расширяется, пока в кадр не входят ±4,8 единицы
+      // на глубине числа (12,9 по оси взгляда): вся дорога 7,2 и край числа на полосе ±1 с запасом.
+      final aspect = h > 0 ? w / h : 1.0;
+      final fit = 2 * math.atan(4.8 / (12.9 * aspect)) * vm.radians2Degrees;
+      final fov = math.min(80.0, math.max(aspect < .62 ? 65.0 : 55.0, fit));
         return SceneView(
           scene,
           key: const Key('nr-road-3d'),

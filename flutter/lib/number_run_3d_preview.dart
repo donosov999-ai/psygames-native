@@ -16,6 +16,9 @@ import 'games/runner/solver.dart';
 const _level = int.fromEnvironment('LEVEL', defaultValue: 7);
 const _seed = int.fromEnvironment('SEED', defaultValue: 1);
 
+/// Ускорение времени стенда (до финала — не 90 с): --dart-define=WARP=3.
+const _warp = int.fromEnvironment('WARP', defaultValue: 1);
+
 void main() => runApp(const MaterialApp(debugShowCheckedModeBanner: false, home: _Stand()));
 
 class _Stand extends StatefulWidget {
@@ -61,7 +64,7 @@ class _StandState extends State<_Stand> with SingleTickerProviderStateMixin {
       if (s.status == RoadStatus.running) {
         // Автопилот: раз в 2,5 с — другая полоса.
         s = roadSetTarget(s, _pilot());
-        s = roadAdvanceFrame(s, dt, course);
+        s = roadAdvanceFrame(s, dt * _warp, course);
         if (s.status != RoadStatus.running) debugPrint('STAND ${s.status.name} sum ${s.sum} z ${s.z.toStringAsFixed(0)}');
       } else if (s.status == RoadStatus.won && finaleT < finaleDuration(course, s.sum) + 1) {
         finaleT += dt;
