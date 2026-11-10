@@ -8,6 +8,7 @@ import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/js_compat.dart' show jsNum, jsRound;
 import '../../shell/l10n.dart';
@@ -20,6 +21,7 @@ import '../math_slider/model.dart' show numberLocale;
 import '../runner/road.dart';
 import 'campaign.dart';
 import 'level.dart';
+import 'readout.dart';
 import 'road_3d.dart';
 
 /// ЭКРАН «ЧИСЛОВОГО ЗАБЕГА» — раздел «Счёт», перенос веб-экрана `app/games/number-run.tsx`
@@ -265,6 +267,7 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
   }
 
   void _start() {
+    if (_phase != _Phase.config || isGameHeld()) return;
     setState(() {
       _s = roadResume(_s!);
       _phase = _Phase.running;
@@ -277,6 +280,9 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
   void _tick(Duration elapsed) {
     final dt = (elapsed - _last).inMicroseconds / 1e6;
     _last = elapsed;
+    // Keep the ticker's wall timestamp fresh while the shared pause is held:
+    // resuming must not advance movement, memory or active time by the pause.
+    if (isGameHeld()) return;
     if (dt <= 0) return;
     final course = _course!;
     if (_phase == _Phase.running) {
@@ -298,12 +304,12 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
   }
 
   void _steer(double x) {
-    if (_phase != _Phase.running) return;
+    if (_phase != _Phase.running || isGameHeld()) return;
     setState(() => _s = roadSetTarget(_s!, x));
   }
 
   void _lane(int d) {
-    if (_phase != _Phase.running) return;
+    if (_phase != _Phase.running || isGameHeld()) return;
     setState(() => _s = roadChangeLane(_s!, d));
   }
 
@@ -423,10 +429,13 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
 
   /// Партия: строка задания и дорога (или финал — лестница стен).
   Widget _play(RoadCourse course, RoadState s, double h) {
-    final signH = (h * 0.12).clamp(40.0, 64.0);
     return LayoutBuilder(builder: (context, c) {
       return Column(children: [
-        SizedBox(height: signH, width: c.maxWidth, child: _sign(course, s)),
+        ConstrainedBox(
+          key: const Key('nr-readout-viewport'),
+          constraints: BoxConstraints(maxHeight: math.max(48, h * .46)),
+          child: SingleChildScrollView(child: _sign(course, s)),
+        ),
         Expanded(
           child: Road3d.available
               ? _road3d(c, course, s)
@@ -481,37 +490,16 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
         course: course,
         state: s,
         finaleT: _phase == _Phase.result && s.status == RoadStatus.won ? finaleDuration(course, s.sum) : _finaleT,
+        screenReadouts: true,
         fallback: flat,
       ),
     );
   }
 
   Widget _sign(RoadCourse course, RoadState s) {
-    final scheme = Theme.of(context).colorScheme;
-    final station = _phase == _Phase.running ? stationAhead(course, s) : null;
-    final text = station ?? L.t('numberRunTask');
-    return Container(
-      key: const Key('nr-sign'),
-      margin: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: station != null ? const Color(0xFF1E3A8A) : scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      alignment: Alignment.center,
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Text(
-          text,
-          key: const Key('nr-sign-text'),
-          maxLines: 1,
-          style: TextStyle(
-            fontSize: station != null ? 22 : 15,
-            fontWeight: FontWeight.w800,
-            color: station != null ? GameColors.of(context).onStrong : scheme.onSurface,
-          ),
-        ),
-      ),
+    return NumberRunReadoutPanel(
+      key: const Key('nr-sign'), value: NumberRunReadout.from(course, s),
+      showTask: _phase == _Phase.running,
     );
   }
 
@@ -600,7 +588,17 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
               key: const Key('nr-verdict'),
               style: text.titleMedium,
             ),
-            Text(lines.join(' · '), key: const Key('nr-result'), textAlign: TextAlign.center, style: text.bodyMedium),
+            const SizedBox(height: 8),
+            Wrap(
+              key: const Key('nr-result'), spacing: 8, runSpacing: 8, alignment: WrapAlignment.center,
+              children: [for (final line in lines) Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: GameColors.of(context).boardLine)),
+                child: Text(line, textAlign: TextAlign.center, style: text.bodyMedium),
+              )],
+            ),
             const SizedBox(height: 8),
             FilledButton.icon(
               key: const Key('nr-next'),
@@ -665,6 +663,8 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
 
 /// Цвета сцены веба (`runner-scene.mjs`): вода, настил, числа, стены.
 const Color _water = Color(0xFF57C7DF);
+Color get numberRunWater => _water;
+const Color _scaleInk = Color(0xFF312E81), _scaleSurface = Color(0xFFE0E7FF);
 const Color _deckA = Color(0xFFF4F5FA), _deckB = Color(0xFFE3E8EF);
 const Color _plus = Color(0xFF443BFF), _minus = Color(0xFFFF1839), _part = Color(0xFFD97706);
 const Color _plank = Color(0xFFC3A780), _ramp = Color(0xFF22C55E), _pole = Color(0xFF456AA1);
@@ -931,17 +931,17 @@ class RoadPainter extends CustomPainter {
   void _scale(Canvas canvas, RoadRow r, double Function(double) x, double Function(double) y, double lw, double w) {
     final yy = y(r.z);
     double tx(double v) => x((v - r.min) / (r.max - r.min) * 2 - 1);
-    canvas.drawRect(Rect.fromLTRB(4, yy - 4, w - 4, yy + 4), Paint()..color = const Color(0xFFE0E7FF));
+    canvas.drawRect(Rect.fromLTRB(4, yy - 4, w - 4, yy + 4), Paint()..color = _scaleSurface);
     final every = r.ticks.length <= 6 ? 1 : 2;
     for (var i = 0; i < r.ticks.length; i++) {
       final v = r.ticks[i];
       final tick = Paint()
-        ..color = const Color(0xFF312E81)
+        ..color = _scaleInk
         ..strokeWidth = 2;
       canvas.drawLine(Offset(tx(v), yy - 9), Offset(tx(v), yy + 9), tick);
       if (i % every == 0 || i == r.ticks.length - 1) {
         final label = '${jsNum((v * 10).roundToDouble() / 10)}'.replaceFirst('-', '−');
-        _text(canvas, label, Offset(tx(v).clamp(14, w - 14), yy - 20), 12, const Color(0xFF312E81), bg: const Color(0xFFE0E7FF));
+        _text(canvas, label, Offset(tx(v).clamp(14, w - 14), yy - 20), 12, _scaleInk, bg: _scaleSurface);
       }
     }
     // Флажок верного ответа — после проезда: показать, где было надо.
@@ -1008,7 +1008,7 @@ class RoadPainter extends CustomPainter {
     canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(7)), Paint()..color = color);
     final full = Paint()..color = Colors.white;
     final empty = Paint()
-      ..color = const Color(0x99FFFFFF)
+      ..color = Colors.white.withValues(alpha: .6)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.9;
     for (var f = 0; f < frames; f++) {

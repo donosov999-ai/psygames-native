@@ -26,7 +26,9 @@ import 'package:vector_math/vector_math.dart' as vm;
 
 import '../runner/road.dart';
 import '../../shell/js_compat.dart' show jsRound;
-import 'screen.dart' show finaleBroken, finaleDistance, finaleWalls, finaleGap, finaleSpeed, pileOf;
+import '../../shell/game_clock.dart' show isGameHeld;
+import 'screen.dart' show finaleBroken, finaleDistance, finaleWalls, finaleGap, finaleSpeed, pileOf, numberRunWater;
+import 'visual_geometry.dart';
 
 /// sRGB-цвет веба (0xRRGGBB) → линейный, как ждут материалы движка.
 vm.Vector3 lin(int rgb) {
@@ -37,6 +39,9 @@ vm.Vector3 lin(int rgb) {
 
   return vm.Vector3(c(rgb >> 16 & 255), c(rgb >> 8 & 255), c(rgb & 255));
 }
+
+/// 24-bit scene palette -> opaque Canvas label color (one conversion).
+Color _labelColor(int rgb) => Color(0xFF000000 | rgb);
 
 // Константы и цвета — из runner-scene.mjs.
 const double _lane = 2.4;
@@ -170,10 +175,10 @@ class _Labels {
       ..scale(-1, 1);
     final pile = s.pile;
     if (pile != null) {
-      _drawPile(c, pile.$1, pile.$2, Color(0xFF000000 | pile.$3));
+      _drawPile(c, pile.$1, pile.$2, _labelColor(pile.$3));
     } else {
       if (s.background != null) {
-        c.drawRRect(RRect.fromLTRBR(5, 7, 507, 249, const Radius.circular(36)), Paint()..color = Color(0xFF000000 | s.background!));
+        c.drawRRect(RRect.fromLTRBR(5, 7, 507, 249, const Radius.circular(36)), Paint()..color = _labelColor(s.background!));
       }
       TextPainter painter(Paint? foreground, Color? color, [List<Shadow>? shadows]) => TextPainter(
         text: TextSpan(
@@ -190,7 +195,7 @@ class _Labels {
         textDirection: TextDirection.ltr,
         maxLines: 1,
       )..layout();
-      var fill = painter(null, Color(0xFF000000 | s.ink));
+      var fill = painter(null, _labelColor(s.ink));
       final k = fill.width > 480 ? 480 / fill.width : 1.0;
       c.save();
       c.translate(256, 136);
@@ -198,7 +203,7 @@ class _Labels {
       final o = Offset(-fill.width / 2, -fill.height / 2);
       if (s.background == null) {
         // Без плашки — обводка и свечение, как у подписей стен в вебе.
-        painter(null, const Color(0x00000000), const [Shadow(color: Color(0xFFAC8BFF), blurRadius: 28)]).paint(c, o);
+        painter(null, Colors.transparent, const [Shadow(color: Color(0xFFAC8BFF), blurRadius: 28)]).paint(c, o);
         painter(
           Paint()
             ..style = PaintingStyle.stroke
@@ -228,7 +233,7 @@ class _Labels {
     canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(40)), Paint()..color = color);
     final full = Paint()..color = Colors.white;
     final empty = Paint()
-      ..color = const Color(0x99FFFFFF)
+      ..color = Colors.white.withValues(alpha: .6)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 5;
     for (var f = 0; f < frames; f++) {
@@ -290,7 +295,11 @@ class _Popup {
 
 /// Трёхмерная дорога. Ядро ведёт экран, сцена смотрит на его состояние каждый кадр.
 class Road3d extends StatefulWidget {
-  const Road3d({super.key, required this.course, required this.state, this.finaleT = 0, required this.fallback});
+  const Road3d({super.key, required this.course, required this.state, this.finaleT = 0, required this.fallback, this.screenReadouts = false});
+
+  /// The actual game supplies fixed, unfogged exact/guardian readouts. The
+  /// standalone scene keeps its old labels; never duplicate both counters.
+  final bool screenReadouts;
 
   final RoadCourse course;
   final RoadState state;
@@ -316,6 +325,7 @@ class Road3d extends StatefulWidget {
 }
 
 class _Road3dState extends State<Road3d> {
+  Size _viewport = const Size(390, 600);
   final scene = Scene();
 
   /// Весь мир — под этим узлом с X = −1: у flutter_scene ось X смотрит в другую сторону, чем у three.js,
@@ -416,7 +426,7 @@ class _Road3dState extends State<Road3d> {
     // Искры и осколки — один пул квадратиков-билбордов на всю сцену, как пул точек веба.
     _sparkGeometry = BillboardGeometry(capacity: _sparks.length);
     _world.add(Node(mesh: Mesh(_sparkGeometry, SpriteMaterial()))..frustumCulled = false);
-    for (var i = 0; i < 6; i++) {
+    for (var i = 0; i < (widget.screenReadouts ? 1 : 6); i++) {
       final n = _labels.node(' ', const _LabelSpec(font: 140), w: 1.7, h: .85)..visible = false;
       _world.add(n);
       _popups.add(_Popup(n));
@@ -827,6 +837,7 @@ class _Road3dState extends State<Road3d> {
   // ── Кадр — перенос render(state, time, finaleT) ───────────────────────────────────────────────
 
   void _frame(double dt) {
+    if (isGameHeld()) dt = 0;
     final course = widget.course;
     final s = widget.state;
     if (!identical(course, _course)) _load(course);
@@ -839,7 +850,7 @@ class _Road3dState extends State<Road3d> {
       _lastNumber = sum;
     }
     final won = s.status == RoadStatus.won && course.finale != null;
-    final moving = s.status == RoadStatus.running || won;
+    final moving = (s.status == RoadStatus.running || won) && !isGameHeld();
     final finaleT = widget.finaleT;
     // Финал: число едет дальше по лестнице стен, пока пробивает.
     final along = won ? math.min(finaleDistance(course, s.sum), finaleT * finaleSpeed) : 0.0;
@@ -851,8 +862,9 @@ class _Road3dState extends State<Road3d> {
     _visualScale = _reduced ? target : _visualScale + (target - _visualScale) * (1 - math.exp(-dt * 8));
     final size = 1.12 * _visualScale * _compactScale;
     final dw = RunnerNumerals.widthOf[_digit!]!;
+    final fitted = fitRunnerNumeral(_viewport, width: dw, requested: size, laneX: hx, jump: hy);
     _digit!
-      ..scale = vm.Vector3(math.min(size, 3 / dw), size, size)
+      ..scale = vm.Vector3(fitted, fitted, math.min(fitted, .6))
       ..position = vm.Vector3(0, .08 + (!_reduced && moving ? math.sin(_time * 3) * .025 : 0), 0);
 
     _syncRows(course, s.nextRow);
@@ -877,14 +889,14 @@ class _Road3dState extends State<Road3d> {
     if (text != _partText) {
       _partText = text;
       if (text.isNotEmpty) _labels.set(_counter, text, const _LabelSpec(background: 0x78350f, ink: 0xfef3c7, font: 120));
-      _counter.visible = text.isNotEmpty;
+      _counter.visible = text.isNotEmpty && !widget.screenReadouts;
     }
     _counter.position = vm.Vector3(hx, 2.9 + hy, 0);
     // Пока впереди станция, страж прячется: крупная строка станции ложилась на его число.
     final stationAhead = course.rows.skip(s.nextRow).take(3).any((r) => (r.station != null || r.exact != null) && r.z - view <= 70);
     final g = _guard;
     if (g != null) {
-      g.visible = course.length - view >= 100 && !won && !stationAhead;
+      g.visible = !widget.screenReadouts && course.length - view >= 100 && !won && !stationAhead;
       g.position = vm.Vector3(0, 3.2 + (!_reduced ? math.sin(_time * 1.5) * .2 : 0), -52);
     }
     if (course.finale != null && _finale == null && course.length - view < 100) _finale = _buildFinale(course);
@@ -905,7 +917,7 @@ class _Road3dState extends State<Road3d> {
     var hz = 0.0;
     if (_bump > 0) {
       _bump += dt;
-      hz = _bump < .45 ? -math.sin(_bump / .45 * math.pi) * .35 : 0;
+      hz = !_reduced && _bump < .45 ? -math.sin(_bump / .45 * math.pi) * .35 : 0;
     }
     _hero.position = vm.Vector3(hx, hy, hz);
     if (moving && dt > 0) {
@@ -924,19 +936,18 @@ class _Road3dState extends State<Road3d> {
     return LayoutBuilder(
       builder: (context, c) {
         final w = c.maxWidth, h = c.maxHeight;
+        _viewport = Size(w, h);
         _compactScale = h < 360 ? 1.35 : 1;
-        if (!_ready) return const ColoredBox(key: Key('nr-road-3d-loading'), color: Color(0xFF57C7DF), child: SizedBox.expand());
+        if (!_ready) return ColoredBox(key: const Key('nr-road-3d-loading'), color: numberRunWater, child: const SizedBox.expand());
         // Высокий портретный экран — шире угол, чтобы три полосы выбора читались целиком (как в вебе).
         // Сверх веба: на очень высоком экране (iPhone, Android 9:20) трёхзначное число на крайней полосе
       // уходило за край (кадр стенда 06.11) — угол расширяется, пока в кадр не входят ±4,8 единицы
       // на глубине числа (12,9 по оси взгляда): вся дорога 7,2 и край числа на полосе ±1 с запасом.
-      final aspect = h > 0 ? w / h : 1.0;
-      final fit = 2 * math.atan(4.8 / (12.9 * aspect)) * vm.radians2Degrees;
-      final fov = math.min(80.0, math.max(aspect < .62 ? 65.0 : 55.0, fit));
+      final fov = runnerFov(_viewport);
         return SceneView(
           scene,
           key: const Key('nr-road-3d'),
-          camera: PerspectiveCamera(fovRadiansY: fov * vm.degrees2Radians, position: vm.Vector3(0, 8.2, 11), target: vm.Vector3(0, 0, -10)),
+          camera: PerspectiveCamera(fovRadiansY: fov, position: vm.Vector3(0, 8.2, 11), target: vm.Vector3(0, 0, -10)),
           onTick: (_, dt) => _frame(math.max(0, math.min(.1, dt))),
         );
       },
