@@ -132,10 +132,14 @@ void main() {
                 size: Size(width, 550),
                 textScaler: const TextScaler.linear(2),
               ),
+              // Как на экране (`nr-readout-viewport`): панель в прокрутке — при тексте ×2 карточки
+              // заданий (лист 02 референса) выше одной строки и не обязаны влезать в 550 без неё.
               child: Scaffold(
-                body: NumberRunReadoutPanel(
-                  value: NumberRunReadout.from(c, s),
-                  showTask: true,
+                body: SingleChildScrollView(
+                  child: NumberRunReadoutPanel(
+                    value: NumberRunReadout.from(c, s),
+                    showTask: true,
+                  ),
                 ),
               ),
             ),
@@ -143,13 +147,23 @@ void main() {
         );
         await t.pump();
         expect(t.takeException(), isNull);
-        expect(find.byKey(const Key('nr-guard-target')), findsOneWidget);
+        // Одно активное задание (UI-референс 06.11, UI09): пока впереди станция — её карточка,
+        // цель стража возвращается, когда станции нет.
         expect(find.byKey(const Key('nr-exact-counter')), findsOneWidget);
-        final progress = t.widget<LinearProgressIndicator>(
-          find.byKey(const Key('nr-distance')),
-        );
-        expect(progress.value, NumberRunReadout.from(c, s).distance);
+        expect(find.byKey(const Key('nr-guard-target')), findsNothing);
+        expect(find.byKey(const Key('nr-distance')), findsOneWidget);
         expect(find.byType(FittedBox), findsNothing);
+        final plain = roadInitial(c)
+          ..nextRow = 0
+          ..z = 0;
+        await t.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: NumberRunReadoutPanel(value: NumberRunReadout.from(c, plain), showTask: true),
+            ),
+          ),
+        );
+        expect(find.byKey(const Key('nr-guard-target')), findsOneWidget);
       });
     }
   }

@@ -19,6 +19,9 @@ const _seed = int.fromEnvironment('SEED', defaultValue: 1);
 /// Ускорение времени стенда (до финала — не 90 с): --dart-define=WARP=3.
 const _warp = int.fromEnvironment('WARP', defaultValue: 1);
 
+/// Кадры для дизайна — без строки отладки: --dart-define=CLEAN=true.
+const _clean = bool.fromEnvironment('CLEAN');
+
 void main() => runApp(const MaterialApp(debugShowCheckedModeBanner: false, home: _Stand()));
 
 class _Stand extends StatefulWidget {
@@ -89,6 +92,7 @@ class _StandState extends State<_Stand> with SingleTickerProviderStateMixin {
           Positioned.fill(
             child: Road3d(course: course, state: s, finaleT: finaleT, fallback: const ColoredBox(color: Colors.red)),
           ),
+          if (!_clean)
           Positioned(
             left: 12,
             top: 60,

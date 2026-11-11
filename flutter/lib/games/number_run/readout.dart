@@ -5,10 +5,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../shell/game_colors.dart';
 import '../../shell/js_compat.dart' show jsNum;
 import '../../shell/l10n.dart';
 import '../runner/road.dart';
+import 'campaign.dart';
+import 'nr_material.dart';
+import 'task_cards.dart';
 
 RoadRow? numberRunTaskRow(RoadCourse course, RoadState state) {
   for (final row in course.rows.skip(state.nextRow).take(3)) {
@@ -17,7 +19,8 @@ RoadRow? numberRunTaskRow(RoadCourse course, RoadState state) {
         row.recall ||
         row.kind == 'answer' ||
         row.kind == 'scale' ||
-        row.exact != null) {
+        row.exact != null ||
+        row.station == 'reserve') {
       return row;
     }
   }
@@ -32,6 +35,8 @@ class NumberRunReadout {
     this.guard,
     this.task,
     this.collected,
+    this.state,
+    this.level,
   });
 
   factory NumberRunReadout.from(RoadCourse course, RoadState state) {
@@ -56,6 +61,8 @@ class NumberRunReadout {
       guard: course.finale?.boss,
       task: row,
       collected: collected,
+      state: state,
+      level: course.format == 'level' ? '${L.t('level')} ${course.levelId}' : '${L.t('round')} ${state.stage}/$campaignStageCount',
     );
   }
 
@@ -64,6 +71,12 @@ class NumberRunReadout {
   final double? guard;
   final RoadRow? task;
   final double? collected;
+
+  /// Состояние ядра — для карточек заданий (курсор шкалы, заполненные места памяти, «твоё число»).
+  final RoadState? state;
+
+  /// Капсула: «Уровень 9» у уровня, «Этап 3» у свободного забега.
+  final String? level;
   String get time =>
       '${remaining ~/ 60}:${(remaining % 60).toString().padLeft(2, '0')}';
   String? get prompt {
@@ -76,12 +89,16 @@ class NumberRunReadout {
           .t('numberRunExact')
           .replaceAll('{n}', '${jsNum(row.exact!.target)}');
     }
+    if (row.station == 'reserve') return L.t('numberRunReserveTake');
     return row.prompt;
   }
 }
 
-/// No commands or steering listener: all gestures on the panel are isolated
-/// from the actual road below it. The shared GameShell owns pause/navigation.
+/// HUD ЗАБЕГА ПРЯМО НА ДОРОГЕ — UI-референс Кодекса v1.0, лист 01 и план экрана (стр. 05): строка
+/// 48 — капсула уровня и полоса пути с флажком, под ней таймер 112×32, ниже одна карточка
+/// активного задания (64–96) или цель стража. Ни подложки, ни рамки: игра — весь экран (Денис
+/// 11.11.2026: «инфо-экраны больше самой игры» — нельзя). Пауза — общая, плавающая внизу.
+/// Касания HUD не рулят числом: дорога под ним своя, слушателя руля здесь нет.
 class NumberRunReadoutPanel extends StatelessWidget {
   const NumberRunReadoutPanel({
     super.key,
@@ -93,144 +110,71 @@ class NumberRunReadoutPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = GameColors.of(context);
-    final scheme = Theme.of(context).colorScheme;
-    final prompt = showTask ? value.prompt : null;
-    final exact = showTask ? value.task?.exact : null;
-    final collected = value.collected ?? 0;
-    return Container(
+    final task = showTask ? value.task : null;
+    final st = value.state;
+    final warn = value.remaining <= 10;
+    return Column(
       key: const Key('nr-readout-panel'),
-      margin: const EdgeInsets.fromLTRB(8, 4, 8, 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.boardLine),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Semantics(
-                label: L.t('timeLeftLabel'),
-                value: value.time,
-                child: Container(
-                  key: const Key('nr-clock'),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: scheme.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: value.remaining <= 10
-                          ? colors.warning
-                          : colors.boardLine,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.timer_outlined, size: 18),
-                      const SizedBox(width: 6),
-                      Text(
-                        value.time,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
-                              ],
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    key: const Key('nr-distance'),
-                    value: value.distance,
-                    minHeight: 10,
-                    color: colors.inkPlaced,
-                    backgroundColor: scheme.surfaceContainerHighest,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 6),
-              Icon(Icons.flag_outlined, color: scheme.onSurface, size: 22),
-            ],
-          ),
-          if (value.guard != null) ...[
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.shield_outlined, color: colors.hint, size: 20),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    '${L.t('numberRunGuard')} · ${jsNum(value.guard!)}',
-                    key: const Key('nr-guard-target'),
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ],
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 40),
+          child: Row(children: [
+            if (value.level != null)
+              Flexible(child: NrCandy(text: value.level!.toUpperCase(), size: 14, height: 30, padding: 12)),
+            const SizedBox(width: 8),
+            Expanded(flex: 2, child: _Progress(value: value.distance)),
+          ]),
+        ),
+        Semantics(
+          label: L.t('timeLeftLabel'),
+          value: value.time,
+          child: KeyedSubtree(
+            key: const Key('nr-clock'),
+            child: NrCandy(
+              text: value.time,
+              icon: Icons.timer_outlined,
+              rim: warn ? Nr.amber : Nr.gold,
+              size: 16,
+              height: 30,
             ),
-          ],
-          const SizedBox(height: 8),
-          Text(
-            prompt ?? L.t('numberRunTask'),
-            key: const Key('nr-sign-text'),
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyLarge
-                ?.copyWith(fontWeight: FontWeight.w700),
           ),
-          if (exact != null) ...[
-            const SizedBox(height: 8),
-            Container(
-              key: const Key('nr-exact-counter'),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: scheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: colors.warning, width: 2),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (collected >= exact.target) ...[
-                    Icon(
-                      collected == exact.target
-                          ? Icons.check_circle_outline
-                          : Icons.error_outline,
-                      color: collected == exact.target
-                          ? colors.correct
-                          : colors.wrong,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 6),
-                  ],
-                  Text(
-                    '${jsNum(collected)} / ${jsNum(exact.target)}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        ),
+        if (task != null && st != null) ...[
+          const SizedBox(height: 10),
+          NumberRunTaskCard(row: task, state: st, collected: value.collected),
+        ] else if (value.guard != null && st != null) ...[
+          const SizedBox(height: 10),
+          NumberRunGuardGoal(guard: value.guard!, value: st.sum),
         ],
-      ),
+      ],
     );
   }
+}
+
+/// Полоса пути (UI02, h16): navy-дорожка с золотым кантом, мятная заливка, клетчатый флажок справа.
+class _Progress extends StatelessWidget {
+  const _Progress({required this.value});
+  final double value;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        label: 'distance',
+        value: '${(value * 100).round()}%',
+        child: SizedBox(
+          key: const Key('nr-distance'),
+          height: 22,
+          child: Stack(alignment: Alignment.centerLeft, children: [
+            Container(decoration: nrGloss(Nr.navy, radius: 11)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(3, 3, 26, 3),
+              child: FractionallySizedBox(
+                widthFactor: value.clamp(0.0, 1.0),
+                child: Container(decoration: nrGloss(Nr.mint, rim: null, radius: 8, shadow: false)),
+              ),
+            ),
+            const Positioned(right: 4, child: Icon(Icons.sports_score, size: 18, color: Colors.white)),
+          ]),
+        ),
+      );
 }

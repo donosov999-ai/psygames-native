@@ -526,6 +526,12 @@ class _Road3dState extends State<Road3d> {
             w: w * 2,
             h: w,
           )..position = vm.Vector3(it.x * _lane, .7, -(it.dz ?? 0));
+        } else if (it.reserve != null) {
+          // «×2» в запас: фиолетовая операция — тот же цвет, что у стены «×» (веб WALL['×']).
+          n = _numerals!.make(it.reserve!, _wall['×']!);
+          n
+            ..scale = vm.Vector3.all(math.min(1.2, 1.7 / RunnerNumerals.widthOf[n]!))
+            ..position = vm.Vector3(it.x * _lane, .08, -(it.dz ?? 0));
         } else {
           n = _numerals!.make(_num(it.value), color);
           final width = RunnerNumerals.widthOf[n]!, half = it.half ?? .18;
@@ -558,9 +564,7 @@ class _Road3dState extends State<Road3d> {
         art.lanes[i - 1] = lane;
         group.add(lane);
       }
-      group.add(
-        _labels.node(row.prompt ?? '', const _LabelSpec(background: 0x0f172a, font: 112), w: 7, h: 1.45)..position = vm.Vector3(0, 3.6, 0),
-      );
+      // Табло примера — в карточке HUD (UI09: «текст не растворяется в тумане»); на арках — ответы.
     } else if (row.kind == 'scale') {
       double toX(double v) => ((v - row.min) / (row.max - row.min) * 2 - 1) * _lane;
       group.add(_boxNode(2 * _lane + .5, .07, .26, 0xe0e7ff, 0, .06, 0));
@@ -579,9 +583,7 @@ class _Road3dState extends State<Road3d> {
         group.add(_boxNode(.16, 3.2, .16, 0x6366f1, x, 1.6, 0));
       }
       group.add(_boxNode(2 * _lane + .86, .16, .16, 0x6366f1, 0, 3.15, 0));
-      group.add(
-        _labels.node(row.prompt ?? '', const _LabelSpec(background: 0x1e1b4b, font: 112), w: 7, h: 1.45)..position = vm.Vector3(0, 3.85, 0),
-      );
+      // Вопрос шкалы — в карточке HUD, второй копии в сцене нет.
       // Флажок верного ответа — в корне ряда: ворота после проезда гаснут, а флажок остаётся.
       final flag = _boxNode(.12, 1.6, .12, 0x22c55e, toX(row.answer), .8, .05)..visible = false;
       art.flag = flag;
@@ -645,13 +647,7 @@ class _Road3dState extends State<Road3d> {
         }
       }
     }
-    final exact = row.exact;
-    if (exact != null && !row.recall) {
-      root.add(
-        _labels.node('= ${_num(exact.target)}', const _LabelSpec(background: 0x78350f, ink: 0xfef3c7, font: 150), w: 3.4, h: 1.3)
-          ..position = vm.Vector3(0, 2.4, 21),
-      );
-    }
+    // «= N» — в карточке HUD («Собери ровно N» со счётчиком), второй копии в сцене нет (UI-реф 06.11).
     final d = row.divider;
     if (d != null) {
       // Столб делит дорогу на время стопок: сторона выбрана там, где он начинается.
@@ -823,6 +819,15 @@ class _Road3dState extends State<Road3d> {
           final op = '${d['operation']}';
           _popup(op, op.startsWith('−') ? 0xffd6dc : 0xdfe6ff, lane * _lane);
           _burst(lane * _lane, 1, 0, _wall[op.isEmpty ? '' : op[0]] ?? _wall['×']!, 26, spread: 4, lift: 5, drift: 6);
+        case 'reserve':
+          final op = '${d['op']}';
+          if (d['action'] == 'pick') {
+            _popup(op, 0xd0acff, hx);
+            _burst(hx, 1, 0, _wall['×']!, 14, spread: 2.4, lift: 3.2);
+          } else {
+            _popup('$op → ${_num(n('after'))}', 0xd0acff, hx);
+            _burst(hx, 1.4, 0, _wall['×']!, 40, spread: 4.5, lift: 6);
+          }
         case 'obstacle':
           final damage = n('damage');
           if (damage > 0) {

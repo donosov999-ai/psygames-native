@@ -2,8 +2,14 @@
 // в одной полосе ряда лежит «×2», оно ложится в единственный слот, а «Применить» игрок жмёт сам —
 // в любой момент забега. Здесь: план главы, играбельность раздач, ядро (подобрать, применить,
 // слот занят, повторное нажатие) и решатель, который откладывает удвоение на большее число.
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/number_run/level.dart';
+import 'package:psygames_flutter/games/number_run/screen.dart';
+import 'package:psygames_flutter/games/number_run/task_cards.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/shared_state.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:psygames_flutter/games/runner/road.dart';
 import 'package:psygames_flutter/games/runner/solver.dart';
 
@@ -108,5 +114,52 @@ void main() {
     final path = solveCourse(c)!;
     // 1 → запас → +10 = 11 → ×2 = 22 (а удвоить сразу: 1×2 + 10 = 12; взять «3»: 1 + 3 + 10 = 14).
     expect(path.last.sum, 22);
+  });
+
+  group('экран', () {
+    setUpAll(() async => L.load('ru'));
+
+    Future<void> openAt(WidgetTester t, int level) async {
+      t.view
+        ..devicePixelRatio = 1
+        ..physicalSize = const Size(390, 844);
+      addTearDown(t.view.reset);
+      SharedPreferences.setMockInitialValues({'${SharedState.prefix}number_run_level_nzt48': '$level'});
+      final state = await SharedState.open();
+      await t.pumpWidget(MaterialApp(home: NumberRunScreen(key: UniqueKey(), state: state, seed: 1)));
+      await t.pumpAndSettle();
+    }
+
+    testWidgets('L19: подсказка главы, слот запаса под дорогой, «Применить» с пустым слотом неактивна', (t) async {
+      await openAt(t, 19);
+      expect(find.textContaining('операция в запасе'), findsWidgets);
+      await t.tap(find.byKey(const Key('nr-start')));
+      await t.pump(const Duration(milliseconds: 100));
+      expect(find.byKey(const Key('nr-reserve-slot')), findsOneWidget);
+      final apply = t.widget<NrActionButton>(find.byKey(const Key('nr-reserve-apply')));
+      expect(apply.onPressed, isNull, reason: 'слот пуст — применять нечего');
+      expect(find.text('ПУСТО'), findsOneWidget);
+    });
+
+    testWidgets('L5: запаса на дороге нет — и слота нет', (t) async {
+      await openAt(t, 5);
+      await t.tap(find.byKey(const Key('nr-start')));
+      await t.pump(const Duration(milliseconds: 100));
+      expect(find.byKey(const Key('nr-reserve-slot')), findsNothing);
+    });
+  });
+
+  testWidgets('карточка: ряд «вспомни» — память («Повтори»), а не «Собери ровно N»', (t) async {
+    await L.load('ru');
+    final c = makeLevel(16, 1, countingTasks);
+    final recall = c.rows.firstWhere((r) => r.recall);
+    expect(recall.exact, isNotNull, reason: 'в ядре у «вспомни» есть «ровно N» — карточка не должна ему верить');
+    final s = roadInitial(c)..nextRow = recall.id;
+    await t.pumpWidget(MaterialApp(home: Scaffold(body: NumberRunTaskCard(row: recall, state: s))));
+    expect(find.byKey(const Key('nr-task-recall')), findsOneWidget);
+    expect(find.byKey(const Key('nr-task-exact')), findsNothing);
+    final want = recall.exact!.target.round();
+    expect(find.text('0 / $want'), findsOneWidget, reason: 'мест столько, сколько знаков запомнить');
+    expect(find.text('?'), findsNWidgets(want));
   });
 }

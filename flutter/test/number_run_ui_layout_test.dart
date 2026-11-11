@@ -93,23 +93,25 @@ void main() {
             await t.pump();
             await t.pump(const Duration(milliseconds: 50));
             expect(t.takeException(), isNull);
+            // UI-референс Кодекса v1.0 + Денис 11.11.2026: забег во весь экран — дорога занимает всё
+            // поле, HUD лежит на ней сверху (не выше трети поля), пауза одна, плавающая внизу по центру,
+            // ряда кнопок полос нет.
+            final field = t.getRect(find.byKey(const Key('game-field')));
             final road = t.getRect(find.byKey(const Key('nr-road')));
-            // Measure the clipped scroll viewport, not its offscreen contents.
             final readout = t.getRect(
               find.byKey(const Key('nr-readout-viewport')),
             );
-            expect(road.height, greaterThan(0));
-            expect(readout.bottom, lessThanOrEqualTo(road.top + 1e-6));
-            for (final key in [
-              'nr-steer-left',
-              'nr-steer-center',
-              'nr-steer-right',
-            ]) {
-              final r = t.getRect(find.byKey(Key(key)));
-              expect(r.height, greaterThanOrEqualTo(48));
-              expect(r.left, greaterThanOrEqualTo(0));
-              expect(r.right, lessThanOrEqualTo(width));
-              expect(r.bottom, lessThanOrEqualTo(844));
+            expect(road.height, closeTo(field.height, 1), reason: 'дорога — всё поле');
+            expect(readout.top, greaterThanOrEqualTo(field.top));
+            expect(readout.height, lessThanOrEqualTo(field.height * .34 + 1e-6), reason: 'инфо не больше игры');
+            expect(readout.left, greaterThanOrEqualTo(0));
+            expect(readout.right, lessThanOrEqualTo(width));
+            final pause = t.getRect(find.byKey(const Key('field-only-pause')));
+            expect(pause.height, greaterThanOrEqualTo(48));
+            expect(pause.bottom, lessThanOrEqualTo(844));
+            expect(pause.center.dx, closeTo(width / 2, 1));
+            for (final key in ['nr-steer-left', 'nr-steer-center', 'nr-steer-right']) {
+              expect(find.byKey(Key(key)), findsNothing, reason: 'ряда кнопок полос нет — только пауза');
             }
             if (const bool.fromEnvironment('CAPTURE_NR_UI') &&
                 width == 390 &&

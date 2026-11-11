@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'games/number_run/screen.dart';
+import 'games/runner/road.dart';
+import 'games/runner/solver.dart';
 import 'shell/app_theme.dart';
 import 'shell/aurora_scope.dart';
 import 'shell/design_template.dart';
@@ -32,6 +34,36 @@ Future<void> main() async {
   SessionReport.sink = (_) async {};
   installGameClockLifecycle();
   GamePreset.clear();
+  // AUTO=true — стенд сам ведёт число по пути решателя и жмёт «Применить» за три ряда до финиша.
+  if (const bool.fromEnvironment('AUTO')) {
+    RoadCourse? solved;
+    var path = const <SolverStep>[];
+    // ignore: invalid_use_of_visible_for_testing_member
+    numberRunAutopilot = (course, s) {
+      if (!identical(course, solved)) {
+        solved = course;
+        path = solveCourse(course) ?? const [];
+      }
+      if (s.nextRow >= course.rows.length) return null;
+      final row = course.rows[s.nextRow];
+      final step = path.where((p) => p.id == row.id).firstOrNull;
+      if (step == null) return null;
+      final route = row.routes?.where((r) => r.id == step.route).firstOrNull;
+      if (route != null) {
+        for (final p in [route.entry, ...route.waypoints]) {
+          if (row.z + p.dz > s.z + .5) return p.x;
+        }
+        return route.exit;
+      }
+      return step.lane;
+    };
+    // ignore: invalid_use_of_visible_for_testing_member
+    // Как решатель: применить перед следующим «×2» (слот один) и перед финишем.
+    numberRunAutoApply = (course, s) =>
+        s.reserve != null &&
+        (s.nextRow >= course.rows.length - 3 ||
+            (s.nextRow < course.rows.length && course.rows[s.nextRow].station == 'reserve'));
+  }
   runApp(
     MaterialApp(
       title: 'Number Run Review — isolated data',
