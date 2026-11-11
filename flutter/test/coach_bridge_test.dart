@@ -73,4 +73,22 @@ void main() {
     coach.dispose();
     expect(SessionReport.observer, isNull);
   });
+
+  test('каталог шагов: игры каталога с кодом партии и маршрутом; шаг урока открывает игру', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await PsyGamesCoach.loadGameNames();
+    final catalog = PsyGamesCoach.stepCatalog();
+    expect(catalog.kinds.length, greaterThan(50));
+    expect(catalog.find('schulte_table'), isNotNull);
+    expect(catalog.find('sudoku_samurai'), isNotNull, reason: 'ref — код партии (sessionType), а не id каталога');
+    expect(PsyGamesCoach.routeFor('schulte_table'), '/games/schulte');
+    expect(PsyGamesCoach.routeFor('нет_такой'), isNull);
+  });
+
+  test('отправленная партия двигает счётчик результатов (карточка заданий перечитывает прогресс)', () async {
+    final t = _Transport();
+    final coach = PsyGamesCoach(CoachClient(t, appId: 'psygames'), clock: () => now, newId: () => 'g');
+    await coach.submitSession({'game_type': 'stroop', 'score': 1, 'id': 'r1'});
+    expect(coach.results.value, 1);
+  });
 }

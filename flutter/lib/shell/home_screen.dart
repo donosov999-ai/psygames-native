@@ -24,6 +24,7 @@ import 'shared_state.dart';
 import 'stats_model.dart' show cssUpper;
 import 'training_history.dart' show Wall, deviceWall;
 import 'walking_pet.dart' show PetFrames, PetSpec;
+import 'coach_bridge.dart' show PsyGamesCoach;
 import 'web_theme.dart';
 
 /// ГЛАВНАЯ «/» НА FLUTTER — ПЕРЕНОС `frontend/app/index.tsx`, А НЕ НОВЫЙ РИСУНОК (задача 7c88c0b8).
@@ -368,8 +369,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       // «Аврора» (лист 01 Codex): строка «Режим», карточка зарядки с Синапсом и ряд
                       // счётчиков. Данные — те же `header` и карточка `warmup`; Classic — без изменений.
                       if (aurora) ..._auroraList(context, m, top!)
-                      else
+                      else ...[
+                        ?_coachTasks(),
                         for (final b in _list(m['blocks'])) _block(context, b),
+                      ],
                     ],
                   ),
                 ),
@@ -432,7 +435,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Widget> _auroraList(BuildContext context, _M m, AuroraHomeTop top) {
     const order = ['search', 'resume', '#stats', 'goal', 'today', 'reco', 'practices', 'favourites', 'ladder', 'chest', 'allForks'];
     final blocks = _list(m['blocks']);
-    final out = <Widget>[...top.modeAndUpdate(context), ?_auroraHero(m)];
+    final out = <Widget>[...top.modeAndUpdate(context), ?_auroraHero(m), ?_coachTasks()];
     final used = <int>{};
     for (final k in order) {
       if (k == '#stats') {
@@ -448,6 +451,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     return out;
   }
+
+  /// «Задания от преподавателя» (кабинет, флаг PSY_COACH): только у ученика с заданиями, иначе пусто.
+  Widget? _coachTasks() => PsyGamesCoach.instance?.studentCard(onOpen: widget.onOpen);
 
   Widget? _auroraHero(_M m) {
     for (final b in _list(m['blocks'])) {

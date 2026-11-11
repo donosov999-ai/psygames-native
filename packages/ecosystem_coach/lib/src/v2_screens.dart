@@ -111,7 +111,7 @@ class CoachStatusBar extends StatelessWidget {
 class TeacherHomeScreen extends StatelessWidget {
   const TeacherHomeScreen({super.key, required this.groups, required this.assignments, this.strings = CoachV2Strings.en,
       this.title = 'Teacher cabinet', this.frame = defaultCoachFrame, this.onGroup, this.onAssignment, this.onNewGroup, this.onLibrary,
-      this.header});
+      this.header, this.empty});
   final List<CoachGroup> groups;
   final List<CoachAssignment> assignments;
   final CoachV2Strings strings;
@@ -124,6 +124,9 @@ class TeacherHomeScreen extends StatelessWidget {
   /// Переключатель режима или что-то своё над списком.
   final Widget? header;
 
+  /// Подсказка, когда нет ни групп, ни заданий.
+  final Widget? empty;
+
   @override
   Widget build(BuildContext context) {
     final s = strings;
@@ -134,7 +137,8 @@ class TeacherHomeScreen extends StatelessWidget {
       title,
       ListView(key: const Key('coach-teacher-home'), padding: const EdgeInsets.all(16), children: [
         if (header != null) ...[header!, const SizedBox(height: 16)],
-        Text(s.groups, style: t.titleMedium),
+        if (empty != null) ...[empty!, const SizedBox(height: 16)],
+        if (groups.isNotEmpty) Text(s.groups, style: t.titleMedium),
         const SizedBox(height: 8),
         for (final g in groups)
           CoachPanel(
@@ -154,7 +158,7 @@ class TeacherHomeScreen extends StatelessWidget {
             ),
           ),
         const SizedBox(height: 16),
-        Text(s.assignments, style: t.titleMedium),
+        if (assignments.isNotEmpty) Text(s.assignments, style: t.titleMedium),
         const SizedBox(height: 8),
         for (final a in assignments)
           CoachPanel(
@@ -662,7 +666,7 @@ class _SkillRow extends StatelessWidget {
         SizedBox(
           width: 56,
           child: Text(
-            '${skill.score}${skill.trend == 0 ? '' : skill.trend > 0 ? ' ↑${skill.trend}' : ' ↓${-skill.trend}'}',
+            '${skill.value ?? skill.score}${skill.trend == 0 ? '' : skill.trend > 0 ? ' ↑${skill.trend}' : ' ↓${-skill.trend}'}',
             textAlign: TextAlign.end,
             style: t.labelMedium?.copyWith(color: skill.trend < 0 ? c.error : null),
           ),
@@ -707,13 +711,17 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
         const SizedBox(height: 8),
         _WeekBars(r.weeks),
         const SizedBox(height: 16),
-        Text(s.skills, style: t.titleSmall),
-        for (final k in r.skills) _SkillRow(k),
-        const SizedBox(height: 16),
-        Text(s.mistakes, style: t.titleSmall),
-        const SizedBox(height: 6),
-        Wrap(spacing: 6, runSpacing: 6, children: [for (final m in r.mistakes) Chip(label: Text(m), visualDensity: VisualDensity.compact)]),
-        const SizedBox(height: 16),
+        if (r.skills.isNotEmpty) ...[
+          Text(s.skills, style: t.titleSmall),
+          for (final k in r.skills) _SkillRow(k),
+          const SizedBox(height: 16),
+        ],
+        if (r.mistakes.isNotEmpty) ...[
+          Text(s.mistakes, style: t.titleSmall),
+          const SizedBox(height: 6),
+          Wrap(spacing: 6, runSpacing: 6, children: [for (final m in r.mistakes) Chip(label: Text(m), visualDensity: VisualDensity.compact)]),
+          const SizedBox(height: 16),
+        ],
         Text(s.comment, style: t.titleSmall),
         for (final cm in r.comments)
           ListTile(contentPadding: EdgeInsets.zero, dense: true, title: Text(cm.text), subtitle: Text([cm.author, _d(cm.at)].join(' · '))),
@@ -764,10 +772,12 @@ class GroupReportScreen extends StatelessWidget {
           metric(s.doneShare, '${(report.doneShare * 100).round()} %'),
         ]),
         const SizedBox(height: 16),
-        Text(s.skills, style: t.titleSmall),
-        for (final k in report.skills) _SkillRow(k),
-        const SizedBox(height: 16),
-        Text(s.lagging, style: t.titleSmall),
+        if (report.skills.isNotEmpty) ...[
+          Text(s.skills, style: t.titleSmall),
+          for (final k in report.skills) _SkillRow(k),
+          const SizedBox(height: 16),
+        ],
+        if (report.lagging.isNotEmpty) Text(s.lagging, style: t.titleSmall),
         for (final name in report.lagging)
           ListTile(contentPadding: EdgeInsets.zero, dense: true, leading: Icon(Icons.trending_down, color: c.error), title: Text(name)),
       ]),

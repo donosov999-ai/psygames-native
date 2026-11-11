@@ -62,6 +62,18 @@ class CoachV2Strings {
     required this.counted,
     required this.start,
     required this.stepsN,
+    required this.create,
+    required this.cancel,
+    required this.noGroups,
+    required this.noAssignments,
+    required this.noLessons,
+    required this.copied,
+    required this.saved,
+    required this.assigned,
+    required this.daysIdle,
+    required this.neverTrained,
+    required this.pickLesson,
+    required this.noStudentsYet,
   });
 
   final String roleTitle, roleStudent, roleTeacher, roleHint;
@@ -74,6 +86,7 @@ class CoachV2Strings {
   final String report, byWeeks, skills, mistakes, praise, comment;
   final String groupReport, avgWeek, doneShare, lagging, export;
   final String fromTeacher, counted, start, stepsN;
+  final String create, cancel, noGroups, noAssignments, noLessons, copied, saved, assigned, daysIdle, neverTrained, pickLesson, noStudentsYet;
 
   static String n(String pattern, Object value) => pattern.replaceAll('{n}', '$value');
 
@@ -137,6 +150,18 @@ class CoachV2Strings {
     counted: 'Counted',
     start: 'Start',
     stepsN: 'Steps: {n}',
+    create: 'Create',
+    cancel: 'Cancel',
+    noGroups: 'No groups yet. Create one and share its link with students.',
+    noAssignments: 'No assignments yet. Open the library and assign a lesson.',
+    noLessons: 'No lessons yet.',
+    copied: 'Copied',
+    saved: 'Saved',
+    assigned: 'Assigned',
+    daysIdle: '{n} days without training',
+    neverTrained: 'no training yet',
+    pickLesson: 'Choose a lesson',
+    noStudentsYet: 'No students yet — share the group link.',
   );
 
   static const ru = CoachV2Strings(
@@ -199,5 +224,17 @@ class CoachV2Strings {
     counted: 'Засчитано',
     start: 'Начать',
     stepsN: 'Шагов: {n}',
+    create: 'Создать',
+    cancel: 'Отмена',
+    noGroups: 'Групп пока нет. Создайте группу и дайте ученикам её ссылку.',
+    noAssignments: 'Заданий пока нет. Откройте библиотеку и назначьте урок.',
+    noLessons: 'Уроков пока нет.',
+    copied: 'Скопировано',
+    saved: 'Сохранено',
+    assigned: 'Назначено',
+    daysIdle: '{n} дн. без тренировок',
+    neverTrained: 'ещё не занимался',
+    pickLesson: 'Выберите урок',
+    noStudentsYet: 'Учеников пока нет — дайте ссылку группы.',
   );
 }

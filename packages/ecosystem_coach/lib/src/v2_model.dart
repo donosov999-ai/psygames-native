@@ -118,8 +118,11 @@ class CoachAssignmentRow {
 }
 
 class CoachSkill {
-  const CoachSkill({required this.title, required this.score, this.trend = 0});
+  const CoachSkill({required this.title, required this.score, this.trend = 0, this.value});
   final String title;
+
+  /// Подпись вместо [score] (например, число тренировок по упражнению).
+  final String? value;
 
   /// 0..100 — средний результат по навыку.
   final int score;

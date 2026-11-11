@@ -4,6 +4,8 @@ Package `ecosystem_coach` 0.1.0 · server RPC `public.ecosystem_coach_v2(p_actio
 migration `supabase/migrations/20261111120000_ecosystem_coach_v2.sql` · local checks
 `supabase/tests/coach/run-local.sh` (41 checks, fresh PG17).
 Status: **server LIVE** in `personal-nzt` since 11.11.2026 (migration `ecosystem_coach_v2`, smoke flow passed on prod with rollback).
+**coach/3 LIVE** since 11.11.2026 (migration `ecosystem_coach_v3`, `supabase/migrations/20261111180000_ecosystem_coach_v3.sql`;
+local `run-local.sh` 93 checks = coach/2 through the new entry + coach/3; prod smoke with rollback passed). Package **0.2.0**.
 
 ## Who sees what
 
@@ -53,7 +55,7 @@ The package draws only content. Strings: `CoachStrings.en` / `.ru` or the app's 
 
 ## Pin for other apps
 
-Copy `packages/ecosystem_account` (0.1.6) and `packages/ecosystem_coach` (0.1.0) by exact
+Copy `packages/ecosystem_account` (0.1.7) and `packages/ecosystem_coach` (0.2.0) by exact
 commit; the SHA256 of the `git archive` is posted in the TeamOps psygames journal.
 
 ## How to connect an app (same steps for Chess & Go, TypeFree, Smart Alarm)
@@ -80,3 +82,32 @@ commit; the SHA256 of the `git archive` is posted in the TeamOps psygames journa
    Programs/assignments: `steps` is any JSON array (1–50 items, ≤8 KB) — app-specific step formats are allowed.
 
 Reference integration: PsyGames `flutter/lib/shell/coach_bridge.dart` (+ test `flutter/test/coach_bridge_test.dart`).
+
+## Cabinet v2 (coach/3, package 0.2.0) — groups, lessons, assignments, reports
+
+Decision of Denis 11.11.2026, variant A: **one code for all apps, each app gives its own «clothes»**.
+
+New server actions (same RPC, routed by `coach_private.route`): `groups_list`, `group_save`, `group_archive`,
+`group_members`, `group_members_set`, `group_invite_create` (multi-use group link, 30 days, the SAME
+`<scheme>://coach/invite?code=<48 hex>` form — apps already shipped with `AcceptInviteScreen` accept it unchanged),
+`lessons_list`, `templates_list`, `lesson_save` (steps validated: `ref`, `amount` 1..1000, `unit` times|minutes,
+`level` 0..1000, `title`, `note`, `app_id` = lesson app), `lesson_copy`, `lesson_archive`, `assign_lesson`
+(`group_id` XOR `connection_id`, `due_at`, `recurrence` none|daily|weekdays|weekly, `starts_at`), `assignments_list`,
+`assignment_report`, `assignment_archive`, `student_assignments`, `student_report`, `group_report`, `comment_list`.
+
+**Progress is counted by the server, no «done» button:** an event of the student counts for a step when
+`event.mode == step.ref` or `event.exercise_ref == step.ref` or starts with `step.ref + ':'`; `minutes` steps sum
+`metrics.time_seconds`; if a step has `level` and the event sends `metrics.level`, it must be ≥. Recurring
+assignments count from the start of today (daily/weekdays) or the week (weekly). An event that matches an
+open assignment is stored even without the `history` scope. ⇒ **your `ref` must equal what you send as `mode`/`exercise_ref`.**
+
+How to connect v2 (after steps 1–7 above):
+1. `CoachStepCatalog([CoachStepKind(appId: '<app_id>', ref: '<mode you submit>', title: <localized>, group:, maxLevel:, unit:)…])` — your exercises.
+2. Settings entry: `TeacherCabinetV2(client:, catalog:, auth:, strings:, v2: CoachV2Strings.ru|en, frame:, lang: '<locale>')`
+   (replaces `TeacherCabinetScreen`; sign-in and teacher profile are inside).
+3. Home of the student: `StudentAssignmentsPanel(client:, catalog:, auth:, strings:, refresh: <Listenable ticked after submit>,
+   onStart: (task, i) => <open your exercise task.lesson.steps[i].kind.ref>)` — empty when no assignments.
+4. Clothes: your `CoachFrame` + wrap the body in `CoachSkinScope(skin: CoachSkin(panel: <your card>, progressColor: …))`.
+   Without a skin the cards are Material `Card`s. Reference: PsyGames `psyCoachFrame` / `psyCoachSkin` in `coach_bridge.dart`.
+5. Templates for your app: send their `ref`s and titles to psygames-claude-mac — they are seeded server-side
+   (`programs.is_template`, `i18n.<lang>.title/goal/steps`). PsyGames has 2 now.

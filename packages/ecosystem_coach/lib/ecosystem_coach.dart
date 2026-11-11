@@ -10,6 +10,8 @@ export 'src/model.dart';
 export 'src/screens.dart';
 export 'src/skin.dart';
 export 'src/strings.dart';
+export 'src/v2_client.dart';
+export 'src/v2_flow.dart';
 export 'src/v2_model.dart';
 export 'src/v2_screens.dart';
 export 'src/v2_strings.dart';

@@ -72,6 +72,9 @@ class PsyGamesCoach {
 
   final CoachClient client;
   final AccountCoachAuth? auth;
+
+  /// Растёт после каждой отправленной партии: карточка заданий перечитывает прогресс.
+  final results = ValueNotifier<int>(0);
   final DateTime Function() _clock;
   final String Function() _newId;
 
@@ -87,7 +90,8 @@ class PsyGamesCoach {
     final event = coachEventFromSession(body, now: _clock(), newId: _newId);
     if (event == null) return;
     try {
-      await client.submit(event);
+      final r = await client.submit(event);
+      if (r.stored) results.value++;
     } on Object {
       // нет входа / нет сети / нет согласия — партия уже сохранена локально, этого достаточно
     }
@@ -143,20 +147,56 @@ class PsyGamesCoach {
 
   /// Код партии → ключ названия игры из каталога приложения (`assets/catalog.json`).
   static Map<String, String>? _gameNames;
+
+  /// Игры каталога как шаги урока: `ref` = код партии (sessionType, иначе id), маршрут — чтобы шаг открывал игру.
+  static List<({String ref, String nameKey, String skillKey, String route})> _games = const [];
   static Future<void> loadGameNames() async {
     if (_gameNames != null) return;
     try {
       final d = jsonDecode(await rootBundle.loadString('assets/catalog.json')) as Map;
+      final games = (d['games'] as List).cast<Map>();
       _gameNames = {
-        for (final g in (d['games'] as List).cast<Map>()) ...{
+        for (final g in games) ...{
           if (g['sessionType'] is String) g['sessionType'] as String: g['nameKey'] as String,
           g['id'] as String: g['nameKey'] as String,
         },
       };
+      _games = [
+        for (final g in games)
+          if (g['nameKey'] is String && g['route'] is String)
+            (
+              ref: (g['sessionType'] ?? g['id']) as String,
+              nameKey: g['nameKey'] as String,
+              skillKey: g['skillKey'] is String ? g['skillKey'] as String : '',
+              route: g['route'] as String,
+            ),
+      ];
     } on Object {
       _gameNames = const {};
+      _games = const [];
     }
   }
+
+  /// Каталог шагов на языке приложения.
+  static CoachStepCatalog stepCatalog() => CoachStepCatalog([
+        for (final g in _games)
+          CoachStepKind(
+            appId: 'psygames',
+            ref: g.ref,
+            title: L.has(g.nameKey) ? L.t(g.nameKey) : g.ref,
+            group: g.skillKey.isNotEmpty && L.has(g.skillKey) ? L.t(g.skillKey) : '',
+          ),
+      ]);
+
+  static String? routeFor(String ref) {
+    for (final g in _games) {
+      if (g.ref == ref) return g.route;
+    }
+    return null;
+  }
+
+  /// Подписи v2 (группы, уроки, задания, отчёты): русский — для ru, остальные — английский.
+  static CoachV2Strings get v2Strings => L.locale == 'ru' ? CoachV2Strings.ru : CoachV2Strings.en;
 
   /// Название тренировки: игры PsyGames — по каталогу на языке приложения; чужие приложения — как пришло.
   static String eventTitle(CoachEventView e) {
@@ -169,8 +209,34 @@ class PsyGamesCoach {
     await loadGameNames();
     if (!context.mounted) return;
     await Navigator.of(context).push<void>(MaterialPageRoute(
-        builder: (_) => TeacherCabinetScreen(client: client, strings: strings, frame: psyCoachFrame, auth: auth, eventTitle: eventTitle)));
+        builder: (_) => TeacherCabinetV2(
+            client: client, catalog: stepCatalog(), strings: strings, v2: v2Strings, frame: psyCoachFrame, auth: auth, lang: L.locale)));
   }
+
+  /// Карточка «Задания от преподавателя» для главной. Без входа или без заданий — пустое место.
+  /// [onOpen] — переход по маршруту игры, как у плиток главной.
+  Widget studentCard({required ValueChanged<String> onOpen}) => FutureBuilder<void>(
+        future: loadGameNames(),
+        builder: (context, snap) {
+          if (snap.connectionState != ConnectionState.done) return const SizedBox.shrink();
+          final panel = Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: StudentAssignmentsPanel(
+              key: const ValueKey('home-coach-tasks'),
+              client: client,
+              catalog: stepCatalog(),
+              auth: auth,
+              strings: v2Strings,
+              refresh: results,
+              onStart: (task, i) {
+                final route = routeFor(task.lesson.steps[i].kind.ref);
+                if (route != null) onOpen(route);
+              },
+            ),
+          );
+          return ChromeArt.aurora(context) ? CoachSkinScope(skin: psyCoachSkin, child: panel) : panel;
+        },
+      );
 
   Future<void> openMyCoaches(BuildContext context) => Navigator.of(context).push<void>(MaterialPageRoute(
       builder: (_) => MyCoachesScreen(client: client, strings: strings, frame: psyCoachFrame, auth: auth)));
