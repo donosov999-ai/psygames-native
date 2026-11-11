@@ -27,6 +27,7 @@ import 'package:vector_math/vector_math.dart' as vm;
 import '../runner/road.dart';
 import '../../shell/js_compat.dart' show jsRound;
 import '../../shell/game_clock.dart' show isGameHeld;
+import '../../shell/game_colors.dart' show CandyPalette;
 import 'screen.dart' show finaleBroken, finaleDistance, finaleWalls, finaleGap, finaleSpeed, pileOf, numberRunWater;
 import 'visual_geometry.dart';
 
@@ -52,6 +53,34 @@ const List<int> _ladder = [
   0xffe14d, 0xf4e84a, 0xdcee52, 0xbcf05c, 0x98ec69, //
   0x78e27c, 0x5dd697, 0x4fcab4, 0x4cc0d1, 0x53b5ea,
 ];
+
+/// Палитра набора дизайна (реф Кодекса 06.11, `UI_Tokens.json`) в 24-битном виде сцены.
+int _rgb(Color c) => c.toARGB32() & 0xffffff;
+final int _tilePlus = _rgb(CandyPalette.blue), _tileMinus = _rgb(CandyPalette.red), _tilePart = _rgb(CandyPalette.amber);
+final int _tileReserve = _rgb(CandyPalette.violet), _arch = _rgb(CandyPalette.blue), _archPanel = _rgb(CandyPalette.navy);
+final int _gold = _rgb(CandyPalette.gold), _mint = _rgb(CandyPalette.mint);
+const int _stone = 0xece5d8, _stoneDark = 0xe2d9ca, _dash = 0xfffbf3;
+
+/// Полукольцо арки в плоскости XY (верх ворот): от +X через +Y к −X, трубка радиуса [tube].
+MeshGeometry _halfTorus(double radius, double tube, {int segments = 20, int sides = 10}) {
+  final pos = <double>[], nor = <double>[], idx = <int>[];
+  for (var i = 0; i <= segments; i++) {
+    final u = math.pi * i / segments, cu = math.cos(u), su = math.sin(u);
+    for (var j = 0; j <= sides; j++) {
+      final v = 2 * math.pi * j / sides, cv = math.cos(v), sv = math.sin(v);
+      final r = radius + tube * cv;
+      pos.addAll([r * cu, r * su, tube * sv]);
+      nor.addAll([cv * cu, cv * su, sv]);
+    }
+  }
+  for (var i = 0; i < segments; i++) {
+    for (var j = 0; j < sides; j++) {
+      final a = i * (sides + 1) + j, b = a + sides + 1;
+      idx.addAll([a, b, a + 1, b, b + 1, a + 1]);
+    }
+  }
+  return MeshGeometry.fromArrays(positions: Float32List.fromList(pos), normals: Float32List.fromList(nor), indices: idx);
+}
 
 String _num(double v) {
   final r = jsRound(v);
@@ -150,15 +179,18 @@ class RunnerNumerals {
 // ── Подписи: картинка на квадрате, всегда лицом к камере (как Sprite веба) ──────────────────────────
 
 class _LabelSpec {
-  const _LabelSpec({this.ink = 0xffffff, this.background, this.font = 125, this.pile});
+  const _LabelSpec({this.ink = 0xffffff, this.background, this.font = 125, this.pile, this.stroke});
   final int ink;
   final int? background;
+
+  /// Тёмная обводка без свечения — надпись на плитке числа (реф: белое «+20» с синим кантом).
+  final int? stroke;
   final double font;
 
   /// Кучка «рамки десяти» вместо цифры: (десятков, единиц) и цвет плашки.
   final (int, int, int)? pile;
 
-  String key(String text) => '$text|$ink|$background|$font|$pile';
+  String key(String text) => '$text|$ink|$background|$font|$pile|$stroke';
 }
 
 class _Labels {
@@ -201,7 +233,24 @@ class _Labels {
       c.translate(256, 136);
       c.scale(k);
       final o = Offset(-fill.width / 2, -fill.height / 2);
-      if (s.background == null) {
+      if (s.background == null && s.stroke != null) {
+        painter(
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 14
+            ..strokeJoin = StrokeJoin.round
+            ..color = _labelColor(s.stroke!),
+          null,
+        ).paint(c, o.translate(0, 6));
+        painter(
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 12
+            ..strokeJoin = StrokeJoin.round
+            ..color = _labelColor(s.stroke!),
+          null,
+        ).paint(c, o);
+      } else if (s.background == null) {
         // Без плашки — обводка и свечение, как у подписей стен в вебе.
         painter(null, Colors.transparent, const [Shadow(color: Color(0xFFAC8BFF), blurRadius: 28)]).paint(c, o);
         painter(
@@ -355,19 +404,26 @@ class _Road3dState extends State<Road3d> {
   final _rng = math.Random(7);
   bool _reduced = false;
 
+  // Кольцо под числом и мятный след (реф Кодекса: число едет по светящемуся следу).
+  late final Node _ring;
+  final List<Node> _trail = [];
+  final List<double> _trailX = List.filled(22, 0);
+  MeshGeometry? _archTop;
+
   final Map<String, MeshGeometry> _boxes = {};
   final Map<int, Material> _mats = {};
 
-  Mesh _box(double w, double h, double d, int rgb, {double rough = .35, double metal = .18}) {
-    final g = _boxes.putIfAbsent('$w|$h|$d', () => CuboidGeometry(vm.Vector3(w, h, d)));
-    final m = _mats.putIfAbsent(rgb * 1000 + (rough * 100).round() + (metal * 10).round(), () {
+  Mesh _box(double w, double h, double d, int rgb, {double rough = .35, double metal = .18}) =>
+      Mesh(_boxes.putIfAbsent('$w|$h|$d', () => CuboidGeometry(vm.Vector3(w, h, d))), _mat(rgb, rough: rough, metal: metal));
+
+  Material _mat(int rgb, {double rough = .35, double metal = .18}) {
+    return _mats.putIfAbsent(rgb * 1000 + (rough * 100).round() + (metal * 10).round(), () {
       final c = lin(rgb);
       return PhysicallyBasedMaterial()
         ..baseColorFactor = vm.Vector4(c.x, c.y, c.z, 1)
         ..roughnessFactor = rough
         ..metallicFactor = metal;
     });
-    return Mesh(g, m);
   }
 
   Node _boxNode(
@@ -387,6 +443,23 @@ class _Road3dState extends State<Road3d> {
     )..position = vm.Vector3(x, y, z);
     if (rotation != null) n.rotation = rotation;
     return n;
+  }
+
+  /// Плитка числа (реф: глянцевая плашка «+20» с белой надписью в синем канте). Наклонена к камере;
+  /// подпись — квадрат перед лицом плитки. Ширина — по логической ширине предмета, как была у цифр.
+  Node _tile(String text, int rgb, double width, {double height = .95}) {
+    const depth = .4;
+    final face = Node()..rotation = _rot(-.32, 0, 0);
+    face.add(_boxNode(width, height, depth, rgb, 0, 0, 0, rough: .26, metal: .06));
+    face.add(_boxNode(width - .08, .07, depth - .06, _rgb(Color.lerp(_labelColor(rgb), Colors.white, .35)!), 0, height / 2, 0, rough: .2, metal: .05));
+    // Подпись — квадрат, повёрнутый к камере, поэтому вынесена вперёд: у крайних полос его край
+    // уходил в лицо плитки и срезал «+» (кадр 11.11).
+    final lw = math.min(height * 2.04, width + .1);
+    face.add(
+      _labels.node(text, _LabelSpec(stroke: _rgb(Color.lerp(_labelColor(rgb), Colors.black, .45)!), font: 210), w: lw, h: lw / 2)
+        ..position = vm.Vector3(0, .0, depth / 2 + .32),
+    );
+    return Node()..add(face..position = vm.Vector3(0, height / 2 + .05, 0));
   }
 
   @override
@@ -419,10 +492,42 @@ class _Road3dState extends State<Road3d> {
       ..color = lin(_bg);
     scene.directionalLight = DirectionalLight(direction: vm.Vector3(8, -14, -9)..normalize(), intensity: 2.2, castsShadow: true);
     scene.add(_world);
+    // Свечение — только у того, что ярче 1 (кольцо под числом), остальная сцена не «плывёт».
+    scene.postProcess.bloom
+      ..enabled = !_reduced
+      ..threshold = 1.0
+      ..intensity = .3;
     _world.add(_boxNode(160, .1, 160, _sea, 0, -6, -30));
     _startPlatform = _boxNode(7.2, .35, 18, 0xdce1ef, 0, -.22, 0);
     _world.add(_startPlatform);
     _world.add(_hero);
+    final m = lin(_mint);
+    _ring = Node(
+      mesh: Mesh(
+        RingGeometry(innerRadius: .82, outerRadius: 1.04, segments: 48),
+        PhysicallyBasedMaterial()
+          ..baseColorFactor = vm.Vector4(m.x, m.y, m.z, 1)
+          ..emissiveFactor = vm.Vector4(m.x, m.y, m.z, 1)
+          ..emissiveStrength = 2.4,
+      ),
+    )
+      ..position = vm.Vector3(0, .03, 0)
+      ..shadowCastingMode = ShadowCastingMode.off;
+    _hero.add(_ring);
+    final ribbon = CuboidGeometry(vm.Vector3(1, .02, .6));
+    for (var i = 0; i < _trailX.length; i++) {
+      final a = .78 * (1 - i / _trailX.length);
+      final n = Node(
+        mesh: Mesh(
+          ribbon,
+          UnlitMaterial()
+            ..baseColorFactor = vm.Vector4(m.x, m.y, m.z, a)
+            ..alphaMode = AlphaMode.blend,
+        ),
+      )..shadowCastingMode = ShadowCastingMode.off;
+      _trail.add(n);
+      _world.add(n);
+    }
     // Искры и осколки — один пул квадратиков-билбордов на всю сцену, как пул точек веба.
     _sparkGeometry = BillboardGeometry(capacity: _sparks.length);
     _world.add(Node(mesh: Mesh(_sparkGeometry, SpriteMaterial()))..frustumCulled = false);
@@ -477,7 +582,11 @@ class _Road3dState extends State<Road3d> {
       final lx = (i - 1) * _lane;
       final hole = span > 0 && row.penalties.length == 3 && row.penalties[i] > 0;
       final deckLength = length - (hole ? span : 0), middle = (length + (hole ? span : 0)) / 2;
-      if (deckLength > 0) root.add(_boxNode(_lane, .55, deckLength, row.id.isOdd ? 0xf4f5fa : 0xe3e8ef, lx, -.32, middle));
+      if (deckLength > 0) {
+        // Каменный настил (реф: тёплый светлый камень), золотой бортик по внешним краям дороги.
+        root.add(_boxNode(_lane, .55, deckLength, row.id.isOdd ? _stone : _stoneDark, lx, -.32, middle, rough: .8, metal: 0));
+        if (i != 1) root.add(_boxNode(.2, .26, deckLength, _gold, lx + (i - 1) * (_lane / 2 + .1), .02, middle, rough: .3, metal: .55));
+      }
       if (span > 0 && !hole) {
         for (final dx in const [-1.13, 1.13]) {
           root.add(_boxNode(.09, .12, span, 0xffb345, lx + dx, .7, span / 2));
@@ -490,6 +599,14 @@ class _Road3dState extends State<Road3d> {
             root.add(_boxNode(2.2, .035, .38, 0xc3a780, lx, -.02, z));
           }
         }
+      }
+    }
+    // Пунктир между полосами — там, где по обе стороны есть настил.
+    final holes = [for (var i = 0; i < 3; i++) span > 0 && row.penalties.length == 3 && row.penalties[i] > 0];
+    for (var b = 0; b < 2; b++) {
+      if (holes[b] || holes[b + 1]) continue;
+      for (var z = .9; z < length - .6; z += 2.6) {
+        root.add(_boxNode(.12, .03, 1.2, _dash, (b - .5) * _lane, -.035, z, rough: .6, metal: 0));
       }
     }
     final show = row.show;
@@ -527,23 +644,22 @@ class _Road3dState extends State<Road3d> {
             h: w,
           )..position = vm.Vector3(it.x * _lane, .7, -(it.dz ?? 0));
         } else if (it.reserve != null) {
-          // «×2» в запас: фиолетовая операция — тот же цвет, что у стены «×» (веб WALL['×']).
-          n = _numerals!.make(it.reserve!, _wall['×']!);
-          n
-            ..scale = vm.Vector3.all(math.min(1.2, 1.7 / RunnerNumerals.widthOf[n]!))
-            ..position = vm.Vector3(it.x * _lane, .08, -(it.dz ?? 0));
+          // «×2» в запас: фиолетовая плитка операции.
+          n = _tile(it.reserve!, _tileReserve, 1.75)..position = vm.Vector3(it.x * _lane, 0, -(it.dz ?? 0));
         } else {
-          n = _numerals!.make(_num(it.value), color);
-          final width = RunnerNumerals.widthOf[n]!, half = it.half ?? .18;
-          // Ширина числа — по его логической ширине: стопка в полдороги, большое красное через всю дорогу.
-          final scale = half >= 1
-              ? math.min(2.7, 5.6 / width)
-              : half >= .5
-              ? math.min(1.2, 1.6 / width)
-              : math.min(.98, 1.03 / width);
-          n
-            ..scale = vm.Vector3.all(scale)
-            ..position = vm.Vector3(it.x * _lane, .08, -(it.dz ?? 0));
+          // Плитка: синяя — прибавить, красная — отнять, янтарная — часть «ровно N» (без знака, как на рефе).
+          final half = it.half ?? .18;
+          final rgb = it.part ? _tilePart : (it.value < 0 ? _tileMinus : _tilePlus);
+          final text = it.part ? _num(it.value) : (it.value < 0 ? _num(it.value) : '+${_num(it.value)}');
+          // Ширина — по логической ширине: стопка в полдороги, большое красное через всю дорогу.
+          var w = half >= 1 ? 6.6 : (half >= .5 ? 2.2 : 1.7);
+          // Соседи в том же ряду (сетка «+25 +50 +25») — плитка не шире промежутка, иначе слипаются в блок.
+          for (final o in row.items) {
+            if (identical(o, it) || ((o.dz ?? 0) - (it.dz ?? 0)).abs() > .8) continue;
+            final gap = (o.x - it.x).abs() * _lane;
+            if (gap > 0) w = math.min(w, gap - .14);
+          }
+          n = _tile(text, rgb, w, height: half >= 1 ? 1.15 : .95)..position = vm.Vector3(it.x * _lane, 0, -(it.dz ?? 0));
         }
         art.pickups[i] = n;
         group.add(n);
@@ -551,15 +667,18 @@ class _Road3dState extends State<Road3d> {
     } else if (row.kind == 'answer') {
       for (var i = 0; i < row.options.length; i++) {
         // Арка ответа: въезд в неё и есть ответ. Пример — на табло над тремя арками.
+        // Реф: крупные синие ворота — две колонны и полукруглый верх, ответ на navy-панели над проездом.
         final lane = Node()..position = vm.Vector3((i - 1) * _lane, 0, 0);
-        for (final x in const [-1.05, 1.05]) {
-          lane.add(_boxNode(.14, 2.6, .14, 0x3b82f6, x, 1.3, 0));
+        for (final x in const [-.9, .9]) {
+          lane.add(_boxNode(.38, 1.7, .5, _arch, x, .85, 0, rough: .25, metal: .1));
         }
-        lane.add(_boxNode(2.24, .16, .16, 0x3b82f6, 0, 2.55, 0));
+        final top = Node(mesh: Mesh(_archTop ??= _halfTorus(.9, .22), _mat(_arch, rough: .25, metal: .1)))
+          ..position = vm.Vector3(0, 1.7, 0);
+        lane.add(top);
         final v = row.options[i];
         lane.add(
-          _labels.node(v is num ? _num(v.toDouble()) : '$v', const _LabelSpec(background: 0x1e3a8a, font: 130), w: 1.9, h: .95)
-            ..position = vm.Vector3(0, 1.7, 0),
+          _labels.node(v is num ? _num(v.toDouble()) : '$v', _LabelSpec(background: _archPanel, font: 160), w: 1.75, h: .88)
+            ..position = vm.Vector3(0, 2.15, .35),
         );
         art.lanes[i - 1] = lane;
         group.add(lane);
@@ -603,11 +722,7 @@ class _Road3dState extends State<Road3d> {
         final op = '${row.options[i]}';
         final lane = Node()..position = vm.Vector3((i - 1) * _lane, 0, 0);
         if (op != '→') {
-          final number = _numerals!.make(op.startsWith('+') ? op.substring(1) : op, op.startsWith('−') ? _minusColor : _plusColor);
-          number
-            ..scale = vm.Vector3.all(math.min(1.05, 1.8 / RunnerNumerals.widthOf[number]!))
-            ..position = vm.Vector3(0, .1, 0);
-          lane.add(number);
+          lane.add(_tile(op, op.startsWith('−') ? _tileMinus : _tilePlus, 1.85));
         } else {
           lane.add(_boxNode(.6, .025, .12, 0x90a2c6, 0, -.02, 0));
         }
@@ -925,6 +1040,23 @@ class _Road3dState extends State<Road3d> {
       hz = !_reduced && _bump < .45 ? -math.sin(_bump / .45 * math.pi) * .35 : 0;
     }
     _hero.position = vm.Vector3(hx, hy, hz);
+    // Кольцо — по ширине числа; след тянется к камере за полосой, по которой число ехало.
+    final rs = math.max(.85, dw * fitted * .62);
+    _ring
+      ..scale = vm.Vector3(rs, 1, rs * .8)
+      ..position = vm.Vector3(0, .03 - hy, 0);
+    final follow = moving ? math.min(1.0, dt * course.speed / .55) : 0.0;
+    _trailX[0] = hx;
+    for (var i = _trailX.length - 1; i > 0; i--) {
+      _trailX[i] += (_trailX[i - 1] - _trailX[i]) * (_reduced ? 1 : follow);
+    }
+    for (var i = 0; i < _trail.length; i++) {
+      final w = 1.25 - .45 * i / _trail.length;
+      _trail[i]
+        ..position = vm.Vector3(_trailX[i], -.025, .7 + i * .58)
+        ..scale = vm.Vector3(w, 1, 1)
+        ..visible = s.status != RoadStatus.ready || view > 0;
+    }
     if (moving && dt > 0) {
       _stepSparks(dt);
       _stepPopups(dt);
