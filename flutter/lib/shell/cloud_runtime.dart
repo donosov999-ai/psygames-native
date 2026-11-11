@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'coach_bridge.dart';
 import 'cloud_gateway.dart';
 import 'cloud_pilot.dart';
 import 'cloud_restore.dart';
@@ -78,6 +79,7 @@ class PsyGamesCloudRuntime {
       account: account,
       backupEnabled: () => pilot.enabled,
     );
+    if (PsyGamesCoach.enabled) pilot.coach = PsyGamesCoach.forAccount(account)..observe();
     return PsyGamesCloudRuntime(pilot, links);
   }
 
@@ -130,6 +132,13 @@ class _CloudLinkHostState extends State<CloudLinkHost>
   }
 
   Future<void> _link(Uri uri) async {
+    final coach = widget.runtime?.pilot.coach;
+    final navigator = widget.navigatorKey.currentState;
+    if (coach != null && navigator != null && uri.host == 'coach') {
+      await _startup;
+      if (mounted) coach.openInvite(navigator, uri);
+      return;
+    }
     if (uri.scheme != 'com.psygames.app' ||
         uri.host != 'auth' ||
         uri.path != '/callback' ||

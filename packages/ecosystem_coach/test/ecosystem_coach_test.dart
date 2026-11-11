@@ -104,6 +104,11 @@ void main() {
     expect(t.widget<FilledButton>(find.byKey(const Key('coach-accept'))).onPressed, isNull);
     await t.tap(find.byKey(const Key('coach-consent')));
     await t.pump();
+    await t.enterText(find.byKey(const Key('coach-student-name')), '');
+    await t.pump();
+    expect(t.widget<FilledButton>(find.byKey(const Key('coach-accept'))).onPressed, isNull, reason: 'без имени нельзя');
+    await t.enterText(find.byKey(const Key('coach-student-name')), 'Ваня');
+    await t.pump();
     await t.tap(find.byKey(const Key('coach-accept')));
     await t.pumpAndSettle();
     expect(done, 'c9');

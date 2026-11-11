@@ -218,7 +218,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
 /// Ученик открыл ссылку-приглашение: кто приглашает, что будет видно (галочки областей), явное согласие.
 class AcceptInviteScreen extends StatefulWidget {
-  const AcceptInviteScreen({super.key, required this.client, required this.code, required this.studentName,
+  const AcceptInviteScreen({super.key, required this.client, required this.code, this.studentName = '',
       this.strings = CoachStrings.en, this.frame = defaultCoachFrame, this.onDone});
   final CoachClient client;
   final String code, studentName;
@@ -235,10 +235,18 @@ class _AcceptInviteScreenState extends State<AcceptInviteScreen> {
   String? _error;
   final _scopes = <String>{'completion', 'metrics'};
   bool _consent = false;
+  late final _name = TextEditingController(text: widget.studentName);
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
+    _name.addListener(() => setState(() {}));
     widget.client.previewInvite(widget.code).then((p) {
       if (mounted) setState(() => _preview = p);
     }, onError: (Object e) {
@@ -258,6 +266,8 @@ class _AcceptInviteScreenState extends State<AcceptInviteScreen> {
                 Text(p.coachName, key: const Key('coach-invite-coach'), style: Theme.of(context).textTheme.headlineSmall),
                 Text(s.appNames[p.appId] ?? p.appId),
                 const SizedBox(height: 16),
+                TextField(key: const Key('coach-student-name'), controller: _name, maxLength: 120,
+                    decoration: InputDecoration(labelText: s.studentName)),
                 for (final sc in coachScopes)
                   CheckboxListTile(
                     key: Key('coach-scope-$sc'),
@@ -275,9 +285,9 @@ class _AcceptInviteScreenState extends State<AcceptInviteScreen> {
                 const SizedBox(height: 12),
                 FilledButton(
                   key: const Key('coach-accept'),
-                  onPressed: _consent
+                  onPressed: _consent && _name.text.trim().isNotEmpty
                       ? () async {
-                          final id = await widget.client.acceptInvite(code: widget.code, studentName: widget.studentName, scopes: _scopes.toList(), consent: true);
+                          final id = await widget.client.acceptInvite(code: widget.code, studentName: _name.text, scopes: _scopes.toList(), consent: true);
                           widget.onDone?.call(id);
                           if (context.mounted) Navigator.of(context).maybePop();
                         }

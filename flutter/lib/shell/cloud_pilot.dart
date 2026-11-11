@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'cloud_backup.dart';
 import 'cloud_snapshot.dart';
 import 'shared_state.dart';
+import 'coach_bridge.dart';
 import 'sudoku_support_service.dart';
 
 /// Host boundary for the isolated pilot. No production/default implementation:
@@ -73,6 +74,9 @@ class CloudPilot extends ChangeNotifier {
 
   /// Uses the same account/transport as backup; never logs in independently.
   SudokuSupportService? support;
+
+  /// Кабинет преподавателя на том же аккаунте (флаг PSY_COACH); null — выключен.
+  PsyGamesCoach? coach;
   CloudPilotStage stage = CloudPilotStage.local;
   List<CloudVersion> versions = const [];
   CloudSnapshot? preview;
@@ -434,6 +438,7 @@ class CloudPilot extends ChangeNotifier {
   @override
   void dispose() {
     support?.dispose();
+    coach?.dispose();
     state.writes.removeListener(_changed);
     _backupTimer?.cancel();
     _disposed = true;

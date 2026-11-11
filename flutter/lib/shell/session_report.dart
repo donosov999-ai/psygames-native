@@ -78,6 +78,10 @@ class SessionReport {
 
   static bool get installed => sink != null;
 
+  /// Кто ещё слушает отправленную партию (кабинет преподавателя, флаг PSY_COACH). Получает то же
+  /// тело, что ушло в оболочку; ошибки слушателя партию не трогают.
+  static void Function(Map<String, Object?> body)? observer;
+
   /// Отправить партию. `gameType` — то же имя, что у веб-версии: у обеих половин
   /// это ключ лестницы в нижнем подчёркивании (`digit_span`, `chess_blind`), и
   /// совпадение здесь не случайность, а условие: разойдутся — партия попадёт в
@@ -128,6 +132,11 @@ class SessionReport {
       if (marked.isNotEmpty) 'details': marked,
     };
     await f(jsonEncode(body));
+    try {
+      observer?.call(body);
+    } on Object {
+      // слушатель не имеет права ронять сохранение партии
+    }
     // 🗨 Синапс (852e4b4a): реплика по фактам этой партии — не задерживая игру и не роняя её.
     unawaited(SynapseFeed.onSession(body).catchError((Object _) {}));
   }

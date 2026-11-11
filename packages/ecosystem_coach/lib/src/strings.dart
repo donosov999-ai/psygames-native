@@ -7,6 +7,7 @@ class CoachStrings {
     required this.teacherTitle,
     required this.studentTitle,
     required this.yourName,
+    required this.studentName,
     required this.saveProfile,
     required this.noStudents,
     required this.invite,
@@ -32,7 +33,7 @@ class CoachStrings {
     required this.appNames,
   });
 
-  final String teacherTitle, studentTitle, yourName, saveProfile, noStudents, invite, inviteReady, copyLink, copied;
+  final String teacherTitle, studentTitle, yourName, studentName, saveProfile, noStudents, invite, inviteReady, copyLink, copied;
   final String trainings, noTrainings, timeUnknown, hiddenByStudent, myCoaches, noCoaches;
   final String acceptTitle, acceptButton, consentText, scopeCompletion, scopeMetrics, scopeErrors, scopeHistory;
   final String revoke, disconnect, unavailable;
@@ -52,6 +53,7 @@ class CoachStrings {
     teacherTitle: 'Teacher cabinet',
     studentTitle: 'My teachers',
     yourName: 'Your name for students',
+    studentName: 'Your name for the teacher',
     saveProfile: 'Become a teacher',
     noStudents: 'No students yet. Send an invite link.',
     invite: 'Invite a student',
@@ -81,6 +83,7 @@ class CoachStrings {
     teacherTitle: 'Кабинет преподавателя',
     studentTitle: 'Мои преподаватели',
     yourName: 'Ваше имя для учеников',
+    studentName: 'Ваше имя для преподавателя',
     saveProfile: 'Стать преподавателем',
     noStudents: 'Учеников пока нет. Отправьте ссылку-приглашение.',
     invite: 'Пригласить ученика',
