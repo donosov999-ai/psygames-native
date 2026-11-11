@@ -1,4 +1,4 @@
-// Макеты кабинета v2 на согласование (план ~/.claude/plans/magical-wandering-teapot.md, Ф0): НАСТОЯЩИЕ экраны пакета
+// Макеты кабинета v2 (приняты 11.11.2026): НАСТОЯЩИЕ экраны пакета
 // ecosystem_coach в рамке и теме PsyGames, подставные данные. Без флага — проба экранов, без записи файлов.
 // Снять: flutter test test/design/coach_v2_mockups_test.dart --dart-define=CAPTURE_COACH=true
 import 'dart:io';

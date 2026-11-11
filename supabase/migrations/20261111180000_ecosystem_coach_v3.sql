@@ -1,5 +1,5 @@
 -- ecosystem.coach/3 — группы, уроки, шаблоны, задания с повтором, засчитывание по тренировкам, отчёты.
--- План: ~/.claude/plans/magical-wandering-teapot.md (Ф1), макеты приняты Денисом 11.11.2026.
+-- Макеты кабинета v2 приняты 11.11.2026.
 -- ТОЛЬКО ДОБАВЛЕНИЯ к coach/2: таблицы v2 и диспетчер coach_private.dispatch не меняются. Новые действия
 -- идут через coach_private.dispatch3; входной вызов public.ecosystem_coach_v2 теперь смотрит в
 -- coach_private.route, который отдаёт новое — dispatch3, остальное — прежнему dispatch.
