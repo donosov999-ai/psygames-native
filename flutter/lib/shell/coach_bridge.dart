@@ -20,7 +20,12 @@ import 'package:flutter/services.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
+import 'app_look.dart';
+import 'aurora_glass.dart';
+import 'chrome_art.dart';
 import 'cloud_runtime.dart';
+import 'crystal_palette.dart';
+import 'game_colors.dart';
 import 'l10n.dart';
 import 'session_report.dart';
 import 'shared_state.dart';
@@ -229,29 +234,146 @@ CoachEvent? coachEventFromSession(Map<String, Object?> body, {required DateTime 
 
 /// Рамка подстраниц настроек — та же, что у «Облака» и «Палитры кристаллов»: системная шапка с «назад»,
 /// направление письма по языку. Кнопки экрана — в нижнем ряду.
+/// Рамка кабинета в PsyGames. В «Авроре» — та же шапка, стекло и кнопки, что у настроек
+/// (вариант А, Денис 11.11: код кабинета общий, «одежда» — приложения); в классике — Material.
 Widget psyCoachFrame(BuildContext context, String title, Widget body, List<CoachBarAction> actions) => Directionality(
       textDirection: L.locale == 'ar' ? TextDirection.rtl : TextDirection.ltr,
-      child: Scaffold(
-        appBar: AppBar(title: Text(title)),
-        body: SafeArea(child: body),
-        bottomNavigationBar: actions.isEmpty
-            ? null
-            : SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(children: [
-                    for (final a in actions)
-                      if (a.primary)
-                        Expanded(
-                          child: FilledButton.icon(key: a.key, onPressed: a.onPressed, icon: Icon(a.icon), label: Text(a.label)),
-                        )
-                      else
-                        TextButton(key: a.key, onPressed: a.onPressed, child: Text(a.label)),
-                  ]),
+      child: ChromeArt.aurora(context) ? _auroraCoachFrame(context, title, body, actions) : _classicCoachFrame(title, body, actions),
+    );
+
+Widget _classicCoachFrame(String title, Widget body, List<CoachBarAction> actions) => Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: SafeArea(child: body),
+      bottomNavigationBar: actions.isEmpty
+          ? null
+          : SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(children: [
+                  for (final a in actions)
+                    if (a.primary)
+                      Expanded(
+                        child: FilledButton.icon(key: a.key, onPressed: a.onPressed, icon: Icon(a.icon), label: Text(a.label)),
+                      )
+                    else
+                      TextButton(key: a.key, onPressed: a.onPressed, child: Text(a.label)),
+                ]),
+              ),
+            ),
+    );
+
+/// Карточка кабинета в «Авроре» — панель вкладок (`assets/aurora_tab_panels`), как в настройках.
+const psyCoachSkin = CoachSkin(panel: _auroraCoachPanel, progressColor: _auroraProgress);
+
+/// «В процессе» — золото кромки «Авроры»: не путается с розовым «Просрочили».
+Color? _auroraProgress(BuildContext context, CoachProgress p) =>
+    p == CoachProgress.inProgress ? ChromePalette.of(Theme.of(context).brightness == Brightness.dark).gold : null;
+
+Widget _auroraCoachPanel(BuildContext context, Widget child) => Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: ChromeArt.panel(context, square: true),
+      child: Material(type: MaterialType.transparency, child: child),
+    );
+
+Widget _auroraCoachFrame(BuildContext context, String title, Widget body, List<CoachBarAction> actions) {
+  final dark = Theme.of(context).brightness == Brightness.dark;
+  final chrome = ChromePalette.of(dark);
+  final ink = CrystalPalette.of(context)?.foreground ?? AppLook.token('text', dark: dark);
+  final navigator = Navigator.of(context);
+  Widget primary(CoachBarAction a) => Expanded(
+        child: DecoratedBox(
+          decoration: AuroraGlass.primary(dark),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              key: a.key,
+              borderRadius: BorderRadius.circular(18),
+              onTap: a.onPressed,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 52),
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(a.icon, color: chrome.onPrimary, size: 22),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(a.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: chrome.onPrimary, fontSize: 16, fontWeight: FontWeight.w700)),
+                  ),
+                ]),
+              ),
+            ),
+          ),
+        ),
+      );
+  return Scaffold(
+    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    body: SafeArea(
+      bottom: false,
+      child: Column(children: [
+        Container(
+          key: const Key('coach-aurora-header'),
+          constraints: const BoxConstraints(minHeight: 88),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsetsDirectional.fromSTEB(12, 14, 12, 14),
+          decoration: BoxDecoration(image: ChromeArt.header(dark, context: context)),
+          child: Row(children: [
+            if (navigator.canPop()) ...[
+              IconButton(
+                key: const Key('coach-back'),
+                tooltip: L.t('a11yBack'),
+                onPressed: () => navigator.maybePop(),
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                padding: EdgeInsets.zero,
+                icon: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: AuroraGlass.ring(dark),
+                  child: Icon(Icons.arrow_back, color: ink, size: 23),
                 ),
               ),
-      ),
-    );
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: Text(title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: ink, fontSize: 26, height: 1.15, fontWeight: FontWeight.w700)),
+            ),
+          ]),
+        ),
+        Expanded(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: CoachSkinScope(skin: psyCoachSkin, child: body),
+            ),
+          ),
+        ),
+      ]),
+    ),
+    bottomNavigationBar: actions.isEmpty
+        ? null
+        : SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+              child: Row(children: [
+                for (final a in actions)
+                  if (a.primary)
+                    primary(a)
+                  else
+                    TextButton(
+                      key: a.key,
+                      onPressed: a.onPressed,
+                      child: Text(a.label, style: TextStyle(color: AppLook.token('textSecondary', dark: dark), fontWeight: FontWeight.w600)),
+                    ),
+              ]),
+            ),
+          ),
+  );
+}
 
 /// Приём ссылок, когда облачного пилота нет (у пилота свой приёмник — [CloudLinkHost]).
 class CoachLinkHost extends StatefulWidget {

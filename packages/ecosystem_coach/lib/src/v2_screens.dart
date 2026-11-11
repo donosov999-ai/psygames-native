@@ -9,12 +9,16 @@ import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import 'screens.dart';
+import 'skin.dart';
 import 'v2_model.dart';
 import 'v2_strings.dart';
 
 String _d(DateTime? d) => d == null
     ? ''
     : '${d.toLocal().day.toString().padLeft(2, '0')}.${d.toLocal().month.toString().padLeft(2, '0')}';
+
+Color _progressColor(BuildContext context, CoachProgress p) =>
+    CoachSkin.of(context).progressColor?.call(context, p) ?? _statusColor(Theme.of(context).colorScheme, p);
 
 Color _statusColor(ColorScheme c, CoachProgress p) => switch (p) {
       CoachProgress.done => c.primary,
@@ -83,7 +87,7 @@ class CoachStatusBar extends StatelessWidget {
           height: 10,
           child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             for (final p in CoachProgress.values)
-              if ((counts[p] ?? 0) > 0) Expanded(flex: counts[p]!, child: ColoredBox(color: _statusColor(c, p))),
+              if ((counts[p] ?? 0) > 0) Expanded(flex: counts[p]!, child: ColoredBox(color: _progressColor(context, p))),
             if (total == 0) Expanded(child: ColoredBox(color: c.surfaceContainerHighest)),
           ]),
         ),
@@ -133,7 +137,7 @@ class TeacherHomeScreen extends StatelessWidget {
         Text(s.groups, style: t.titleMedium),
         const SizedBox(height: 8),
         for (final g in groups)
-          Card(
+          CoachPanel(
             child: ListTile(
               key: Key('coach-group-${g.id}'),
               leading: CircleAvatar(child: Text(g.name.characters.first)),
@@ -153,7 +157,7 @@ class TeacherHomeScreen extends StatelessWidget {
         Text(s.assignments, style: t.titleMedium),
         const SizedBox(height: 8),
         for (final a in assignments)
-          Card(
+          CoachPanel(
             child: InkWell(
               key: Key('coach-assignment-${a.id}'),
               borderRadius: BorderRadius.circular(12),
@@ -217,7 +221,7 @@ class _GroupScreenState extends State<GroupScreen> {
       context,
       widget.group.name,
       ListView(padding: const EdgeInsets.all(16), children: [
-        Card(
+        CoachPanel(
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -381,7 +385,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           onReorderItem: (a, b) => setState(() => _steps.insert(b, _steps.removeAt(a))),
           children: [
             for (var i = 0; i < _steps.length; i++)
-              Card(
+              CoachPanel(
                 key: ValueKey('step-$i-${_steps[i].kind.ref}'),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(12, 8, 40, 8),
@@ -431,7 +435,7 @@ class LessonLibraryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = strings;
     final t = Theme.of(context).textTheme;
-    Widget tile(CoachLesson l) => Card(
+    Widget tile(CoachLesson l) => CoachPanel(
           child: ListTile(
             key: Key('coach-lib-${l.id ?? l.title}'),
             title: Text(l.title),
@@ -578,7 +582,7 @@ class AssignmentReportScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(children: [
-                Container(width: 10, height: 10, decoration: BoxDecoration(color: _statusColor(c, r.status), shape: BoxShape.circle)),
+                Container(width: 10, height: 10, decoration: BoxDecoration(color: _progressColor(context, r.status), shape: BoxShape.circle)),
                 const SizedBox(width: 8),
                 Expanded(child: Text(r.student)),
                 for (var i = 0; i < steps.length; i++)
@@ -740,7 +744,7 @@ class GroupReportScreen extends StatelessWidget {
     final t = Theme.of(context).textTheme;
     final c = Theme.of(context).colorScheme;
     Widget metric(String label, String value) => Expanded(
-          child: Card(
+          child: CoachPanel(
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -785,7 +789,7 @@ class StudentAssignmentsCard extends StatelessWidget {
     final s = strings;
     final c = Theme.of(context).colorScheme;
     final t = Theme.of(context).textTheme;
-    return Card(
+    return CoachPanel(
       key: const Key('coach-student-tasks'),
       child: Padding(
         padding: const EdgeInsets.all(14),

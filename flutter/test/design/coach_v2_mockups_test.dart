@@ -141,18 +141,33 @@ void main() {
                 CoachSkill(title: ru ? 'Память' : 'Memory', score: 58, trend: 1),
                 CoachSkill(title: ru ? 'Торможение' : 'Inhibition', score: 49, trend: -2),
               ]))),
-    _Shot('09-student-tasks', (ru, s) => Scaffold(
-          appBar: AppBar(title: const Text('PsyGames')),
-          body: ListView(padding: const EdgeInsets.all(16), children: [
-            StudentAssignmentsCard(strings: s, tasks: [
-              CoachStudentTask(id: 't1', lesson: _lesson(ru), coach: ru ? 'Анна Петровна' : 'Ms Anna', done: const [3, 2, 0],
-                  due: DateTime(2026, 11, 14), comment: ru ? 'Начни с Шульте, потом Струп — как на уроке.' : 'Start with Schulte, then Stroop — like in class.'),
+    _Shot('09-student-tasks', (ru, s) => Builder(
+          builder: (context) => psyCoachFrame(
+            context,
+            ru ? 'Главная' : 'Home',
+            ListView(padding: const EdgeInsets.all(16), children: [
+              StudentAssignmentsCard(strings: s, tasks: [
+                CoachStudentTask(id: 't1', lesson: _lesson(ru), coach: ru ? 'Анна Петровна' : 'Ms Anna', done: const [3, 2, 0],
+                    due: DateTime(2026, 11, 14), comment: ru ? 'Начни с Шульте, потом Струп — как на уроке.' : 'Start with Schulte, then Stroop — like in class.'),
+              ]),
             ]),
-          ]),
+            const [],
+          ),
         )),
-    _Shot('10-role-switch-settings', (ru, s) => Scaffold(
-          appBar: AppBar(title: Text(ru ? 'Настройки' : 'Settings')),
-          body: Padding(padding: const EdgeInsets.all(16), child: CoachRoleSwitch(role: CoachRole.student, onChanged: (_) {}, strings: s)),
+    _Shot('10-role-switch-settings', (ru, s) => Builder(
+          builder: (context) => psyCoachFrame(
+            context,
+            ru ? 'Настройки' : 'Settings',
+            ListView(padding: const EdgeInsets.all(16), children: [
+              CoachPanel(
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: CoachRoleSwitch(role: CoachRole.student, onChanged: (_) {}, strings: s),
+                ),
+              ),
+            ]),
+            const [],
+          ),
         )),
   ];
 
@@ -179,6 +194,9 @@ void main() {
           child: MaterialApp(debugShowCheckedModeBanner: false, theme: theme, darkTheme: theme,
               themeMode: dark ? ThemeMode.dark : ThemeMode.light, home: shot.build(locale == 'ru', s)),
         ));
+        await t.pumpAndSettle();
+        // Картинки «Авроры» (шапка, панели) декодируются вне фейкового времени.
+        await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 400)));
         await t.pumpAndSettle();
         expect(t.takeException(), isNull);
         if (!_capture) return;
