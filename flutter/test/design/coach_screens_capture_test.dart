@@ -80,13 +80,13 @@ class _Server implements CoachTransport {
 }
 
 class _Auth extends ChangeNotifier implements CoachAuth {
-  _Auth({required this.signedIn, this.googleAvailable = true, this.appleAvailable = false});
+  _Auth({required this.signedIn, this.appleAvailable = false});
   @override
   final bool appleAvailable;
   @override
   final bool signedIn;
   @override
-  final bool googleAvailable;
+  bool get googleAvailable => true;
   @override
   String? get email => null;
   @override
