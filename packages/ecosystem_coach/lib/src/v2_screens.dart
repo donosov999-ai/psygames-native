@@ -807,7 +807,7 @@ class StudentAssignmentsCard extends StatelessWidget {
           Row(children: [
             Icon(Icons.school_outlined, color: c.primary),
             const SizedBox(width: 8),
-            Text(s.fromTeacher, style: t.titleMedium),
+            Expanded(child: Text(s.fromTeacher, style: t.titleMedium)),
           ]),
           for (final task in tasks) ...[
             const SizedBox(height: 12),

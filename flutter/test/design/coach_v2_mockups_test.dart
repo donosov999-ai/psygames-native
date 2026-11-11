@@ -18,6 +18,8 @@ import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _capture = bool.fromEnvironment('CAPTURE_COACH');
+// COACH_AHEM=true — без подмены шрифта, как в CI (широкий тестовый шрифт ловит переполнения).
+const _ciFonts = bool.fromEnvironment('COACH_AHEM');
 final _now = DateTime(2026, 11, 11, 15);
 
 List<CoachStepKind> _catalog(bool ru) => [
@@ -59,7 +61,7 @@ void main() {
   setUpAll(() async {
     final icons = await rootBundle.load('fonts/MaterialIcons-Regular.otf');
     await (FontLoader('MaterialIcons')..addFont(Future.value(icons))).load();
-    if (Platform.isMacOS) {
+    if (Platform.isMacOS && !_ciFonts) {
       for (final family in ['CoachPreview', 'Roboto', '.SF Pro Text']) {
         await (FontLoader(family)
               ..addFont(Future.value(File('/System/Library/Fonts/Supplemental/Arial.ttf').readAsBytesSync().buffer.asByteData())))
@@ -187,7 +189,7 @@ void main() {
           await AppLook.load(state);
         });
         var theme = appShellTheme(state, brightness: dark ? Brightness.dark : Brightness.light);
-        if (Platform.isMacOS) theme = theme.copyWith(textTheme: theme.textTheme.apply(fontFamily: 'CoachPreview'));
+        if (Platform.isMacOS && !_ciFonts) theme = theme.copyWith(textTheme: theme.textTheme.apply(fontFamily: 'CoachPreview'));
         final s = locale == 'ru' ? CoachV2Strings.ru : CoachV2Strings.en;
         await t.pumpWidget(RepaintBoundary(
           key: boundary,
