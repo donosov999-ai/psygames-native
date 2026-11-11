@@ -9,6 +9,7 @@ import 'shell/design_template.dart';
 import 'shell/game_shell.dart';
 import 'shell/l10n.dart';
 import 'shell/level_ladder.dart';
+import 'shell/level_map.dart';
 import 'shell/restart_scope.dart';
 
 Future<void> main() async {
@@ -40,7 +41,14 @@ class _ProbeState extends State<_Probe> {
   void initState() {
     super.initState();
     LevelLadder.newScreen();
-    ladder.load().then((_) => setState(() {}));
+    ladder.load().then((_) async {
+      setState(() {});
+      // OPEN_MAP=true — сразу открыть карту (для снимков без нажатий).
+      if (!const bool.fromEnvironment('OPEN_MAP')) return;
+      final stars = await ladder.stars();
+      if (!mounted) return;
+      showLevelMap(context, current: ladder.level, best: ladder.best, last: ladder.maxLevel, stars: stars);
+    });
   }
 
   @override

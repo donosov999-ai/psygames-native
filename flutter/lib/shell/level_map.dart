@@ -17,8 +17,12 @@
 /// трогает — как у веба.
 library;
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
+import 'aurora_glass.dart';
+import 'chrome_art.dart';
 import 'game_colors.dart';
 import 'l10n.dart';
 import 'shared_level_store.dart' show decodeLevelStars, encodeLevelStars;
@@ -39,6 +43,11 @@ Future<void> saveLevelStars(SharedState state, String gameId, int level, int sta
 }
 
 /// Открыть карту; вернёт выбранный пройденный уровень или null (закрыли / нажали текущий).
+///
+/// 🔴 ВИД — «ТРОПИНКА» КАК В ИГРАХ-САГАХ, В ЦВЕТАХ И МАТЕРИАЛЕ ТЕМЫ (Денис 11.11.2026: «надо к такой
+/// ближе, только в нашем цвете и стиле под тему»). Экран целиком: извилистая дорога снизу вверх,
+/// круглые узлы, над пройденными дуга из трёх звёзд, на текущем — маркер игрока. «Аврора» — её фон,
+/// камни-кнопки, золото паузы и стеклянная шапка; Classic — цвета своей темы. Одно место на все игры.
 Future<int?> showLevelMap(
   BuildContext context, {
   required int current,
@@ -47,11 +56,10 @@ Future<int?> showLevelMap(
   Map<int, int> stars = const {},
   bool open = false,
 }) {
-  return showModalBottomSheet<int>(
-    context: context,
-    showDragHandle: true,
+  return Navigator.of(context).push<int>(MaterialPageRoute(
+    fullscreenDialog: true,
     builder: (ctx) => _LevelMap(current: current, best: best, last: last, stars: stars, open: open),
-  );
+  ));
 }
 
 class _LevelMap extends StatefulWidget {
@@ -67,15 +75,53 @@ class _LevelMap extends StatefulWidget {
   State<_LevelMap> createState() => _LevelMapState();
 }
 
-class _LevelMapState extends State<_LevelMap> {
-  static const _node = 56.0;
-  late final ScrollController _scroll;
+/// Краски карты: «Аврора» — палитра стекла и золота; Classic — схема темы.
+class _MapColors {
+  _MapColors(BuildContext context)
+      : aurora = ChromeArt.aurora(context),
+        dark = Theme.of(context).brightness == Brightness.dark,
+        scheme = Theme.of(context).colorScheme,
+        reward = GameColors.of(context).reward;
+  final bool aurora, dark;
+  final ColorScheme scheme;
+  final Color reward;
+  ChromePalette get p => ChromePalette.of(dark);
 
-  @override
-  void initState() {
-    super.initState();
-    // Лента сама встаёт на текущем уровне — как у веба.
-    _scroll = ScrollController(initialScrollOffset: ((widget.current - 3) * _node).clamp(0, double.infinity));
+  Color get text => aurora ? p.text : scheme.onSurface;
+  Color get textSoft => aurora ? p.textSecondary : scheme.onSurfaceVariant;
+  Color get road => aurora ? (dark ? p.glass : p.ringFill) : scheme.surfaceContainerHigh;
+  Color get roadEdge => aurora ? p.gold : scheme.outline;
+  Color get dash => aurora ? p.goldSoft : scheme.primary;
+  Color get star => aurora ? ChromePilot.jewelStar : reward;
+  Color get starOff => textSoft.withValues(alpha: .35);
+
+  BoxDecoration passed() => aurora
+      ? AuroraGlass.ring(dark)
+      : BoxDecoration(shape: BoxShape.circle, color: scheme.primaryContainer, border: Border.all(color: scheme.primary, width: 2));
+  BoxDecoration currentNode() => aurora
+      ? AuroraGlass.pause(dark)
+      : BoxDecoration(shape: BoxShape.circle, color: scheme.primary, boxShadow: [BoxShadow(color: scheme.primary.withValues(alpha: .5), blurRadius: 14)]);
+  BoxDecoration locked() => BoxDecoration(
+        shape: BoxShape.circle,
+        color: road.withValues(alpha: .75),
+        border: Border.all(color: roadEdge.withValues(alpha: .35), width: 1.4),
+      );
+  Color get onPassed => aurora ? p.text : scheme.onPrimaryContainer;
+  Color get onCurrent => aurora ? p.onPrimary : scheme.onPrimary;
+}
+
+class _LevelMapState extends State<_LevelMap> {
+  static const _step = 104.0, _bottomPad = 110.0, _topPad = 150.0, _node = 58.0, _currentNode = 72.0;
+  final _scroll = ScrollController();
+  bool _placed = false;
+
+  int get _last => widget.last < widget.best ? widget.best : widget.last;
+  double get _height => _bottomPad + (_last - 1) * _step + _topPad;
+
+  /// Центр узла n (1…последний) в координатах полотна: снизу вверх, змейкой.
+  Offset _at(int n, double width) {
+    final amp = math.min(width * .28, 118.0);
+    return Offset(width / 2 + amp * math.sin((n - 1) * .85), _height - _bottomPad - (n - 1) * _step);
   }
 
   @override
@@ -84,73 +130,249 @@ class _LevelMapState extends State<_LevelMap> {
     super.dispose();
   }
 
+  /// Лента встаёт на текущем уровне, как у веба: текущий узел — посередине экрана.
+  void _placeOnCurrent(double viewport) {
+    if (_placed) return;
+    _placed = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scroll.hasClients) return;
+      final target = _bottomPad + (widget.current - 1) * _step - viewport / 2;
+      _scroll.jumpTo(target.clamp(0.0, _scroll.position.maxScrollExtent));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final last = widget.last < widget.best ? widget.best : widget.last;
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(
-            widget.open ? '${L.t('level')} ${widget.current}' : L.f('levelOfMax', {'n': '${widget.current}', 'max': '$last'}),
-            key: const Key('level-map-title'),
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 4),
-          Text(L.t('tapNodeToReplay'), style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: _node + 18,
-            child: ListView.builder(
-              key: const Key('level-map'),
-              controller: _scroll,
-              scrollDirection: Axis.horizontal,
-              itemCount: last,
-              itemExtent: _node,
-              itemBuilder: (context, i) {
-                final n = i + 1;
-                final passed = n <= widget.best;
-                final isCurrent = n == widget.current;
-                final s = widget.stars[n] ?? 0;
-                return Column(mainAxisSize: MainAxisSize.min, children: [
-                  Material(
-                    shape: CircleBorder(
-                      side: BorderSide(color: isCurrent ? scheme.primary : Colors.transparent, width: 2.5),
-                    ),
-                    color: passed ? scheme.primaryContainer : scheme.surfaceContainerHighest,
-                    child: InkWell(
-                      key: Key('level-node-$n'),
-                      customBorder: const CircleBorder(),
-                      // Закрытые узлы не нажимаются; текущий — тоже: он и так в игре.
-                      onTap: passed && !isCurrent ? () => Navigator.of(context).pop(n) : null,
-                      child: SizedBox(
+    final c = _MapColors(context);
+    final title = widget.open ? '${L.t('level')} ${widget.current}' : L.f('levelOfMax', {'n': '${widget.current}', 'max': '$_last'});
+    return Scaffold(
+      backgroundColor: c.aurora ? c.p.background : c.scheme.surface,
+      body: DecoratedBox(
+        decoration: c.aurora ? AuroraGlass.backdrop(c.dark) : BoxDecoration(color: c.scheme.surface),
+        child: SafeArea(
+          child: Column(children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 8, 14, 4),
+              child: Container(
+                decoration: c.aurora
+                    ? AuroraGlass.chrome(c.dark)
+                    : BoxDecoration(color: c.scheme.surfaceContainerHigh, borderRadius: BorderRadius.circular(22)),
+                padding: const EdgeInsets.fromLTRB(18, 10, 8, 10),
+                child: Row(children: [
+                  Icon(Icons.map_outlined, color: c.aurora ? c.p.gold : c.scheme.primary, size: 26),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(title,
+                        key: const Key('level-map-title'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: c.text)),
+                  ),
+                  Semantics(
+                    button: true,
+                    label: MaterialLocalizations.of(context).closeButtonLabel,
+                    child: InkResponse(
+                      key: const Key('level-map-close'),
+                      onTap: () => Navigator.of(context).pop(),
+                      radius: 26,
+                      child: Container(
                         width: 44,
                         height: 44,
-                        child: Center(
-                          child: passed
-                              ? Text('$n',
-                                  style: TextStyle(
-                                    fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
-                                    color: scheme.onPrimaryContainer,
-                                  ))
-                              : Icon(Icons.lock_outline, size: 16, color: scheme.outline),
-                        ),
+                        decoration: c.aurora ? AuroraGlass.ring(c.dark) : null,
+                        child: Icon(Icons.close_rounded, color: c.aurora ? c.p.gold : c.text, size: 24),
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: 16,
-                    child: s > 0
-                        ? Text('★' * s, key: Key('level-stars-$n'), style: TextStyle(fontSize: 11, color: GameColors.of(context).reward))
-                        : null,
-                  ),
-                ]);
-              },
+                ]),
+              ),
             ),
-          ),
-        ]),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+              child: Text(L.t('tapNodeToReplay'), textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: c.textSoft)),
+            ),
+            Expanded(
+              child: LayoutBuilder(builder: (context, box) {
+                _placeOnCurrent(box.maxHeight);
+                final w = box.maxWidth;
+                return SingleChildScrollView(
+                  key: const Key('level-map'),
+                  controller: _scroll,
+                  reverse: true,
+                  child: SizedBox(
+                    width: w,
+                    height: _height,
+                    child: Stack(clipBehavior: Clip.none, children: [
+                      Positioned.fill(
+                        child: CustomPaint(
+                          painter: _Road([for (var n = 1; n <= _last; n++) _at(n, w)], widget.best, c),
+                        ),
+                      ),
+                      for (var n = 1; n <= _last; n++) _nodeAt(n, _at(n, w), c),
+                    ]),
+                  ),
+                );
+              }),
+            ),
+          ]),
+        ),
       ),
     );
   }
+
+  Widget _nodeAt(int n, Offset at, _MapColors c) {
+    final passed = n <= widget.best;
+    final isCurrent = n == widget.current;
+    final size = isCurrent ? _currentNode : _node;
+    final s = (widget.stars[n] ?? 0).clamp(0, 3);
+    return Positioned(
+      left: at.dx - 60,
+      top: at.dy - size / 2 - (isCurrent ? 74 : 26),
+      width: 120,
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        if (isCurrent) _Marker(c),
+        SizedBox(height: 24, child: passed && s > 0 ? _StarArc(key: Key('level-stars-$n'), count: s, c: c) : null),
+        Semantics(
+          button: passed && !isCurrent,
+          label: '${L.t('level')} $n',
+          child: GestureDetector(
+            key: Key('level-node-$n'),
+            behavior: HitTestBehavior.opaque,
+            // Закрытые узлы не нажимаются; текущий — тоже: он и так в игре.
+            onTap: passed && !isCurrent ? () => Navigator.of(context).pop(n) : null,
+            child: Container(
+              width: size,
+              height: size,
+              alignment: Alignment.center,
+              decoration: isCurrent ? c.currentNode() : (passed ? c.passed() : c.locked()),
+              child: passed
+                  ? Text('$n',
+                      style: TextStyle(
+                        fontSize: isCurrent ? 26 : 21,
+                        fontWeight: FontWeight.w800,
+                        color: isCurrent ? c.onCurrent : c.onPassed,
+                        shadows: isCurrent ? null : [Shadow(color: Colors.black.withValues(alpha: .35), blurRadius: 2)],
+                      ))
+                  : Icon(Icons.lock_rounded, size: 20, color: c.textSoft),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+/// Дуга из трёх звёзд над узлом: средняя выше, заработанные — золото, остальные — контур.
+class _StarArc extends StatelessWidget {
+  const _StarArc({super.key, required this.count, required this.c});
+  final int count;
+  final _MapColors c;
+
+  @override
+  Widget build(BuildContext context) => Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          for (var i = 0; i < 3; i++)
+            Padding(
+              padding: EdgeInsets.only(bottom: i == 1 ? 6 : 0),
+              child: Icon(
+                i < count ? Icons.star_rounded : Icons.star_outline_rounded,
+                size: i == 1 ? 24 : 20,
+                color: i < count ? c.star : c.starOff,
+                shadows: i < count ? [Shadow(color: c.star.withValues(alpha: .6), blurRadius: 6)] : null,
+              ),
+            ),
+        ],
+      );
+}
+
+/// Маркер «ты здесь» над текущим узлом: золотое кольцо с фигуркой и хвостик вниз.
+class _Marker extends StatelessWidget {
+  const _Marker(this.c);
+  final _MapColors c;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        key: const Key('level-map-marker'),
+        height: 50,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: c.aurora
+                ? AuroraGlass.primary(c.dark, radius: 20)
+                : BoxDecoration(shape: BoxShape.circle, color: c.scheme.tertiary),
+            child: Icon(Icons.emoji_people_rounded, size: 26, color: c.onCurrent),
+          ),
+          CustomPaint(size: const Size(14, 8), painter: _Tail(c.aurora ? c.p.primaryBottom : c.scheme.tertiary)),
+        ]),
+      );
+}
+
+class _Tail extends CustomPainter {
+  _Tail(this.color);
+  final Color color;
+  @override
+  void paint(Canvas canvas, Size size) => canvas.drawPath(
+        Path()
+          ..moveTo(0, 0)
+          ..lineTo(size.width, 0)
+          ..lineTo(size.width / 2, size.height)
+          ..close(),
+        Paint()..color = color,
+      );
+  @override
+  bool shouldRepaint(_Tail old) => old.color != color;
+}
+
+/// Дорога через центры узлов: золотая кромка, стеклянное полотно, пунктир по оси. Пройденный участок —
+/// ярче, впереди — приглушённо.
+class _Road extends CustomPainter {
+  _Road(this.points, this.best, this.c);
+  final List<Offset> points;
+  final int best;
+  final _MapColors c;
+
+  Path _through(List<Offset> pts) {
+    final path = Path();
+    if (pts.isEmpty) return path;
+    path.moveTo(pts.first.dx, pts.first.dy);
+    for (var i = 0; i < pts.length - 1; i++) {
+      final a = pts[i], b = pts[i + 1];
+      final my = (a.dy + b.dy) / 2;
+      path.cubicTo(a.dx, my, b.dx, my, b.dx, b.dy);
+    }
+    return path;
+  }
+
+  void _dashed(Canvas canvas, Path path, Paint paint) {
+    for (final m in path.computeMetrics()) {
+      for (var d = 0.0; d < m.length; d += 22) {
+        canvas.drawPath(m.extractPath(d, d + 11), paint);
+      }
+    }
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (points.length < 2) return;
+    final split = best.clamp(1, points.length);
+    final done = _through(points.sublist(0, split));
+    final ahead = _through(points.sublist(split - 1));
+    Paint stroke(Color color, double w) => Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = w
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    for (final (path, alpha) in [(ahead, .45), (done, 1.0)]) {
+      canvas.drawPath(path, stroke(Colors.black.withValues(alpha: .22 * alpha), 46)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
+      canvas.drawPath(path, stroke(c.roadEdge.withValues(alpha: .9 * alpha), 40));
+      canvas.drawPath(path, stroke(c.road.withValues(alpha: alpha == 1 ? .96 : .7), 34));
+      _dashed(canvas, path, stroke(c.dash.withValues(alpha: .75 * alpha), 3.5));
+    }
+  }
+
+  @override
+  bool shouldRepaint(_Road old) => old.points != points || old.best != best || old.c.dark != c.dark || old.c.aurora != c.aurora;
 }

@@ -88,8 +88,8 @@ void main() {
     // Закрытый узел (выше лучшего) не нажимается.
     await tester.scrollUntilVisible(find.byKey(const Key('level-node-21')), 120,
         scrollable: find.descendant(of: find.byKey(const Key('level-map')), matching: find.byType(Scrollable)));
-    expect(tester.widget<InkWell>(find.byKey(const Key('level-node-21'))).onTap, isNull, reason: 'выше лучшего — закрыто');
-    expect(tester.widget<InkWell>(find.byKey(const Key('level-node-20'))).onTap, isNotNull, reason: 'лучший пройден — открыт');
+    expect(tester.widget<GestureDetector>(find.byKey(const Key('level-node-21'))).onTap, isNull, reason: 'выше лучшего — закрыто');
+    expect(tester.widget<GestureDetector>(find.byKey(const Key('level-node-20'))).onTap, isNotNull, reason: 'лучший пройден — открыт');
 
     await pickNode(tester, 3);
     expect(find.byKey(const Key('level-map')), findsNothing);
@@ -133,8 +133,10 @@ void main() {
       'psygames_sudoku_stars_nzt48': jsonEncode({'3': 2, '4': 3}),
     }, 'cell_0_0');
     await openMap(tester);
-    expect(tester.widget<Text>(find.byKey(const Key('level-stars-3'))).data, '★★');
-    expect(tester.widget<Text>(find.byKey(const Key('level-stars-4'))).data, '★★★');
+    // Дуга из трёх звёзд: заработанные — заливкой, остальные — контуром.
+    Finder filled(int n) => find.descendant(of: find.byKey(Key('level-stars-$n')), matching: find.byIcon(Icons.star_rounded));
+    expect(filled(3), findsNWidgets(2));
+    expect(filled(4), findsNWidgets(3));
     expect(find.byKey(const Key('level-stars-5')), findsNothing, reason: 'без звёзд — пусто');
   });
 
