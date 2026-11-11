@@ -39,6 +39,14 @@ class CoachStrings {
     required this.linkSent,
     required this.signOut,
     required this.signInFailed,
+    required this.sharedScopes,
+    required this.eventsCount,
+    required this.lastAt,
+    required this.metricScore,
+    required this.metricTime,
+    required this.metricLevel,
+    required this.metricErrors,
+    required this.warmup,
   });
 
   final String teacherTitle, studentTitle, yourName, studentName, saveProfile, noStudents, invite, inviteReady, copyLink, copied;
@@ -47,6 +55,9 @@ class CoachStrings {
   final String revoke, disconnect, unavailable;
   final Map<String, String> appNames;
   final String signInTitle, signInHint, signInGoogle, emailLabel, sendLink, linkSent, signOut, signInFailed;
+
+  /// `{n}` — число тренировок; `{date}` — время последней.
+  final String sharedScopes, eventsCount, lastAt, metricScore, metricTime, metricLevel, metricErrors, warmup;
 
   String scope(String s) => switch (s) {
         'completion' => scopeCompletion,
@@ -94,6 +105,14 @@ class CoachStrings {
     linkSent: 'Check your mail and open the link on this device.',
     signOut: 'Sign out',
     signInFailed: 'Could not sign in. Try again.',
+    sharedScopes: 'Shared with the teacher',
+    eventsCount: 'Trainings: {n}',
+    lastAt: 'last {date}',
+    metricScore: 'Score',
+    metricTime: 'Time',
+    metricLevel: 'Level',
+    metricErrors: 'Errors',
+    warmup: 'Workout',
   );
 
   static const ru = CoachStrings(
@@ -132,5 +151,13 @@ class CoachStrings {
     linkSent: 'Проверьте почту и откройте ссылку на этом устройстве.',
     signOut: 'Выйти',
     signInFailed: 'Не получилось войти. Попробуйте ещё раз.',
+    sharedScopes: 'Видно преподавателю',
+    eventsCount: 'Тренировок: {n}',
+    lastAt: 'последняя {date}',
+    metricScore: 'Счёт',
+    metricTime: 'Время',
+    metricLevel: 'Уровень',
+    metricErrors: 'Ошибки',
+    warmup: 'Зарядка',
   );
 }

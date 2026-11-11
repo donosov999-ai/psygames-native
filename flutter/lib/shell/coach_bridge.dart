@@ -10,12 +10,14 @@
 //   · открывает экраны пакета `ecosystem_coach` в рамке подстраниц настроек приложения;
 //   · принимает ссылку-приглашение `com.psygames.app://coach/invite?code=…`.
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' show Platform;
 import 'dart:math';
 
 import 'package:ecosystem_account/ecosystem_account.dart';
 import 'package:ecosystem_coach/ecosystem_coach.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
@@ -124,10 +126,46 @@ class PsyGamesCoach {
         linkSent: L.t('coachLinkSent'),
         signOut: L.t('coachSignOut'),
         signInFailed: L.t('coachSignInFailed'),
+        sharedScopes: L.t('coachSharedScopes'),
+        eventsCount: L.t('coachEventsCount'),
+        lastAt: L.t('coachLastAt'),
+        metricScore: L.t('score'),
+        metricTime: L.t('time'),
+        metricLevel: L.t('level'),
+        metricErrors: L.t('errors'),
+        warmup: L.t('warmupPickerTitle'),
       );
 
-  Future<void> openTeacher(BuildContext context) => Navigator.of(context).push<void>(MaterialPageRoute(
-      builder: (_) => TeacherCabinetScreen(client: client, strings: strings, frame: psyCoachFrame, auth: auth)));
+  /// Код партии → ключ названия игры из каталога приложения (`assets/catalog.json`).
+  static Map<String, String>? _gameNames;
+  static Future<void> loadGameNames() async {
+    if (_gameNames != null) return;
+    try {
+      final d = jsonDecode(await rootBundle.loadString('assets/catalog.json')) as Map;
+      _gameNames = {
+        for (final g in (d['games'] as List).cast<Map>()) ...{
+          if (g['sessionType'] is String) g['sessionType'] as String: g['nameKey'] as String,
+          g['id'] as String: g['nameKey'] as String,
+        },
+      };
+    } on Object {
+      _gameNames = const {};
+    }
+  }
+
+  /// Название тренировки: игры PsyGames — по каталогу на языке приложения; чужие приложения — как пришло.
+  static String eventTitle(CoachEventView e) {
+    final names = _gameNames ?? const <String, String>{};
+    final key = e.appId == 'psygames' ? names[e.mode] : null;
+    return key != null && L.has(key) ? L.t(key) : defaultEventTitle(e);
+  }
+
+  Future<void> openTeacher(BuildContext context) async {
+    await loadGameNames();
+    if (!context.mounted) return;
+    await Navigator.of(context).push<void>(MaterialPageRoute(
+        builder: (_) => TeacherCabinetScreen(client: client, strings: strings, frame: psyCoachFrame, auth: auth, eventTitle: eventTitle)));
+  }
 
   Future<void> openMyCoaches(BuildContext context) => Navigator.of(context).push<void>(MaterialPageRoute(
       builder: (_) => MyCoachesScreen(client: client, strings: strings, frame: psyCoachFrame, auth: auth)));
@@ -203,9 +241,12 @@ Widget psyCoachFrame(BuildContext context, String title, Widget body, List<Coach
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(children: [
                     for (final a in actions)
-                      Expanded(
-                        child: FilledButton.icon(key: a.key, onPressed: a.onPressed, icon: Icon(a.icon), label: Text(a.label)),
-                      ),
+                      if (a.primary)
+                        Expanded(
+                          child: FilledButton.icon(key: a.key, onPressed: a.onPressed, icon: Icon(a.icon), label: Text(a.label)),
+                        )
+                      else
+                        TextButton(key: a.key, onPressed: a.onPressed, child: Text(a.label)),
                   ]),
                 ),
               ),

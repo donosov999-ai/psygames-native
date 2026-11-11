@@ -3807,5 +3807,8 @@ const t: Record<string, string> = {
   "coachLinkSent": "Verifique seu e-mail e abra o link neste dispositivo.",
   "coachSignOut": "Sair do painel",
   "coachSignInFailed": "Não foi possível entrar. Tente de novo.",
+  "coachSharedScopes": "Visível para o professor",
+  "coachEventsCount": "Treinos: {n}",
+  "coachLastAt": "último {date}",
 };
 export default t;

@@ -107,8 +107,8 @@ void main() {
     await t.pumpWidget(MaterialApp(home: TeacherCabinetScreen(client: CoachClient(tr, appId: 'abstract-hub'))));
     await t.pumpAndSettle();
     expect(find.text('Ваня'), findsOneWidget);
-    expect(find.textContaining('Chess & Go · 3'), findsOneWidget);
-    expect(find.textContaining('TypeFree · 7'), findsOneWidget);
+    expect(find.textContaining('Trainings: 3', findRichText: true), findsOneWidget);
+    expect(find.textContaining('Trainings: 7', findRichText: true), findsOneWidget);
     await t.tap(find.byKey(const Key('coach-invite')));
     await t.pumpAndSettle();
     expect(find.text('com.abstracthub.app://coach/invite?code=$code48'), findsOneWidget);
@@ -184,5 +184,13 @@ void main() {
     auth.complete();
     await t.pumpAndSettle();
     expect(find.text('Анна'), findsOneWidget);
+  });
+
+  test('показатели — человеческими словами, не ключами', () {
+    final e = CoachEventView.fromJson({'id': '1', 'app_id': 'psygames', 'kind': 'game', 'mode': 'schulte',
+        'metrics': {'score': 128, 'time_seconds': 41, 'level': 7}, 'errors': {'count': 1}});
+    expect(coachMetricsLine(e, CoachStrings.ru), 'Счёт 128 · Время 0:41 · Уровень 7 · Ошибки 1');
+    expect(defaultEventTitle(CoachEventView.fromJson({'id': '2', 'app_id': 'abstract-hub', 'kind': 'result', 'exercise_ref': 'go-capture'})),
+        'Go capture');
   });
 }

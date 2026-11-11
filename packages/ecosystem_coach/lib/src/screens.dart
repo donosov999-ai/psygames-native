@@ -14,11 +14,57 @@ import 'strings.dart';
 typedef CoachFrame = Widget Function(BuildContext context, String title, Widget body, List<CoachBarAction> actions);
 
 class CoachBarAction {
-  const CoachBarAction({required this.icon, required this.label, required this.onPressed, this.key});
+  const CoachBarAction({required this.icon, required this.label, required this.onPressed, this.key, this.primary = true});
   final IconData icon;
   final String label;
   final VoidCallback onPressed;
   final Key? key;
+
+  /// Главное действие экрана — крупная кнопка; второстепенное (выход) — текстовая.
+  final bool primary;
+}
+
+/// Как подписать тренировку: приложение отдаёт название игры/упражнения на своём языке.
+typedef CoachEventTitle = String Function(CoachEventView event);
+
+String _humanize(String raw) {
+  final t = raw.replaceAll(RegExp(r'[_\-:]+'), ' ').trim();
+  return t.isEmpty ? raw : t[0].toUpperCase() + t.substring(1);
+}
+
+String defaultEventTitle(CoachEventView e) => _humanize(e.exerciseRef ?? e.mode ?? e.kind);
+
+String _clock(num seconds) {
+  final s = seconds.round();
+  return '${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}';
+}
+
+/// Показатели тренировки человеческими словами: «Счёт 128 · Время 0:41 · Уровень 7 · Ошибки 1».
+String coachMetricsLine(CoachEventView e, CoachStrings s) {
+  final parts = <String>[];
+  final m = e.metrics ?? const <String, Object?>{};
+  final shown = <String>{};
+  void add(String key, String label, String Function(Object v) fmt) {
+    final v = m[key];
+    if (v == null || shown.contains(label)) return;
+    shown.add(label);
+    parts.add('$label ${fmt(v)}');
+  }
+  add('score', s.metricScore, (v) => '$v');
+  add('time_seconds', s.metricTime, (v) => v is num ? _clock(v) : '$v');
+  add('seconds', s.metricTime, (v) => v is num ? _clock(v) : '$v');
+  add('elapsed_ms', s.metricTime, (v) => v is num ? _clock(v / 1000) : '$v');
+  add('duration_min', s.metricTime, (v) => v is num ? _clock(v * 60) : '$v');
+  add('level', s.metricLevel, (v) => '$v');
+  add('wpm', 'WPM', (v) => '$v');
+  add('accuracy', '%', (v) => '$v');
+  for (final k in m.keys) {
+    if (const {'score', 'time_seconds', 'seconds', 'elapsed_ms', 'duration_min', 'level', 'wpm', 'accuracy'}.contains(k)) continue;
+    parts.add('${_humanize(k)} ${m[k]}');
+  }
+  final errs = e.errors;
+  if (errs != null && errs['count'] != null) parts.add('${s.metricErrors} ${errs['count']}');
+  return parts.join(' · ');
 }
 
 /// Рамка по умолчанию — простой Scaffold (для проб и приложений без своего каркаса).
@@ -29,7 +75,10 @@ Widget defaultCoachFrame(BuildContext context, String title, Widget body, List<C
           ? null
           : SafeArea(
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                for (final a in actions) TextButton.icon(key: a.key, onPressed: a.onPressed, icon: Icon(a.icon), label: Text(a.label)),
+                for (final a in actions)
+                  a.primary
+                      ? FilledButton.icon(key: a.key, onPressed: a.onPressed, icon: Icon(a.icon), label: Text(a.label))
+                      : TextButton(key: a.key, onPressed: a.onPressed, child: Text(a.label)),
               ]),
             ),
     );
@@ -39,9 +88,11 @@ String _date(DateTime? d) => d == null ? '' : '${d.toLocal().day.toString().padL
 
 /// Кабинет преподавателя: профиль, ученики по всем приложениям, приглашение в текущее приложение.
 class TeacherCabinetScreen extends StatefulWidget {
-  const TeacherCabinetScreen({super.key, required this.client, this.strings = CoachStrings.en, this.frame = defaultCoachFrame, this.auth});
+  const TeacherCabinetScreen({super.key, required this.client, this.strings = CoachStrings.en, this.frame = defaultCoachFrame, this.auth,
+      this.eventTitle = defaultEventTitle});
   final CoachClient client;
   final CoachAuth? auth;
+  final CoachEventTitle eventTitle;
   final CoachStrings strings;
   final CoachFrame frame;
 
@@ -75,6 +126,7 @@ class _TeacherCabinetScreenState extends State<TeacherCabinetScreen> {
   }
 
   Future<void> _load() async {
+    if (widget.auth != null && !widget.auth!.signedIn) return;
     try {
       final d = await widget.client.dashboard();
       if (mounted) setState(() { _data = d; _error = null; });
@@ -153,28 +205,41 @@ class _TeacherCabinetScreenState extends State<TeacherCabinetScreen> {
               child: ListTile(
                 key: Key('coach-student-${st.connectionId}'),
                 title: Text(st.name),
-                subtitle: Wrap(spacing: 6, runSpacing: 4, children: [
+                subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   for (final a in st.apps)
-                    Chip(label: Text('${s.appNames[a.appId] ?? a.appId} · ${a.events}${a.lastAt != null ? ' · ${_date(a.lastAt)}' : ''}')),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text.rich(TextSpan(children: [
+                        TextSpan(text: '${s.appNames[a.appId] ?? a.appId}  ', style: const TextStyle(fontWeight: FontWeight.w600)),
+                        TextSpan(text: [
+                          s.eventsCount.replaceAll('{n}', '${a.events}'),
+                          if (a.lastAt != null) s.lastAt.replaceAll('{date}', _date(a.lastAt)),
+                        ].join(' · ')),
+                      ])),
+                    ),
                 ]),
                 onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-                    builder: (_) => StudentDetailScreen(client: widget.client, student: st, strings: s, frame: widget.frame))),
+                    builder: (_) => StudentDetailScreen(
+                        client: widget.client, student: st, strings: s, frame: widget.frame, eventTitle: widget.eventTitle))),
               ),
             ),
         ]),
       );
     }
     return widget.frame(context, s.teacherTitle, body, [
-      if (d?.isCoach ?? false) CoachBarAction(key: const Key('coach-invite'), icon: Icons.person_add_alt_1, label: s.invite, onPressed: _invite),
+      if ((d?.isCoach ?? false) && (auth == null || auth.signedIn))
+        CoachBarAction(key: const Key('coach-invite'), icon: Icons.person_add_alt_1, label: s.invite, onPressed: _invite),
       if (auth != null && auth.signedIn)
-        CoachBarAction(key: const Key('coach-sign-out'), icon: Icons.logout, label: s.signOut, onPressed: auth.signOut),
+        CoachBarAction(key: const Key('coach-sign-out'), icon: Icons.logout, label: s.signOut, onPressed: auth.signOut, primary: false),
     ]);
   }
 }
 
 /// Тренировки одного ученика по каждому приложению, где он дал согласие.
 class StudentDetailScreen extends StatefulWidget {
-  const StudentDetailScreen({super.key, required this.client, required this.student, this.strings = CoachStrings.en, this.frame = defaultCoachFrame});
+  const StudentDetailScreen({super.key, required this.client, required this.student, this.strings = CoachStrings.en, this.frame = defaultCoachFrame,
+      this.eventTitle = defaultEventTitle});
+  final CoachEventTitle eventTitle;
   final CoachClient client;
   final CoachLink student;
   final CoachStrings strings;
@@ -209,7 +274,14 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
             child: Text(s.appNames[a.appId] ?? a.appId, style: Theme.of(context).textTheme.titleMedium),
           ),
-          Wrap(spacing: 6, children: [for (final sc in a.scopes) Chip(label: Text(s.scope(sc)))]),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
+            child: Text(s.sharedScopes, style: Theme.of(context).textTheme.labelMedium),
+          ),
+          Wrap(spacing: 6, runSpacing: 4, children: [
+            for (final sc in a.scopes)
+              Chip(avatar: const Icon(Icons.visibility_outlined, size: 16), label: Text(s.scope(sc)), visualDensity: VisualDensity.compact),
+          ]),
           if ((_events[a.appId] ?? const []).isEmpty)
             Padding(padding: const EdgeInsets.all(8), child: Text(s.noTrainings))
           else
@@ -217,10 +289,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               ListTile(
                 key: Key('coach-event-${e.id}'),
                 dense: true,
-                title: Text([e.mode ?? e.kind, if (e.exerciseRef != null) e.exerciseRef].join(' · ')),
+                title: Text([if (e.kind == 'warmup') s.warmup, widget.eventTitle(e)].join(' · ')),
                 subtitle: Text([
                   e.occurredAt != null ? _date(e.occurredAt) : '${_date(e.receivedAt)} (${s.timeUnknown})',
-                  if (e.metrics != null && e.metrics!.isNotEmpty) e.metrics!.entries.map((m) => '${m.key}: ${m.value}').join(', '),
+                  if (coachMetricsLine(e, s).isNotEmpty) coachMetricsLine(e, s),
                   if (e.errors == null) '${s.scopeErrors}: ${s.hiddenByStudent}',
                 ].join('\n')),
               ),
@@ -397,18 +469,22 @@ class _MyCoachesScreenState extends State<MyCoachesScreen> {
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                             Text(c.name, style: Theme.of(context).textTheme.titleMedium),
                             for (final a in c.apps)
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(s.appNames[a.appId] ?? a.appId),
-                                subtitle: Text(a.scopes.map(s.scope).join(', ')),
-                                trailing: TextButton(
-                                  key: Key('coach-revoke-${c.connectionId}-${a.appId}'),
-                                  onPressed: () async {
-                                    await widget.client.revokeConsent(connectionId: c.connectionId, app: a.appId);
-                                    await _load();
-                                  },
-                                  child: Text(s.revoke),
-                                ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Row(children: [
+                                    Expanded(child: Text(s.appNames[a.appId] ?? a.appId, style: Theme.of(context).textTheme.titleSmall)),
+                                    TextButton(
+                                      key: Key('coach-revoke-${c.connectionId}-${a.appId}'),
+                                      onPressed: () async {
+                                        await widget.client.revokeConsent(connectionId: c.connectionId, app: a.appId);
+                                        await _load();
+                                      },
+                                      child: Text(s.revoke),
+                                    ),
+                                  ]),
+                                  Text('${s.sharedScopes}: ${a.scopes.map(s.scope).join(' · ')}'),
+                                ]),
                               ),
                             Align(
                               alignment: Alignment.centerRight,

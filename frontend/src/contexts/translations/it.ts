@@ -3802,5 +3802,8 @@ const t: Record<string, string> = {
   "coachLinkSent": "Controlla la posta e apri il link su questo dispositivo.",
   "coachSignOut": "Esci dall’area",
   "coachSignInFailed": "Accesso non riuscito. Riprova.",
+  "coachSharedScopes": "Visibile all’insegnante",
+  "coachEventsCount": "Allenamenti: {n}",
+  "coachLastAt": "ultimo {date}",
 };
 export default t;
