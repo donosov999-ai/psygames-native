@@ -3808,7 +3808,6 @@ const t: Record<string, string> = {
   "coachSignOut": "退出空间",
   "coachSignInFailed": "登录失败，请重试。",
   "coachSharedScopes": "老师可见",
-  "coachEventsCount": "训练：{n}",
   "coachLastAt": "最近 {date}",
 };
 export default t;

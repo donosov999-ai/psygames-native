@@ -3811,7 +3811,6 @@ const t: Record<string, string> = {
   "coachSignOut": "कक्ष से साइन आउट",
   "coachSignInFailed": "साइन इन नहीं हो सका। फिर से कोशिश करें।",
   "coachSharedScopes": "शिक्षक को दिखता है",
-  "coachEventsCount": "अभ्यास: {n}",
   "coachLastAt": "अंतिम {date}",
 };
 export default t;

@@ -3803,7 +3803,6 @@ const t: Record<string, string> = {
   "coachSignOut": "공간에서 로그아웃",
   "coachSignInFailed": "로그인하지 못했습니다. 다시 시도하세요.",
   "coachSharedScopes": "선생님에게 보이는 항목",
-  "coachEventsCount": "훈련: {n}",
   "coachLastAt": "최근 {date}",
 };
 export default t;

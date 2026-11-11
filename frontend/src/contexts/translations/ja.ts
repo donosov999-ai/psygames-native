@@ -3802,7 +3802,6 @@ const t: Record<string, string> = {
   "coachSignOut": "ページからサインアウト",
   "coachSignInFailed": "サインインできませんでした。もう一度お試しください。",
   "coachSharedScopes": "先生に見える内容",
-  "coachEventsCount": "トレーニング: {n}",
   "coachLastAt": "最終 {date}",
 };
 export default t;

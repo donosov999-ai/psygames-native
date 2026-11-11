@@ -127,7 +127,7 @@ class PsyGamesCoach {
         signOut: L.t('coachSignOut'),
         signInFailed: L.t('coachSignInFailed'),
         sharedScopes: L.t('coachSharedScopes'),
-        eventsCount: L.t('coachEventsCount'),
+        eventsCount: L.t('petTrainingsDone'),
         lastAt: L.t('coachLastAt'),
         metricScore: L.t('score'),
         metricTime: L.t('time'),

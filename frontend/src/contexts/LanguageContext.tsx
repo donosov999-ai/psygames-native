@@ -2406,7 +2406,6 @@ const translations: Translations = {
   coachSignOut: { ru: 'Выйти из кабинета', en: 'Sign out of the cabinet' },
   coachSignInFailed: { ru: 'Не получилось войти. Попробуйте ещё раз.', en: 'Could not sign in. Try again.' },
   coachSharedScopes: { ru: 'Видно преподавателю', en: 'Shared with the teacher' },
-  coachEventsCount: { ru: 'Тренировок: {n}', en: 'Trainings: {n}' },
   coachLastAt: { ru: 'последняя {date}', en: 'last {date}' },
   petSize: { ru: 'Размер питомца', en: 'Pet size' },
   petWalks: { ru: 'Гуляет по экрану', en: 'Walks around the screen' },

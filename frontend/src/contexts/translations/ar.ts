@@ -3804,7 +3804,6 @@ const t: Record<string, string> = {
   "coachSignOut": "تسجيل الخروج من اللوحة",
   "coachSignInFailed": "تعذّر تسجيل الدخول. حاول مرة أخرى.",
   "coachSharedScopes": "يراه المعلم",
-  "coachEventsCount": "التمارين: {n}",
   "coachLastAt": "الأخير {date}",
 };
 export default t;

@@ -3808,7 +3808,6 @@ const t: Record<string, string> = {
   "coachSignOut": "Salir del panel",
   "coachSignInFailed": "No se pudo entrar. Inténtalo de nuevo.",
   "coachSharedScopes": "Visible para el profesor",
-  "coachEventsCount": "Entrenamientos: {n}",
   "coachLastAt": "último {date}",
 };
 export default t;
