@@ -1,6 +1,22 @@
 {
  "entries": [
   {
+   "version": "2.56.61",
+   "date": "2026-11-11",
+   "en": [
+    "Level map: games with levels share one path map — named sectors, stars for every level; open it from the pause menu",
+    "Word Sort: new Baskets mode — drop cards into baskets by dragging or with two taps",
+    "Aurora: backgrounds, frames and colours you bought now show on Home",
+    "Teacher cabinet in Settings: connect to a teacher with an invite link and choose exactly what they see from your training (sign in with Google or an email link; on iPhone — email link)"
+   ],
+   "ru": [
+    "Карта уровней: у игр с уровнями общая карта-тропинка — секторы со своими названиями, звёзды за каждый уровень; открывается из паузы",
+    "«Сортировка слов»: новый режим «Корзины» — карточки в корзины протяжкой или двумя тапами",
+    "«Аврора»: купленные фоны, рамки и цвета теперь видны на Главной",
+    "Кабинет преподавателя в настройках: подключитесь к преподавателю по ссылке-приглашению и сами выберите, что он видит из ваших тренировок (вход через Google или ссылку на почту; на iPhone — по ссылке на почту)"
+   ]
+  },
+  {
    "version": "2.56.60",
    "date": "2026-11-05",
    "en": [
