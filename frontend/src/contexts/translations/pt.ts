@@ -3813,6 +3813,7 @@ const t: Record<string, string> = {
   "coachSignInTitle": "Entrar no painel",
   "coachSignInHint": "Uma conta para PsyGames, Chess & Go, TypeFree e Smart Alarm. Seus treinos ficam neste dispositivo até você se conectar a um professor.",
   "coachSignInGoogle": "Continuar com Google",
+  "coachSignInApple": "Iniciar sessão com a Apple",
   "coachEmailLabel": "E-mail para entrar",
   "coachSendLink": "Enviar link de acesso",
   "coachLinkSent": "Verifique seu e-mail e abra o link neste dispositivo.",

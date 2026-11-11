@@ -3808,6 +3808,7 @@ const t: Record<string, string> = {
   "coachSignInTitle": "Accedi all’area",
   "coachSignInHint": "Un account per PsyGames, Chess & Go, TypeFree e Smart Alarm. I tuoi allenamenti restano su questo dispositivo finché non ti colleghi a un insegnante.",
   "coachSignInGoogle": "Continua con Google",
+  "coachSignInApple": "Accedi con Apple",
   "coachEmailLabel": "E-mail per l’accesso",
   "coachSendLink": "Invia link di accesso",
   "coachLinkSent": "Controlla la posta e apri il link su questo dispositivo.",

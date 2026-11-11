@@ -80,13 +80,17 @@ class _Server implements CoachTransport {
 }
 
 class _Auth extends ChangeNotifier implements CoachAuth {
-  _Auth({required this.signedIn, this.googleAvailable = false});
+  _Auth({required this.signedIn, this.googleAvailable = true, this.appleAvailable = false});
+  @override
+  final bool appleAvailable;
   @override
   final bool signedIn;
   @override
   final bool googleAvailable;
   @override
   String? get email => null;
+  @override
+  Future<void> signInWithApple() async {}
   @override
   Future<void> signInWithGoogle() async {}
   @override
@@ -103,7 +107,7 @@ void main() {
     await (FontLoader('MaterialIcons')..addFont(Future.value(icons))).load();
     if (Platform.isMacOS) {
       // Шрифт по умолчанию (Roboto) в пробах не установлен — подставляем Arial под оба имени, иначе шапка и окна — квадраты.
-      for (final family in ['CoachPreview', 'Roboto']) {
+      for (final family in ['CoachPreview', 'Roboto', '.SF Pro Text']) {
         await (FontLoader(family)
               ..addFont(Future.value(File('/System/Library/Fonts/Supplemental/Arial.ttf').readAsBytesSync().buffer.asByteData())))
             .load();
@@ -147,13 +151,16 @@ void main() {
     });
   }
 
-  testWidgets('вход: iPhone — только почта; Android — Google и почта', (t) async {
-    await show(t, (c) => TeacherCabinetScreen(client: c.client, strings: c.strings, frame: psyCoachFrame, auth: _Auth(signedIn: false)));
-    expect(find.byKey(const Key('coach-google')), findsNothing);
+  testWidgets('вход: iPhone — Apple, Google и почта; Android — Google и почта', (t) async {
+    await show(t, (c) => TeacherCabinetScreen(
+        client: c.client, strings: c.strings, frame: psyCoachFrame, auth: _Auth(signedIn: false, appleAvailable: true)));
+    expect(find.byKey(const Key('coach-apple')), findsOneWidget);
+    expect(find.byKey(const Key('coach-google')), findsOneWidget);
     await shoot(t, '1-sign-in-iphone');
     await show(t, (c) => TeacherCabinetScreen(
-        client: c.client, strings: c.strings, frame: psyCoachFrame, auth: _Auth(signedIn: false, googleAvailable: true)));
+        client: c.client, strings: c.strings, frame: psyCoachFrame, auth: _Auth(signedIn: false)));
     expect(find.byKey(const Key('coach-google')), findsOneWidget);
+    expect(find.byKey(const Key('coach-apple')), findsNothing);
     await shoot(t, '2-sign-in-android');
   });
 

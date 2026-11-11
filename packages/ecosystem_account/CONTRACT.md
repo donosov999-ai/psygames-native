@@ -219,3 +219,9 @@ Canonical broader plan:
   `personal-nzt`), redirect back to the app's own callback.
 - `rpc(function, params)` — only functions from `rpcAllowlist` (`ecosystem_coach_v2`);
   anything else throws. No raw SDK is exposed. Used by `ecosystem_coach`.
+
+## 0.1.7 (11.11.2026): Sign in with Apple (native iOS/macOS)
+
+- `signInWithAppleIdToken(idToken, rawNonce, consent)` — native Apple sign-in through Supabase
+  `signInWithIdToken` (provider apple). Supabase Apple provider: Client IDs = app bundle IDs, no OAuth key
+  needed for native. Required by App Store guideline 4.8 next to Google sign-in.

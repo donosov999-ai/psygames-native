@@ -333,6 +333,7 @@
 "coachScopeMetrics":"得分、速度、准确率、时间",
 "coachSendLink":"发送登录链接",
 "coachSharedScopes":"老师可见",
+"coachSignInApple":"通过 Apple 登录",
 "coachSignInFailed":"登录失败，请重试。",
 "coachSignInGoogle":"使用 Google 继续",
 "coachSignInHint":"PsyGames、Chess & Go、TypeFree 和 Smart Alarm 通用一个账号。在连接老师之前，你的训练只保存在本设备上。",

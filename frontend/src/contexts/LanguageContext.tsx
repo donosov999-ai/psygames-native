@@ -2400,6 +2400,7 @@ const translations: Translations = {
   coachSignInTitle: { ru: 'Вход в кабинет', en: 'Sign in to the cabinet' },
   coachSignInHint: { ru: 'Один аккаунт для PsyGames, Chess & Go, TypeFree и Smart Alarm. Тренировки остаются на устройстве, пока вы не подключитесь к преподавателю.', en: 'One account for PsyGames, Chess & Go, TypeFree and Smart Alarm. Your training stays on this device until you connect to a teacher.' },
   coachSignInGoogle: { ru: 'Войти через Google', en: 'Continue with Google' },
+  coachSignInApple: { ru: 'Войти через Apple', en: 'Sign in with Apple' },
   coachEmailLabel: { ru: 'Почта для входа', en: 'E-mail for sign-in' },
   coachSendLink: { ru: 'Прислать ссылку для входа', en: 'Send sign-in link' },
   coachLinkSent: { ru: 'Проверьте почту и откройте ссылку на этом устройстве.', en: 'Check your mail and open the link on this device.' },

@@ -3816,6 +3816,7 @@ const t: Record<string, string> = {
   "coachSignInTitle": "कक्ष में साइन इन",
   "coachSignInHint": "PsyGames, Chess & Go, TypeFree और Smart Alarm के लिए एक खाता। जब तक आप किसी शिक्षक से नहीं जुड़ते, आपका अभ्यास इसी डिवाइस पर रहता है।",
   "coachSignInGoogle": "Google से जारी रखें",
+  "coachSignInApple": "Apple से साइन इन करें",
   "coachEmailLabel": "साइन इन के लिए ई-मेल",
   "coachSendLink": "साइन इन लिंक भेजें",
   "coachLinkSent": "अपना मेल देखें और लिंक इसी डिवाइस पर खोलें।",

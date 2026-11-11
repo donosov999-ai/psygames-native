@@ -321,6 +321,25 @@ class EcosystemAccount {
     return Uri.parse(response.url);
   }
 
+  /// Вход через Apple внутри приложения iOS/macOS (правило App Store 4.8): id-токен от системного окна Apple
+  /// и исходный nonce (в окно Apple уходит его SHA-256). Сессия пишется той же очередью, что и вход по ссылке.
+  Future<void> signInWithAppleIdToken({required String idToken, required String rawNonce, required bool consent}) async {
+    if (!consent) throw StateError('Account network consent is OFF');
+    suspend();
+    _activate();
+    final generation = _generation;
+    try {
+      await _sdk.auth.signInWithIdToken(provider: OAuthProvider.apple, idToken: idToken, nonce: rawNonce);
+      if (!_currentAttempt(generation)) throw StateError('Account operation cancelled');
+      await flushCredentials();
+      _credentialsReady = true;
+      _sdk.auth.startAutoRefresh();
+    } catch (_) {
+      if (_currentAttempt(generation)) suspend();
+      rethrow;
+    }
+  }
+
   /// Вызов разрешённой серверной функции общего контура от имени вошедшего аккаунта. Белый список:
   /// только `ecosystem_coach_v2` (кабинет преподавателя, contract ecosystem.coach/2). Сырого SDK наружу нет.
   static const rpcAllowlist = {'ecosystem_coach_v2'};
