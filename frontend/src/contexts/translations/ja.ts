@@ -1,6 +1,9 @@
 // AUTO-GENERATED translation overlay (ja). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  semanticBasketMode: "かご",
+  semanticSingleMode: "1単語ずつ",
+  semanticBasketHelp: "単語を正しいかごにドラッグするか、単語をタップしてからかごをタップします。最初の回答の正答率が80%以上でクリアです。",
   settingsTrainingProfile: "トレーニングモード",
   settingsSoundHaptics: "サウンドと振動",
   settingsLanguageAccess: "言語とアクセシビリティ",

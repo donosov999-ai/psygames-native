@@ -1,6 +1,9 @@
 // AUTO-GENERATED translation overlay (it). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать.
 const t: Record<string, string> = {
+  semanticBasketMode: "Cesti",
+  semanticSingleMode: "Una parola alla volta",
+  semanticBasketHelp: "Trascina le parole nel cesto giusto, oppure tocca una parola e poi un cesto. Supera la prova con almeno l’80% di primi tentativi corretti.",
   settingsTrainingProfile: "Profilo di allenamento",
   settingsSoundHaptics: "Suono e vibrazione",
   settingsLanguageAccess: "Lingua e accessibilità",

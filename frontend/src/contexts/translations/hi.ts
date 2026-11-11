@@ -5,6 +5,9 @@
 //   Аббревиатуры тестов (Stroop/SDMT/WCST/N-back/BART/SET/Cloze...) оставлены латиницей — международные термины.
 //   ⚠️ Стилистику деванагари подтвердить носителем. При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  semanticBasketMode: "टोकरियाँ",
+  semanticSingleMode: "एक बार में एक शब्द",
+  semanticBasketHelp: "शब्द को सही टोकरी में खींचें, या पहले शब्द और फिर टोकरी पर टैप करें। पास होने के लिए कम से कम 80% पहले प्रयास सही होने चाहिए।",
   settingsTrainingProfile: "अभ्यास मोड",
   settingsSoundHaptics: "ध्वनि और कंपन",
   settingsLanguageAccess: "भाषा और सुलभता",

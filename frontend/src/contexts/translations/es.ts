@@ -2,6 +2,9 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  semanticBasketMode: "Cestas",
+  semanticSingleMode: "Una palabra a la vez",
+  semanticBasketHelp: "Arrastra las palabras a la cesta correcta, o toca una palabra y después una cesta. Supera la ronda con al menos un 80% de primeros intentos correctos.",
   settingsTrainingProfile: "Perfil de entrenamiento",
   settingsSoundHaptics: "Sonido y vibración",
   settingsLanguageAccess: "Idioma y accesibilidad",

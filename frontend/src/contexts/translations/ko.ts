@@ -1,6 +1,9 @@
 // AUTO-GENERATED translation overlay (ko). Источник: транскреация с EN-базы (856 ключей).
 // Не править руками — регенерировать. Нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  semanticBasketMode: "바구니",
+  semanticSingleMode: "한 단어씩",
+  semanticBasketHelp: "단어를 알맞은 바구니로 끌어 놓거나 단어를 누른 다음 바구니를 누르세요. 첫 시도 정답률이 80% 이상이면 통과합니다.",
   settingsTrainingProfile: "훈련 모드",
   settingsSoundHaptics: "소리 및 진동",
   settingsLanguageAccess: "언어 및 접근성",
