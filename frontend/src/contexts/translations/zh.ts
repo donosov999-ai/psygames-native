@@ -2,6 +2,9 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // Вычитка: Claude 12.06.2026 (skillAttention/skillFocus swap, 序列记忆, 主访问码). При регенерации воркфлоу — НЕ затирать, мерджить через git diff.
 const t: Record<string, string> = {
+  semanticBasketMode: "分类篮",
+  semanticSingleMode: "逐个单词",
+  semanticBasketHelp: "将单词拖入对应的篮子，或先点单词再点篮子。首次作答正确率达到80%即可通过。",
   settingsTrainingProfile: "训练模式",
   settingsSoundHaptics: "声音与触感",
   settingsLanguageAccess: "语言与无障碍",

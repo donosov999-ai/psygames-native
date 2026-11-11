@@ -1,6 +1,9 @@
 // AUTO-GENERATED translation overlay (ar). Источник: транскреация с EN-базы (856 ключей).
 // ⚠️ НЕ ПОДКЛЮЧЁН в LANGUAGES — ждёт RTL-захода (I18nManager). Не править руками.
 const t: Record<string, string> = {
+  semanticBasketMode: "السلال",
+  semanticSingleMode: "كلمة واحدة في كل مرة",
+  semanticBasketHelp: "اسحب الكلمات إلى السلة المناسبة، أو اضغط على كلمة ثم على سلة. يلزم أن تكون 80% على الأقل من المحاولات الأولى صحيحة للاجتياز.",
   settingsTrainingProfile: "نمط التدريب",
   settingsSoundHaptics: "الصوت والاهتزاز",
   settingsLanguageAccess: "اللغة وإمكانية الوصول",

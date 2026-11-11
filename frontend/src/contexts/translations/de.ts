@@ -2,6 +2,9 @@
 // 493 ключей, переведены с английской базы. Не править руками — регенерировать воркфлоу.
 // zh/hi — машинное качество, нужна вычитка нативом до сторов.
 const t: Record<string, string> = {
+  semanticBasketMode: "Körbe",
+  semanticSingleMode: "Ein Wort nach dem anderen",
+  semanticBasketHelp: "Ziehe Wörter in den passenden Korb oder tippe auf ein Wort und dann auf einen Korb. Zum Bestehen müssen mindestens 80% der ersten Versuche richtig sein.",
   settingsTrainingProfile: "Trainingsprofil",
   settingsSoundHaptics: "Ton und Haptik",
   settingsLanguageAccess: "Sprache und Barrierefreiheit",

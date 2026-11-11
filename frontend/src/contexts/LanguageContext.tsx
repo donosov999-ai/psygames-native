@@ -1111,6 +1111,9 @@ const translations: Translations = {
   benefitCloze3: { ru: 'Готовые фразы для речи', en: 'Ready-made phrases for speaking' },
   clozeHint: { ru: 'Выбери пропущенное слово', en: 'Pick the missing word' },
   semanticSort: { ru: 'Сортировка слов', en: 'Word Sort' },
+  semanticBasketMode: { ru: 'Корзины', en: 'Baskets' },
+  semanticSingleMode: { ru: 'По одному слову', en: 'One word at a time' },
+  semanticBasketHelp: { ru: 'Перенеси слова в подходящие корзины или выбери слово и нажми на корзину. Для прохода нужно минимум 80% верных первых попыток.', en: 'Drag words into the matching baskets, or tap a word and then a basket. Pass with at least 80% correct first attempts.' },
   semanticSortDesc: { ru: 'К какой категории относится слово?', en: 'Which category does the word belong to?' },
   semanticSortIntroDesc: {
     ru: 'Слово на целевом языке — отнеси его к правильной категории (еда? животное? действие?). Категоризация без перевода = прямой доступ к значению L2, минуя родной язык. Именно так слова закрепляются «насовсем»: не «perro = собака», а perro → 🐾.',
