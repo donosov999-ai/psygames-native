@@ -442,6 +442,9 @@ class _Road3dState extends State<Road3d> {
   MeshGeometry? _archTop;
   late Node _water;
 
+  /// Окружение (Kenney, CC0): пулы по бокам дороги, едут с ней по кругу — [_EnvBand].
+  final List<_EnvBand> _env = [];
+
   final Map<String, MeshGeometry> _boxes = {};
   final Map<int, Material> _mats = {};
 
@@ -575,9 +578,89 @@ class _Road3dState extends State<Road3d> {
     }
     _counter = _labels.node(' ', const _LabelSpec(background: 0x78350f, font: 120), w: 1.9, h: .8)..visible = false;
     _world.add(_counter);
+    try {
+      await _loadEnvironment();
+    } catch (e, st) {
+      // Без окружения игра та же — дорога, числа, вода; модели — украшение.
+      debugPrint('number-run env: $e\n$st');
+    }
     _load(widget.course);
     _frame(0);
     if (mounted) setState(() => _ready = true);
+  }
+
+  /// Окружение по рефу Кодекса: светлые террасы с балюстрадой вдоль дороги, на них столбы с баннерами,
+  /// фонари и клумбы; дальше — острова с деревьями и аркой; у горизонта — скалы с водопадом.
+  /// Модели — Kenney Castle/Fantasy Town/Nature Kit (CC0, `assets/number_run/env/LICENSE-*`).
+  Future<void> _loadEnvironment() async {
+    Future<Node> glb(String n) => Node.fromGlbAsset('assets/number_run/env/$n.glb');
+    final m = <String, Node>{
+      for (final n in const [
+        'pillar-stone', 'lantern', 'tree-high-round', 'flag-banner-long', 'tower-square-arch', 'tree-large', //
+        'flower_purpleA', 'flower_purpleB', 'flower_redA', 'plant_bushLarge', 'plant_bushDetailed', 'cliff_waterfall_stone',
+      ])
+        n: await glb(n),
+    };
+    Node put(String n, double scale, double x, double y, double z, {double yaw = 0}) => m[n]!.clone()
+      ..scale = vm.Vector3.all(scale)
+      ..position = vm.Vector3(x, y, z)
+      ..rotation = _rot(0, yaw, 0);
+    const ivory = 0xf4ecdd, ledge = 0xe9dfcc;
+    // Террасы — сплошные, им ехать не нужно; столбики балюстрады и всё, что на террасе, — едут.
+    for (final side in const [-1.0, 1.0]) {
+      _world.add(_boxNode(1.9, 1.1, 120, ledge, side * 4.75, -.6, -40, rough: .85, metal: 0));
+      _world.add(_boxNode(.18, .14, 120, ivory, side * 5.55, .72, -40, rough: .6, metal: 0));
+    }
+    _env.add(_EnvBand(2.4, 38, (i, side) => Node()..add(_boxNode(.2, .72, .2, ivory, side * 5.55, .3, 0, rough: .6, metal: 0))));
+    Node flowers(double side, int k) {
+      final g = Node();
+      g.add(put('plant_bushDetailed', 2.6, side * 4.7, -.05, 0));
+      final f = k.isEven ? 'flower_purpleA' : 'flower_redA';
+      for (final (dx, dz) in const [(-.45, .35), (.35, -.3), (.1, .5), (-.25, -.45)]) {
+        g.add(put(dx > 0 ? f : 'flower_purpleB', 3.2, side * (4.7 + dx), -.05, dz, yaw: dx * 3));
+      }
+      return g;
+    }
+    _env.add(
+      _EnvBand(6, 15, (i, side) {
+        final k = i + (side > 0 ? 2 : 0);
+        switch (k % 4) {
+          case 0:
+            final g = Node()..add(put('pillar-stone', 2.6, side * 4.9, -.05, 0));
+            g.add(_boxNode(.3, .3, .3, _gold, side * 4.9, 2.62, 0, rough: .3, metal: .6));
+            g.add(put('flag-banner-long', 1.05, side * 4.72, .2, 0, yaw: side > 0 ? math.pi : 0));
+            return g;
+          case 2:
+            return Node()..add(put('lantern', 1.5, side * 4.9, -.05, 0));
+          default:
+            return flowers(side, k);
+        }
+      }),
+    );
+    _env.add(
+      _EnvBand(19, 6, (i, side) {
+        final x = side * (11 + (i * 37 % 5));
+        final g = Node()..add(_boxNode(4.2, 1.4, 4.2, ledge, x, -1.4, 0, rough: .9, metal: 0));
+        switch ((i + (side > 0 ? 1 : 0)) % 3) {
+          case 0:
+            g.add(put('tree-high-round', 2.2, x, -.7, 0));
+          case 1:
+            g.add(put('tower-square-arch', 3.4, x, -.7, 0, yaw: math.pi / 2));
+          default:
+            g.add(put('tree-large', 2.1, x - .8, -.7, .6));
+            g.add(put('plant_bushDetailed', 3, x + 1, -.7, -.6));
+        }
+        return g;
+      }),
+    );
+    for (final side in const [-1.0, 1.0]) {
+      _world.add(put('cliff_waterfall_stone', 9, side * 17, -1.6, -66, yaw: side > 0 ? -.5 : .5));
+    }
+    for (final band in _env) {
+      for (final n in band.nodes) {
+        _world.add(n);
+      }
+    }
   }
 
   void _load(RoadCourse course) {
@@ -1098,6 +1181,9 @@ class _Road3dState extends State<Road3d> {
       _stepSparks(dt);
       _stepPopups(dt);
     }
+    for (final band in _env) {
+      band.place(view);
+    }
     // Море едет вместе с дорогой: сдвиг на остаток от периода ряби, плоскость всегда под кадром.
     _water.position = vm.Vector3(0, -1.6, 12 - _waterDepth / 2 + view % _waterPeriod);
     _startPlatform
@@ -1128,6 +1214,30 @@ class _Road3dState extends State<Road3d> {
         );
       },
     );
+  }
+}
+
+/// Полоса окружения: [count] мест с шагом [period] по каждой стороне, едут к камере и уходят в начало.
+class _EnvBand {
+  _EnvBand(this.period, this.count, Node Function(int i, double side) make) {
+    for (final side in const [-1.0, 1.0]) {
+      for (var i = 0; i < count; i++) {
+        nodes.add(make(i, side));
+        _base.add(i * period + (side > 0 ? period / 2 : 0));
+      }
+    }
+  }
+
+  final double period;
+  final int count;
+  final List<Node> nodes = [];
+  final List<double> _base = [];
+
+  void place(double view) {
+    final loop = period * count;
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].position = vm.Vector3(0, 0, (_base[i] + view) % loop - (loop - 14));
+    }
   }
 }
 
