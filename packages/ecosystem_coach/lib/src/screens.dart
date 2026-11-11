@@ -5,6 +5,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'auth.dart';
 import 'client.dart';
 import 'model.dart';
 import 'strings.dart';
@@ -38,8 +39,9 @@ String _date(DateTime? d) => d == null ? '' : '${d.toLocal().day.toString().padL
 
 /// Кабинет преподавателя: профиль, ученики по всем приложениям, приглашение в текущее приложение.
 class TeacherCabinetScreen extends StatefulWidget {
-  const TeacherCabinetScreen({super.key, required this.client, this.strings = CoachStrings.en, this.frame = defaultCoachFrame});
+  const TeacherCabinetScreen({super.key, required this.client, this.strings = CoachStrings.en, this.frame = defaultCoachFrame, this.auth});
   final CoachClient client;
+  final CoachAuth? auth;
   final CoachStrings strings;
   final CoachFrame frame;
 
@@ -55,11 +57,19 @@ class _TeacherCabinetScreenState extends State<TeacherCabinetScreen> {
   @override
   void initState() {
     super.initState();
+    widget.auth?.addListener(_onAuth);
+    _load();
+  }
+
+  void _onAuth() {
+    if (!mounted) return;
+    setState(() => _data = null);
     _load();
   }
 
   @override
   void dispose() {
+    widget.auth?.removeListener(_onAuth);
     _name.dispose();
     super.dispose();
   }
@@ -110,8 +120,11 @@ class _TeacherCabinetScreenState extends State<TeacherCabinetScreen> {
   Widget build(BuildContext context) {
     final s = widget.strings;
     final d = _data;
+    final auth = widget.auth;
     final Widget body;
-    if (_error != null && d == null) {
+    if (auth != null && !auth.signedIn) {
+      body = CoachSignIn(auth: auth, strings: s);
+    } else if (_error != null && d == null) {
       body = Center(child: Padding(padding: const EdgeInsets.all(24), child: Text(s.unavailable, key: const Key('coach-unavailable'), textAlign: TextAlign.center)));
     } else if (d == null) {
       body = const Center(child: CircularProgressIndicator());
@@ -153,6 +166,8 @@ class _TeacherCabinetScreenState extends State<TeacherCabinetScreen> {
     }
     return widget.frame(context, s.teacherTitle, body, [
       if (d?.isCoach ?? false) CoachBarAction(key: const Key('coach-invite'), icon: Icons.person_add_alt_1, label: s.invite, onPressed: _invite),
+      if (auth != null && auth.signedIn)
+        CoachBarAction(key: const Key('coach-sign-out'), icon: Icons.logout, label: s.signOut, onPressed: auth.signOut),
     ]);
   }
 }
@@ -219,8 +234,9 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 /// Ученик открыл ссылку-приглашение: кто приглашает, что будет видно (галочки областей), явное согласие.
 class AcceptInviteScreen extends StatefulWidget {
   const AcceptInviteScreen({super.key, required this.client, required this.code, this.studentName = '',
-      this.strings = CoachStrings.en, this.frame = defaultCoachFrame, this.onDone});
+      this.strings = CoachStrings.en, this.frame = defaultCoachFrame, this.onDone, this.auth});
   final CoachClient client;
+  final CoachAuth? auth;
   final String code, studentName;
   final CoachStrings strings;
   final CoachFrame frame;
@@ -239,6 +255,7 @@ class _AcceptInviteScreenState extends State<AcceptInviteScreen> {
 
   @override
   void dispose() {
+    widget.auth?.removeListener(_onAuth);
     _name.dispose();
     super.dispose();
   }
@@ -247,6 +264,18 @@ class _AcceptInviteScreenState extends State<AcceptInviteScreen> {
   void initState() {
     super.initState();
     _name.addListener(() => setState(() {}));
+    widget.auth?.addListener(_onAuth);
+    _loadPreview();
+  }
+
+  void _onAuth() {
+    if (!mounted) return;
+    setState(() { _preview = null; _error = null; });
+    _loadPreview();
+  }
+
+  void _loadPreview() {
+    if (widget.auth != null && !widget.auth!.signedIn) return;
     widget.client.previewInvite(widget.code).then((p) {
       if (mounted) setState(() => _preview = p);
     }, onError: (Object e) {
@@ -258,7 +287,10 @@ class _AcceptInviteScreenState extends State<AcceptInviteScreen> {
   Widget build(BuildContext context) {
     final s = widget.strings;
     final p = _preview;
-    final body = _error != null
+    final auth = widget.auth;
+    final body = auth != null && !auth.signedIn
+        ? CoachSignIn(auth: auth, strings: s)
+        : _error != null
         ? Center(child: Text(s.unavailable, key: const Key('coach-invite-unavailable'), textAlign: TextAlign.center))
         : p == null
             ? const Center(child: CircularProgressIndicator())
@@ -301,8 +333,9 @@ class _AcceptInviteScreenState extends State<AcceptInviteScreen> {
 
 /// Ученик: мои преподаватели, что каждому видно по приложениям, отозвать / отключиться.
 class MyCoachesScreen extends StatefulWidget {
-  const MyCoachesScreen({super.key, required this.client, this.strings = CoachStrings.en, this.frame = defaultCoachFrame});
+  const MyCoachesScreen({super.key, required this.client, this.strings = CoachStrings.en, this.frame = defaultCoachFrame, this.auth});
   final CoachClient client;
+  final CoachAuth? auth;
   final CoachStrings strings;
   final CoachFrame frame;
 
@@ -317,7 +350,20 @@ class _MyCoachesScreenState extends State<MyCoachesScreen> {
   @override
   void initState() {
     super.initState();
+    widget.auth?.addListener(_onAuth);
     _load();
+  }
+
+  void _onAuth() {
+    if (!mounted) return;
+    setState(() => _data = null);
+    _load();
+  }
+
+  @override
+  void dispose() {
+    widget.auth?.removeListener(_onAuth);
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -333,7 +379,10 @@ class _MyCoachesScreenState extends State<MyCoachesScreen> {
   Widget build(BuildContext context) {
     final s = widget.strings;
     final d = _data;
-    final body = _failed
+    final auth = widget.auth;
+    final body = auth != null && !auth.signedIn
+        ? CoachSignIn(auth: auth, strings: s)
+        : _failed
         ? Center(child: Text(s.unavailable, textAlign: TextAlign.center))
         : d == null
             ? const Center(child: CircularProgressIndicator())
@@ -377,5 +426,80 @@ class _MyCoachesScreenState extends State<MyCoachesScreen> {
                       ),
                   ]);
     return widget.frame(context, s.studentTitle, body, const []);
+  }
+}
+
+/// Панель входа — общая для всех экранов кабинета. Google (если доступен) и ссылка на почту.
+class CoachSignIn extends StatefulWidget {
+  const CoachSignIn({super.key, required this.auth, required this.strings});
+  final CoachAuth auth;
+  final CoachStrings strings;
+
+  @override
+  State<CoachSignIn> createState() => _CoachSignInState();
+}
+
+class _CoachSignInState extends State<CoachSignIn> {
+  final _email = TextEditingController();
+  bool _busy = false, _sent = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _email.dispose();
+    super.dispose();
+  }
+
+  Future<void> _run(Future<void> Function() f, {bool sent = false}) async {
+    setState(() { _busy = true; _error = null; });
+    try {
+      await f();
+      if (mounted) setState(() => _sent = sent);
+    } on Object {
+      if (mounted) setState(() => _error = widget.strings.signInFailed);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.strings;
+    final valid = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(_email.text.trim());
+    return ListView(key: const Key('coach-sign-in'), padding: const EdgeInsets.all(20), children: [
+      Text(s.signInTitle, style: Theme.of(context).textTheme.headlineSmall),
+      const SizedBox(height: 8),
+      Text(s.signInHint),
+      const SizedBox(height: 20),
+      if (widget.auth.googleAvailable) ...[
+        FilledButton.icon(
+          key: const Key('coach-google'),
+          onPressed: _busy ? null : () => _run(widget.auth.signInWithGoogle),
+          icon: const Icon(Icons.login),
+          label: Text(s.signInGoogle),
+        ),
+        const SizedBox(height: 20),
+      ],
+      TextField(
+        key: const Key('coach-email'),
+        controller: _email,
+        keyboardType: TextInputType.emailAddress,
+        autocorrect: false,
+        decoration: InputDecoration(labelText: s.emailLabel),
+        onChanged: (_) => setState(() {}),
+      ),
+      const SizedBox(height: 8),
+      OutlinedButton(
+        key: const Key('coach-send-link'),
+        onPressed: _busy || !valid ? null : () => _run(() => widget.auth.sendEmailLink(_email.text.trim()), sent: true),
+        child: Text(s.sendLink),
+      ),
+      if (_sent) Padding(padding: const EdgeInsets.only(top: 12), child: Text(s.linkSent, key: const Key('coach-link-sent'))),
+      if (_error != null)
+        Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: Text(_error!, key: const Key('coach-sign-in-error'), style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        ),
+    ]);
   }
 }

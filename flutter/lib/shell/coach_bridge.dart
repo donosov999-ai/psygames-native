@@ -1,7 +1,8 @@
 // Кабинет преподавателя в PsyGames (contract ecosystem.coach/2, эпик 892cd2c3).
 //
-// 🔴 ВЫКЛЮЧЕН ПО УМОЛЧАНИЮ: флаг сборки PSY_COACH и только поверх облачного пилота (тот же вход,
-// тот же аккаунт). Миграция на прод-базу не применена — до «да» Дениса кабинет в выпуск не идёт.
+// Включается флагом сборки PSY_COACH (сервер — personal-nzt, миграция ecosystem_coach_v2 применена 11.11.2026).
+// Вход свой: Google или ссылка на почту; при облачном пилоте — тот же аккаунт пилота.
+// 🔴 iOS: Google спрятан, пока нет входа через Apple (App Store 4.8) — остаётся вход по почте.
 //
 // Что делает мост:
 //   · превращает отчёт партии ([SessionReport]) в событие кабинета и отправляет его — без согласия
@@ -9,26 +10,62 @@
 //   · открывает экраны пакета `ecosystem_coach` в рамке подстраниц настроек приложения;
 //   · принимает ссылку-приглашение `com.psygames.app://coach/invite?code=…`.
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'dart:math';
 
 import 'package:ecosystem_account/ecosystem_account.dart';
 import 'package:ecosystem_coach/ecosystem_coach.dart';
 import 'package:flutter/material.dart';
 
+import 'package:url_launcher/url_launcher.dart';
+
+import 'cloud_runtime.dart';
 import 'l10n.dart';
 import 'session_report.dart';
+import 'shared_state.dart';
 
 class PsyGamesCoach {
-  PsyGamesCoach(this.client, {DateTime Function()? clock, String Function()? newId})
+  PsyGamesCoach(this.client, {this.auth, DateTime Function()? clock, String Function()? newId})
       : _clock = clock ?? DateTime.now,
         _newId = newId ?? _uuid;
 
-  factory PsyGamesCoach.forAccount(EcosystemAccount account) =>
-      PsyGamesCoach(CoachClient(AccountCoachTransport(account), appId: 'psygames'));
-
   static const enabled = bool.fromEnvironment('PSY_COACH');
+  static const _url = String.fromEnvironment('PSY_SUPABASE_URL', defaultValue: 'https://iuvvheeocobhiothfgei.supabase.co');
+  // Публикуемый ключ — публичный по устройству Supabase (доступ решают права в базе), не секрет.
+  static const _key = String.fromEnvironment('PSY_SUPABASE_PUBLISHABLE_KEY',
+      defaultValue: 'sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1');
+  static const _googleOnIos = bool.fromEnvironment('PSY_COACH_GOOGLE_IOS');
+  static const signedInKey = 'psygames_coach_signed_in';
+
+  /// Кабинет приложения; null — выключен флагом.
+  static PsyGamesCoach? instance;
+
+  /// Собрать кабинет. [account] — аккаунт облачного пилота, если он есть (тогда сессию поднимает пилот).
+  static PsyGamesCoach? fromEnvironment(SharedState state, {EcosystemAccount? account}) {
+    if (!enabled) return null;
+    final shared = account != null;
+    final acc = account ??
+        EcosystemAccount(
+          appId: 'psygames',
+          url: _url,
+          publishableKey: _key,
+          callback: Uri.parse(PsyGamesCloudRuntime.callback),
+          vault: PsyGamesAccountVault(),
+        );
+    final auth = AccountCoachAuth(
+      acc,
+      openUrl: (u) => launchUrl(u, mode: LaunchMode.externalApplication),
+      googleAvailable: !Platform.isIOS || _googleOnIos,
+      onSignedIn: () => state.set(signedInKey, '1'),
+      onSignedOut: () => state.remove(signedInKey),
+    );
+    // Сессию поднимаем, только если человек уже входил: до первого входа кабинет в сеть не ходит.
+    if (!shared && state.get(signedInKey) == '1') unawaited(auth.restore());
+    return PsyGamesCoach(CoachClient(AccountCoachTransport(acc), appId: 'psygames'), auth: auth)..observe();
+  }
 
   final CoachClient client;
+  final AccountCoachAuth? auth;
   final DateTime Function() _clock;
   final String Function() _newId;
 
@@ -53,17 +90,30 @@ class PsyGamesCoach {
   CoachStrings get strings => L.locale == 'ru' ? CoachStrings.ru : CoachStrings.en;
 
   Future<void> openTeacher(BuildContext context) => Navigator.of(context).push<void>(MaterialPageRoute(
-      builder: (_) => TeacherCabinetScreen(client: client, strings: strings, frame: psyCoachFrame)));
+      builder: (_) => TeacherCabinetScreen(client: client, strings: strings, frame: psyCoachFrame, auth: auth)));
 
   Future<void> openMyCoaches(BuildContext context) => Navigator.of(context).push<void>(MaterialPageRoute(
-      builder: (_) => MyCoachesScreen(client: client, strings: strings, frame: psyCoachFrame)));
+      builder: (_) => MyCoachesScreen(client: client, strings: strings, frame: psyCoachFrame, auth: auth)));
+
+  /// Входящая ссылка: возврат после входа (`auth/callback`) или приглашение (`coach/invite`).
+  Future<bool> handleLink(NavigatorState? navigator, Uri uri) async {
+    if (uri.scheme != 'com.psygames.app') return false;
+    if (uri.host == 'auth') {
+      try {
+        return await auth?.complete(uri) ?? false;
+      } on Object {
+        return false;
+      }
+    }
+    return navigator != null && openInvite(navigator, uri);
+  }
 
   /// Ссылка-приглашение. Чужая форма → false, ссылка не наша.
   bool openInvite(NavigatorState navigator, Uri uri) {
     final link = CoachInviteLink.parse(uri, appId: 'psygames');
     if (link == null) return false;
     unawaited(navigator.push<void>(MaterialPageRoute(
-        builder: (_) => AcceptInviteScreen(client: client, code: link.code, strings: strings, frame: psyCoachFrame))));
+        builder: (_) => AcceptInviteScreen(client: client, code: link.code, strings: strings, frame: psyCoachFrame, auth: auth))));
     return true;
   }
 
@@ -124,3 +174,35 @@ Widget psyCoachFrame(BuildContext context, String title, Widget body, List<Coach
               ),
       ),
     );
+
+/// Приём ссылок, когда облачного пилота нет (у пилота свой приёмник — [CloudLinkHost]).
+class CoachLinkHost extends StatefulWidget {
+  const CoachLinkHost({super.key, required this.coach, required this.links, required this.navigatorKey, required this.child});
+  final PsyGamesCoach coach;
+  final Stream<Uri> links;
+  final GlobalKey<NavigatorState> navigatorKey;
+  final Widget child;
+
+  @override
+  State<CoachLinkHost> createState() => _CoachLinkHostState();
+}
+
+class _CoachLinkHostState extends State<CoachLinkHost> {
+  StreamSubscription<Uri>? _sub;
+
+  @override
+  void initState() {
+    super.initState();
+    _sub = widget.links.listen((u) => unawaited(widget.coach.handleLink(widget.navigatorKey.currentState, u)),
+        onError: (Object _) {});
+  }
+
+  @override
+  void dispose() {
+    unawaited(_sub?.cancel());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}

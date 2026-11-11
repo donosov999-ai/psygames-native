@@ -17,6 +17,30 @@ class FakeTransport implements CoachTransport {
   }
 }
 
+class FakeAuth extends ChangeNotifier implements CoachAuth {
+  FakeAuth({this.googleAvailable = true});
+  @override
+  bool signedIn = false;
+  @override
+  final bool googleAvailable;
+  @override
+  String? get email => signedIn ? 'a@b.c' : null;
+  final calls = <String>[];
+  @override
+  Future<void> signInWithGoogle() async => calls.add('google');
+  @override
+  Future<void> sendEmailLink(String email) async => calls.add('mail:$email');
+  @override
+  Future<void> signOut() async {
+    signedIn = false;
+    notifyListeners();
+  }
+  void complete() {
+    signedIn = true;
+    notifyListeners();
+  }
+}
+
 const code48 = 'abcdef0123456789abcdef0123456789abcdef0123456789';
 
 void main() {
@@ -113,5 +137,52 @@ void main() {
     await t.pumpAndSettle();
     expect(done, 'c9');
     expect(tr.calls.last.$2['consent'], true);
+  });
+
+  testWidgets('вход: без аккаунта — панель входа; после входа экран сам грузит сводку; выход возвращает панель', (t) async {
+    final auth = FakeAuth();
+    final tr = FakeTransport({'dashboard': (_) => {'profile': {'name': 'Анна'}, 'students': [], 'coaches': []}});
+    await t.pumpWidget(MaterialApp(home: TeacherCabinetScreen(client: CoachClient(tr, appId: 'psygames'), auth: auth)));
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('coach-sign-in')), findsOneWidget);
+    expect(t.widget<OutlinedButton>(find.byKey(const Key('coach-send-link'))).onPressed, isNull, reason: 'без почты нельзя');
+    await t.enterText(find.byKey(const Key('coach-email')), 'teacher@example.com');
+    await t.pump();
+    await t.tap(find.byKey(const Key('coach-send-link')));
+    await t.pumpAndSettle();
+    expect(auth.calls, ['mail:teacher@example.com']);
+    expect(find.byKey(const Key('coach-link-sent')), findsOneWidget);
+    await t.tap(find.byKey(const Key('coach-google')));
+    await t.pumpAndSettle();
+    expect(auth.calls.last, 'google');
+
+    auth.complete();
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('coach-sign-in')), findsNothing);
+    expect(find.byKey(const Key('coach-no-students')), findsOneWidget);
+
+    await t.tap(find.byKey(const Key('coach-sign-out')));
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('coach-sign-in')), findsOneWidget);
+  });
+
+  testWidgets('вход: без Google (iOS до входа Apple) — только почта', (t) async {
+    final auth = FakeAuth(googleAvailable: false);
+    await t.pumpWidget(MaterialApp(home: MyCoachesScreen(client: CoachClient(FakeTransport({}), appId: 'psygames'), auth: auth)));
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('coach-google')), findsNothing);
+    expect(find.byKey(const Key('coach-email')), findsOneWidget);
+  });
+
+  testWidgets('приглашение до входа: сначала вход, после входа — кто приглашает', (t) async {
+    final auth = FakeAuth();
+    final tr = FakeTransport({'invite_preview': (_) => {'coach_name': 'Анна', 'app_id': 'psygames'}});
+    await t.pumpWidget(MaterialApp(home: AcceptInviteScreen(client: CoachClient(tr, appId: 'psygames'), code: code48, auth: auth)));
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('coach-sign-in')), findsOneWidget);
+    expect(tr.calls, isEmpty, reason: 'до входа на сервер не ходим');
+    auth.complete();
+    await t.pumpAndSettle();
+    expect(find.text('Анна'), findsOneWidget);
   });
 }

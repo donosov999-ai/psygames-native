@@ -899,7 +899,7 @@ extension _SettingsRedesign on _SettingsScreenState {
           ),
         ),
       // Кабинет преподавателя (флаг PSY_COACH, поверх облачного пилота): тот же аккаунт.
-      if (widget.cloudPilot?.coach case final coach?) ...[
+      if (PsyGamesCoach.instance case final coach?) ...[
         _settingsRow(
           context,
           key: 'settings-coach-teacher',

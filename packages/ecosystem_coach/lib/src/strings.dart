@@ -31,6 +31,14 @@ class CoachStrings {
     required this.disconnect,
     required this.unavailable,
     required this.appNames,
+    required this.signInTitle,
+    required this.signInHint,
+    required this.signInGoogle,
+    required this.emailLabel,
+    required this.sendLink,
+    required this.linkSent,
+    required this.signOut,
+    required this.signInFailed,
   });
 
   final String teacherTitle, studentTitle, yourName, studentName, saveProfile, noStudents, invite, inviteReady, copyLink, copied;
@@ -38,6 +46,7 @@ class CoachStrings {
   final String acceptTitle, acceptButton, consentText, scopeCompletion, scopeMetrics, scopeErrors, scopeHistory;
   final String revoke, disconnect, unavailable;
   final Map<String, String> appNames;
+  final String signInTitle, signInHint, signInGoogle, emailLabel, sendLink, linkSent, signOut, signInFailed;
 
   String scope(String s) => switch (s) {
         'completion' => scopeCompletion,
@@ -77,6 +86,14 @@ class CoachStrings {
     disconnect: 'Disconnect',
     unavailable: 'The teacher cabinet is unavailable right now. Your training works as usual.',
     appNames: _apps,
+    signInTitle: 'Sign in',
+    signInHint: 'One account for PsyGames, Chess & Go, TypeFree and Smart Alarm. Your training stays on this device until you connect to a teacher.',
+    signInGoogle: 'Continue with Google',
+    emailLabel: 'E-mail',
+    sendLink: 'Send sign-in link',
+    linkSent: 'Check your mail and open the link on this device.',
+    signOut: 'Sign out',
+    signInFailed: 'Could not sign in. Try again.',
   );
 
   static const ru = CoachStrings(
@@ -107,5 +124,13 @@ class CoachStrings {
     disconnect: 'Отключиться',
     unavailable: 'Кабинет преподавателя сейчас недоступен. Тренировки работают как обычно.',
     appNames: _apps,
+    signInTitle: 'Вход',
+    signInHint: 'Один аккаунт для PsyGames, Chess & Go, TypeFree и Smart Alarm. Тренировки остаются на устройстве, пока вы не подключитесь к преподавателю.',
+    signInGoogle: 'Войти через Google',
+    emailLabel: 'Почта',
+    sendLink: 'Прислать ссылку для входа',
+    linkSent: 'Проверьте почту и откройте ссылку на этом устройстве.',
+    signOut: 'Выйти',
+    signInFailed: 'Не получилось войти. Попробуйте ещё раз.',
   );
 }

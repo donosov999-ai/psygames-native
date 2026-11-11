@@ -3,6 +3,7 @@
 /// рамку экрана ([CoachFrame]) и подписи ([CoachStrings]); вид и логика кабинета — здесь, одни на всех.
 library;
 
+export 'src/auth.dart';
 export 'src/client.dart';
 export 'src/invite_link.dart';
 export 'src/model.dart';
