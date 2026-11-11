@@ -212,3 +212,10 @@ Readiness sources (read-only; do not edit their project files here):
 /Users/denisonosov/dev/smart-alarm-photo-diary/smart-alarm-flutter/UNIFIED_ACCOUNT_READINESS_REF.md
 Canonical broader plan:
 /Users/denisonosov/dev/psygames-game-lab/ECOSYSTEM_INTEGRATION_PLAN.md
+
+## 0.1.6 (11.11.2026): Google sign-in and coach RPC
+
+- `googleSignInUrl({consent})` — OAuth URL for Google via Supabase Auth (provider enabled in
+  `personal-nzt`), redirect back to the app's own callback.
+- `rpc(function, params)` — only functions from `rpcAllowlist` (`ecosystem_coach_v2`);
+  anything else throws. No raw SDK is exposed. Used by `ecosystem_coach`.

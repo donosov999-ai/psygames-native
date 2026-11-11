@@ -1,0 +1,112 @@
+import 'package:ecosystem_coach/ecosystem_coach.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+/// Подставной сервер: отвечает как `ecosystem_coach_v2`, записывает вызовы.
+class FakeTransport implements CoachTransport {
+  final calls = <(String, Map<String, Object?>)>[];
+  final Map<String, Object? Function(Map<String, Object?>)> answers;
+  FakeTransport(this.answers);
+
+  @override
+  Future<Object?> call(String action, Map<String, Object?> payload) async {
+    calls.add((action, payload));
+    final a = answers[action];
+    if (a == null) throw const CoachException('coach_unavailable');
+    return a(payload);
+  }
+}
+
+const code48 = 'abcdef0123456789abcdef0123456789abcdef0123456789';
+
+void main() {
+  test('ссылка-приглашение: одна форма на 4 приложения, чужая схема и кривой код — отказ', () {
+    final link = CoachInviteLink(appId: 'smart-alarm', code: code48).toUri();
+    expect(link.toString(), 'com.odv999.smartalarm://coach/invite?code=$code48');
+    expect(CoachInviteLink.parse(link, appId: 'smart-alarm')?.code, code48);
+    expect(CoachInviteLink.parse(link, appId: 'psygames'), isNull, reason: 'чужая схема');
+    expect(CoachInviteLink.parse(Uri.parse('com.psygames.app://coach/invite?code=XYZ'), appId: 'psygames'), isNull);
+    expect(CoachInviteLink.parse(Uri.parse('com.psygames.app://coach/join/$code48'), appId: 'psygames'), isNull);
+  });
+
+  test('клиент: принять приглашение — completion добавляется всегда, версия политики coach/2', () async {
+    final t = FakeTransport({'invite_accept': (_) => {'connection_id': 'c1'}});
+    final c = CoachClient(t, appId: 'typerighting');
+    expect(await c.acceptInvite(code: code48, studentName: ' Ваня ', scopes: ['metrics', 'evil'], consent: true), 'c1');
+    final p = t.calls.single.$2;
+    expect(p['app_id'], 'typerighting');
+    expect(p['student_name'], 'Ваня');
+    expect(p['scopes'], ['completion', 'metrics'], reason: 'неизвестная область отброшена');
+    expect(p['policy_version'], 'coach/2');
+  });
+
+  test('клиент: ответ сервера с error — исключение с кодом', () async {
+    final c = CoachClient(FakeTransport({'invite_preview': (_) => {'error': 'coach_invite_unavailable'}}), appId: 'psygames');
+    expect(() => c.previewInvite(code48), throwsA(isA<CoachException>().having((e) => e.code, 'code', 'coach_invite_unavailable')));
+  });
+
+  test('событие: только разрешённые поля, время в UTC, пустые метрики не уходят', () {
+    final e = CoachEvent(eventId: 'e1', kind: 'game', mode: 'schulte', exerciseRef: 'schulte:5', occurredAt: DateTime.utc(2026, 11, 11, 9), metrics: {'score': 10});
+    expect(e.toJson(), {'event_id': 'e1', 'kind': 'game', 'mode': 'schulte', 'exercise_ref': 'schulte:5', 'occurred_at': '2026-11-11T09:00:00.000Z', 'metrics': {'score': 10}});
+  });
+
+  test('модель: события без области errors — null («скрыто»), а не пусто', () {
+    final v = CoachEventView.fromJson({'id': '1', 'app_id': 'psygames', 'kind': 'game', 'metrics': {'score': 5}});
+    expect(v.metrics, {'score': 5});
+    expect(v.errors, isNull);
+  });
+
+  testWidgets('кабинет преподавателя: без сервера — честное «недоступно»', (t) async {
+    await t.pumpWidget(MaterialApp(home: TeacherCabinetScreen(client: CoachClient(FakeTransport({}), appId: 'psygames'))));
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('coach-unavailable')), findsOneWidget);
+  });
+
+  testWidgets('кабинет преподавателя: ученик с двумя приложениями и счётчиками; приглашение — ссылка своей схемы', (t) async {
+    final tr = FakeTransport({
+      'dashboard': (_) => {
+            'profile': {'name': 'Анна'},
+            'students': [
+              {
+                'connection_id': 'c1',
+                'student_name': 'Ваня',
+                'apps': [
+                  {'app_id': 'abstract-hub', 'scopes': ['completion'], 'events': 3},
+                  {'app_id': 'typerighting', 'scopes': ['completion', 'metrics'], 'events': 7},
+                ],
+              },
+            ],
+            'coaches': [],
+          },
+      'invite_create': (_) => {'code': code48, 'expires_at': '2026-11-18T00:00:00Z'},
+    });
+    await t.pumpWidget(MaterialApp(home: TeacherCabinetScreen(client: CoachClient(tr, appId: 'abstract-hub'))));
+    await t.pumpAndSettle();
+    expect(find.text('Ваня'), findsOneWidget);
+    expect(find.textContaining('Chess & Go · 3'), findsOneWidget);
+    expect(find.textContaining('TypeFree · 7'), findsOneWidget);
+    await t.tap(find.byKey(const Key('coach-invite')));
+    await t.pumpAndSettle();
+    expect(find.text('com.abstracthub.app://coach/invite?code=$code48'), findsOneWidget);
+  });
+
+  testWidgets('ученик: без явной галочки согласия «Подключиться» не нажимается; completion нельзя снять', (t) async {
+    final tr = FakeTransport({
+      'invite_preview': (_) => {'coach_name': 'Анна', 'app_id': 'psygames'},
+      'invite_accept': (_) => {'connection_id': 'c9'},
+    });
+    String? done;
+    await t.pumpWidget(MaterialApp(
+        home: AcceptInviteScreen(client: CoachClient(tr, appId: 'psygames'), code: code48, studentName: 'Ваня', onDone: (id) => done = id)));
+    await t.pumpAndSettle();
+    expect(find.text('Анна'), findsOneWidget);
+    expect(t.widget<CheckboxListTile>(find.byKey(const Key('coach-scope-completion'))).onChanged, isNull);
+    expect(t.widget<FilledButton>(find.byKey(const Key('coach-accept'))).onPressed, isNull);
+    await t.tap(find.byKey(const Key('coach-consent')));
+    await t.pump();
+    await t.tap(find.byKey(const Key('coach-accept')));
+    await t.pumpAndSettle();
+    expect(done, 'c9');
+    expect(tr.calls.last.$2['consent'], true);
+  });
+}
