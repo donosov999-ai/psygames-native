@@ -31,9 +31,10 @@ import 'session_report.dart';
 import 'shared_state.dart';
 
 class PsyGamesCoach {
-  PsyGamesCoach(this.client, {this.auth, DateTime Function()? clock, String Function()? newId})
+  PsyGamesCoach(this.client, {this.auth, this.state, DateTime Function()? clock, String Function()? newId})
       : _clock = clock ?? DateTime.now,
-        _newId = newId ?? _uuid;
+        _newId = newId ?? _uuid,
+        role = ValueNotifier(state?.get(roleKey) == CoachRole.teacher.name ? CoachRole.teacher : CoachRole.student);
 
   static const enabled = bool.fromEnvironment('PSY_COACH');
   static const _url = String.fromEnvironment('PSY_SUPABASE_URL', defaultValue: 'https://iuvvheeocobhiothfgei.supabase.co');
@@ -41,6 +42,9 @@ class PsyGamesCoach {
   static const _key = String.fromEnvironment('PSY_SUPABASE_PUBLISHABLE_KEY',
       defaultValue: 'sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1');
   static const signedInKey = 'psygames_coach_signed_in';
+
+  /// Режим интерфейса: ученик (главная с играми и заданиями) или преподаватель (главная ведёт в кабинет).
+  static const roleKey = 'psygames_coach_role';
 
   /// Кабинет приложения; null — выключен флагом.
   static PsyGamesCoach? instance;
@@ -67,11 +71,24 @@ class PsyGamesCoach {
     );
     // Сессию поднимаем, только если человек уже входил: до первого входа кабинет в сеть не ходит.
     if (!shared && state.get(signedInKey) == '1') unawaited(auth.restore());
-    return PsyGamesCoach(CoachClient(AccountCoachTransport(acc), appId: 'psygames'), auth: auth)..observe();
+    return PsyGamesCoach(CoachClient(AccountCoachTransport(acc), appId: 'psygames'), auth: auth, state: state)..observe();
   }
 
   final CoachClient client;
   final AccountCoachAuth? auth;
+  final SharedState? state;
+
+  /// Текущий режим; меняется переключателем в настройках, главная слушает его.
+  final ValueNotifier<CoachRole> role;
+
+  void setRole(CoachRole r) {
+    role.value = r;
+    if (r == CoachRole.teacher) {
+      state?.set(roleKey, r.name);
+    } else {
+      state?.remove(roleKey);
+    }
+  }
 
   /// Растёт после каждой отправленной партии: карточка заданий перечитывает прогресс.
   final results = ValueNotifier<int>(0);
@@ -195,8 +212,8 @@ class PsyGamesCoach {
     return null;
   }
 
-  /// Подписи v2 (группы, уроки, задания, отчёты): русский — для ru, остальные — английский.
-  static CoachV2Strings get v2Strings => L.locale == 'ru' ? CoachV2Strings.ru : CoachV2Strings.en;
+  /// Подписи v2 (группы, уроки, задания, отчёты) на языке приложения — 12 языков из пакета.
+  static CoachV2Strings get v2Strings => CoachV2Strings.forLocale(L.locale);
 
   /// Название тренировки: игры PsyGames — по каталогу на языке приложения; чужие приложения — как пришло.
   static String eventTitle(CoachEventView e) {
@@ -213,28 +230,74 @@ class PsyGamesCoach {
             client: client, catalog: stepCatalog(), strings: strings, v2: v2Strings, frame: psyCoachFrame, auth: auth, lang: L.locale)));
   }
 
-  /// Карточка «Задания от преподавателя» для главной. Без входа или без заданий — пустое место.
-  /// [onOpen] — переход по маршруту игры, как у плиток главной.
-  Widget studentCard({required ValueChanged<String> onOpen}) => FutureBuilder<void>(
+  /// Карточка главной. Ученик — «Задания от преподавателя» (без входа или заданий — пусто);
+  /// преподаватель — вход в кабинет вместо заданий. [onOpen] — переход по маршруту игры, как у плиток.
+  Widget studentCard({required ValueChanged<String> onOpen}) => ValueListenableBuilder<CoachRole>(
+        valueListenable: role,
+        builder: (context, mode, _) => mode == CoachRole.teacher ? _teacherCard(context) : _studentPanel(onOpen),
+      );
+
+  Widget _skinned(BuildContext context, Widget child) =>
+      ChromeArt.aurora(context) ? CoachSkinScope(skin: psyCoachSkin, child: child) : child;
+
+  Widget _teacherCard(BuildContext context) {
+    final v2 = v2Strings;
+    final t = Theme.of(context).textTheme;
+    return _skinned(
+      context,
+      Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: CoachPanel(
+          key: const ValueKey('home-coach-teacher'),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Icon(Icons.school_outlined, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 8),
+                Expanded(child: Text(strings.teacherTitle, style: t.titleMedium)),
+              ]),
+              const SizedBox(height: 6),
+              Text(v2.roleHint, style: t.bodySmall),
+              const SizedBox(height: 10),
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: FilledButton.icon(
+                  key: const ValueKey('home-coach-open'),
+                  onPressed: () => openTeacher(context),
+                  icon: const Icon(Icons.groups_outlined),
+                  label: Text(v2.openCabinet),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _studentPanel(ValueChanged<String> onOpen) => FutureBuilder<void>(
         future: loadGameNames(),
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) return const SizedBox.shrink();
-          final panel = Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: StudentAssignmentsPanel(
-              key: const ValueKey('home-coach-tasks'),
-              client: client,
-              catalog: stepCatalog(),
-              auth: auth,
-              strings: v2Strings,
-              refresh: results,
-              onStart: (task, i) {
-                final route = routeFor(task.lesson.steps[i].kind.ref);
-                if (route != null) onOpen(route);
-              },
+          return _skinned(
+            context,
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: StudentAssignmentsPanel(
+                key: const ValueKey('home-coach-tasks'),
+                client: client,
+                catalog: stepCatalog(),
+                auth: auth,
+                strings: v2Strings,
+                refresh: results,
+                onStart: (task, i) {
+                  final route = routeFor(task.lesson.steps[i].kind.ref);
+                  if (route != null) onOpen(route);
+                },
+              ),
             ),
           );
-          return ChromeArt.aurora(context) ? CoachSkinScope(skin: psyCoachSkin, child: panel) : panel;
         },
       );
 

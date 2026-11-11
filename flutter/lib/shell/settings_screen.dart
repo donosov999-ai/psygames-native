@@ -17,6 +17,7 @@ import 'app_look.dart';
 import 'design_template.dart';
 import 'cloud_pilot.dart';
 import 'cloud_settings_screen.dart';
+import 'package:ecosystem_coach/ecosystem_coach.dart' show CoachRole;
 import 'coach_bridge.dart';
 import 'hub_screen.dart' show HubCardTap;
 import 'l10n.dart';
