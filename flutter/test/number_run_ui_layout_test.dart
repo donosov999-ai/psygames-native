@@ -94,7 +94,7 @@ void main() {
             await t.pump(const Duration(milliseconds: 50));
             expect(t.takeException(), isNull);
             // UI-референс Кодекса v1.0 + Денис 11.11.2026: забег во весь экран — дорога занимает всё
-            // поле, HUD лежит на ней сверху (не выше трети поля), пауза одна, плавающая внизу по центру,
+            // поле, HUD лежит на ней сверху (не выше трети поля), пауза одна, плавающая внизу слева (прежнее место),
             // ряда кнопок полос нет.
             final field = t.getRect(find.byKey(const Key('game-field')));
             final road = t.getRect(find.byKey(const Key('nr-road')));
@@ -109,7 +109,7 @@ void main() {
             final pause = t.getRect(find.byKey(const Key('field-only-pause')));
             expect(pause.height, greaterThanOrEqualTo(48));
             expect(pause.bottom, lessThanOrEqualTo(844));
-            expect(pause.center.dx, closeTo(width / 2, 1));
+            expect(pause.left, lessThan(width * .25), reason: 'пауза — на прежнем месте, внизу слева');
             for (final key in ['nr-steer-left', 'nr-steer-center', 'nr-steer-right']) {
               expect(find.byKey(Key(key)), findsNothing, reason: 'ряда кнопок полос нет — только пауза');
             }

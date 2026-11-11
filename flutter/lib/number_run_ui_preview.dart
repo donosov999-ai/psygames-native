@@ -59,10 +59,12 @@ Future<void> main() async {
     };
     // ignore: invalid_use_of_visible_for_testing_member
     // Как решатель: применить перед следующим «×2» (слот один) и перед финишем.
+    // APPLY=late — держать «×2» до финиша (кадр состояния «в запасе»).
+    const late = String.fromEnvironment('APPLY') == 'late';
     numberRunAutoApply = (course, s) =>
         s.reserve != null &&
         (s.nextRow >= course.rows.length - 3 ||
-            (s.nextRow < course.rows.length && course.rows[s.nextRow].station == 'reserve'));
+            (!late && s.nextRow < course.rows.length && course.rows[s.nextRow].station == 'reserve'));
   }
   runApp(
     MaterialApp(

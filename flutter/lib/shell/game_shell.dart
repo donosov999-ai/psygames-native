@@ -108,8 +108,8 @@ class GameShell extends StatelessWidget {
   /*
    * ПАУЗА ВНИЗУ В РЕЖИМЕ [fieldOnly] — решение Дениса для «Числового забега» (11.11.2026): «раннер
    * запускается в полноэкранном режиме, внизу можно оставить только кнопку паузы, и то без тулбара —
-   * просто плавающую». Сверху справа у раннера — полоса пути и таймер, поэтому пауза уходит вниз по
-   * центру; в «Авроре» — та же золотая сфера, что в нижнем ряду. По умолчанию — сверху справа, как было.
+   * просто плавающую»; «паузу двигать в центр не просил — оставить на прежнем месте, слева». Пауза —
+   * внизу слева, где она стоит в нижнем ряду «Авроры»; та же золотая сфера. По умолчанию — сверху справа, как было.
    */
   final bool fieldOnlyPauseBottom;
 
@@ -169,7 +169,7 @@ class GameShell extends StatelessWidget {
           ),
           SafeArea(child: Stack(children: [
             Positioned(top: 8, left: 12, child: _practiceHud(fieldOnly: true)),
-            Positioned(left: 0, right: 0, bottom: 10, child: Center(child: _fieldOnlyPause(context))),
+            Positioned(left: 16, bottom: 10, child: _fieldOnlyPause(context)),
           ])),
         ])),
       );
@@ -186,7 +186,7 @@ class GameShell extends StatelessWidget {
             ),
             Positioned(top: 8, left: 12, child: _practiceHud(fieldOnly: true)),
             if (fieldOnlyPauseBottom)
-              Positioned(left: 0, right: 0, bottom: 10, child: Center(child: _fieldOnlyPause(context)))
+              Positioned(left: 16, bottom: 10, child: _fieldOnlyPause(context))
             else
               Positioned(top: 8, right: 12, child: _fieldOnlyPause(context)),
           ]),
