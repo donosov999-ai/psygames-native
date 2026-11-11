@@ -46,7 +46,7 @@ Color _labelColor(int rgb) => Color(0xFF000000 | rgb);
 
 // Константы и цвета — из runner-scene.mjs.
 const double _lane = 2.4;
-const int _bg = 0x57c7df, _sea = 0x18c4cf, _guardColor = 0x7c3aed, _partColor = 0xd97706;
+const int _guardColor = 0x7c3aed, _partColor = 0xd97706;
 const int _plusColor = 0x443bff, _minusColor = 0xff1839;
 const Map<String, int> _wall = {'−': 0xff4d6d, '+': 0x4f7bff, '×': 0x9b6bff};
 const List<int> _ladder = [
@@ -60,6 +60,37 @@ final int _tilePlus = _rgb(CandyPalette.blue), _tileMinus = _rgb(CandyPalette.re
 final int _tileReserve = _rgb(CandyPalette.violet), _arch = _rgb(CandyPalette.blue), _archPanel = _rgb(CandyPalette.navy);
 final int _gold = _rgb(CandyPalette.gold), _mint = _rgb(CandyPalette.mint);
 const int _stone = 0xece5d8, _stoneDark = 0xe2d9ca, _dash = 0xfffbf3;
+
+// Вода и тёплое небо (реф: бирюзовое море в ряби, голубой зенит, кремовая дымка у горизонта).
+const int _waterBase = 0x1fc0d2, _waterLight = 0xb8f4ef, _zenith = 0x4fb6ea, _horizon = 0xfcefd6, _haze = 0xd4f0ee;
+const double _waterPeriod = 6, _waterDepth = 96, _waterWidth = 110;
+
+/// Рябь: одинаковый рисунок в каждом периоде, поэтому сдвиг плоскости на остаток от периода бесшовен.
+Future<Texture2D> _waterTexture() async {
+  const px = 1024.0, periods = _waterDepth / _waterPeriod, cell = px / periods;
+  final rec = ui.PictureRecorder();
+  final c = Canvas(rec)..drawRect(const Rect.fromLTWH(0, 0, px, px), Paint()..color = _labelColor(_waterBase));
+  final wave = Paint()
+    ..color = _labelColor(_waterLight).withValues(alpha: .55)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 3.2
+    ..strokeCap = StrokeCap.round;
+  final rng = math.Random(11);
+  final marks = [for (var i = 0; i < 26; i++) (rng.nextDouble() * px, rng.nextDouble() * cell, 14 + rng.nextDouble() * 22)];
+  for (var p = 0; p < periods; p++) {
+    for (final (x, y, w) in marks) {
+      final top = p * cell + y;
+      c.drawPath(
+        Path()
+          ..moveTo(x - w, top)
+          ..quadraticBezierTo(x - w / 2, top - 5, x, top)
+          ..quadraticBezierTo(x + w / 2, top + 5, x + w, top),
+        wave,
+      );
+    }
+  }
+  return Texture2D.fromImage(await rec.endRecording().toImage(px.toInt(), px.toInt()));
+}
 
 /// Полукольцо арки в плоскости XY (верх ворот): от +X через +Y к −X, трубка радиуса [tube].
 MeshGeometry _halfTorus(double radius, double tube, {int segments = 20, int sides = 10}) {
@@ -407,8 +438,9 @@ class _Road3dState extends State<Road3d> {
   // Кольцо под числом и мятный след (реф Кодекса: число едет по светящемуся следу).
   late final Node _ring;
   final List<Node> _trail = [];
-  final List<double> _trailX = List.filled(22, 0);
+  final List<double> _trailX = List.filled(40, 0);
   MeshGeometry? _archTop;
+  late Node _water;
 
   final Map<String, MeshGeometry> _boxes = {};
   final Map<int, Material> _mats = {};
@@ -480,16 +512,16 @@ class _Road3dState extends State<Road3d> {
     // Небо и туман — цвет фона веба: дальняя дорога растворяется в нём (Fog 28…68).
     scene.skybox = Skybox(
       GradientSkySource()
-        ..zenithColor = lin(0x8fdcf0)
-        ..horizonColor = lin(_bg)
-        ..groundColor = lin(_sea),
+        ..zenithColor = lin(_zenith)
+        ..horizonColor = lin(_horizon)
+        ..groundColor = lin(_waterBase),
     );
     scene.fog
       ..enabled = true
       ..mode = FogMode.linear
-      ..start = 28
-      ..end = 68
-      ..color = lin(_bg);
+      ..start = 30
+      ..end = 74
+      ..color = lin(_haze);
     scene.directionalLight = DirectionalLight(direction: vm.Vector3(8, -14, -9)..normalize(), intensity: 2.2, castsShadow: true);
     scene.add(_world);
     // Свечение — только у того, что ярче 1 (кольцо под числом), остальная сцена не «плывёт».
@@ -497,7 +529,12 @@ class _Road3dState extends State<Road3d> {
       ..enabled = !_reduced
       ..threshold = 1.0
       ..intensity = .3;
-    _world.add(_boxNode(160, .1, 160, _sea, 0, -6, -30));
+    final water = PhysicallyBasedMaterial(baseColorTexture: await _waterTexture())
+      ..roughnessFactor = .18
+      ..metallicFactor = 0;
+    _water = Node(mesh: Mesh(PlaneGeometry(width: _waterWidth, depth: _waterDepth), water))
+      ..shadowCastingMode = ShadowCastingMode.off;
+    _world.add(_water);
     _startPlatform = _boxNode(7.2, .35, 18, 0xdce1ef, 0, -.22, 0);
     _world.add(_startPlatform);
     _world.add(_hero);
@@ -514,7 +551,7 @@ class _Road3dState extends State<Road3d> {
       ..position = vm.Vector3(0, .03, 0)
       ..shadowCastingMode = ShadowCastingMode.off;
     _hero.add(_ring);
-    final ribbon = CuboidGeometry(vm.Vector3(1, .02, .6));
+    final ribbon = CuboidGeometry(vm.Vector3(1, .02, .34));
     for (var i = 0; i < _trailX.length; i++) {
       final a = .78 * (1 - i / _trailX.length);
       final n = Node(
@@ -1045,7 +1082,7 @@ class _Road3dState extends State<Road3d> {
     _ring
       ..scale = vm.Vector3(rs, 1, rs * .8)
       ..position = vm.Vector3(0, .03 - hy, 0);
-    final follow = moving ? math.min(1.0, dt * course.speed / .55) : 0.0;
+    final follow = moving ? math.min(1.0, dt * course.speed / .32) : 0.0;
     _trailX[0] = hx;
     for (var i = _trailX.length - 1; i > 0; i--) {
       _trailX[i] += (_trailX[i - 1] - _trailX[i]) * (_reduced ? 1 : follow);
@@ -1053,7 +1090,7 @@ class _Road3dState extends State<Road3d> {
     for (var i = 0; i < _trail.length; i++) {
       final w = 1.25 - .45 * i / _trail.length;
       _trail[i]
-        ..position = vm.Vector3(_trailX[i], -.025, .7 + i * .58)
+        ..position = vm.Vector3(_trailX[i], -.025, .6 + i * .32)
         ..scale = vm.Vector3(w, 1, 1)
         ..visible = s.status != RoadStatus.ready || view > 0;
     }
@@ -1061,6 +1098,8 @@ class _Road3dState extends State<Road3d> {
       _stepSparks(dt);
       _stepPopups(dt);
     }
+    // Море едет вместе с дорогой: сдвиг на остаток от периода ряби, плоскость всегда под кадром.
+    _water.position = vm.Vector3(0, -1.6, 12 - _waterDepth / 2 + view % _waterPeriod);
     _startPlatform
       ..position = vm.Vector3(0, -.22, view + 9)
       ..visible = view < 24;
