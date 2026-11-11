@@ -315,7 +315,6 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                 subtitle: Text([
                   e.occurredAt != null ? _date(e.occurredAt) : '${_date(e.receivedAt)} (${s.timeUnknown})',
                   if (widget.metricsLine(e, s).isNotEmpty) widget.metricsLine(e, s),
-                  if (e.errors == null) '${s.scopeErrors}: ${s.hiddenByStudent}',
                 ].join('\n')),
               ),
         ],
@@ -328,9 +327,12 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 /// Ученик открыл ссылку-приглашение: кто приглашает, что будет видно (галочки областей), явное согласие.
 class AcceptInviteScreen extends StatefulWidget {
   const AcceptInviteScreen({super.key, required this.client, required this.code, this.studentName = '',
-      this.strings = CoachStrings.en, this.frame = defaultCoachFrame, this.onDone, this.auth});
+      this.strings = CoachStrings.en, this.frame = defaultCoachFrame, this.onDone, this.auth, this.scopes = coachScopes});
   final CoachClient client;
   final CoachAuth? auth;
+
+  /// Какие области есть у приложения (у Smart Alarm нет «ошибок»). completion — всегда.
+  final List<String> scopes;
   final String code, studentName;
   final CoachStrings strings;
   final CoachFrame frame;
@@ -343,7 +345,8 @@ class AcceptInviteScreen extends StatefulWidget {
 class _AcceptInviteScreenState extends State<AcceptInviteScreen> {
   InvitePreview? _preview;
   String? _error;
-  final _scopes = <String>{'completion', 'metrics'};
+  // По умолчанию преподаватель видит тренировки (history): без неё, пока нет заданий, он не видит ничего.
+  late final _scopes = <String>{'completion', 'metrics', 'history'}.where(widget.scopes.contains).toSet();
   bool _consent = false;
   late final _name = TextEditingController(text: widget.studentName);
 
@@ -394,7 +397,7 @@ class _AcceptInviteScreenState extends State<AcceptInviteScreen> {
                 const SizedBox(height: 16),
                 TextField(key: const Key('coach-student-name'), controller: _name, maxLength: 120,
                     decoration: InputDecoration(labelText: s.studentName)),
-                for (final sc in coachScopes)
+                for (final sc in widget.scopes)
                   CheckboxListTile(
                     key: Key('coach-scope-$sc'),
                     value: _scopes.contains(sc) || sc == 'completion',

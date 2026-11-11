@@ -203,4 +203,21 @@ void main() {
         'errors': {'е': 2, 'ы': 5, 'ж': 1, 'щ': 1}});
     expect(coachMetricsLine(keys, CoachStrings.ru), 'WPM 40 · Ошибки 9 (ы×5, е×2, ж×1)');
   });
+
+  testWidgets('согласие: по умолчанию «все тренировки» включены; у приложения без ошибок их нет', (t) async {
+    final tr = FakeTransport({
+      'invite_preview': (_) => {'coach_name': 'Анна', 'app_id': 'smart-alarm'},
+      'invite_accept': (_) => {'connection_id': 'c1'},
+    });
+    await t.pumpWidget(MaterialApp(home: AcceptInviteScreen(
+        client: CoachClient(tr, appId: 'smart-alarm'), code: code48, studentName: 'Ваня', scopes: const ['completion', 'metrics', 'history'])));
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('coach-scope-errors')), findsNothing);
+    expect(t.widget<CheckboxListTile>(find.byKey(const Key('coach-scope-history'))).value, isTrue);
+    await t.tap(find.byKey(const Key('coach-consent')));
+    await t.pump();
+    await t.tap(find.byKey(const Key('coach-accept')));
+    await t.pumpAndSettle();
+    expect((tr.calls.last.$2['scopes'] as List).toSet(), {'completion', 'metrics', 'history'});
+  });
 }
