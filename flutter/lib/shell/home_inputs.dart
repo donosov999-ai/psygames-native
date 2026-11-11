@@ -868,3 +868,32 @@ HomeJson withPageEvents(HomeJson own, HomeJson? page) {
   if (sheet != null && pageSheetPet['kind'] == 'strip') sheet['pet'] = pageSheetPet;
   return {...own, 'toasts': page['toasts'], 'header': header, 'goalSheet': sheet};
 }
+
+/// 🔴 КУПЛЕННОЕ ОФОРМЛЕНИЕ ДЛЯ «АВРОРЫ» (задача 89517ae3, решение Дениса 11.11.2026). Отдельно от
+/// [homeInputsFrom]: тот обязан совпадать с вебом (пробы `home_inputs_*`), а «Авроры» в вебе нет.
+/// Те же данные, что у входа Главной: надетое (`psygames_cosmetics_equipped_<профиль>`), каталог
+/// косметики и картинки профилей. Возвращает только КУПЛЕННОЕ: фото профиля по умолчанию не в счёт.
+({String? background, String? frame, bool accent}) auroraCosmetics(SharedState state, HomeJson inp) {
+  final pid = state.activeProfile;
+  final eq = _map(_parse(state.get('psygames_cosmetics_equipped_$pid')));
+  final cosmetics = [for (final c in (inp['cosmetics'] as List? ?? const [])) _map(c)];
+  HomeJson? equipped(String type) {
+    final id = eq[type];
+    if (!jsTruthy(id)) return null;
+    for (final c in cosmetics) {
+      if (c['id'] == id && c['type'] == type) return c;
+    }
+    return null;
+  }
+
+  final bg = equipped('background')?['value'];
+  final images = _map(inp['profileImages']);
+  final photo = jsTruthy(bg) ? _map(images['$bg'])['bg'] : null;
+  final frame = equipped('frame')?['value'];
+  return (
+    background: photo == null ? null : '$photo',
+    frame: jsTruthy(frame) ? '$frame' : null,
+    // Цвет интерфейса — не в каталоге Главной: id надетого цвета красит тему через `AppLook.accentOf`.
+    accent: jsTruthy(eq['accent']),
+  );
+}

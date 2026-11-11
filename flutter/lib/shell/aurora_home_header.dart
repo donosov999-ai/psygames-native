@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'design_template.dart';
 import 'ion_icon.dart';
 import 'l10n.dart';
+import 'screen_ui.dart' show cssColor;
 import 'tab_chrome.dart';
 import 'walking_pet.dart' show PetFrames, PetSpec;
 
@@ -30,9 +31,13 @@ class AuroraHomeTop extends StatelessWidget {
     required this.onOpen,
     required this.onSwitcher,
     required this.onUpdate,
+    this.frameColor,
   });
 
   final Map<String, Object?> header;
+
+  /// Купленная рамка (магазин, тип frame) — кольцом вокруг Синапса; null — не куплена.
+  final String? frameColor;
   final String origin;
   final ValueChanged<String> onOpen;
   final VoidCallback onSwitcher;
@@ -58,7 +63,23 @@ class AuroraHomeTop extends StatelessWidget {
           'assets/aurora_game_chrome/home_wordmark_pilot.png', fit: BoxFit.contain, width: 150, height: 34,
           errorBuilder: (_, _, _) => Text('PsyGames', style: AuroraTabHeader.titleStyle.copyWith(color: text)))),
       ]),
-      pet: pet == null ? null : PetFrames(spec: pet, size: 38, origin: origin, still: true),
+      pet: pet == null ? null : _framed(PetFrames(spec: pet, size: 38, origin: origin, still: true)),
+    );
+  }
+
+  /// Купленная рамка (магазин, тип frame) — кольцом вокруг Синапса (89517ae3). Не купили — как было.
+  Widget _framed(Widget pet) {
+    final frame = frameColor;
+    if (frame == null || frame.isEmpty) return pet;
+    return Container(
+      key: const ValueKey('home-pet-frame'),
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: cssColor(frame), width: 2.5),
+        boxShadow: [BoxShadow(color: cssColor(frame).withValues(alpha: .5), blurRadius: 8)],
+      ),
+      child: pet,
     );
   }
 

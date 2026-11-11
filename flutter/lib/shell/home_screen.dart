@@ -192,7 +192,13 @@ class _HomeScreenState extends State<HomeScreen> {
         winW: w,
       );
       _memoKey = key;
-      return _memo = withPageEvents(buildHomeModel(inputs, data.home), page);
+      final model = withPageEvents(buildHomeModel(inputs, data.home), page);
+      // Купленное оформление «Авроры» — поверх модели, сверка с вебом её не касается (89517ae3).
+      final bought = auroraCosmetics(widget.state, data.inputs.inputs);
+      return _memo = {
+        ...model,
+        'auroraCosmetics': {'background': bought.background, 'frame': bought.frame, 'accent': bought.accent},
+      };
     } catch (e) {
       debugPrint('HomeScreen: own model failed, using the page model ($e)');
       _failed = true;
@@ -250,6 +256,7 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
         final bg = _map(m['background']);
+        final bought = _map(m['auroraCosmetics']);
         final toasts = _map(m['toasts']);
         final aurora = Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
         final top = aurora
@@ -259,14 +266,59 @@ class _HomeScreenState extends State<HomeScreen> {
                 onOpen: widget.onOpen,
                 onSwitcher: widget.onSwitcher,
                 onUpdate: () => _act('update'),
+                frameColor: _map(m['auroraCosmetics'])['frame'] as String?,
               )
             : null;
         return Material(
           key: const ValueKey('home-screen'),
           color: web.background,
           child: WebTheme.textDefaults(context, Stack(children: [
-            if (aurora)
-              Positioned.fill(child: DecoratedBox(decoration: AuroraGlass.backdrop(Theme.of(context).brightness == Brightness.dark, lightPilot: true)))
+            if (aurora) ...[
+              Positioned.fill(child: DecoratedBox(decoration: AuroraGlass.backdrop(Theme.of(context).brightness == Brightness.dark, lightPilot: true))),
+              // 🔴 КУПЛЕННОЕ ОФОРМЛЕНИЕ В «АВРОРЕ» (задача 89517ae3, решение Дениса 11.11.2026): фон из магазина
+              // ложится под стекло главной, поверх — вуаль цвета фона «Авроры», чтобы стекло и текст читались.
+              if (bought['background'] != null) ...[
+                Positioned.fill(
+                  child: Image.network(_url(_s(bought['background'])),
+                      key: const ValueKey('home-purchased-bg'), fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox()),
+                ),
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          stops: const [0, .45, 1],
+                          colors: [
+                            AuroraGlass.palette(Theme.of(context).brightness == Brightness.dark).background.withValues(alpha: .35),
+                            AuroraGlass.palette(Theme.of(context).brightness == Brightness.dark).background.withValues(alpha: .6),
+                            AuroraGlass.palette(Theme.of(context).brightness == Brightness.dark).background.withValues(alpha: .85),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+              // Купленный цвет интерфейса — налётом сверху, как в Classic (18–30 %).
+              if (bought['accent'] == true)
+                Positioned(
+                  key: const ValueKey('home-accent-tint'),
+                  top: 0, left: 0, right: 0, height: 260,
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Theme.of(context).colorScheme.primary.withValues(alpha: .3), Theme.of(context).colorScheme.primary.withValues(alpha: 0)],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ]
             else if (bg['image'] != null)
               Positioned.fill(child: Image.network(_url(_s(bg['image'])), fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox())),
             // Налёт цветом темы (18 / 30 %) — показывает купленный цвет интерфейса.
