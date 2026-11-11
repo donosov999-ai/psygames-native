@@ -123,8 +123,13 @@ void main() {
       await t.pumpAndSettle();
       expect(find.byKey(const Key('level-map')), findsOneWidget);
       expect(find.byKey(const Key('level-stars-1')), findsOneWidget, reason: 'звёзды из общей записи');
-      expect(find.text('${L.t('level')} 4'), findsOneWidget, reason: 'лестница без потолка — без «из 999»');
+      expect(find.textContaining('/'), findsNothing, reason: 'лестница без потолка — в HUD без «/999»');
+      expect(find.byKey(const Key('level-map-play')), findsOneWidget, reason: 'кнопки карты — в общем тулбаре каркаса');
+      // Своих секторов игра не дала — общие по 10 уровней с названием из словаря.
+      expect(find.descendant(of: find.byKey(const Key('level-sector-1')), matching: find.text(L.t('levelSector1'))), findsOneWidget);
       final before = _Game.builds;
+      await t.ensureVisible(find.byKey(const Key('level-node-2')));
+      await t.pumpAndSettle();
       await t.tap(find.byKey(const Key('level-node-2')));
       await t.pumpAndSettle();
       expect(await store.readInt('probe.level'), 2);

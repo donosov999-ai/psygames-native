@@ -22,6 +22,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'aurora_glass.dart';
+import 'aux_action.dart';
+import 'game_shell.dart';
+import 'level_ladder.dart' show LevelSector;
 import 'chrome_art.dart';
 import 'game_colors.dart';
 import 'l10n.dart';
@@ -42,6 +45,25 @@ Future<void> saveLevelStars(SharedState state, String gameId, int level, int sta
   await state.set(_starsKey(state, gameId), encodeLevelStars(map));
 }
 
+/// Ключи общих названий — литералами: встраиватель переводов (`embed-l10n.mjs`) берёт только видимые ключи.
+const _sectorKeys = [
+  'levelSector1', 'levelSector2', 'levelSector3', 'levelSector4', 'levelSector5', //
+  'levelSector6', 'levelSector7', 'levelSector8', 'levelSector9', 'levelSector10',
+];
+
+/// Секторы по умолчанию: по 10 уровней, общие игровые названия (10 имён, дальше — по кругу с «II», «III»).
+List<LevelSector> defaultLevelSectors(int last, {int size = 10}) {
+  const roman = ['', ' II', ' III', ' IV', ' V', ' VI', ' VII', ' VIII', ' IX', ' X'];
+  return [
+    for (var i = 0, from = 1; from <= last; i++, from += size)
+      LevelSector(
+        from: from,
+        to: math.min(last, from + size - 1),
+        name: '${L.t(_sectorKeys[i % 10])}${roman[math.min(i ~/ 10, roman.length - 1)]}',
+      ),
+  ];
+}
+
 /// Открыть карту; вернёт выбранный пройденный уровень или null (закрыли / нажали текущий).
 ///
 /// 🔴 ВИД — «ТРОПИНКА» КАК В ИГРАХ-САГАХ, В ЦВЕТАХ И МАТЕРИАЛЕ ТЕМЫ (Денис 11.11.2026: «надо к такой
@@ -55,18 +77,28 @@ Future<int?> showLevelMap(
   required int last,
   Map<int, int> stars = const {},
   bool open = false,
+  List<LevelSector>? sectors,
 }) {
+  final top = last < best ? best : last;
   return Navigator.of(context).push<int>(MaterialPageRoute(
     fullscreenDialog: true,
-    builder: (ctx) => _LevelMap(current: current, best: best, last: last, stars: stars, open: open),
+    builder: (ctx) => _LevelMap(
+      current: current,
+      best: best,
+      last: last,
+      stars: stars,
+      open: open,
+      sectors: [for (final s in sectors ?? defaultLevelSectors(top)) if (s.from <= top) s],
+    ),
   ));
 }
 
 class _LevelMap extends StatefulWidget {
-  const _LevelMap({required this.current, required this.best, required this.last, required this.stars, this.open = false});
+  const _LevelMap({required this.current, required this.best, required this.last, required this.stars, this.open = false, this.sectors = const []});
 
   final int current, best, last;
   final Map<int, int> stars;
+  final List<LevelSector> sectors;
 
   /// Лестница без потолка: заголовок «Уровень N» без «из …», впереди — несколько закрытых узлов.
   final bool open;
@@ -111,17 +143,31 @@ class _MapColors {
 }
 
 class _LevelMapState extends State<_LevelMap> {
-  static const _step = 104.0, _bottomPad = 110.0, _topPad = 150.0, _node = 58.0, _currentNode = 72.0;
+  static const _step = 110.0, _bottomPad = 150.0, _topPad = 150.0, _node = 58.0, _currentNode = 72.0, _gap = 76.0;
   final _scroll = ScrollController();
   bool _placed = false;
 
   int get _last => widget.last < widget.best ? widget.best : widget.last;
-  double get _height => _bottomPad + (_last - 1) * _step + _topPad;
+  /// Начала секторов после первого: перед каждым — зазор под плашку с названием.
+  late final Set<int> _starts = {for (final s in widget.sectors) if (s.from > 1) s.from};
+  double get _height => _bottomPad + (_last - 1) * _step + _gapsUpTo(_last) + _topPad;
+  double _gapsUpTo(int n) => _starts.where((s) => s <= n).length * _gap;
+  double _yOf(int n) => _height - _bottomPad - (n - 1) * _step - _gapsUpTo(n);
 
-  /// Центр узла n (1…последний) в координатах полотна: снизу вверх, змейкой.
+  /// Центр узла n (1…последний) в координатах полотна: снизу вверх, ЗМЕЙКОЙ — дорога ходит от края
+  /// к краю (Денис 11.11: «более извилистую… змейкой»): четверть оборота синуса на узел, размах —
+  /// почти вся ширина за вычетом узла и звёзд.
   Offset _at(int n, double width) {
-    final amp = math.min(width * .28, 118.0);
-    return Offset(width / 2 + amp * math.sin((n - 1) * .85), _height - _bottomPad - (n - 1) * _step);
+    final amp = math.max(0.0, math.min(width / 2 - 70, 170.0));
+    return Offset(width / 2 + amp * math.sin((n - 1) * math.pi / 2.6), _yOf(n));
+  }
+
+  void _toCurrent() {
+    if (!_scroll.hasClients) return;
+    final viewport = _scroll.position.viewportDimension;
+    final target = _height - _yOf(widget.current) - viewport / 2;
+    _scroll.animateTo(target.clamp(0.0, _scroll.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 450), curve: Curves.easeOutCubic);
   }
 
   @override
@@ -136,7 +182,7 @@ class _LevelMapState extends State<_LevelMap> {
     _placed = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scroll.hasClients) return;
-      final target = _bottomPad + (widget.current - 1) * _step - viewport / 2;
+      final target = _height - _yOf(widget.current) - viewport / 2;
       _scroll.jumpTo(target.clamp(0.0, _scroll.position.maxScrollExtent));
     });
   }
@@ -144,77 +190,76 @@ class _LevelMapState extends State<_LevelMap> {
   @override
   Widget build(BuildContext context) {
     final c = _MapColors(context);
-    final title = widget.open ? '${L.t('level')} ${widget.current}' : L.f('levelOfMax', {'n': '${widget.current}', 'max': '$_last'});
-    return Scaffold(
-      backgroundColor: c.aurora ? c.p.background : c.scheme.surface,
-      body: DecoratedBox(
-        decoration: c.aurora ? AuroraGlass.backdrop(c.dark) : BoxDecoration(color: c.scheme.surface),
-        child: SafeArea(
-          child: Column(children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 8, 14, 4),
-              child: Container(
-                decoration: c.aurora
-                    ? AuroraGlass.chrome(c.dark)
-                    : BoxDecoration(color: c.scheme.surfaceContainerHigh, borderRadius: BorderRadius.circular(22)),
-                padding: const EdgeInsets.fromLTRB(18, 10, 8, 10),
-                child: Row(children: [
-                  Icon(Icons.map_outlined, color: c.aurora ? c.p.gold : c.scheme.primary, size: 26),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(title,
-                        key: const Key('level-map-title'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: c.text)),
+    final levelValue = widget.open ? '${widget.current}' : '${widget.current}/$_last';
+    // 🔴 ШАПКА И НИЖНИЙ РЯД — ОБЩИЕ, КАРКАСА (канон APP_CHROME_DESIGN_STANDARD_REF.md §1, §3): карта — экран
+    // на [GameShell], как любая игра. Своей шапки и своего тулбара у карты нет (ошибка 11.11, Денис:
+    // «верхний ты тоже изменил… правило дизайна читал?»). Кнопки карты — в общий тулбар через [AuxBar].
+    return GameShell(
+      title: L.t('levelMap'),
+      hud: [HudItem(label: L.t('level'), value: levelValue, icon: Icons.trending_up)],
+      levelMap: false,
+      auroraTransparentField: true,
+      auxRow: AuxBar(children: [
+        AuxAction(key: const Key('level-map-current'), icon: Icons.my_location_rounded, label: L.t('level'), onPressed: _toCurrent),
+        AuxAction(key: const Key('level-map-play'), icon: Icons.play_arrow_rounded, label: L.t('start'), onPressed: () => Navigator.of(context).pop()),
+      ]),
+      field: (context, _) => Column(children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 6, 20, 4),
+          child: Text(L.t('tapNodeToReplay'), textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: c.textSoft)),
+        ),
+        Expanded(
+          child: LayoutBuilder(builder: (context, box) {
+            _placeOnCurrent(box.maxHeight);
+            final w = box.maxWidth;
+            return SingleChildScrollView(
+              key: const Key('level-map'),
+              controller: _scroll,
+              reverse: true,
+              child: SizedBox(
+                width: w,
+                height: _height,
+                child: Stack(clipBehavior: Clip.none, children: [
+                  Positioned.fill(
+                    child: CustomPaint(painter: _Road([for (var n = 1; n <= _last; n++) _at(n, w)], widget.best, c)),
                   ),
-                  Semantics(
-                    button: true,
-                    label: MaterialLocalizations.of(context).closeButtonLabel,
-                    child: InkResponse(
-                      key: const Key('level-map-close'),
-                      onTap: () => Navigator.of(context).pop(),
-                      radius: 26,
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: c.aurora ? AuroraGlass.ring(c.dark) : null,
-                        child: Icon(Icons.close_rounded, color: c.aurora ? c.p.gold : c.text, size: 24),
-                      ),
-                    ),
-                  ),
+                  for (final s in widget.sectors) _sectorAt(s, w, c),
+                  for (var n = 1; n <= _last; n++) _nodeAt(n, _at(n, w), c),
                 ]),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-              child: Text(L.t('tapNodeToReplay'), textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: c.textSoft)),
-            ),
-            Expanded(
-              child: LayoutBuilder(builder: (context, box) {
-                _placeOnCurrent(box.maxHeight);
-                final w = box.maxWidth;
-                return SingleChildScrollView(
-                  key: const Key('level-map'),
-                  controller: _scroll,
-                  reverse: true,
-                  child: SizedBox(
-                    width: w,
-                    height: _height,
-                    child: Stack(clipBehavior: Clip.none, children: [
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: _Road([for (var n = 1; n <= _last; n++) _at(n, w)], widget.best, c),
-                        ),
-                      ),
-                      for (var n = 1; n <= _last; n++) _nodeAt(n, _at(n, w), c),
-                    ]),
-                  ),
-                );
-              }),
-            ),
-          ]),
+            );
+          }),
         ),
+      ]),
+    );
+  }
+
+  /// Плашка сектора поперёк дороги — под первым узлом сектора, в зазоре перед ним.
+  Widget _sectorAt(LevelSector s, double w, _MapColors c) {
+    final y = _yOf(s.from) + _step / 2 + (s.from > 1 ? _gap / 2 : 18);
+    final reached = s.from <= widget.best;
+    return Positioned(
+      left: 24,
+      right: 24,
+      top: y - 22,
+      height: 44,
+      child: Container(
+        key: Key('level-sector-${s.from}'),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: c.aurora
+            ? AuroraGlass.panel(c.dark, radius: 16, glow: reached)
+            : BoxDecoration(color: c.scheme.secondaryContainer, borderRadius: BorderRadius.circular(16)),
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Flexible(
+            child: Text(s.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: reached ? c.text : c.textSoft)),
+          ),
+          const SizedBox(width: 10),
+          Text(s.from == s.to ? '${s.from}' : '${s.from}–${s.to}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textSoft)),
+        ]),
       ),
     );
   }
@@ -337,10 +382,11 @@ class _Road extends CustomPainter {
     final path = Path();
     if (pts.isEmpty) return path;
     path.moveTo(pts.first.dx, pts.first.dy);
+    // Сплайн Катмулла — Рома: на развороте дорога идёт дугой, а не прямой между двумя узлами у края.
     for (var i = 0; i < pts.length - 1; i++) {
-      final a = pts[i], b = pts[i + 1];
-      final my = (a.dy + b.dy) / 2;
-      path.cubicTo(a.dx, my, b.dx, my, b.dx, b.dy);
+      final p0 = pts[i == 0 ? 0 : i - 1], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2 < pts.length ? i + 2 : i + 1];
+      final c1 = p1 + (p2 - p0) / 6, c2 = p2 - (p3 - p1) / 6;
+      path.cubicTo(c1.dx, c1.dy, c2.dx, c2.dy, p2.dx, p2.dy);
     }
     return path;
   }

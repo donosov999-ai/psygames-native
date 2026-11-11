@@ -84,7 +84,7 @@ void main() {
     ];
     final ladderSteps = [boards, ...games].reduce((a, b) => a > b ? a : b);
     expect(boards, greaterThanOrEqualTo(120), reason: 'лестница не может стать короче 120');
-    expect(tester.widget<Text>(find.byKey(const Key('level-map-title'))).data, L.f('levelOfMax', {'n': '12', 'max': '$ladderSteps'}));
+    expect(find.text('12/$ladderSteps'), findsOneWidget, reason: 'уровень и потолок — в общем HUD каркаса');
     // Закрытый узел (выше лучшего) не нажимается.
     await tester.scrollUntilVisible(find.byKey(const Key('level-node-21')), 120,
         scrollable: find.descendant(of: find.byKey(const Key('level-map')), matching: find.byType(Scrollable)));
@@ -138,6 +138,9 @@ void main() {
     expect(filled(3), findsNWidgets(2));
     expect(filled(4), findsNWidgets(3));
     expect(find.byKey(const Key('level-stars-5')), findsNothing, reason: 'без звёзд — пусто');
+    // Секторы «Судоку» — по вариантам правил своей лестницы (данные игры): 1–8 классика, с 9 — диагональ.
+    expect(find.descendant(of: find.byKey(const Key('level-sector-1')), matching: find.text(variantTitle('none'))), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const Key('level-sector-9')), matching: find.text(variantTitle('diagonal'))), findsOneWidget);
   });
 
   testWidgets('🔴 «Фрактал»: пройденная ступень — переиграть, потолок не тронут', (tester) async {

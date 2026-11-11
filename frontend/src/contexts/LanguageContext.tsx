@@ -3267,6 +3267,16 @@ const translations: Translations = {
   // Переигровка пройденного уровня с тропинки. Обещаем звёзды, а не «повторение»:
   // saveLevelStars хранит лучший результат, поэтому второй заход может только улучшить.
   levelMap: { ru: 'Карта уровней', en: 'Level map' },
+  levelSector1: { ru: 'Разминка', en: 'Warm-up' },
+  levelSector2: { ru: 'Тропа', en: 'Trail' },
+  levelSector3: { ru: 'Роща', en: 'Grove' },
+  levelSector4: { ru: 'Мост', en: 'Bridge' },
+  levelSector5: { ru: 'Ущелье', en: 'Canyon' },
+  levelSector6: { ru: 'Перевал', en: 'Pass' },
+  levelSector7: { ru: 'Крепость', en: 'Fortress' },
+  levelSector8: { ru: 'Башни', en: 'Towers' },
+  levelSector9: { ru: 'Пик', en: 'Peak' },
+  levelSector10: { ru: 'Вершина', en: 'Summit' },
   tapNodeToReplay: { ru: 'Нажми на пройденный узел — переиграть и добрать звёзды', en: 'Tap a completed node to replay it and earn more stars' },
   replayingLevel: { ru: 'Переигрываешь уровень {n} · рекорд {best}', en: 'Replaying level {n} · best {best}' },
   bossTitle: { ru: 'БОСС', en: 'BOSS' },

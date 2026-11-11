@@ -16,9 +16,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await L.load(const String.fromEnvironment('LANG', defaultValue: 'ru'));
   final store = MemoryLevelStore();
-  await store.writeInt('probe.level', 8);
-  await store.writeInt('probe.best', 12);
-  await store.writeStars('probe', {1: 3, 2: 3, 3: 2, 4: 3, 5: 1, 6: 2, 7: 3, 8: 2, 9: 3, 10: 1, 11: 2});
+  await store.writeInt('probe.level', 11);
+  await store.writeInt('probe.best', 14);
+  await store.writeStars('probe', {1: 3, 2: 3, 3: 2, 4: 3, 5: 1, 6: 2, 7: 3, 8: 2, 9: 3, 10: 1, 11: 2, 12: 3, 13: 1});
   const light = bool.fromEnvironment('LIGHT');
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,

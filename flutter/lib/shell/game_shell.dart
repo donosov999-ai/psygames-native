@@ -418,6 +418,7 @@ class GameShell extends StatelessWidget {
           last: ladder.lastLevel ?? (open ? ladder.best + 3 : ladder.maxLevel),
           stars: stars,
           open: open,
+          sectors: ladder.sectors,
         );
         if (picked == null || !context.mounted) return;
         final play = playLevel;

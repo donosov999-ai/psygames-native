@@ -27,6 +27,7 @@ class LevelLadder {
     this.sessionType,
     this.sessionMode,
     this.lastLevel,
+    this.sectors,
   }) : _store = store; // ignore: prefer_initializing_formals — поле приватное, а параметр именованный
 
   final String gameId;
@@ -51,6 +52,11 @@ class LevelLadder {
   /// Последний узел карты уровней, если он не [maxLevel] («Судоку»: потолок — ступень ЗА последней).
   /// Не задан и лестница без потолка (999) — карта показывает пройденное и несколько закрытых узлов.
   final int? lastLevel;
+
+  /// Секторы карты уровней — ДАННЫЕ игры (Денис 11.11: «название секторов могла задать каждая игра сама»):
+  /// «Судоку» — по вариантам правил своей лестницы. Не задано — каркас режет по 10 уровней и
+  /// подписывает общими названиями ([defaultLevelSectors] в `level_map.dart`).
+  final List<LevelSector>? sectors;
 
   int _level = 1;
   int _best = 1;
@@ -386,6 +392,13 @@ class LevelLadder {
     await _store.writeInt('$_levelId.level', _level);
     await _store.writeInt('$_levelId.best', _best);
   }
+}
+
+/// Сектор карты уровней: уровни [from]…[to] (включительно) под одним названием.
+class LevelSector {
+  const LevelSector({required this.from, required this.to, required this.name});
+  final int from, to;
+  final String name;
 }
 
 /// Хранилище уровня. Отдельным интерфейсом, чтобы пробы шли без файлов и без

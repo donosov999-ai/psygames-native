@@ -405,12 +405,32 @@ class _SudokuScreenState extends State<SudokuScreen> {
   /// ступени (212) оставляла человека на ней же, и он переигрывал «Заполнение» уровня 4 по кругу;
   /// генератор включался только из меню паузы. «Ступень за последней» значит «лестница пройдена»:
   /// экран предлагает генератор (`_ladderDoneCard`).
-  LevelLadder _ladderUpTo(int last) =>
-      LevelLadder(gameId: 'sudoku', store: SudokuRoadStore(widget.state, _road), maxLevel: last + 1, lastLevel: last);
+  LevelLadder _ladderUpTo(int last, [SudokuLevels? levels]) =>
+      LevelLadder(gameId: 'sudoku', store: SudokuRoadStore(widget.state, _road), maxLevel: last + 1, lastLevel: last, sectors: _sectors(last, levels ?? _levels));
+
+  /// Секторы карты «Судоку» — отрезки лестницы с одним вариантом правил («Диагональ», «Небоскрёбы»…);
+  /// ступени выше досок (в других играх) — общими секторами каркаса. Данные игры, вид — каркаса.
+  List<LevelSector>? _sectors(int last, SudokuLevels? levels) {
+    if (levels == null) return null;
+    final out = <LevelSector>[];
+    for (var n = 1; n <= levels.lastLevel; n++) {
+      final v = levels.config(n).variant;
+      if (out.isNotEmpty && levels.config(out.last.from).variant == v) {
+        out[out.length - 1] = LevelSector(from: out.last.from, to: n, name: out.last.name);
+      } else {
+        out.add(LevelSector(from: n, to: n, name: variantTitle(v)));
+      }
+    }
+    if (last > levels.lastLevel) {
+      out.addAll(defaultLevelSectors(last).where((s) => s.to > levels.lastLevel).map((s) =>
+          LevelSector(from: math.max(s.from, levels.lastLevel + 1), to: s.to, name: s.name)));
+    }
+    return out;
+  }
 
   Future<void> _boot() async {
     final levels = await SudokuLevels.load();
-    _ladder = _ladderUpTo(levels.lastStep);
+    _ladder = _ladderUpTo(levels.lastStep, levels);
     await _ladder.load();
     await WordokuWords.load();
     // Лестница нужна и в режиме: потолок подсказок берётся по номеру ступени — ровно
@@ -982,7 +1002,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (next == _road || levels == null) return;
     widget.state.set(sudokuRoadKey(widget.state.activeProfile), next.name);
     _road = next;
-    _ladder = _ladderUpTo(levels.lastStep);
+    _ladder = _ladderUpTo(levels.lastStep, levels);
     await _ladder.load();
     if (!mounted) return;
     _deal();
