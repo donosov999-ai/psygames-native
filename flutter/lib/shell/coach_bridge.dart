@@ -87,7 +87,44 @@ class PsyGamesCoach {
     }
   }
 
-  CoachStrings get strings => L.locale == 'ru' ? CoachStrings.ru : CoachStrings.en;
+  /// Подписи — из словаря приложения (12 языков, ключи coach*; ключи буквально — их вырезает embed-l10n).
+  CoachStrings get strings => CoachStrings(
+        teacherTitle: L.t('coachTeacherTitle'),
+        studentTitle: L.t('coachStudentTitle'),
+        yourName: L.t('coachYourName'),
+        studentName: L.t('coachStudentName'),
+        saveProfile: L.t('coachSaveProfile'),
+        noStudents: L.t('coachNoStudents'),
+        invite: L.t('coachInvite'),
+        inviteReady: L.t('coachInviteReady'),
+        copyLink: L.t('coachCopyLink'),
+        copied: L.t('coachCopied'),
+        trainings: L.t('coachTrainings'),
+        noTrainings: L.t('coachNoTrainings'),
+        timeUnknown: L.t('coachTimeUnknown'),
+        hiddenByStudent: L.t('coachHiddenByStudent'),
+        myCoaches: L.t('coachStudentTitle'),
+        noCoaches: L.t('coachNoCoaches'),
+        acceptTitle: L.t('coachAcceptTitle'),
+        acceptButton: L.t('coachAcceptButton'),
+        consentText: L.t('coachConsentText'),
+        scopeCompletion: L.t('coachScopeCompletion'),
+        scopeMetrics: L.t('coachScopeMetrics'),
+        scopeErrors: L.t('coachScopeErrors'),
+        scopeHistory: L.t('coachScopeHistory'),
+        revoke: L.t('coachRevoke'),
+        disconnect: L.t('coachDisconnect'),
+        unavailable: L.t('coachUnavailable'),
+        appNames: CoachStrings.en.appNames,
+        signInTitle: L.t('coachSignInTitle'),
+        signInHint: L.t('coachSignInHint'),
+        signInGoogle: L.t('coachSignInGoogle'),
+        emailLabel: L.t('coachEmailLabel'),
+        sendLink: L.t('coachSendLink'),
+        linkSent: L.t('coachLinkSent'),
+        signOut: L.t('coachSignOut'),
+        signInFailed: L.t('coachSignInFailed'),
+      );
 
   Future<void> openTeacher(BuildContext context) => Navigator.of(context).push<void>(MaterialPageRoute(
       builder: (_) => TeacherCabinetScreen(client: client, strings: strings, frame: psyCoachFrame, auth: auth)));
