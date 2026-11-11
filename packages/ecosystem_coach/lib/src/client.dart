@@ -67,7 +67,7 @@ class CoachClient {
       'code': code,
       'student_name': studentName.trim(),
       'consent': consent,
-      'scopes': _withCompletion(scopes),
+      'scopes': _withCompletion(scopes, appId),
       'policy_version': coachPolicyVersion,
     });
     return m['connection_id'] as String;
@@ -77,7 +77,7 @@ class CoachClient {
       _call('consent_update', {
         'connection_id': connectionId,
         'app_id': app,
-        'scopes': _withCompletion(scopes),
+        'scopes': _withCompletion(scopes, app),
         'policy_version': coachPolicyVersion,
         'consent': true,
       });
@@ -96,6 +96,6 @@ class CoachClient {
   Future<SubmitResult> submit(CoachEvent event) async =>
       SubmitResult.fromJson(await _call('result_submit', {'app_id': appId, 'event': event.toJson()}));
 
-  static List<String> _withCompletion(List<String> scopes) =>
-      {'completion', ...scopes.where(coachScopes.contains)}.toList();
+  static List<String> _withCompletion(List<String> scopes, String app) =>
+      {'completion', ...scopes.where(coachScopesFor(app).contains)}.toList();
 }

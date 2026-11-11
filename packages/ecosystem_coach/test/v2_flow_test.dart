@@ -165,4 +165,13 @@ void main() {
     expect(find.byKey(const Key('coach-student-tasks')), findsNothing);
     expect(tester.takeException(), isNull);
   });
+
+  test('Fudao: пятое приложение — свои области согласия, чужие отбрасываются', () async {
+    final t = FakeTransport({'invite_accept': (_) => {'connection_id': 'c9'}});
+    final client = CoachClient(t, appId: 'fudao');
+    await client.acceptInvite(code: 'a' * 48, studentName: 'Клиент', scopes: ['birth_data', 'metrics', 'charts'], consent: true);
+    expect(t.calls.single.$2['scopes'], ['completion', 'birth_data', 'charts']);
+    expect(coachApps['fudao'], 'com.odv999.fydao');
+    expect(CoachStrings.ru.scope('diary_shared'), contains('дневника'));
+  });
 }

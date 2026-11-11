@@ -7,10 +7,18 @@ const coachApps = <String, String>{
   'abstract-hub': 'com.abstracthub.app',
   'smart-alarm': 'com.odv999.smartalarm',
   'typerighting': 'pro.typefree.app',
+  'fudao': 'com.odv999.fydao',
 };
 
 /// Области согласия ученика. `completion` обязательна.
 const coachScopes = ['completion', 'metrics', 'errors', 'history'];
+
+/// Области согласия Fudao (решение Дениса 11.11.2026): данные рождения, карты, переписка по разборам,
+/// переданные записи дневника. `completion` обязательна, как у всех.
+const coachFudaoScopes = ['completion', 'birth_data', 'charts', 'readings', 'diary_shared'];
+
+/// Области согласия приложения: у Fudao свои, у остальных — общие четыре.
+List<String> coachScopesFor(String appId) => appId == 'fudao' ? coachFudaoScopes : coachScopes;
 
 /// Версия текста согласия coach/2 (одна на 4 приложения; перечень полей — у каждого свой).
 const coachPolicyVersion = 'coach/2';

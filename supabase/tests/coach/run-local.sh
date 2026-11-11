@@ -7,6 +7,7 @@ PG_BIN=/opt/homebrew/opt/postgresql@17/bin
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 MIG="$HERE/../../migrations/20261111120000_ecosystem_coach_v2.sql"
 MIG3="$HERE/../../migrations/20261111180000_ecosystem_coach_v3.sql"
+MIG4="$HERE/../../migrations/20261111200000_ecosystem_coach_fudao.sql"
 TMP="$(mktemp -d /tmp/coach2.XXXXXXXX)"
 export PGDATA="$TMP/data" PGHOST="$TMP/socket" PGPORT=55433 PGUSER=postgres PGDATABASE=coach_test
 unset PGHOSTADDR PGSERVICE PGPASSWORD PGPASSFILE PGOPTIONS
@@ -19,8 +20,10 @@ mkdir "$PGHOST"
 "$PG_BIN/psql" -X -q -v ON_ERROR_STOP=1 -f "$HERE/fixture.sql"
 "$PG_BIN/psql" -X -q -v ON_ERROR_STOP=1 -f "$MIG"
 "$PG_BIN/psql" -X -q -v ON_ERROR_STOP=1 -f "$MIG3"
+"$PG_BIN/psql" -X -q -v ON_ERROR_STOP=1 -f "$MIG4"
 # coach/2 идёт через новый вход coach/3: старые действия обязаны работать как раньше.
 "$PG_BIN/psql" -X -q -v ON_ERROR_STOP=1 -f "$HERE/flow.sql" 2>&1 | grep -E "ok - |FAIL|ERROR" || true
 "$PG_BIN/psql" -X -q -v ON_ERROR_STOP=1 -v actor_id=00000000-0000-0000-0000-000000000002 -f "$HERE/add-actor.sql"
 "$PG_BIN/psql" -X -q -v ON_ERROR_STOP=1 -f "$HERE/flow3.sql" 2>&1 | grep -E "ok - |FAIL|ERROR" || true
+"$PG_BIN/psql" -X -q -v ON_ERROR_STOP=1 -f "$HERE/flow4.sql" 2>&1 | grep -E "ok - |FAIL|ERROR" || true
 "$PG_BIN/psql" -X -At -v ON_ERROR_STOP=1 -c "select 'PASS: '||count(*)||' проверок' from test.checks"

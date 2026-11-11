@@ -111,3 +111,12 @@ How to connect v2 (after steps 1–7 above):
    Without a skin the cards are Material `Card`s. Reference: PsyGames `psyCoachFrame` / `psyCoachSkin` in `coach_bridge.dart`.
 5. Templates for your app: send their `ref`s and titles to psygames-claude-mac — they are seeded server-side
    (`programs.is_template`, `i18n.<lang>.title/goal/steps`). PsyGames has 2 now.
+
+## Fudao — the fifth app (Denis 11.11.2026)
+
+`app_id = 'fudao'`, scheme `com.odv999.fydao` (invite `com.odv999.fydao://coach/invite?code=<48 hex>`, NOT `/join/<code>`).
+Same account, invite, connection and consent. Fudao consent scopes: `completion` (required) + `birth_data`, `charts`,
+`readings`, `diary_shared` (`coachFudaoScopes`, `coachScopesFor('fudao')`); scopes of the other apps are rejected for
+Fudao and vice versa (server check + `require_scopes` by `app_id`). Migration `20261111200000_ecosystem_coach_fudao.sql`,
+LIVE in `personal-nzt` (local 100 checks; prod smoke with rollback passed). Readings, materials, specialist notes and
+suggested steps are Fudao's own objects next to the connection — not in this schema.
