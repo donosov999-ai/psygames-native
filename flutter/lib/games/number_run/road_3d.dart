@@ -529,7 +529,7 @@ class _Road3dState extends State<Road3d> {
     scene.add(_world);
     // Свечение — только у того, что ярче 1 (кольцо под числом), остальная сцена не «плывёт».
     scene.postProcess.bloom
-      ..enabled = !_reduced
+      ..enabled = !_reduced && !const bool.fromEnvironment('NR_NO_BLOOM')
       ..threshold = 1.0
       ..intensity = .3;
     final water = PhysicallyBasedMaterial(baseColorTexture: await _waterTexture())
@@ -579,7 +579,8 @@ class _Road3dState extends State<Road3d> {
     _counter = _labels.node(' ', const _LabelSpec(background: 0x78350f, font: 120), w: 1.9, h: .8)..visible = false;
     _world.add(_counter);
     try {
-      await _loadEnvironment();
+      // Замер стоимости кадра: NR_NO_ENV / NR_NO_BLOOM выключают окружение и свечение (стенд, A/B).
+      if (!const bool.fromEnvironment('NR_NO_ENV')) await _loadEnvironment();
     } catch (e, st) {
       // Без окружения игра та же — дорога, числа, вода; модели — украшение.
       debugPrint('number-run env: $e\n$st');

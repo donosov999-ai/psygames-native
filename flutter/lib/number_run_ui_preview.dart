@@ -3,6 +3,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'games/number_run/screen.dart';
@@ -65,6 +66,21 @@ Future<void> main() async {
         s.reserve != null &&
         (s.nextRow >= course.rows.length - 3 ||
             (!late && s.nextRow < course.rows.length && course.rows[s.nextRow].station == 'reserve'));
+  }
+  // Замер частоты кадров: каждые 120 кадров — средний и худший интервал (FPS=true).
+  if (const bool.fromEnvironment('FPS')) {
+    final spans = <double>[];
+    SchedulerBinding.instance.addTimingsCallback((timings) {
+      for (final t in timings) {
+        spans.add(t.totalSpan.inMicroseconds / 1000);
+      }
+      if (spans.length >= 120) {
+        spans.sort();
+        final avg = spans.reduce((a, b) => a + b) / spans.length;
+        debugPrint('nr-fps avg ${avg.toStringAsFixed(1)} ms p90 ${spans[(spans.length * .9).floor()].toStringAsFixed(1)} ms worst ${spans.last.toStringAsFixed(1)} ms');
+        spans.clear();
+      }
+    });
   }
   runApp(
     MaterialApp(
