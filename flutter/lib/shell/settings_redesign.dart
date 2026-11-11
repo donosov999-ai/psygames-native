@@ -898,6 +898,23 @@ extension _SettingsRedesign on _SettingsScreenState {
             style: TextStyle(color: _secondary),
           ),
         ),
+      // Кабинет преподавателя (флаг PSY_COACH, поверх облачного пилота): тот же аккаунт.
+      if (PsyGamesCoach.instance case final coach?) ...[
+        _settingsRow(
+          context,
+          key: 'settings-coach-teacher',
+          icon: Icons.school_outlined,
+          title: coach.strings.teacherTitle,
+          onTap: () => coach.openTeacher(context),
+        ),
+        _settingsRow(
+          context,
+          key: 'settings-coach-mine',
+          icon: Icons.people_outline,
+          title: coach.strings.studentTitle,
+          onTap: () => coach.openMyCoaches(context),
+        ),
+      ],
       _settingsRow(
         context,
         key: 'settings-backup-save',

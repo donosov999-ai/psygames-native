@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'games/dots_connect/screen.dart';
 import 'games/digit_span/screen.dart';
 import 'games/one_line/screen.dart';
+import 'shell/coach_bridge.dart';
 import 'shell/default_look.dart';
 import 'shell/app_look.dart';
 import 'shell/asset_server.dart';
@@ -41,7 +42,7 @@ const webBase = String.fromEnvironment(
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final links = PsyGamesCloudRuntime.enabled ? AppLinks() : null;
+  final links = PsyGamesCloudRuntime.enabled || PsyGamesCoach.enabled ? AppLinks() : null;
   final state = await SharedState.open();
   try {
     await PsyGamesCloudRuntime.applyPending(state);
@@ -103,7 +104,10 @@ Future<void> main() async {
     state,
     links?.uriLinkStream,
   );
-  runApp(PsyGamesPilotApp(state: state, server: server, cloud: cloud));
+  // Кабинет преподавателя (флаг PSY_COACH): при облачном пилоте — его аккаунт, иначе свой вход.
+  PsyGamesCoach.instance = PsyGamesCoach.fromEnvironment(state, account: cloud?.account);
+  runApp(PsyGamesPilotApp(state: state, server: server, cloud: cloud,
+      coachLinks: cloud == null ? links?.uriLinkStream : null));
 }
 
 class PsyGamesPilotApp extends StatelessWidget {
@@ -112,11 +116,13 @@ class PsyGamesPilotApp extends StatelessWidget {
     required this.state,
     required this.server,
     this.cloud,
+    this.coachLinks,
   });
 
   final SharedState state;
   final AssetServer server;
   final PsyGamesCloudRuntime? cloud;
+  final Stream<Uri>? coachLinks;
   static final _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
@@ -126,7 +132,7 @@ class PsyGamesPilotApp extends StatelessWidget {
   Widget build(BuildContext context) => CloudLinkHost(
     runtime: cloud,
     navigatorKey: _navigatorKey,
-    child: ListenableBuilder(
+    child: _withCoachLinks(ListenableBuilder(
       listenable: state,
       builder: (context, _) => MaterialApp(
         title: 'PsyGames',
@@ -140,8 +146,15 @@ class PsyGamesPilotApp extends StatelessWidget {
             RepaintBoundary(key: FeedbackHost.shotKey, child: child),
         home: HybridApp(state: state, server: server, cloudPilot: cloud?.pilot),
       ),
-    ),
+    )),
   );
+
+  Widget _withCoachLinks(Widget child) {
+    final coach = PsyGamesCoach.instance;
+    final links = coachLinks;
+    if (coach == null || links == null) return child;
+    return CoachLinkHost(coach: coach, links: links, navigatorKey: _navigatorKey, child: child);
+  }
 }
 
 /// Список того, что есть. Настоящей главной у пилота нет.

@@ -1,0 +1,76 @@
+import 'package:ecosystem_coach/ecosystem_coach.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/coach_bridge.dart';
+import 'package:psygames_flutter/shell/session_report.dart';
+
+class _Transport implements CoachTransport {
+  final sent = <Map<String, Object?>>[];
+  bool fail = false;
+  @override
+  Future<Object?> call(String action, Map<String, Object?> payload) async {
+    if (fail) throw const CoachException('coach_sign_in_required');
+    sent.add(payload);
+    return {'stored': true};
+  }
+}
+
+void main() {
+  final now = DateTime.utc(2026, 11, 11, 12);
+
+  test('кабинет выключен по умолчанию: без флага PSY_COACH его нет', () {
+    expect(PsyGamesCoach.enabled, isFalse);
+  });
+
+  test('проекция партии: только имя игры, уровень, очки, время, ошибки — детали доски не уходят', () {
+    final e = coachEventFromSession({
+      'id': 'r1',
+      'game_type': 'digit_span',
+      'score': 120,
+      'time_seconds': 64,
+      'difficulty': 'hard',
+      'errors': 2,
+      'details': {'ladderLevel': 7, 'board': 'секрет', 'ladderGame': 'sudoku'},
+    }, now: now, newId: () => 'x')!;
+    expect(e.toJson(), {
+      'event_id': 'r1',
+      'kind': 'game',
+      'mode': 'digit_span',
+      'exercise_ref': 'digit_span:hard',
+      'occurred_at': '2026-11-11T12:00:00.000Z',
+      'metrics': {'score': 120, 'time_seconds': 64, 'level': 7},
+      'errors': {'count': 2},
+    });
+  });
+
+  test('проекция: партия зарядки — kind warmup; без id — свой id; без игры — ничего', () {
+    final e = coachEventFromSession({'game_type': 'schulte', 'score': 1, 'details': {'warmup_owner': {'a': 1}}},
+        now: now, newId: () => 'gen')!;
+    expect(e.kind, 'warmup');
+    expect(e.eventId, 'gen');
+    expect(coachEventFromSession({'score': 1}, now: now, newId: () => 'x'), isNull);
+  });
+
+  test('отчёт партии доходит до кабинета; сбой кабинета не роняет сохранение партии', () async {
+    final t = _Transport();
+    final coach = PsyGamesCoach(CoachClient(t, appId: 'psygames'), clock: () => now, newId: () => 'g')..observe();
+    final saved = <String>[];
+    SessionReport.sink = (json) async => saved.add(json);
+    addTearDown(() {
+      SessionReport.sink = null;
+      coach.dispose();
+    });
+    await SessionReport.send(gameType: 'stroop', score: 10, timeSeconds: 30, id: 'id-1');
+    await pumpEventQueue();
+    expect(saved, hasLength(1));
+    expect((t.sent.single['event'] as Map)['event_id'], 'id-1');
+    expect(t.sent.single['app_id'], 'psygames');
+
+    t.fail = true;
+    await SessionReport.send(gameType: 'stroop', score: 11, timeSeconds: 31, id: 'id-2');
+    await pumpEventQueue();
+    expect(saved, hasLength(2), reason: 'партия сохранена, хотя кабинет недоступен');
+
+    coach.dispose();
+    expect(SessionReport.observer, isNull);
+  });
+}

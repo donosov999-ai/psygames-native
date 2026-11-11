@@ -247,7 +247,7 @@ packages:
       path: "../packages/ecosystem_account"
       relative: true
     source: path
-    version: "0.1.5"
+    version: "0.1.6"
   ecosystem_cloud:
     dependency: "direct main"
     description:
@@ -255,6 +255,13 @@ packages:
       relative: true
     source: path
     version: "0.1.1"
+  ecosystem_coach:
+    dependency: "direct main"
+    description:
+      path: "../packages/ecosystem_coach"
+      relative: true
+    source: path
+    version: "0.1.0"
   fake_async:
     dependency: transitive
     description:

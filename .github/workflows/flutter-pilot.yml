@@ -21,6 +21,7 @@ on:
       - 'scripts/tests/test_android_16k.py'
       - 'packages/practice_kit/**'
       - 'packages/ecosystem_account/**'
+      - 'packages/ecosystem_coach/**'
       - 'packages/ecosystem_cloud/**'
       - 'scripts/cloud-support/**'
       - 'supabase/functions/ecosystem-account-delete/**'
@@ -39,6 +40,7 @@ on:
       - 'scripts/tests/test_android_16k.py'
       - 'packages/practice_kit/**'
       - 'packages/ecosystem_account/**'
+      - 'packages/ecosystem_coach/**'
       - 'packages/ecosystem_cloud/**'
       - 'scripts/cloud-support/**'
       - 'supabase/functions/ecosystem-account-delete/**'
@@ -138,6 +140,13 @@ jobs:
       # уходит в оба приложения, и проверяться должна до слияния, а не после.
       - name: Пакет practice_kit — анализатор и пробы
         working-directory: packages/practice_kit
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test --reporter expanded
+      # Кабинет преподавателя — общий пакет 4 приложений (contract ecosystem.coach/2).
+      - name: Пакет ecosystem_coach — анализатор и пробы
+        working-directory: packages/ecosystem_coach
         run: |
           flutter pub get
           flutter analyze
