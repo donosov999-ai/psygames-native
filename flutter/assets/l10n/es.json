@@ -922,6 +922,7 @@
 "levelAlmost":"Nivel {n} — ¡casi!",
 "levelDone":"¡Nivel {n} superado!",
 "levelDownRetry":"Bajas al nivel {n} — otra vez…",
+"levelMap":"Mapa de niveles",
 "levelOfMax":"Nivel {n}/{max}",
 "levelTitle0":"Novato",
 "levelTitle1":"Aprendiz",

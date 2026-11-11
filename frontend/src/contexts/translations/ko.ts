@@ -1414,6 +1414,7 @@ const t: Record<string, string> = {
   "bestAmongPlayers": "플레이어 중 최고",
   "levelOfMax": "레벨 {n}/{max}",
   "runsCompleted": "완료: {n}",
+  "levelMap": "레벨 지도",
   "tapNodeToReplay": "완료한 노드를 눌러 다시 도전하고 별을 더 얻으세요",
   "replayingLevel": "레벨 {n} 재도전 중 · 최고 {best}",
   "bossTitle": "보스",

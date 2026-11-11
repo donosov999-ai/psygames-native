@@ -406,7 +406,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   /// генератор включался только из меню паузы. «Ступень за последней» значит «лестница пройдена»:
   /// экран предлагает генератор (`_ladderDoneCard`).
   LevelLadder _ladderUpTo(int last) =>
-      LevelLadder(gameId: 'sudoku', store: SudokuRoadStore(widget.state, _road), maxLevel: last + 1);
+      LevelLadder(gameId: 'sudoku', store: SudokuRoadStore(widget.state, _road), maxLevel: last + 1, lastLevel: last);
 
   Future<void> _boot() async {
     final levels = await SudokuLevels.load();
@@ -1179,22 +1179,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
     _persist();
   }
 
-  /// Карта уровней: пройденный уровень — переиграть; потолок (`best`) выбор не трогает. На дороге
-  /// счётчик хранит только максимум (`SudokuRoadStore`), поэтому выбранный уровень играется до
-  /// конца захода, а после перезапуска человек снова на своём максимуме — прогресс не теряется.
-  Future<void> _openLevelMap() async {
-    final levels = _levels;
-    if (levels == null) return;
-    final picked = await showLevelMap(
-      context,
-      current: _ladder.level,
-      best: _ladder.best,
-      last: levels.lastStep,
-      stars: levelStarsOf(widget.state, 'sudoku'),
-    );
-    if (picked == null || !mounted) return;
-    await restartGuarded(context, live: _live, deal: () => _playLevel(picked));
-  }
+  /// Раздача уровня, выбранного на ОБЩЕЙ карте каркаса ([GameShell.playLevel]): потолок (`best`)
+  /// выбор не трогает. На дороге счётчик хранит только максимум (`SudokuRoadStore`), поэтому
+  /// выбранный уровень играется до конца захода — прогресс не теряется.
+  Future<void> _playPicked(int level) => restartGuarded(context, live: _live, deal: () => _playLevel(level));
 
   Future<void> _playLevel(int level) async {
     await _ladder.pick(level);
@@ -1492,8 +1480,6 @@ class _SudokuScreenState extends State<SudokuScreen> {
     _recordOutcome(helped ? Outcome.assisted : Outcome.passed);
     final level = _ladder.level;
     _endLevel = level;
-    // Звёзды карты уровней — за пройденную ступень; ступень с купленной жизнью не пройдена.
-    if (!_lifeSpent) unawaited(saveLevelStars(widget.state, 'sudoku', level, sudokuStars(_errors)));
     // Трудность и подробности — как у веба (app/games/sudoku.tsx, saveSession победы).
     // До 30.09 лестница умела слать только номер: трудностью уходило «54», а не «hard»,
     // и без дороги — история сравнила бы уровень 12 лёгкой и тяжёлой дорог между собой.
@@ -1516,6 +1502,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
         if (_lifeSpent) 'second_life': true,
       },
       advance: !_lifeSpent,
+      // Звёзды карты пишет лестница (общий слой); ступень с купленной жизнью не засчитана — без звёзд.
+      stars: sudokuStars(_errors),
     )));
   }
 
@@ -1858,6 +1846,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
         : (variant != null && variant != 'none' ? variantTitle(variant) : null);
 
     return LeaveGuard(live: _live, saved: _onRoad, child: GameShell(
+      // Карта уровней — ОБЩАЯ, каркаса; игра отдаёт только когда она есть и как раздать уровень.
+      levelMap: widget.mode == null && !widget.junior && !_pilot && _levels != null,
+      playLevel: _playPicked,
       // Пилот Codex «стекло и камни» (31.10): поле прозрачное на фоне рамки, пауза — камень.
       auroraTransparentField: true,
       auroraJewelPause: true,
@@ -2046,9 +2037,6 @@ class _SudokuScreenState extends State<SudokuScreen> {
             ),
       pauseActions: [
         PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
-        // Карта уровней лестницы — вернуться на пройденный (b5df5096 п.4; у веба — карта на экране настройки).
-        if (widget.mode == null && !widget.junior && !_pilot && _levels != null)
-          PauseAction(label: L.t('sudokuModeLevels'), icon: Icons.map_outlined, onPressed: _openLevelMap, group: 'levels'),
         // Правило доски — окно со схемой, как бейдж варианта у веба (b5df5096 п.5).
         if (_hasRuleHelp)
           PauseAction(label: '${L.t('simonRule')}: ${_ruleTitle()}', icon: Icons.rule, onPressed: _openRuleHelp),

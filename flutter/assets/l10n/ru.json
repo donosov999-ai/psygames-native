@@ -922,6 +922,7 @@
 "levelAlmost":"Уровень {n} — почти!",
 "levelDone":"Уровень {n} пройден!",
 "levelDownRetry":"Уровень ниже — {n}. Ещё раз…",
+"levelMap":"Карта уровней",
 "levelOfMax":"Уровень {n}/{max}",
 "levelTitle0":"Новичок",
 "levelTitle1":"Ученик",

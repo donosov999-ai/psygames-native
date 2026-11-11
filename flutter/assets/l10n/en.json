@@ -922,6 +922,7 @@
 "levelAlmost":"Level {n} — almost!",
 "levelDone":"Level {n} done!",
 "levelDownRetry":"Down to level {n} — retry…",
+"levelMap":"Level map",
 "levelOfMax":"Level {n}/{max}",
 "levelTitle0":"Rookie",
 "levelTitle1":"Student",

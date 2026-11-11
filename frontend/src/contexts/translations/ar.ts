@@ -1414,6 +1414,7 @@ const t: Record<string, string> = {
   "bestAmongPlayers": "الأفضل بين اللاعبين",
   "levelOfMax": "المستوى {n}/{max}",
   "runsCompleted": "مكتمل: {n}",
+  "levelMap": "خريطة المستويات",
   "tapNodeToReplay": "اضغط على عقدة مكتملة لإعادة لعبها وكسب المزيد من النجوم",
   "replayingLevel": "تعيد لعب المستوى {n} · الأفضل {best}",
   "bossTitle": "الزعيم",

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:synapse_advisor/synapse_advisor.dart' show Outcome;
 
 import 'game_preset.dart';
@@ -24,6 +26,7 @@ class LevelLadder {
     this.maxLevel = 999,
     this.sessionType,
     this.sessionMode,
+    this.lastLevel,
   }) : _store = store; // ignore: prefer_initializing_formals — поле приватное, а параметр именованный
 
   final String gameId;
@@ -44,6 +47,10 @@ class LevelLadder {
   final LevelStore _store;
   final int failStreakThreshold;
   final int maxLevel;
+
+  /// Последний узел карты уровней, если он не [maxLevel] («Судоку»: потолок — ступень ЗА последней).
+  /// Не задан и лестница без потолка (999) — карта показывает пройденное и несколько закрытых узлов.
+  final int? lastLevel;
 
   int _level = 1;
   int _best = 1;
@@ -193,6 +200,7 @@ class LevelLadder {
     Map<String, Object?>? details,
     bool report = true,
     bool advance = true,
+    int? stars,
   }) async {
     if (_launchParams['wu'] == '1' && !identical(_launchParams, GamePreset.params)) return false;
     // A playlist step may report completion twice while the host changes routes.
@@ -242,6 +250,8 @@ class LevelLadder {
       );
     }
     reportOutcome(true, lesson: lesson);
+    // Звёзды — ПОСЛЕ отчёта и исхода: ступень-переход ждёт исход в прежнем порядке (fractal_outcome_test).
+    if (counted && !_training) unawaited(_saveStars(before, stars ?? starsForErrors(errors)));
     return counted;
   }
 
@@ -343,6 +353,35 @@ class LevelLadder {
     await _save();
   }
 
+  /*
+   * 🔴 ЗВЁЗДЫ ЗА УРОВЕНЬ — ЗДЕСЬ, ОДНИМ МЕСТОМ ДЛЯ ВСЕХ ИГР С ЛЕСТНИЦЕЙ (задача a5fe49c9, 11.11.2026).
+   * В вебе их писал `LevelCleared` у каждой игры (`levelStars.ts`, ключ `psygames_<игра>_stars_<профиль>`),
+   * при переезде на Flutter запись осталась у 3 игр из ~70 — тропинке уровней нечего было показывать,
+   * а счётчик «пройдено уровней» в каталоге стоял на нуле. Засчитанная победа пишет лучшее за уровень;
+   * своя формула игры — аргументом `stars`, иначе по ошибкам, как в вебе по умолчанию (без ошибок — 3).
+   */
+  /// Звёзды по числу ошибок: 0 → 3, до двух → 2, больше → 1; ошибок игра не знает → 3 (как `LevelCleared`).
+  static int starsForErrors(int? errors) => errors == null || errors == 0 ? 3 : errors <= 2 ? 2 : 1;
+
+  /// Лучшие звёзды по уровням (`{уровень: звёзды}`); пусто — побед со звёздами не было.
+  Future<Map<int, int>> stars() async {
+    final s = _store;
+    return s is StarsStore ? (s as StarsStore).readStars(gameId) : const {};
+  }
+
+  Future<void> _saveStars(int level, int stars) async {
+    if (_store case final StarsStore s) {
+      await _writeBest(s, level, stars);
+    }
+  }
+
+  Future<void> _writeBest(StarsStore s, int level, int stars) async {
+    final map = Map<int, int>.of(await s.readStars(gameId));
+    if ((map[level] ?? 0) >= stars) return;
+    map[level] = stars.clamp(1, 3);
+    await s.writeStars(gameId, map);
+  }
+
   Future<void> _save() async {
     await _store.writeInt('$_levelId.level', _level);
     await _store.writeInt('$_levelId.best', _best);
@@ -356,8 +395,22 @@ abstract class LevelStore {
   Future<void> writeInt(String key, int value);
 }
 
-class MemoryLevelStore implements LevelStore {
+/// Хранилище, умеющее звёзды по уровням (общая запись с вебом). Лестница пишет их, только если
+/// её хранилище это умеет: у «Судоку» своё хранилище дороги и свои звёзды.
+abstract class StarsStore {
+  Future<Map<int, int>> readStars(String gameId);
+  Future<void> writeStars(String gameId, Map<int, int> stars);
+}
+
+class MemoryLevelStore implements LevelStore, StarsStore {
   final Map<String, int> _data = {};
+  final Map<String, Map<int, int>> _stars = {};
+
+  @override
+  Future<Map<int, int>> readStars(String gameId) async => _stars[gameId] ?? const {};
+
+  @override
+  Future<void> writeStars(String gameId, Map<int, int> stars) async => _stars[gameId] = Map.of(stars);
 
   @override
   Future<int?> readInt(String key) async => _data[key];

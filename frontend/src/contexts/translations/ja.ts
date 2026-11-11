@@ -613,6 +613,7 @@ const t: Record<string, string> = {
   "bestAmongPlayers": "プレイヤー内ベスト",
   "levelOfMax": "レベル {n}/{max}",
   "runsCompleted": "完了: {n}",
+  "levelMap": "レベルマップ",
   "tapNodeToReplay": "クリア済みのノードをタップすると再挑戦して星を増やせます",
   "replayingLevel": "レベル {n} に再挑戦中 · 最高 {best}",
   "bossTitle": "ボス",

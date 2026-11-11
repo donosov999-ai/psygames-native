@@ -250,21 +250,12 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     return true;
   }
 
-  /// Карта уровней: пройденный — переиграть (`LevelLadder.pick`), потолок не трогается.
-  Future<void> _openLevelMap() async {
-    final picked = await showLevelMap(
-      context,
-      current: _ladder.level,
-      best: _ladder.best,
-      last: samuraiMaxLevel,
-      stars: levelStarsOf(widget.state, 'sudoku_samurai'),
-    );
-    if (picked == null || !mounted) return;
-    await restartGuarded(context, live: _live, deal: () async {
-      await _ladder.pick(picked);
-      if (mounted) _deal();
-    });
-  }
+  /// Раздача уровня, выбранного на ОБЩЕЙ карте каркаса ([GameShell.playLevel]): «Заново?» при живой
+  /// партии, затем ступень и доска. Потолок (`best`) не трогается.
+  Future<void> _playPicked(int level) => restartGuarded(context, live: _live, deal: () async {
+        await _ladder.pick(level);
+        if (mounted) _deal();
+      });
 
   void _deal() {
     final levels = _levels;
@@ -453,8 +444,6 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     _won = true;
     final level = _ladder.level;
     _endLevel = level;
-    // Звёзды — за пройденную ступень; ступень с потраченной жизнью не пройдена.
-    if (!_lifeSpent) unawaited(saveLevelStars(widget.state, 'sudoku_samurai', level, samuraiStars(_errors, _hintsUsed)));
     unawaited(_ladder.win(
       score: _score(level),
       timeSeconds: _elapsed,
@@ -465,6 +454,8 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       // только у победы (sudoku-samurai.tsx, details.megaboss_from).
       details: {..._details(level, completed: true), 'megaboss_from': ?_megaboss},
       advance: !_lifeSpent,
+      // Звёзды пишет лестница — только засчитанной ступени (с потраченной жизнью не пройдена).
+      stars: samuraiStars(_errors, _hintsUsed),
     ));
   }
 
@@ -553,6 +544,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     final board = _board;
 
     return LeaveGuard(live: _live, saved: true, child: GameShell(
+      playLevel: _playPicked, // карта уровней — общая, каркаса
       title: _title,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
@@ -620,8 +612,6 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
                 ),
       pauseActions: [
         PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
-        // Карта уровней — вернуться на пройденный (сверка «Самурай» строка 4, b5df5096 п.4).
-        PauseAction(label: L.t('sudokuModeLevels'), icon: Icons.map_outlined, onPressed: _openLevelMap),
       ],
     ));
   }

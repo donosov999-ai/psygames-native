@@ -42,7 +42,10 @@ void main() {
   Future<void> openMap(WidgetTester tester) async {
     await tester.tap(find.byIcon(Icons.pause).first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text(L.t('sudokuModeLevels')));
+    // Пункт общей карты — в группе уровней внизу паузы; длинная пауза «Судоку» его прокручивает.
+    await tester.ensureVisible(find.text(L.t('levelMap')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(L.t('levelMap')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('level-map')), findsOneWidget, reason: 'карта открылась');
   }
@@ -172,6 +175,6 @@ void main() {
     await boot(tester, (s) => SudokuScreen(state: s, junior: true), {}, 'cell_0_0');
     await tester.tap(find.byIcon(Icons.pause).first);
     await tester.pumpAndSettle();
-    expect(find.text(L.t('sudokuModeLevels')), findsNothing);
+    expect(find.text(L.t('levelMap')), findsNothing);
   });
 }

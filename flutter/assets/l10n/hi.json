@@ -922,6 +922,7 @@
 "levelAlmost":"स्तर {n} — लगभग!",
 "levelDone":"स्तर {n} पूरा!",
 "levelDownRetry":"स्तर {n} पर वापस — फिर से…",
+"levelMap":"स्तर मानचित्र",
 "levelOfMax":"स्तर {n}/{max}",
 "levelTitle0":"नौसिखिया",
 "levelTitle1":"शिष्य",

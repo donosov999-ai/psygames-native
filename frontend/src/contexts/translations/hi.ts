@@ -1240,6 +1240,7 @@ const t: Record<string, string> = {
   "bestAmongPlayers": "खिलाड़ियों में सर्वश्रेष्ठ",
   "levelOfMax": "स्तर {n}/{max}",
   "runsCompleted": "पूर्ण: {n}",
+  "levelMap": "स्तर मानचित्र",
   "tapNodeToReplay": "पूरा किया गया नोड दबाएँ — दोबारा खेलें और ज़्यादा सितारे पाएँ",
   "replayingLevel": "स्तर {n} दोबारा खेल रहे हैं · सर्वश्रेष्ठ {best}",
   "bossTitle": "बॉस",

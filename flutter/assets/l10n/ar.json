@@ -922,6 +922,7 @@
 "levelAlmost":"المستوى {n} — كدت تنجح!",
 "levelDone":"اكتمل المستوى {n}!",
 "levelDownRetry":"نزول إلى المستوى {n} — مرة أخرى…",
+"levelMap":"خريطة المستويات",
 "levelOfMax":"المستوى {n}/{max}",
 "levelTitle0":"مبتدئ",
 "levelTitle1":"متعلّم",

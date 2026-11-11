@@ -1414,6 +1414,7 @@ const t: Record<string, string> = {
   "bestAmongPlayers": "Migliore tra i giocatori",
   "levelOfMax": "Livello {n}/{max}",
   "runsCompleted": "Completato: {n}",
+  "levelMap": "Mappa dei livelli",
   "tapNodeToReplay": "Tocca un nodo completato per rigiocarlo e guadagnare più stelle",
   "replayingLevel": "Stai rigiocando il livello {n} · record {best}",
   "bossTitle": "BOSS",

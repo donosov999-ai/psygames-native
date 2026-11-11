@@ -922,6 +922,7 @@
 "levelAlmost":"レベル{n} — おしい！",
 "levelDone":"レベル{n}クリア！",
 "levelDownRetry":"レベル {n} に下がってもう一度…",
+"levelMap":"レベルマップ",
 "levelOfMax":"レベル {n}/{max}",
 "levelTitle0":"ルーキー",
 "levelTitle1":"見習い",

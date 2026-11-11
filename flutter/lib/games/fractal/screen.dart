@@ -247,20 +247,12 @@ class _FractalScreenState extends State<FractalScreen> {
   }
 
   /// Карта уровней: пройденный — переиграть (`LevelLadder.pick`), потолок не трогается.
-  Future<void> _openLevelMap() async {
-    final picked = await showLevelMap(
-      context,
-      current: _ladder.level,
-      best: _ladder.best,
-      last: fractalMaxLevel,
-      stars: levelStarsOf(widget.state, 'sudoku_fractal'),
-    );
-    if (picked == null || !mounted) return;
-    await restartGuarded(context, live: _live, deal: () async {
-      await _ladder.pick(picked);
-      if (mounted) _deal();
-    });
-  }
+  /// Раздача уровня, выбранного на ОБЩЕЙ карте каркаса ([GameShell.playLevel]): «Заново?» при живой
+  /// партии, затем ступень и доска. Потолок (`best`) не трогается.
+  Future<void> _playPicked(int level) => restartGuarded(context, live: _live, deal: () async {
+        await _ladder.pick(level);
+        if (mounted) _deal();
+      });
 
   /// Раскладка пометок/цвета: 0 — корень, 1…9 — дочерние.
   static int _gridOf(int? child) => child == null ? 0 : child + 1;
@@ -345,7 +337,6 @@ class _FractalScreenState extends State<FractalScreen> {
         // 4000 − ошибки·60 − время, не ниже пола.
         final level = _ladder.level;
         _endLevel = level;
-        unawaited(saveLevelStars(widget.state, 'sudoku_fractal', level, fractalStars(_errors)));
         unawaited(_ladder.win(
           score: max(fractalWinFloor, (4000 - _errors * 60 - min(_elapsed, fractalTimeCap)).round()),
           timeSeconds: _elapsed,
@@ -353,6 +344,8 @@ class _FractalScreenState extends State<FractalScreen> {
           mode: 'fractal',
           difficulty: 'lvl$level',
           details: {'level': level, 'of': 9},
+          // Звёзды пишет лестница (общий слой, задача a5fe49c9) — формула веба sudoku-fractal.tsx.
+          stars: fractalStars(_errors),
         ));
       }
     });
@@ -602,6 +595,7 @@ class _FractalScreenState extends State<FractalScreen> {
     final open = _openChild;
 
     return LeaveGuard(live: _live, saved: true, child: GameShell(
+      playLevel: _playPicked, // карта уровней — общая, каркаса
       title: _title,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
@@ -713,8 +707,6 @@ class _FractalScreenState extends State<FractalScreen> {
             ),
       pauseActions: [
         PauseAction(label: L.t('sdkStartOver'), icon: Icons.refresh, onPressed: () => restartGuarded(context, live: _live, deal: _deal)),
-        // Карта уровней — вернуться на пройденный (сверка строка 303, b5df5096 п.4).
-        PauseAction(label: L.t('sudokuModeLevels'), icon: Icons.map_outlined, onPressed: _openLevelMap),
         if (_canAskSolution)
           PauseAction(
             label: L.t('puzzleShowSolution'),
