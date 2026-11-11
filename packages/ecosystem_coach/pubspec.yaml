@@ -1,6 +1,6 @@
 name: ecosystem_coach
 description: Кабинет преподавателя для 4 приложений экосистемы (contract ecosystem.coach/2) — клиент, модели, экраны.
-version: 0.1.0
+version: 0.2.0
 publish_to: none
 environment:
   sdk: ^3.13.4
@@ -11,6 +11,7 @@ dependencies:
     path: ../ecosystem_account
   sign_in_with_apple: ^8.2.0
   crypto: ^3.0.8
+  qr_flutter: ^4.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

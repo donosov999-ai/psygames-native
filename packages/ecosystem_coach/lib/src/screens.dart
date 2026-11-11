@@ -328,12 +328,15 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 /// Ученик открыл ссылку-приглашение: кто приглашает, что будет видно (галочки областей), явное согласие.
 class AcceptInviteScreen extends StatefulWidget {
   const AcceptInviteScreen({super.key, required this.client, required this.code, this.studentName = '',
-      this.strings = CoachStrings.en, this.frame = defaultCoachFrame, this.onDone, this.auth, this.scopes = coachScopes});
+      this.strings = CoachStrings.en, this.frame = defaultCoachFrame, this.onDone, this.auth, List<String>? scopes}) : _scopesArg = scopes;
   final CoachClient client;
   final CoachAuth? auth;
 
   /// Какие области есть у приложения (у Smart Alarm нет «ошибок»). completion — всегда.
-  final List<String> scopes;
+  final List<String>? _scopesArg;
+
+  /// Области, которые ученик может отметить; по умолчанию — области приложения ([coachScopesFor]).
+  List<String> get scopes => _scopesArg ?? coachScopesFor(client.appId);
   final String code, studentName;
   final CoachStrings strings;
   final CoachFrame frame;
@@ -347,7 +350,7 @@ class _AcceptInviteScreenState extends State<AcceptInviteScreen> {
   InvitePreview? _preview;
   String? _error;
   // По умолчанию преподаватель видит тренировки (history): без неё, пока нет заданий, он не видит ничего.
-  late final _scopes = <String>{'completion', 'metrics', 'history'}.where(widget.scopes.contains).toSet();
+  late final _scopes = <String>{'completion', 'metrics', 'history', 'birth_data', 'charts'}.where(widget.scopes.contains).toSet();
   bool _consent = false;
   late final _name = TextEditingController(text: widget.studentName);
 

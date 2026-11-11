@@ -1,7 +1,10 @@
 import 'package:ecosystem_coach/ecosystem_coach.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/coach_bridge.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
+import 'package:psygames_flutter/shell/shared_state.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _Transport implements CoachTransport {
   final sent = <Map<String, Object?>>[];
@@ -72,5 +75,47 @@ void main() {
 
     coach.dispose();
     expect(SessionReport.observer, isNull);
+  });
+
+  test('каталог шагов: игры каталога с кодом партии и маршрутом; шаг урока открывает игру', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await PsyGamesCoach.loadGameNames();
+    final catalog = PsyGamesCoach.stepCatalog();
+    expect(catalog.kinds.length, greaterThan(50));
+    expect(catalog.find('schulte_table'), isNotNull);
+    expect(catalog.find('sudoku_samurai'), isNotNull, reason: 'ref — код партии (sessionType), а не id каталога');
+    expect(PsyGamesCoach.routeFor('schulte_table'), '/games/schulte');
+    expect(PsyGamesCoach.routeFor('нет_такой'), isNull);
+  });
+
+  test('отправленная партия двигает счётчик результатов (карточка заданий перечитывает прогресс)', () async {
+    final t = _Transport();
+    final coach = PsyGamesCoach(CoachClient(t, appId: 'psygames'), clock: () => now, newId: () => 'g');
+    await coach.submitSession({'game_type': 'stroop', 'score': 1, 'id': 'r1'});
+    expect(coach.results.value, 1);
+  });
+
+  testWidgets('режим: преподаватель сохраняется; главная показывает вход в кабинет вместо заданий', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final state = await SharedState.open();
+    final coach = PsyGamesCoach(CoachClient(_Transport(), appId: 'psygames'), state: state);
+    expect(coach.role.value, CoachRole.student);
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: coach.studentCard(onOpen: (_) {}))));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-coach-teacher')), findsNothing);
+    coach.setRole(CoachRole.teacher);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-coach-teacher')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-coach-tasks')), findsNothing);
+    expect(PsyGamesCoach(CoachClient(_Transport(), appId: 'psygames'), state: state).role.value, CoachRole.teacher,
+        reason: 'режим переживает перезапуск');
+    coach.setRole(CoachRole.student);
+    expect(state.get(PsyGamesCoach.roleKey), isNull);
+  });
+
+  test('подписи кабинета v2: 12 языков приложения, незнакомый — английский', () {
+    expect(CoachV2Strings.forLocale('ja').roleTeacher, '先生');
+    expect(CoachV2Strings.forLocale('pt-BR').assign, 'Atribuir');
+    expect(CoachV2Strings.forLocale('xx').assign, 'Assign');
   });
 }

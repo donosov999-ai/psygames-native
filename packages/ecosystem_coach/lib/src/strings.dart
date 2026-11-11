@@ -27,6 +27,7 @@ class CoachStrings {
     required this.scopeMetrics,
     required this.scopeErrors,
     required this.scopeHistory,
+    this.scopeExtra = const {},
     required this.revoke,
     required this.disconnect,
     required this.unavailable,
@@ -53,6 +54,9 @@ class CoachStrings {
   final String teacherTitle, studentTitle, yourName, studentName, saveProfile, noStudents, invite, inviteReady, copyLink, copied;
   final String trainings, noTrainings, timeUnknown, hiddenByStudent, myCoaches, noCoaches;
   final String acceptTitle, acceptButton, consentText, scopeCompletion, scopeMetrics, scopeErrors, scopeHistory;
+
+  /// Подписи областей других приложений (Fudao: birth_data, charts, readings, diary_shared).
+  final Map<String, String> scopeExtra;
   final String revoke, disconnect, unavailable;
   final Map<String, String> appNames;
   final String signInTitle, signInHint, signInGoogle, signInApple, emailLabel, sendLink, linkSent, signOut, signInFailed;
@@ -65,10 +69,16 @@ class CoachStrings {
         'metrics' => scopeMetrics,
         'errors' => scopeErrors,
         'history' => scopeHistory,
-        _ => s,
+        _ => scopeExtra[s] ?? s,
       };
 
-  static const _apps = {'psygames': 'PsyGames', 'abstract-hub': 'Chess & Go', 'smart-alarm': 'Smart Alarm', 'typerighting': 'TypeFree'};
+  static const _apps = {
+    'psygames': 'PsyGames',
+    'abstract-hub': 'Chess & Go',
+    'smart-alarm': 'Smart Alarm',
+    'typerighting': 'TypeFree',
+    'fudao': 'Fudao',
+  };
 
   static const en = CoachStrings(
     teacherTitle: 'Teacher cabinet',
@@ -94,6 +104,12 @@ class CoachStrings {
     scopeMetrics: 'Scores, speed, accuracy, time',
     scopeErrors: 'My frequent mistakes',
     scopeHistory: 'All trainings, not only assignments',
+    scopeExtra: {
+      'birth_data': 'My confirmed birth data',
+      'charts': 'My charts and calculations',
+      'readings': 'Messages about my readings',
+      'diary_shared': 'Only diary entries I share myself',
+    },
     revoke: 'Stop sharing',
     disconnect: 'Disconnect',
     unavailable: 'The teacher cabinet is unavailable right now. Your training works as usual.',
@@ -141,6 +157,12 @@ class CoachStrings {
     scopeMetrics: 'Очки, скорость, точность, время',
     scopeErrors: 'Мои частые ошибки',
     scopeHistory: 'Все тренировки, не только задания',
+    scopeExtra: {
+      'birth_data': 'Мои подтверждённые данные рождения',
+      'charts': 'Мои карты и расчёты',
+      'readings': 'Переписка по моим разборам',
+      'diary_shared': 'Только записи дневника, которые я передам сам',
+    },
     revoke: 'Перестать показывать',
     disconnect: 'Отключиться',
     unavailable: 'Кабинет преподавателя сейчас недоступен. Тренировки работают как обычно.',
