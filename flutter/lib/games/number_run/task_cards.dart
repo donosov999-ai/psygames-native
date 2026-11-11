@@ -35,7 +35,7 @@ class NumberRunTaskCard extends StatelessWidget {
 
     if (row.kind == 'answer') {
       // Лист 01 «Арки с примером»: табло над арками; три ответа — на арках сцены.
-      return NrCandy(key: const Key('nr-task-answer'), text: row.prompt ?? '', size: 26, height: 50, padding: 22, radius: 18);
+      return NrCandy(key: const Key('nr-task-answer'), text: row.prompt ?? '', size: 28, height: 56, padding: 24, radius: 20);
     }
 
     final exact = row.exact;
@@ -45,14 +45,14 @@ class NumberRunTaskCard extends StatelessWidget {
       final target = exact.target;
       final label = '${_num(got)} / ${_num(target)}';
       final Widget state = got == target
-          ? NrCandy(text: label, color: Nr.success, icon: Icons.check, size: 18, height: 36)
+          ? NrCandy(text: label, color: Nr.success, icon: Icons.check, size: 22, height: 44, minWidth: 120)
           : got > target
               ? Column(mainAxisSize: MainAxisSize.min, children: [
-                  NrCandy(text: label, color: Colors.white, ink: Nr.red, rim: Nr.red, icon: Icons.error, size: 18, height: 36),
+                  NrCandy(text: label, color: Colors.white, ink: Nr.red, rim: Nr.red, icon: Icons.error, size: 22, height: 44, minWidth: 120),
                   Transform.translate(offset: const Offset(0, -4), child: NrTab(L.t('numberRunOverflow'), ink: Nr.red)),
                 ])
               : Column(mainAxisSize: MainAxisSize.min, children: [
-                  NrCandy(text: label, color: Color.lerp(Nr.amber, Colors.black, .35)!, size: 18, height: 36),
+                  NrCandy(text: label, color: Color.lerp(Nr.amber, Colors.black, .35)!, size: 22, height: 44, minWidth: 120),
                   Transform.translate(offset: const Offset(0, -4), child: NrTab(L.t('numberRunCollected'), ink: _brown)),
                 ]);
       return Wrap(
@@ -67,8 +67,8 @@ class NumberRunTaskCard extends StatelessWidget {
             color: Nr.ivory,
             ink: _brown,
             rim: Nr.amber,
-            size: 17,
-            height: 38,
+            size: 18,
+            height: 44,
           ),
           KeyedSubtree(key: const Key('nr-exact-counter'), child: state),
         ],
@@ -77,7 +77,7 @@ class NumberRunTaskCard extends StatelessWidget {
 
     if (row.kind == 'scale') {
       return Column(key: const Key('nr-task-scale'), mainAxisSize: MainAxisSize.min, children: [
-        NrCandy(text: row.prompt ?? '', size: 22, height: 42, padding: 20, radius: 16),
+        NrCandy(text: row.prompt ?? '', size: 28, height: 56, padding: 24, radius: 20),
         const SizedBox(height: 6),
         _ScaleRuler(row: row, x: state.x),
       ]);
@@ -89,8 +89,8 @@ class NumberRunTaskCard extends StatelessWidget {
       final n = show?.symbols.length ?? (row.exact?.target.round() ?? row.items.length);
       final filled = row.recall && current ? state.collected.length.clamp(0, n) : 0;
       Widget tile({String? symbol, bool dot = false}) => Container(
-            width: 42,
-            height: 42,
+            width: 52,
+            height: 52,
             alignment: Alignment.center,
             decoration: symbol != null
                 ? nrGloss(Nr.teal, radius: 11)
@@ -100,10 +100,10 @@ class NumberRunTaskCard extends StatelessWidget {
                     border: Border.all(color: Nr.gold, width: 1.6),
                   ),
             child: symbol != null
-                ? Text(symbol, style: nrText(22, Colors.white))
+                ? Text(symbol, style: nrText(26, Colors.white))
                 : dot
                     ? const Icon(Icons.circle, size: 10, color: Nr.muted)
-                    : Text('?', style: nrText(22, Nr.muted)),
+                    : Text('?', style: nrText(26, Nr.muted)),
           );
       return Wrap(
         key: Key(show != null ? 'nr-task-memorize' : 'nr-task-recall'),
@@ -118,7 +118,7 @@ class NumberRunTaskCard extends StatelessWidget {
             for (final s in show.symbols) tile(symbol: s)
           else ...[
             for (var i = 0; i < n; i++) tile(dot: i < filled),
-            NrCandy(text: '$filled / $n', size: 14, height: 28, padding: 10),
+            NrCandy(text: '$filled / $n', size: 18, height: 32, padding: 10, minWidth: 88),
           ],
         ],
       );
@@ -133,7 +133,7 @@ class NumberRunTaskCard extends StatelessWidget {
         runSpacing: 6,
         children: [
           NrOpTile(op: row.items.firstWhere((i) => i.reserve != null).reserve!, size: 40),
-          NrCandy(text: L.t('numberRunReserveTake'), color: Nr.ivory, ink: Nr.navy, size: 15, height: 34),
+          NrCandy(text: L.t('numberRunReserveTake'), color: Nr.ivory, ink: Nr.navy, size: 18, height: 44),
         ],
       );
     }
@@ -221,12 +221,12 @@ class NumberRunGuardGoal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(key: const Key('nr-guard-goal'), mainAxisSize: MainAxisSize.min, children: [
-        NrShield(size: 34, passed: value >= guard),
+        NrShield(size: 44, passed: value >= guard),
         const SizedBox(width: 6),
         Flexible(
           child: KeyedSubtree(
             key: const Key('nr-guard-target'),
-            child: NrCandy(text: '${L.t('numberRunGuard')} · ${_num(guard)}'.toUpperCase(), size: 17, height: 36),
+            child: NrCandy(text: '${L.t('numberRunGuard')} · ${_num(guard)}'.toUpperCase(), size: 22, height: 44),
           ),
         ),
       ]);
@@ -308,12 +308,12 @@ class NumberRunReserveSlot extends StatelessWidget {
       container: true,
       label: '${L.t('numberRunReserve')}: $caption${op != null ? ' $op' : ''}',
       child: Column(key: const Key('nr-reserve-slot'), mainAxisSize: MainAxisSize.min, children: [
-        if (op != null) NrOpTile(op: op, size: 50) else const NrDashedBox(size: 54),
+        if (op != null) NrOpTile(op: op, size: 60) else const NrDashedBox(size: 72),
         Transform.translate(offset: const Offset(0, -6), child: NrTab(caption)),
         NrActionButton(
           key: const Key('nr-reserve-apply'),
           label: L.t('numberRunApply'),
-          height: 38,
+          height: 44,
           onPressed: op != null && running ? onApply : null,
         ),
       ]),

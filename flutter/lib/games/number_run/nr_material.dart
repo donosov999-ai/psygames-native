@@ -53,20 +53,21 @@ class NrCandy extends StatelessWidget {
     this.height = 32,
     this.padding = 14,
     this.radius,
+    this.minWidth = 0,
   });
   final String text;
   final Color color, ink;
   final Color? rim;
   final IconData? icon;
-  final double size, height, padding;
+  final double size, height, padding, minWidth;
   final double? radius;
 
   @override
   Widget build(BuildContext context) => Container(
-        constraints: BoxConstraints(minHeight: height),
+        constraints: BoxConstraints(minHeight: height, minWidth: minWidth),
         padding: EdgeInsets.symmetric(horizontal: padding, vertical: 3),
         decoration: nrGloss(color, rim: rim, radius: radius ?? height / 2),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
+        child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
           if (icon != null) ...[Icon(icon, color: ink, size: size * 1.1), const SizedBox(width: 5)],
           Flexible(child: Text(text, textAlign: TextAlign.center, style: nrText(size, ink))),
         ]),

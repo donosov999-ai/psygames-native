@@ -121,7 +121,7 @@ class NumberRunReadoutPanel extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 40),
           child: Row(children: [
             if (value.level != null)
-              Flexible(child: NrCandy(text: value.level!.toUpperCase(), size: 14, height: 30, padding: 12)),
+              Flexible(child: NrCandy(text: value.level!.toUpperCase(), size: 15, height: 32, padding: 12, minWidth: 104)),
             const SizedBox(width: 8),
             Expanded(flex: 2, child: _Progress(value: value.distance)),
           ]),
@@ -135,8 +135,9 @@ class NumberRunReadoutPanel extends StatelessWidget {
               text: value.time,
               icon: Icons.timer_outlined,
               rim: warn ? Nr.amber : Nr.gold,
-              size: 16,
-              height: 30,
+              size: 20,
+              height: 34,
+              minWidth: 112,
             ),
           ),
         ),
