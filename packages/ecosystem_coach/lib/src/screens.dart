@@ -27,6 +27,9 @@ class CoachBarAction {
 /// Как подписать тренировку: приложение отдаёт название игры/упражнения на своём языке.
 typedef CoachEventTitle = String Function(CoachEventView event);
 
+/// Строка показателей тренировки; своя у приложения, если стандартной мало.
+typedef CoachMetricsLine = String Function(CoachEventView event, CoachStrings strings);
+
 String _humanize(String raw) {
   final t = raw.replaceAll(RegExp(r'[_\-:]+'), ' ').trim();
   return t.isEmpty ? raw : t[0].toUpperCase() + t.substring(1);
@@ -57,13 +60,29 @@ String coachMetricsLine(CoachEventView e, CoachStrings s) {
   add('duration_min', s.metricTime, (v) => v is num ? _clock(v * 60) : '$v');
   add('level', s.metricLevel, (v) => '$v');
   add('wpm', 'WPM', (v) => '$v');
-  add('accuracy', '%', (v) => '$v');
+  final acc = m['accuracy'];
+  if (acc != null) parts.add('$acc %');
+  add('errors', s.metricErrors, (v) => '$v');
+  // Служебные поля, которые преподавателю ничего не говорят.
+  const skip = {'score', 'time_seconds', 'seconds', 'elapsed_ms', 'duration_min', 'level', 'wpm', 'accuracy', 'errors', 'language', 'source'};
   for (final k in m.keys) {
-    if (const {'score', 'time_seconds', 'seconds', 'elapsed_ms', 'duration_min', 'level', 'wpm', 'accuracy'}.contains(k)) continue;
+    if (skip.contains(k)) continue;
     parts.add('${_humanize(k)} ${m[k]}');
   }
   final errs = e.errors;
-  if (errs != null && errs['count'] != null) parts.add('${s.metricErrors} ${errs['count']}');
+  if (errs != null && errs.isNotEmpty && !shown.contains(s.metricErrors)) {
+    if (errs['count'] is num) {
+      parts.add('${s.metricErrors} ${errs['count']}');
+    } else {
+      // Словарь «что → сколько раз» (например, клавиши): сумма и три самые частые.
+      final counts = [for (final x in errs.entries) if (x.value is num) MapEntry(x.key, (x.value as num))]
+        ..sort((a, b) => b.value.compareTo(a.value));
+      if (counts.isNotEmpty) {
+        final total = counts.fold<num>(0, (a, x) => a + x.value);
+        parts.add('${s.metricErrors} $total (${counts.take(3).map((x) => '${x.key}×${x.value}').join(', ')})');
+      }
+    }
+  }
   return parts.join(' · ');
 }
 
@@ -89,10 +108,11 @@ String _date(DateTime? d) => d == null ? '' : '${d.toLocal().day.toString().padL
 /// Кабинет преподавателя: профиль, ученики по всем приложениям, приглашение в текущее приложение.
 class TeacherCabinetScreen extends StatefulWidget {
   const TeacherCabinetScreen({super.key, required this.client, this.strings = CoachStrings.en, this.frame = defaultCoachFrame, this.auth,
-      this.eventTitle = defaultEventTitle});
+      this.eventTitle = defaultEventTitle, this.metricsLine = coachMetricsLine});
   final CoachClient client;
   final CoachAuth? auth;
   final CoachEventTitle eventTitle;
+  final CoachMetricsLine metricsLine;
   final CoachStrings strings;
   final CoachFrame frame;
 
@@ -220,7 +240,8 @@ class _TeacherCabinetScreenState extends State<TeacherCabinetScreen> {
                 ]),
                 onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
                     builder: (_) => StudentDetailScreen(
-                        client: widget.client, student: st, strings: s, frame: widget.frame, eventTitle: widget.eventTitle))),
+                        client: widget.client, student: st, strings: s, frame: widget.frame, eventTitle: widget.eventTitle,
+                        metricsLine: widget.metricsLine))),
               ),
             ),
         ]),
@@ -238,8 +259,9 @@ class _TeacherCabinetScreenState extends State<TeacherCabinetScreen> {
 /// Тренировки одного ученика по каждому приложению, где он дал согласие.
 class StudentDetailScreen extends StatefulWidget {
   const StudentDetailScreen({super.key, required this.client, required this.student, this.strings = CoachStrings.en, this.frame = defaultCoachFrame,
-      this.eventTitle = defaultEventTitle});
+      this.eventTitle = defaultEventTitle, this.metricsLine = coachMetricsLine});
   final CoachEventTitle eventTitle;
+  final CoachMetricsLine metricsLine;
   final CoachClient client;
   final CoachLink student;
   final CoachStrings strings;
@@ -292,7 +314,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                 title: Text([if (e.kind == 'warmup') s.warmup, widget.eventTitle(e)].join(' · ')),
                 subtitle: Text([
                   e.occurredAt != null ? _date(e.occurredAt) : '${_date(e.receivedAt)} (${s.timeUnknown})',
-                  if (coachMetricsLine(e, s).isNotEmpty) coachMetricsLine(e, s),
+                  if (widget.metricsLine(e, s).isNotEmpty) widget.metricsLine(e, s),
                   if (e.errors == null) '${s.scopeErrors}: ${s.hiddenByStudent}',
                 ].join('\n')),
               ),

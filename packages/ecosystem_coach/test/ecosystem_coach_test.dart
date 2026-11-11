@@ -193,4 +193,14 @@ void main() {
     expect(defaultEventTitle(CoachEventView.fromJson({'id': '2', 'app_id': 'abstract-hub', 'kind': 'result', 'exercise_ref': 'go-capture'})),
         'Go capture');
   });
+
+  test('показатели набора: «97 %», без языка, ошибки по клавишам — сумма и самые частые', () {
+    final e = CoachEventView.fromJson({'id': '1', 'app_id': 'typerighting', 'kind': 'typing',
+        'metrics': {'elapsed_ms': 41000, 'wpm': 52, 'accuracy': 97, 'language': 'ru', 'errors': 3},
+        'errors': {'е': 2, 'ы': 1}});
+    expect(coachMetricsLine(e, CoachStrings.ru), 'Время 0:41 · WPM 52 · 97 % · Ошибки 3');
+    final keys = CoachEventView.fromJson({'id': '2', 'app_id': 'typerighting', 'kind': 'typing', 'metrics': {'wpm': 40},
+        'errors': {'е': 2, 'ы': 5, 'ж': 1, 'щ': 1}});
+    expect(coachMetricsLine(keys, CoachStrings.ru), 'WPM 40 · Ошибки 9 (ы×5, е×2, ж×1)');
+  });
 }
