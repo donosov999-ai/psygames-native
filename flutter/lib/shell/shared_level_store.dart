@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'level_ladder.dart';
 import 'shared_state.dart';
 
@@ -13,7 +15,7 @@ import 'shared_state.dart';
 /// `best` у веб-стороны нет вовсе (там достигнутое падало вместе с уровнем, и мы
 /// это намеренно изменили). Он кладётся в то же пространство отдельным ключом:
 /// веб его просто не читает, а перенос на Flutter его подхватит.
-class SharedLevelStore implements LevelStore {
+class SharedLevelStore implements LevelStore, StarsStore {
   SharedLevelStore(this.state, {String? profile})
       : _profile = profile;   // ignore: prefer_initializing_formals — поле приватное, параметр именованный
 
@@ -44,4 +46,28 @@ class SharedLevelStore implements LevelStore {
 
   @override
   Future<void> writeInt(String key, int value) async => state.set(_map(key), '$value');
+
+  /// Звёзды — `psygames_<игра>_stars_<профиль>` JSON `{уровень: звёзды}`, как `levelStars.ts` веба.
+  @override
+  Future<Map<int, int>> readStars(String gameId) async => decodeLevelStars(state.get(_map('$gameId.stars')));
+
+  @override
+  Future<void> writeStars(String gameId, Map<int, int> stars) async =>
+      state.set(_map('$gameId.stars'), encodeLevelStars(stars));
 }
+
+/// Запись звёзд веба (`levelStars.ts`): JSON `{"уровень": звёзды}`. Битая или пустая — без звёзд.
+Map<int, int> decodeLevelStars(String? raw) {
+  if (raw == null) return const {};
+  try {
+    final m = (jsonDecode(raw) as Map).cast<String, Object?>();
+    return {
+      for (final e in m.entries)
+        if (int.tryParse(e.key) != null && e.value is num) int.parse(e.key): (e.value as num).toInt(),
+    };
+  } catch (_) {
+    return const {};
+  }
+}
+
+String encodeLevelStars(Map<int, int> stars) => jsonEncode({for (final e in stars.entries) '${e.key}': e.value});

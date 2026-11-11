@@ -42,7 +42,10 @@ void main() {
   Future<void> openMap(WidgetTester tester) async {
     await tester.tap(find.byIcon(Icons.pause).first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text(L.t('sudokuModeLevels')));
+    // Пункт общей карты — в группе уровней внизу паузы; длинная пауза «Судоку» его прокручивает.
+    await tester.ensureVisible(find.text(L.t('levelMap')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(L.t('levelMap')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('level-map')), findsOneWidget, reason: 'карта открылась');
   }
@@ -81,12 +84,12 @@ void main() {
     ];
     final ladderSteps = [boards, ...games].reduce((a, b) => a > b ? a : b);
     expect(boards, greaterThanOrEqualTo(120), reason: 'лестница не может стать короче 120');
-    expect(tester.widget<Text>(find.byKey(const Key('level-map-title'))).data, L.f('levelOfMax', {'n': '12', 'max': '$ladderSteps'}));
+    expect(find.text('12/$ladderSteps'), findsOneWidget, reason: 'уровень и потолок — в общем HUD каркаса');
     // Закрытый узел (выше лучшего) не нажимается.
     await tester.scrollUntilVisible(find.byKey(const Key('level-node-21')), 120,
         scrollable: find.descendant(of: find.byKey(const Key('level-map')), matching: find.byType(Scrollable)));
-    expect(tester.widget<InkWell>(find.byKey(const Key('level-node-21'))).onTap, isNull, reason: 'выше лучшего — закрыто');
-    expect(tester.widget<InkWell>(find.byKey(const Key('level-node-20'))).onTap, isNotNull, reason: 'лучший пройден — открыт');
+    expect(tester.widget<GestureDetector>(find.byKey(const Key('level-node-21'))).onTap, isNull, reason: 'выше лучшего — закрыто');
+    expect(tester.widget<GestureDetector>(find.byKey(const Key('level-node-20'))).onTap, isNotNull, reason: 'лучший пройден — открыт');
 
     await pickNode(tester, 3);
     expect(find.byKey(const Key('level-map')), findsNothing);
@@ -130,9 +133,14 @@ void main() {
       'psygames_sudoku_stars_nzt48': jsonEncode({'3': 2, '4': 3}),
     }, 'cell_0_0');
     await openMap(tester);
-    expect(tester.widget<Text>(find.byKey(const Key('level-stars-3'))).data, '★★');
-    expect(tester.widget<Text>(find.byKey(const Key('level-stars-4'))).data, '★★★');
+    // Дуга из трёх звёзд: заработанные — заливкой, остальные — контуром.
+    Finder filled(int n) => find.descendant(of: find.byKey(Key('level-stars-$n')), matching: find.byIcon(Icons.star_rounded));
+    expect(filled(3), findsNWidgets(2));
+    expect(filled(4), findsNWidgets(3));
     expect(find.byKey(const Key('level-stars-5')), findsNothing, reason: 'без звёзд — пусто');
+    // Секторы «Судоку» — по вариантам правил своей лестницы (данные игры): 1–8 классика, с 9 — диагональ.
+    expect(find.descendant(of: find.byKey(const Key('level-sector-1')), matching: find.text(variantTitle('none'))), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const Key('level-sector-9')), matching: find.text(variantTitle('diagonal'))), findsOneWidget);
   });
 
   testWidgets('🔴 «Фрактал»: пройденная ступень — переиграть, потолок не тронут', (tester) async {
@@ -172,6 +180,6 @@ void main() {
     await boot(tester, (s) => SudokuScreen(state: s, junior: true), {}, 'cell_0_0');
     await tester.tap(find.byIcon(Icons.pause).first);
     await tester.pumpAndSettle();
-    expect(find.text(L.t('sudokuModeLevels')), findsNothing);
+    expect(find.text(L.t('levelMap')), findsNothing);
   });
 }

@@ -13,6 +13,7 @@ import 'l10n.dart';
 import 'level_rules.dart';
 import 'package:flutter/material.dart';
 import 'level_ladder.dart';
+import 'level_map.dart';
 import 'restart_scope.dart';
 import 'game_preset.dart';
 import 'warmup_owner.dart';
@@ -39,6 +40,8 @@ class GameShell extends StatelessWidget {
     this.onRules,
     this.onLesson,
     this.pauseActions = const [],
+    this.levelMap = true,
+    this.playLevel,
     this.levelRule,
     this.fieldOnly = false,
     this.auroraTransparentField = false,
@@ -83,6 +86,15 @@ class GameShell extends StatelessWidget {
 
   /// Пункты меню паузы: те же служебные действия плюс выход.
   final List<PauseAction> pauseActions;
+
+  /// Карта уровней каркаса в паузе (общая для всех игр с лестницей). `false` — у партии сейчас нет
+  /// лестницы (режим «Свободно», малыши, пилот), хотя объект лестницы у экрана есть.
+  final bool levelMap;
+
+  /// Как раздать выбранный на карте уровень, если простого перезапуска экрана мало: игры с
+  /// сохранённой доской («Судоку» и семья) спрашивают «Заново?» и раздают доску сами. Не задано —
+  /// [LevelLadder.pick] и перезапуск экрана, как «Уровень проще / сложнее».
+  final Future<void> Function(int level)? playLevel;
 
   /*
    * 🔴 ПРАВИЛО УРОВНЯ — ТОЖЕ ДЕЛО КАРКАСА (задача e371fd3a).
@@ -380,10 +392,50 @@ class GameShell extends StatelessWidget {
    * его зарабатывают). Выбор сохраняется ([LevelLadder.pick]) и партия раздаётся заново тем же
    * путём, что «Заново» ([RestartScope]). В зарядке и пресете уровень задан снаружи — пунктов нет.
    */
-  static List<PauseAction> _levelActions(VoidCallback? restart) {
+  /*
+   * 🔴 «КАРТА УРОВНЕЙ» — ТРОПИНКА ВЕБА В ПАУЗЕ КАЖДОЙ ИГРЫ С ЛЕСТНИЦЕЙ (задача 8e90ac74, 11.11.2026).
+   * В вебе `LevelProgressMap` стоял у 76 игр, в нативе карта осталась у трёх «Судоку». Каркас знает
+   * лестницу открытой игры — значит, одна правка здесь возвращает тропинку всем, без правки экранов.
+   * Пройденный узел = [LevelLadder.pick] + раздача заново, как «проще/сложнее»; игра с сохранённой
+   * доской отдаёт свою раздачу ([playLevel]). СВОЕЙ карты у игры нет — только данные ([LevelLadder]:
+   * уровень, достигнутое, [LevelLadder.lastLevel], звёзды). Правило: APP_CHROME_DESIGN_STANDARD_REF.md.
+   */
+  PauseAction? _levelMapAction(BuildContext context, LevelLadder ladder, VoidCallback? restart) {
+    // Раздать выбранный уровень нечем — ни своей раздачи игры, ни перезапуска экрана: пункта нет.
+    if (!levelMap || ladder.best <= 1 || (playLevel == null && restart == null)) return null;
+    return PauseAction(
+      label: L.t('levelMap'),
+      icon: Icons.map_outlined,
+      group: 'levels',
+      onPressed: () async {
+        final stars = await ladder.stars();
+        if (!context.mounted) return;
+        final open = ladder.lastLevel == null && ladder.maxLevel >= 999;
+        final picked = await showLevelMap(
+          context,
+          current: ladder.level,
+          best: ladder.best,
+          last: ladder.lastLevel ?? (open ? ladder.best + 3 : ladder.maxLevel),
+          stars: stars,
+          open: open,
+          sectors: ladder.sectors,
+        );
+        if (picked == null || !context.mounted) return;
+        final play = playLevel;
+        if (play != null) return play(picked);
+        await ladder.pick(picked);
+        restart?.call();
+      },
+    );
+  }
+
+  List<PauseAction> _levelActions(BuildContext context, VoidCallback? restart) {
     final ladder = LevelLadder.current;
-    if (restart == null || ladder == null || GamePreset.isPreset || GamePreset.isWarmup) return const [];
+    if (ladder == null || GamePreset.isPreset || GamePreset.isWarmup) return const [];
+    final map = _levelMapAction(context, ladder, restart);
+    if (restart == null) return [?map];
     return [
+      ?map,
       if (ladder.level > 1)
         PauseAction(
           label: L.t('pauseEasier'),
@@ -412,7 +464,7 @@ class GameShell extends StatelessWidget {
       if (restart != null && (ownedWarmup || !pauseActions.any(_isRestart)))
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: restart),
       ...pauseActions.where((a) => !(restart != null && ownedWarmup && _isRestart(a))),
-      ..._levelActions(restart),
+      ..._levelActions(context, restart),
     ];
     Navigator.of(context).push(MaterialPageRoute<void>(
       // Пауза — страница ПОВЕРХ игры: пока она видна, часы и таймеры партии стоят
