@@ -63,7 +63,7 @@ commit; the SHA256 of the `git archive` is posted in the TeamOps psygames journa
    publishableKey: <public publishable key of personal-nzt>, callback: Uri.parse('<scheme>://auth/callback'))`.
    If the app already has an account object for this app_id, reuse it (one owner per namespace).
 3. `final auth = AccountCoachAuth(account, openUrl: (u) => launchUrl(u, mode: LaunchMode.externalApplication),
-   googleAvailable: !Platform.isIOS /* until Sign in with Apple, App Store 4.8 */, onSignedIn: …remember…, onSignedOut: …forget…);`
+   googleAvailable: true /* Denis 11.11.2026: Google on EVERY platform incl. iPhone — never hide it */, onSignedIn: …remember…, onSignedOut: …forget…);`
    On start, if the person signed in before: `await auth.restore();`.
 4. `final client = CoachClient(AccountCoachTransport(account), appId: '<app_id>');`
 5. Incoming links (the app's own link listener):

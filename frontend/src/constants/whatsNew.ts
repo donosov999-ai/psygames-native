@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.62',
+    date: '2026-11-11',
+    en: [
+      'Teacher cabinet: sign in with Google on iPhone too',
+    ],
+    ru: [
+      'Кабинет преподавателя: вход через Google теперь и на iPhone',
+    ],
+  },
+  {
     version: '2.56.61',
     date: '2026-11-11',
     en: [
