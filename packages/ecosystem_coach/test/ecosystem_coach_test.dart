@@ -18,7 +18,11 @@ class FakeTransport implements CoachTransport {
 }
 
 class FakeAuth extends ChangeNotifier implements CoachAuth {
-  FakeAuth({this.googleAvailable = true});
+  FakeAuth({this.googleAvailable = true, this.appleAvailable = false});
+  @override
+  final bool appleAvailable;
+  @override
+  Future<void> signInWithApple() async => calls.add('apple');
   @override
   bool signedIn = false;
   @override
@@ -219,5 +223,16 @@ void main() {
     await t.tap(find.byKey(const Key('coach-accept')));
     await t.pumpAndSettle();
     expect((tr.calls.last.$2['scopes'] as List).toSet(), {'completion', 'metrics', 'history'});
+  });
+
+  testWidgets('вход: на iPhone рядом с Google — кнопка Apple; нажатие идёт в signInWithApple', (t) async {
+    final auth = FakeAuth(appleAvailable: true);
+    await t.pumpWidget(MaterialApp(home: MyCoachesScreen(client: CoachClient(FakeTransport({}), appId: 'psygames'), auth: auth)));
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('coach-apple')), findsOneWidget);
+    expect(find.byKey(const Key('coach-google')), findsOneWidget);
+    await t.tap(find.byKey(const Key('coach-apple')));
+    await t.pumpAndSettle();
+    expect(auth.calls, ['apple']);
   });
 }

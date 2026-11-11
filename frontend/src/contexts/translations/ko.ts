@@ -3808,6 +3808,7 @@ const t: Record<string, string> = {
   "coachSignInTitle": "공간에 로그인",
   "coachSignInHint": "PsyGames, Chess & Go, TypeFree, Smart Alarm 공용 계정입니다. 선생님과 연결하기 전까지 훈련은 이 기기에만 남습니다.",
   "coachSignInGoogle": "Google로 계속",
+  "coachSignInApple": "Apple로 로그인",
   "coachEmailLabel": "로그인용 이메일",
   "coachSendLink": "로그인 링크 보내기",
   "coachLinkSent": "메일을 확인하고 이 기기에서 링크를 여세요.",

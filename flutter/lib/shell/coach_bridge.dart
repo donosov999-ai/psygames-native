@@ -120,6 +120,7 @@ class PsyGamesCoach {
         signInTitle: L.t('coachSignInTitle'),
         signInHint: L.t('coachSignInHint'),
         signInGoogle: L.t('coachSignInGoogle'),
+        signInApple: L.t('coachSignInApple'),
         emailLabel: L.t('coachEmailLabel'),
         sendLink: L.t('coachSendLink'),
         linkSent: L.t('coachLinkSent'),

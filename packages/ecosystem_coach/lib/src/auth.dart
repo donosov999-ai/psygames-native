@@ -2,8 +2,13 @@
 /// Обратную ссылку `<scheme>://auth/callback?code=…` принимает приложение и отдаёт в [AccountCoachAuth.complete].
 library;
 
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:crypto/crypto.dart';
 import 'package:ecosystem_account/ecosystem_account.dart';
 import 'package:flutter/foundation.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 abstract class CoachAuth implements Listenable {
   bool get signedIn;
@@ -13,12 +18,19 @@ abstract class CoachAuth implements Listenable {
   /// технически недоступен (например, веб без возврата в приложение), не ради правил магазина.
   bool get googleAvailable;
   Future<void> signInWithGoogle();
+
+  /// Вход через Apple — на iPhone/iPad/Mac (App Store 4.8: рядом с Google нужен равноценный вход).
+  bool get appleAvailable;
+  Future<void> signInWithApple();
   Future<void> sendEmailLink(String email);
   Future<void> signOut();
 }
 
 class AccountCoachAuth extends ChangeNotifier implements CoachAuth {
-  AccountCoachAuth(this.account, {required this.openUrl, this.googleAvailable = true, this.onSignedIn, this.onSignedOut});
+  AccountCoachAuth(this.account, {required this.openUrl, this.googleAvailable = true, bool? appleAvailable, this.onSignedIn,
+      this.onSignedOut})
+      : appleAvailable = appleAvailable ??
+            (!kIsWeb && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS));
 
   final EcosystemAccount account;
 
@@ -31,6 +43,9 @@ class AccountCoachAuth extends ChangeNotifier implements CoachAuth {
 
   @override
   final bool googleAvailable;
+
+  @override
+  final bool appleAvailable;
 
   @override
   bool get signedIn => account.accountId != null;
@@ -54,6 +69,22 @@ class AccountCoachAuth extends ChangeNotifier implements CoachAuth {
   Future<void> signInWithGoogle() async {
     final url = await account.googleSignInUrl(consent: true);
     if (!await openUrl(url)) throw StateError('coach_browser_unavailable');
+  }
+
+  /// Системное окно Apple → id-токен → Supabase. В окно уходит SHA-256 одноразового кода, в Supabase — сам код.
+  @override
+  Future<void> signInWithApple() async {
+    final random = Random.secure();
+    final raw = base64Url.encode(List<int>.generate(32, (_) => random.nextInt(256))).replaceAll('=', '');
+    final credential = await SignInWithApple.getAppleIDCredential(
+      scopes: const [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
+      nonce: sha256.convert(utf8.encode(raw)).toString(),
+    );
+    final token = credential.identityToken;
+    if (token == null) throw StateError('coach_apple_no_token');
+    await account.signInWithAppleIdToken(idToken: token, rawNonce: raw, consent: true);
+    await onSignedIn?.call();
+    notifyListeners();
   }
 
   @override

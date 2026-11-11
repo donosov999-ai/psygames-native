@@ -333,6 +333,7 @@
 "coachScopeMetrics":"Scores, speed, accuracy, time",
 "coachSendLink":"Send sign-in link",
 "coachSharedScopes":"Shared with the teacher",
+"coachSignInApple":"Sign in with Apple",
 "coachSignInFailed":"Could not sign in. Try again.",
 "coachSignInGoogle":"Continue with Google",
 "coachSignInHint":"One account for PsyGames, Chess & Go, TypeFree and Smart Alarm. Your training stays on this device until you connect to a teacher.",

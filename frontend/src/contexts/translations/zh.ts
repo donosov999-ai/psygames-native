@@ -3813,6 +3813,7 @@ const t: Record<string, string> = {
   "coachSignInTitle": "登录空间",
   "coachSignInHint": "PsyGames、Chess & Go、TypeFree 和 Smart Alarm 通用一个账号。在连接老师之前，你的训练只保存在本设备上。",
   "coachSignInGoogle": "使用 Google 继续",
+  "coachSignInApple": "通过 Apple 登录",
   "coachEmailLabel": "登录邮箱",
   "coachSendLink": "发送登录链接",
   "coachLinkSent": "请查收邮件，并在本设备上打开链接。",

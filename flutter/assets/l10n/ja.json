@@ -333,6 +333,7 @@
 "coachScopeMetrics":"スコア・速さ・正確さ・時間",
 "coachSendLink":"サインインリンクを送る",
 "coachSharedScopes":"先生に見える内容",
+"coachSignInApple":"Appleでサインイン",
 "coachSignInFailed":"サインインできませんでした。もう一度お試しください。",
 "coachSignInGoogle":"Google で続ける",
 "coachSignInHint":"PsyGames、Chess & Go、TypeFree、Smart Alarm 共通のアカウント。先生とつながるまで、トレーニングはこの端末だけに残ります。",

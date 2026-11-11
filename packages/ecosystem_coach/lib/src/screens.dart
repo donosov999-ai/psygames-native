@@ -4,6 +4,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import 'auth.dart';
 import 'client.dart';
@@ -572,6 +573,18 @@ class _CoachSignInState extends State<CoachSignIn> {
       const SizedBox(height: 8),
       Text(s.signInHint),
       const SizedBox(height: 20),
+      if (widget.auth.appleAvailable) ...[
+        SizedBox(
+          height: 48,
+          child: SignInWithAppleButton(
+            key: const Key('coach-apple'),
+            text: s.signInApple,
+            style: Theme.of(context).brightness == Brightness.dark ? SignInWithAppleButtonStyle.white : SignInWithAppleButtonStyle.black,
+            onPressed: _busy ? () {} : () => _run(widget.auth.signInWithApple),
+          ),
+        ),
+        const SizedBox(height: 12),
+      ],
       if (widget.auth.googleAvailable) ...[
         FilledButton.icon(
           key: const Key('coach-google'),

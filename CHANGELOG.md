@@ -18,6 +18,7 @@ to a GitHub Release automatically.
 ## [2.56.62] — 2026-11-11
 
 - Кабинет преподавателя: вход через Google на всех платформах, включая iPhone (решение Дениса 11.11). Перед подачей в App Store — вход Apple (правило 4.8).
+- Вход через Apple на iPhone/iPad (#476): кнопка в общем пакете, право Sign in with Apple, провайдер Apple в Supabase — закрывает правило App Store 4.8.
 
 ## [2.56.61] — 2026-11-11
 

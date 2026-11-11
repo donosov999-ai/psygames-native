@@ -34,6 +34,7 @@ class CoachStrings {
     required this.signInTitle,
     required this.signInHint,
     required this.signInGoogle,
+    required this.signInApple,
     required this.emailLabel,
     required this.sendLink,
     required this.linkSent,
@@ -54,7 +55,7 @@ class CoachStrings {
   final String acceptTitle, acceptButton, consentText, scopeCompletion, scopeMetrics, scopeErrors, scopeHistory;
   final String revoke, disconnect, unavailable;
   final Map<String, String> appNames;
-  final String signInTitle, signInHint, signInGoogle, emailLabel, sendLink, linkSent, signOut, signInFailed;
+  final String signInTitle, signInHint, signInGoogle, signInApple, emailLabel, sendLink, linkSent, signOut, signInFailed;
 
   /// `{n}` — число тренировок; `{date}` — время последней.
   final String sharedScopes, eventsCount, lastAt, metricScore, metricTime, metricLevel, metricErrors, warmup;
@@ -100,6 +101,7 @@ class CoachStrings {
     signInTitle: 'Sign in',
     signInHint: 'One account for PsyGames, Chess & Go, TypeFree and Smart Alarm. Your training stays on this device until you connect to a teacher.',
     signInGoogle: 'Continue with Google',
+    signInApple: 'Sign in with Apple',
     emailLabel: 'E-mail',
     sendLink: 'Send sign-in link',
     linkSent: 'Check your mail and open the link on this device.',
@@ -146,6 +148,7 @@ class CoachStrings {
     signInTitle: 'Вход',
     signInHint: 'Один аккаунт для PsyGames, Chess & Go, TypeFree и Smart Alarm. Тренировки остаются на устройстве, пока вы не подключитесь к преподавателю.',
     signInGoogle: 'Войти через Google',
+    signInApple: 'Войти через Apple',
     emailLabel: 'Почта',
     sendLink: 'Прислать ссылку для входа',
     linkSent: 'Проверьте почту и откройте ссылку на этом устройстве.',
