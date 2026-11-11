@@ -11,6 +11,7 @@ dependencies:
     path: ../ecosystem_account
   sign_in_with_apple: ^8.2.0
   crypto: ^3.0.8
+  qr_flutter: ^4.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
