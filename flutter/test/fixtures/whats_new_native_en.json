@@ -7,6 +7,13 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.62",
+   "date": "2026-11-11",
+   "items": [
+    "Teacher cabinet: sign in with Google on iPhone too"
+   ]
+  },
+  {
    "version": "v2.56.61",
    "date": "2026-11-11",
    "items": [

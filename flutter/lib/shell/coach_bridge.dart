@@ -2,7 +2,7 @@
 //
 // Включается флагом сборки PSY_COACH (сервер — personal-nzt, миграция ecosystem_coach_v2 применена 11.11.2026).
 // Вход свой: Google или ссылка на почту; при облачном пилоте — тот же аккаунт пилота.
-// 🔴 iOS: Google спрятан, пока нет входа через Apple (App Store 4.8) — остаётся вход по почте.
+// 🔴 Google — на всех платформах, включая iPhone (решение Дениса 11.11.2026). Перед подачей в App Store — вход Apple (4.8).
 //
 // Что делает мост:
 //   · превращает отчёт партии ([SessionReport]) в событие кабинета и отправляет его — без согласия
@@ -11,7 +11,6 @@
 //   · принимает ссылку-приглашение `com.psygames.app://coach/invite?code=…`.
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform;
 import 'dart:math';
 
 import 'package:ecosystem_account/ecosystem_account.dart';
@@ -36,7 +35,6 @@ class PsyGamesCoach {
   // Публикуемый ключ — публичный по устройству Supabase (доступ решают права в базе), не секрет.
   static const _key = String.fromEnvironment('PSY_SUPABASE_PUBLISHABLE_KEY',
       defaultValue: 'sb_publishable_A2vJ5DjemTZIKrKX6XGqvQ_WaiuAkk1');
-  static const _googleOnIos = bool.fromEnvironment('PSY_COACH_GOOGLE_IOS');
   static const signedInKey = 'psygames_coach_signed_in';
 
   /// Кабинет приложения; null — выключен флагом.
@@ -57,7 +55,8 @@ class PsyGamesCoach {
     final auth = AccountCoachAuth(
       acc,
       openUrl: (u) => launchUrl(u, mode: LaunchMode.externalApplication),
-      googleAvailable: !Platform.isIOS || _googleOnIos,
+      // 🔴 Решение Дениса 11.11.2026: вход через Google — на ВСЕХ платформах, включая iPhone. Не прятать.
+      googleAvailable: true,
       onSignedIn: () => state.set(signedInKey, '1'),
       onSignedOut: () => state.remove(signedInKey),
     );

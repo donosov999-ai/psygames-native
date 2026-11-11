@@ -9,7 +9,8 @@ abstract class CoachAuth implements Listenable {
   bool get signedIn;
   String? get email;
 
-  /// Google доступен не везде: на iOS без входа через Apple его прятать (App Store 4.8).
+  /// 🔴 Решение Дениса 11.11.2026: Google — на всех платформах, включая iPhone. false — только если Google
+  /// технически недоступен (например, веб без возврата в приложение), не ради правил магазина.
   bool get googleAvailable;
   Future<void> signInWithGoogle();
   Future<void> sendEmailLink(String email);
