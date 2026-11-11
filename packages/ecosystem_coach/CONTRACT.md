@@ -3,7 +3,7 @@
 Package `ecosystem_coach` 0.1.0 · server RPC `public.ecosystem_coach_v2(p_action, p_payload)` ·
 migration `supabase/migrations/20261111120000_ecosystem_coach_v2.sql` · local checks
 `supabase/tests/coach/run-local.sh` (41 checks, fresh PG17).
-Status: candidate. Migration is NOT applied to production; apps keep it behind a flag (OFF).
+Status: **server LIVE** in `personal-nzt` since 11.11.2026 (migration `ecosystem_coach_v2`, smoke flow passed on prod with rollback).
 
 ## Who sees what
 
@@ -55,3 +55,28 @@ The package draws only content. Strings: `CoachStrings.en` / `.ru` or the app's 
 
 Copy `packages/ecosystem_account` (0.1.6) and `packages/ecosystem_coach` (0.1.0) by exact
 commit; the SHA256 of the `git archive` is posted in the TeamOps psygames journal.
+
+## How to connect an app (same steps for Chess & Go, TypeFree, Smart Alarm)
+
+1. Dependencies: `ecosystem_account` 0.1.6 + `ecosystem_coach` 0.1.0 (path or your pinned mirror).
+2. One `EcosystemAccount(appId: '<app_id>', url: 'https://iuvvheeocobhiothfgei.supabase.co',
+   publishableKey: <public publishable key of personal-nzt>, callback: Uri.parse('<scheme>://auth/callback'))`.
+   If the app already has an account object for this app_id, reuse it (one owner per namespace).
+3. `final auth = AccountCoachAuth(account, openUrl: (u) => launchUrl(u, mode: LaunchMode.externalApplication),
+   googleAvailable: !Platform.isIOS /* until Sign in with Apple, App Store 4.8 */, onSignedIn: …remember…, onSignedOut: …forget…);`
+   On start, if the person signed in before: `await auth.restore();`.
+4. `final client = CoachClient(AccountCoachTransport(account), appId: '<app_id>');`
+5. Incoming links (the app's own link listener):
+   - `<scheme>://auth/callback?code=…` → `await auth.complete(uri)`;
+   - `<scheme>://coach/invite?code=<48 hex>` → `CoachInviteLink.parse(uri, appId: …)` → push
+     `AcceptInviteScreen(client: client, code: link.code, auth: auth, frame: <your frame>)`.
+   🔴 Invite path is **`/invite?code=`**, not `/join/<code>`. Android: add an intent-filter
+   `scheme=<scheme> host=coach path=/invite` (lowercase scheme).
+6. Entry points in settings: `TeacherCabinetScreen(client:, auth:, frame:, strings:)` and
+   `MyCoachesScreen(client:, auth:, frame:, strings:)`.
+7. After each finished training: `client.submit(CoachEvent(eventId:, kind:, mode:, exerciseRef:, occurredAt:, metrics:, errors:))`
+   — fire-and-forget, swallow errors; without consent the server returns `stored:false` (not an error).
+   `metrics`/`errors`: flat objects (≤40 / ≤100 keys, key ≤60 chars, values number/bool/string ≤120).
+   Programs/assignments: `steps` is any JSON array (1–50 items, ≤8 KB) — app-specific step formats are allowed.
+
+Reference integration: PsyGames `flutter/lib/shell/coach_bridge.dart` (+ test `flutter/test/coach_bridge_test.dart`).
