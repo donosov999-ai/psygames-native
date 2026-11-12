@@ -31,6 +31,7 @@ import 'package:practice_kit/practice_kit.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/audio_host.dart' show appSoundOn;
 import '../../shell/aux_action.dart';
+import '../../shell/aurora_scope.dart' show AuroraFrame;
 import '../../shell/chrome_art.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -1076,13 +1077,20 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     );
     // Ночной шаг зарядки («Не спится», `dim=1`): яркий экран в три часа ночи
     // работает против задачи — как у веба, приглушаем.
-    // В «Авроре» — её же тёмная тема (роли и плашки остаются), в Classic — прежняя бирюзовая.
+    // Поле: в «Авроре» — её же тёмная тема (роли и плашки остаются), в Classic — прежняя бирюзовая.
+    // 🔴 РАМКА (шапка, счётчики, нижний ряд) в «Авроре» берётся не из `Theme`, а из `AuroraFrame`
+    // (`AuroraGameScope`), и поле «Паузы» пока классическое: подмены одной `Theme` мало — в светлой теме
+    // шапка и нижняя панель оставались светлыми золотыми на чёрном поле (кадр с эмулятора 12.11.2026,
+    // `~/Documents/TeamOps/psygames-warmup/dim-aurora-20261112/`). Поэтому тёмной делаем и рамку.
     if (!_dim) return shell;
-    if (ChromeArt.aurora(context)) {
-      final t = Theme.of(context);
-      return Theme(data: t.copyWith(brightness: Brightness.dark, colorScheme: t.colorScheme.copyWith(brightness: Brightness.dark)), child: shell);
-    }
-    return Theme(data: ThemeData(brightness: Brightness.dark, colorSchemeSeed: const Color(0xff4ca1af)), child: shell);
+    ThemeData darkOf(ThemeData t) =>
+        t.copyWith(brightness: Brightness.dark, colorScheme: t.colorScheme.copyWith(brightness: Brightness.dark));
+    final fieldTheme = ChromeArt.aurora(context)
+        ? darkOf(Theme.of(context))
+        : ThemeData(brightness: Brightness.dark, colorSchemeSeed: const Color(0xff4ca1af));
+    final auroraFrame = GameShell.auroraFrameOf(context);
+    final themed = Theme(data: fieldTheme, child: shell);
+    return auroraFrame == null ? themed : AuroraFrame(theme: darkOf(auroraFrame), child: themed);
   }
 }
 

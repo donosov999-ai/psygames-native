@@ -13,7 +13,9 @@ import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:psygames_flutter/shell/app_theme.dart';
+import 'package:psygames_flutter/shell/aurora_scope.dart';
 import 'package:psygames_flutter/shell/design_template.dart';
+import 'package:psygames_flutter/shell/game_shell.dart';
 
 void main() {
   final engine = Practices(
@@ -46,13 +48,17 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: aurora ? applyUiTemplate(base, UiTemplate.aurora) : base,
-        home: PauseScreen(
-          state: state,
-          flavor: PauseFlavor.breathing,
-          engine: engine,
-          copy: copy,
-          clock: () => 0,
-          today: () => DateTime(2026, 11, 12),
+        // Как в приложении: рамку игры отдаёт AuroraGameScope (без него рамка берётся из Theme и совпадает).
+        home: AuroraGameScope(
+          route: '/games/breathing',
+          child: PauseScreen(
+            state: state,
+            flavor: PauseFlavor.breathing,
+            engine: engine,
+            copy: copy,
+            clock: () => 0,
+            today: () => DateTime(2026, 11, 12),
+          ),
         ),
       ),
     );
@@ -62,23 +68,22 @@ void main() {
   }
 
   testWidgets(
-    '«Аврора» + dim=1: тёмная тема, шаблон «Авроры» сохранён, цвет не бирюзовый seed Classic',
+    '«Аврора» + dim=1: тёмное поле и тёмная РАМКА «Авроры» (шапка, нижний ряд), шаблон не подменён',
     (tester) async {
       final ctx = await open(tester, aurora: true);
       expect(Theme.of(ctx).brightness, Brightness.dark);
+      // Поле «Паузы» в приложении пока классическое (маршрут не в auroraReadyRoutes), «Аврора» — рамка.
       expect(
-        ChromeArt.aurora(ctx),
-        isTrue,
-        reason: 'ночной вид — тёмная «Аврора», а не другой шаблон',
+        GameShell.auroraFrameOf(ctx),
+        isNotNull,
+        reason: 'рамка «Авроры» не потеряна: шаблон не подменён',
       );
+      // 🔴 Шапку и нижний ряд рисует рамка из `AuroraFrame`, а не из `Theme`: без своей рамки у ночного
+      // шага в светлой теме они остаются светлыми золотыми на чёрном поле (кадр с эмулятора 12.11.2026).
       expect(
-        Theme.of(ctx).colorScheme.primary,
-        isNot(
-          ColorScheme.fromSeed(
-            seedColor: const Color(0xff4ca1af),
-            brightness: Brightness.dark,
-          ).primary,
-        ),
+        GameShell.auroraFrameOf(ctx)!.brightness,
+        Brightness.dark,
+        reason: 'рамка ночного шага тоже тёмная',
       );
     },
   );
