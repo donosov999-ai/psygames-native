@@ -29,6 +29,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import '../../shell/aux_action.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -630,7 +631,7 @@ class PalaceLocusTile extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(6)),
                 child: Text('${locus.order}',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white)),
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: GameColors.of(context).onStrong)),
               ),
             const SizedBox(height: 2),
             Flexible(

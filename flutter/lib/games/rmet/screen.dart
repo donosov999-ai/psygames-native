@@ -14,6 +14,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -219,11 +220,11 @@ class _RmetScreenState extends State<RmetScreen> {
                 key: ValueKey('rmet-lesson-option-$word'),
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: card.picked == word ? const Color(0x3322C55E) : scheme.surfaceContainerHighest,
+                  color: card.picked == word ? GameColors.of(context).correct.withValues(alpha: 0.2) : scheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: card.picked == word
-                        ? const Color(0xFF22C55E)
+                        ? GameColors.of(context).correct
                         : neighborWord == word
                             ? scheme.primary
                             : scheme.outlineVariant,
@@ -332,7 +333,7 @@ class _RmetScreenState extends State<RmetScreen> {
             Text(
               s.feedback!.chosen,
               key: const ValueKey('rmet-chosen'),
-              style: TextStyle(fontSize: 16, color: scheme.error, decoration: TextDecoration.lineThrough),
+              style: TextStyle(fontSize: 16, color: GameColors.of(context).wrong, decoration: TextDecoration.lineThrough),
             ),
           Text(
             s.current.correctFor(s.locale),
@@ -340,7 +341,7 @@ class _RmetScreenState extends State<RmetScreen> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: s.feedback!.correct ? scheme.primary : scheme.error,
+              color: s.feedback!.correct ? GameColors.of(context).correct : GameColors.of(context).wrong,
             ),
           ),
         ],

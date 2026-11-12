@@ -493,6 +493,9 @@ class _Centered extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
+        // На всю ширину: каркас красит фон поля по его размеру, и сжатая до текста колонка
+        // в «Авроре» стояла узкой полосой на фоне рамки (кадр 13.11.2026).
+        width: double.infinity,
         height: height.isFinite ? height : null,
         child: SingleChildScrollView(
           child: ConstrainedBox(
