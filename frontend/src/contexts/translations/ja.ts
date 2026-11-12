@@ -69,6 +69,8 @@ const t: Record<string, string> = {
   cloudPilotAgree: "同意してログインへ進む",
   cloudPilotEmail: "メールアドレス",
   cloudPilotSend: "ログイン用リンクを送信",
+  feedbackSendingProgress: "送信中… {n}秒",
+  feedbackSendingSlow: "スクリーンショットと録音をアップロードしています。通常10秒ほどかかります。このままお待ちください。",
   cloudPilotLinkSent: "リクエストを受け付けました。この端末でメール内のリンクを開いてください。進行状況はまだアップロードされていません。",
   cloudPilotHistory: "使用する履歴を選択",
   cloudPilotHistoryHint: "端末内の履歴のバックアップを有効にするか、先にクラウドのコピーを確認できます。競合がある場合は選択が必要です。ポイント残高が合算されることはありません。",

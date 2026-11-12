@@ -142,6 +142,31 @@ void main() {
     expect(find.descendant(of: key('feedback-send'), matching: find.byType(CircularProgressIndicator)), findsOneWidget);
   });
 
+  testWidgets('🔴 идёт отправка — полоса хода, счётчик секунд, с 3-й секунды пояснение; кончилась — всё снято (2437d60a)', (t) async {
+    final m = load();
+    await mount(t, m);
+    expect(key('feedback-sending-progress'), findsNothing);
+    ScreenUi.model(route).value = {
+      ...m,
+      'footer': {...part(m, 'footer'), 'sending': true},
+    };
+    await t.pump();
+    expect(key('feedback-sending-progress'), findsOneWidget);
+    expect(find.descendant(of: key('feedback-sending-progress'), matching: find.byType(LinearProgressIndicator)), findsOneWidget);
+    expect(key('feedback-sending-slow'), findsNothing);
+    expect(key('feedback-sending-seconds'), findsOneWidget);
+    await t.pump(const Duration(seconds: 1));
+    expect(key('feedback-sending-slow'), findsNothing, reason: 'на 1-й секунде пояснения ещё нет');
+    await t.pump(const Duration(seconds: 3));
+    expect(key('feedback-sending-slow'), findsOneWidget, reason: 'секунды идут: к 4-й появилось пояснение');
+    ScreenUi.model(route).value = {
+      ...m,
+      'footer': {...part(m, 'footer'), 'sending': false},
+    };
+    await t.pump();
+    expect(key('feedback-sending-progress'), findsNothing);
+  });
+
   testWidgets('🔴 развилки: «Дописать» — курсор в поле, вебу ничего; «Написать текстом» и «всё равно» — действия', (t) async {
     final m = load();
     await mount(t, {

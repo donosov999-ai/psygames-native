@@ -70,6 +70,8 @@ const t: Record<string, string> = {
   cloudPilotAgree: "Concordo, continuar para entrar na conta",
   cloudPilotEmail: "Endereço de e-mail",
   cloudPilotSend: "Enviar link de acesso",
+  feedbackSendingProgress: "Enviando… {n} s",
+  feedbackSendingSlow: "Enviando a captura de tela e a gravação — geralmente até 10 segundos. Não feche esta janela.",
   cloudPilotLinkSent: "Solicitação aceita. Abra o link do e-mail neste dispositivo. Seu progresso ainda não está sendo enviado.",
   cloudPilotHistory: "Escolha qual histórico usar",
   cloudPilotHistoryHint: "Você pode ativar a cópia de segurança do histórico local ou visualizar primeiro uma cópia na nuvem. Em caso de conflito, você precisará escolher; os saldos de pontos nunca são somados.",

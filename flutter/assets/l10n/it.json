@@ -621,6 +621,8 @@
 "facesNamesIntroDesc":"Memoria associativa: memorizza un ritratto, il nome esatto e un dettaglio sulla persona, poi recupera ogni parte separatamente. È il classico inciampo quotidiano «la faccia la ricordo, il nome no»: riconoscere un volto e recuperare la parola legata a quel volto sono capacità diverse, e la seconda cede per prima.",
 "favouriteSections":"Cosa giochi di più",
 "feedbackFabLabel":"Segnala un problema",
+"feedbackSendingProgress":"Invio… {n} s",
+"feedbackSendingSlow":"Caricamento di screenshot e registrazione: di solito fino a 10 secondi. Non chiudere questa finestra.",
 "field":"Campo",
 "figAcorn":"Ghianda",
 "figAnchor":"Ancora",

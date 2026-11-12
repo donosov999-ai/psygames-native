@@ -124,6 +124,8 @@ const translations: Translations = {
   cloudPilotAgree: { ru: "Согласен, перейти ко входу", en: "I agree, continue to sign in" },
   cloudPilotEmail: { ru: "Электронная почта", en: "Email address" },
   cloudPilotSend: { ru: "Отправить ссылку для входа", en: "Send sign-in link" },
+  feedbackSendingProgress: { ru: "Отправляем… {n} с", en: "Sending… {n}s" },
+  feedbackSendingSlow: { ru: "Снимок экрана и запись уходят на сервер — обычно до 10 секунд. Не закрывайте окно.", en: "Uploading the screenshot and recording — usually up to 10 seconds. Please keep this open." },
   cloudPilotLinkSent: { ru: "Запрос принят. Откройте ссылку из письма на этом устройстве. Прогресс ещё не загружается.", en: "Request accepted. Open the email link on this device. Progress is not being uploaded yet." },
   cloudPilotHistory: { ru: "Выберите, какую историю использовать", en: "Choose which history to use" },
   cloudPilotHistoryHint: { ru: "Можно включить сохранение местной истории или сначала просмотреть облачную копию. При конфликте потребуется ваш выбор; баллы не складываются.", en: "You can enable backup of local history or preview a cloud copy first. Conflicts require your choice; balances are never added together." },

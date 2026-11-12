@@ -621,6 +621,8 @@
 "facesNamesIntroDesc":"Assoziatives Gedächtnis: Präge dir ein Porträt, den genauen Namen und einen Fakt über die Person ein und rufe danach jeden Teil einzeln ab. Genau das ist die alltägliche Panne „Das Gesicht kenne ich, aber wie hieß er noch?“: ein Gesicht wiederzuerkennen und das daran geknüpfte Wort hervorzuholen sind zwei verschiedene Fähigkeiten — und die zweite bricht zuerst weg.",
 "favouriteSections":"Was du am meisten spielst",
 "feedbackFabLabel":"Feedback senden",
+"feedbackSendingProgress":"Wird gesendet… {n} s",
+"feedbackSendingSlow":"Screenshot und Aufnahme werden hochgeladen – meist bis zu 10 Sekunden. Bitte nicht schließen.",
 "field":"Feld",
 "figAcorn":"Eichel",
 "figAnchor":"Anker",
