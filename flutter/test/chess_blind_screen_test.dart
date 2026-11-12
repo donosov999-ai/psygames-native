@@ -12,6 +12,7 @@ import 'package:psygames_flutter/games/chess_blind/positions.dart';
 import 'package:psygames_flutter/games/chess_blind/screen.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/restart_scope.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -45,23 +46,36 @@ void main() {
     WidgetTester tester, {
     int level = 1,
     int seed = 4,
+    int? best,
+    bool restartScope = false,
   }) async {
     tester.view.physicalSize = const Size(780, 1688);
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.reset);
     SharedPreferences.setMockInitialValues({
       'psygames_chess_blind_level_nzt48': '$level',
+      if (best != null) 'psygames_chess_blind_best_nzt48': '$best',
     });
     final state = await SharedState.open();
     useFakeGameClock(tester);
     await tester.pumpWidget(
       MaterialApp(
-        home: ChessBlindScreen(
-          state: state,
-          corpus: corpus,
-          random: Random(seed),
-          clock: () => clock,
-        ),
+        home: restartScope
+            // Как в приложении: любую игру оболочка открывает в RestartScope (hybrid_app.dart).
+            ? RestartScope(
+                builder: (_) => ChessBlindScreen(
+                  state: state,
+                  corpus: corpus,
+                  random: Random(seed),
+                  clock: () => clock,
+                ),
+              )
+            : ChessBlindScreen(
+                state: state,
+                corpus: corpus,
+                random: Random(seed),
+                clock: () => clock,
+              ),
       ),
     );
     for (var i = 0; i < 5; i++) {
@@ -345,6 +359,18 @@ void main() {
       reason: 'показ кончился, пока партия стояла под паузой',
     );
   });
+
+  testWidgets(
+    '🔴 карта уровней — в паузе партии (общий каркас): с достигнутым выше 1 пункт есть, возврат на пройденный уровень доступен',
+    (tester) async {
+      await open(tester, level: 3, best: 5, restartScope: true);
+      await tester.tap(find.byKey(const Key('cb-start')));
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.byTooltip(L.t('teachPause')));
+      await tester.pumpAndSettle();
+      expect(find.text(L.t('levelMap')), findsOneWidget);
+    },
+  );
 
   test('🔴 /games/chess-blind открывается нативно — партия и серия перенесены целиком', () {
     // Сторож стоял обратным с 30.09 (перехват снимали, пока экран был заглушкой).
