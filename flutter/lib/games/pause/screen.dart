@@ -1664,7 +1664,7 @@ class _Done extends StatelessWidget {
   /// Строки под итогом дыхания и глаз (задача b9517e77): «День n из m» цели-серии и, на каждой десятой
   /// практике подряд, передышка для глаз — то, что веб показывал в `LevelCleared`.
   List<String> _extraLines(PauseScreenState st) {
-    final goal = streakGoalLine(st.widget.state, st.widget.today?.call() ?? DateTime.now());
+    final goal = streakGoalLine(st.widget.state, st.widget.today?.call() ?? DateTime.now()); // wall-clock: календарный день серии
     return [
       ?goal,
       if (st._eyeRest) ...[L.t('eyeBreakTitle'), L.t('eyeBreakHint')],
