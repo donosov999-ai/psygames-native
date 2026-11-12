@@ -357,21 +357,14 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
    * «Подсказка» — в нижнем тулбаре каркаса, а не кнопкой под доской (стандарт игрового экрана,
    * Денис 31.10; CHATS_RULES.md §1в). Условие прежнее; до него — неактивная кнопка, ряд не прыгает.
    */
-  AuxBar _aux(FindMoveRun run) => AuxBar(
-    children: [
-      AuxAction(
-        key: const Key('fm-hint'),
-        icon: Icons.lightbulb_outline,
-        label: L.t('btn_hint'),
-        onPressed:
-            run.verdict == null &&
-                run.secondsLeft <= findMoveSeconds / 2 &&
-                !(run.hintSquare != null)
-            ? () => setState(run.takeHint)
-            : null,
-      ),
-    ],
-  );
+  AuxBar _aux(FindMoveRun run) => AuxBar(children: [
+        AuxAction(
+          key: const Key('fm-hint'),
+          icon: Icons.lightbulb_outline,
+          label: L.t('btn_hint'),
+          onPressed: run.verdict == null && run.secondsLeft <= findMoveSeconds / 2 && !(run.hintSquare != null) ? () => setState(run.takeHint) : null,
+        ),
+      ]);
 
   Widget _play(FindMoveRun run, double fieldHeight) {
     final scheme = Theme.of(context).colorScheme;
@@ -460,9 +453,7 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
                     ),
                 ],
               )
-            else if (verdict == null &&
-                left <= findMoveSeconds / 2 &&
-                run.hintSquare != null)
+            else if (verdict == null && left <= findMoveSeconds / 2 && run.hintSquare != null)
               Text(L.t('hintUsed'), key: const Key('fm-hint-used')),
             Text(
               verdictText(),
