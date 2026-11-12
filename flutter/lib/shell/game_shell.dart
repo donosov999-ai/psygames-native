@@ -433,14 +433,24 @@ class GameShell extends StatelessWidget {
     final ladder = LevelLadder.current;
     if (ladder == null || GamePreset.isPreset || GamePreset.isWarmup) return const [];
     final map = _levelMapAction(context, ladder, restart);
-    if (restart == null) return [?map];
+    // Раздать выбранный уровень: своей раздачей игры ([playLevel] — экран без пересоздания, «Пауза»,
+    // «Судоку»), как карта; нет её — выбор и «Заново» через [RestartScope].
+    final play = playLevel;
+    final Future<void> Function(int)? go = play ??
+        (restart == null
+            ? null
+            : (int n) async {
+                await ladder.pick(n);
+                restart();
+              });
+    if (go == null) return [?map];
     return [
       ?map,
       if (ladder.level > 1)
         PauseAction(
           label: L.t('pauseEasier'),
           icon: Icons.south_rounded,
-          onPressed: () => ladder.pick(ladder.level - 1).then((_) => restart()),
+          onPressed: () => go(ladder.level - 1),
           // «Аврора»: в панели «Уровни · Сложность» рядом с уровнями игры, не отдельной строкой.
           group: 'levels',
         ),
@@ -448,7 +458,7 @@ class GameShell extends StatelessWidget {
         PauseAction(
           label: L.t('pauseHarder'),
           icon: Icons.north_rounded,
-          onPressed: () => ladder.pick(math.min(ladder.best, ladder.level + 1)).then((_) => restart()),
+          onPressed: () => go(math.min(ladder.best, ladder.level + 1)),
           group: 'levels',
         ),
     ];
