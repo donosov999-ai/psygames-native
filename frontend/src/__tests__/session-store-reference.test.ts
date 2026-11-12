@@ -1,0 +1,79 @@
+/* psygames-session-store-reference · VER 1 · 12.11.2026 */
+/**
+ * 🔴 УЧЁТ ПАРТИЙ — ЭТАЛОН ДЛЯ DART (задача 0f3d3910, вариант Б d6a60b02, шаг а).
+ *
+ * Настоящий `saveSession` (`services/api.ts`) на подставном хранилище: сценарий партий → хранилище после
+ * каждой. Dart (`lib/shell/session_store.dart`) обязан дать то же хранилище на той же последовательности —
+ * так учёт переезжает с веба без второй копии правил, которая разошлась бы молча.
+ * Срез 1: журнал `psygames_sessions` (запись, повтор по id, миграция старых имён при записи) и серия
+ * «чисто» `psygames_clean_run_<профиль>`. Остальные ключи пишутся в образец целиком — следующие срезы
+ * (начисление, вызов дня, достижения) сверяют их без перезаписи образца.
+ * Сеть не трогается: облако без согласия не пишет (`cloudConsentGranted`).
+ * Перезапись — `WRITE=1 npx jest -i --runTestsByPath src/__tests__/session-store-reference.test.ts`.
+ */
+declare const process: { env: Record<string, string | undefined> };
+/* eslint-disable @typescript-eslint/no-require-imports -- загрузка после сброса модулей */
+const fs = require('fs');
+const path = require('path');
+/* eslint-enable @typescript-eslint/no-require-imports */
+
+type Sess = Record<string, unknown>;
+type Case = { name: string; storage?: Record<string, string>; sessions: Sess[] };
+
+const s = (id: string, game: string, score: number, errors: number, extra: Sess = {}): Sess => ({
+  id, game_type: game, score, errors, time_seconds: 30, difficulty: '3', timestamp: `2026-11-12T10:0${id.slice(-1)}:00.000Z`, ...extra,
+});
+
+const CASES: Case[] = [
+  {
+    name: 'cleanSeries',
+    sessions: [s('a1', 'schulte_table', 50, 0), s('a2', 'schulte_table', 60, 0), s('a3', 'corsi', 10, 2), s('a4', 'corsi', 12, 0)],
+  },
+  { name: 'duplicateId', sessions: [s('b1', 'n_back', 40, 0), s('b1', 'n_back', 40, 0), s('b2', 'n_back', 45, 0)] },
+  { name: 'lessonKeepsRun', sessions: [s('c1', 'sudoku', 90, 0), s('c2', 'sudoku', 80, 0, { details: { lesson: true } }), s('c3', 'sudoku', 85, 1, { details: { solver_used: true } })] },
+  { name: 'zeroScoreNotClean', sessions: [s('d1', 'stroop', 20, 0), s('d2', 'stroop', 0, 0)] },
+  { name: 'ownProfile', sessions: [s('e1', 'digit_span', 30, 0, { profile_id: 'free' }), s('e2', 'digit_span', 31, 0)] },
+  {
+    name: 'legacyMigratedOnWrite',
+    storage: {
+      psygames_sessions: JSON.stringify([
+        { id: 'old1', game_type: 'word_mnemonics', score: 5, errors: 0, timestamp: '2026-10-01T10:00:00.000Z' },
+        { id: 'old2', game_type: 'sudoku', score: 70, errors: 0, details: { samurai: true }, timestamp: '2026-10-02T10:00:00.000Z' },
+      ]),
+      psygames_clean_run_nzt48: '4',
+    },
+    sessions: [s('f1', 'schulte_table', 33, 0)],
+  },
+];
+
+describe('учёт партий — эталон хранилища для Dart', () => {
+  const out: unknown[] = [];
+  for (const c of CASES) {
+    it(c.name, async () => {
+      jest.resetModules();
+      const mod = require('@react-native-async-storage/async-storage'); // eslint-disable-line @typescript-eslint/no-require-imports
+      const AsyncStorage = mod.default ?? mod;
+      await AsyncStorage.clear();
+      for (const [k, v] of Object.entries(c.storage ?? {})) await AsyncStorage.setItem(k, v);
+      (globalThis as any).__psygames_active_profile_id = 'nzt48';
+      const { saveSession } = require('@/src/services/api'); // eslint-disable-line @typescript-eslint/no-require-imports
+      const steps: unknown[] = [];
+      for (const sess of c.sessions) {
+        await saveSession({ ...sess });
+        await new Promise((r) => setTimeout(r, 0));
+        const keys: string[] = (await AsyncStorage.getAllKeys()).filter((k: string) => k.startsWith('psygames_')).sort();
+        const storage: Record<string, string | null> = {};
+        for (const k of keys) storage[k] = await AsyncStorage.getItem(k);
+        steps.push({ session: sess, storage });
+      }
+      out.push({ name: c.name, profile: 'nzt48', storage: c.storage ?? {}, steps });
+      const last = steps[steps.length - 1] as { storage: Record<string, string> };
+      expect(last.storage.psygames_sessions).toBeTruthy();
+    });
+  }
+  afterAll(() => {
+    if (process.env.WRITE !== '1') return;
+    const file = path.join(__dirname, '../../../flutter/test/fixtures/session_store_reference.json');
+    fs.writeFileSync(file, JSON.stringify({ source: 'frontend/src/services/api.ts saveSession', cases: out }, null, 2) + '\n');
+  });
+});
