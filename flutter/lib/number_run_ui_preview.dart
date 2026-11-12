@@ -62,6 +62,7 @@ Future<void> main() async {
     // Как решатель: применить перед следующим «×2» (слот один) и перед финишем.
     // APPLY=late — держать «×2» до финиша (кадр состояния «в запасе»).
     const late = String.fromEnvironment('APPLY') == 'late';
+    // ignore: invalid_use_of_visible_for_testing_member — стенд вида, не приложение
     numberRunAutoApply = (course, s) =>
         s.reserve != null &&
         (s.nextRow >= course.rows.length - 3 ||
