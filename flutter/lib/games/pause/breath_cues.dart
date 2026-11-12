@@ -25,7 +25,9 @@ import 'practice_haptics.dart';
 /// на отсчёте 3 → 2 → 1 перед первым вдохом (`breathing.tsx:232`) и на каждом вдохе
 /// Вима Хофа (`breathing.tsx:319`). Без него отсчёт шёл в тишине, и с закрытыми глазами
 /// первый вдох приходил внезапно. Своей вибрации у щелчка нет — как у веба.
-enum BreathCue { inhale, hold, exhale, tap }
+/// [win] — финальный тон завершённого подхода (веб `sndWin` экрана `LevelCleared`, задача b9517e77):
+/// без него подход кончался тишиной. Своей вибрации у него нет — толчок даёт экран.
+enum BreathCue { inhale, hold, exhale, tap, win }
 
 /// Фаза по имени шага из каталога пакета practice_kit (`assets/practices.json`): `inhale`, `inhale-one`, `left-in` —
 /// вдох; `exhale`, `right-out` — выдох; `hold`, `hold-in`, `hold-out` — задержка.
@@ -43,6 +45,7 @@ const breathToneSpec = <BreathCue, (double, double, int, double)>{
   BreathCue.hold: (440, 440, 130, .19),
   BreathCue.exhale: (520, 300, 420, .30),
   BreathCue.tap: (660, 660, 50, .21),
+  BreathCue.win: (523, 1046, 700, .28),
 };
 
 const breathToneRate = 22050;
@@ -152,7 +155,7 @@ class BreathCues {
       BreathCue.inhale => {'continuous': false, 'count': 1, 'durationMs': 18, 'strength': PausePracticeHaptics.strength},
       BreathCue.hold => {'continuous': false, 'count': 2, 'durationMs': 14, 'strength': PausePracticeHaptics.strength},
       BreathCue.exhale => {'continuous': true, 'count': 1, 'durationMs': 60, 'strength': PausePracticeHaptics.strength},
-      BreathCue.tap => null,
+      BreathCue.tap || BreathCue.win => null,
     };
     if (args == null) return;
     try {

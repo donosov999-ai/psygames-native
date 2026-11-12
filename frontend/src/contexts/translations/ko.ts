@@ -3816,5 +3816,9 @@ const t: Record<string, string> = {
   "coachSignInFailed": "로그인하지 못했습니다. 다시 시도하세요.",
   "coachSharedScopes": "선생님에게 보이는 항목",
   "coachLastAt": "최근 {date}",
+  "pauseSetupTitle": "짧은 연습을 설정하세요",
+  "pauseExperiencedOnly": "이미 익힌 기법에만",
+  "pauseWarningsTitle": "시작하기 전에",
+  "pausePracticeComplete": "연습 완료",
 };
 export default t;

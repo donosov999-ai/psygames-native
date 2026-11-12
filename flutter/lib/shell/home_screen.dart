@@ -465,6 +465,7 @@ class _HomeScreenState extends State<HomeScreen> {
           title: _s(c['title']),
           sub: _s(c['sub']),
           cta: L.t('homeStartWorkout'),
+          chip: c['chip'] == null ? null : _s(c['chip']),
           onTap: () => widget.onOpen(href),
         );
       }

@@ -3824,5 +3824,9 @@ const t: Record<string, string> = {
   "coachSignInFailed": "साइन इन नहीं हो सका। फिर से कोशिश करें।",
   "coachSharedScopes": "शिक्षक को दिखता है",
   "coachLastAt": "अंतिम {date}",
+  "pauseSetupTitle": "एक छोटा अभ्यास सेट करें",
+  "pauseExperiencedOnly": "केवल पहले से सीखी गई तकनीक के लिए",
+  "pauseWarningsTitle": "शुरू करने से पहले",
+  "pausePracticeComplete": "अभ्यास पूरा हुआ",
 };
 export default t;

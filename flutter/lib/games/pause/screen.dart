@@ -31,6 +31,7 @@ import 'package:practice_kit/practice_kit.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/audio_host.dart' show appSoundOn;
 import '../../shell/aux_action.dart';
+import '../../shell/chrome_art.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -41,6 +42,8 @@ import '../../shell/voice_system.dart';
 import 'breath_cues.dart';
 import 'breathing.dart';
 import 'eye_gym.dart';
+import '../sudoku/level_map.dart' show levelStarsOf, saveLevelStars;
+import 'pause_extras.dart';
 import 'practice_haptics.dart';
 
 /// Каталог практик из ассета. Пробы подают свой — из файла, без `rootBundle`.
@@ -175,8 +178,10 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   /// Достигнутый уровень и лучший — по ключам веба (`usePersistentLevel('eye_gym')`).
   int get eyeLevel => clampEyeLevel(int.tryParse(widget.state.get(_eyeLevelKey) ?? '') ?? 1);
   int get eyeBest => math.max(eyeLevel, clampEyeLevel(int.tryParse(widget.state.get(_eyeBestKey) ?? '') ?? 1));
-  late final VoiceLayer _voice =
-      widget.voice ?? VoiceLayer(backend: SystemVoiceBackend(), soundOn: () => !GamePreset.isCalm);
+  /// Голос — по тумблеру «Звук» приложения и тихому шагу зарядки (задача 25b1d933): раньше
+  /// он слушал только тихий пресет и говорил при выключенном звуке.
+  late final VoiceLayer _voice = widget.voice ??
+      VoiceLayer(backend: SystemVoiceBackend(), soundOn: () => appSoundOn(widget.state) && !GamePreset.isCalm);
 
   int get _now => widget.clock?.call() ?? _watch.elapsedMilliseconds;
   String get _locale => L.locales.contains(L.locale) ? L.locale : 'en';
@@ -340,8 +345,22 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   List<Json> _available() =>
       (_engine?.catalog ?? const <Json>[]).where((s) => (s['contexts'] as List).contains(_context)).toList();
 
-  /// Строка ядра (`PAUSE_STRINGS`): у ядра только русский и английский.
-  String ps(String key) {
+  /// Подписи «Паузы» на всех 12 языках (задача 33d07902). Строки ядра (`PAUSE_STRINGS`)
+  /// есть только по-русски и по-английски — на остальных десяти языках кнопки «Начать»,
+  /// «Продолжить», «Заново» шли по-английски. Теперь — общий словарь приложения и словарь
+  /// страницы зарядки, где эти подписи переведены; ядро — только запасной путь.
+  String ps(String key) => switch (key) {
+        'start' => L.t('start'),
+        'restart' => L.t('restart'),
+        'progress' => L.t('progress'),
+        'resume' => pc('resume'),
+        'completed' => L.t('pausePracticeComplete'),
+        'ready' => L.t('pauseSetupTitle'),
+        'experiencedOnly' => L.t('pauseExperiencedOnly'),
+        _ => _coreString(key),
+      };
+
+  String _coreString(String key) {
     final strings = _engine!.data['strings'] as Map;
     final own = (strings[_locale == 'ru' ? 'ru' : 'en'] as Map)[key];
     return '${own ?? (strings['en'] as Map)[key] ?? key}';
@@ -674,7 +693,11 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   /// счётчик подходов вперёд, серия дней — как у веб-экрана.
   void _completeBreath(double seconds, String technique) {
     final run = _ledger.run;
+    _lastRun = run;
     unawaited(_ledger.complete(widget.today?.call() ?? DateTime.now())); // wall-clock: день серии
+    // Звёзды подхода — общая запись с вебом (`levelStars.ts`): их показывает тропинка.
+    unawaited(saveLevelStars(widget.state, 'breathing', run, 3));
+    _breathCues.play(BreathCue.win);
     final wim = technique == 'wimhof';
     unawaited(SessionReport.send(
       launch: _sessionLaunch,
@@ -708,6 +731,8 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
       unawaited(widget.state.set(_eyeLevelKey, '${done + 1}'));
       if (done + 1 > best) unawaited(widget.state.set(_eyeBestKey, '${done + 1}'));
     }
+    if (e.byLevel) unawaited(saveLevelStars(widget.state, 'eye_gym', done, 3));
+    _breathCues.play(BreathCue.win);
     final scale = e.byLevel ? eyeGymLevel(done).scale : _eyeScale;
     unawaited(SessionReport.send(
       launch: _sessionLaunch,
@@ -729,6 +754,16 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   void _completeWim(WimHofRun w) {
     _ticker.stop();
     _completeBreath(w.activeMs / 1000, 'wimhof');
+  }
+
+  /// Номер только что завершённого подхода дыхания — для итога (счётчик уже ушёл вперёд).
+  int? _lastRun;
+
+  /// 4-7-8 непривычен — «хочу поровну»: сразу на квадрат, к настройкам (веб `brSwitchToBox`).
+  void switchToBox() {
+    _tech = breathTechFor('box');
+    _programOf['breathing'] = _tech.program;
+    _again();
   }
 
   void _again() {
@@ -811,6 +846,28 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     super.dispose();
   }
 
+  /// 🔴 ПОДСКАЗКИ 4-7-8 ПО ХОДУ ПОДХОДА (задача d4e4b2d8, веб `breathing.tsx` v1.164, отчёт Вали
+  /// «выдох слишком длинный»): первые 6 с — совет приглушить экран перед сном; с 6-й по 16-ю —
+  /// «так и задумано: длинный выдох замедляет пульс» и выход на симметричный квадрат одним нажатием.
+  Widget? _calmHint(int elapsedMs) {
+    final sec = elapsedMs / 1000;
+    if (sec < 6) return Text(L.t('brDimHint'), key: const Key('pause-breath-dim-hint'), textAlign: TextAlign.center);
+    if (sec >= 16) return null;
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      Text(L.t('brLongExhaleWhy'), key: const Key('pause-breath-why'), textAlign: TextAlign.center),
+      const SizedBox(height: 6),
+      OutlinedButton(key: const Key('pause-breath-to-box'), onPressed: switchToBox, child: Text(L.t('brSwitchToBox'))),
+    ]);
+  }
+
+  /// Номер идущего цикла дыхания: прошедшее время на длину цикла программы.
+  int _cycleNow(Json s) {
+    final steps = objects(_engine!.program('breathing', _tech.program)['steps']);
+    final cycle = steps.fold<int>(0, (sum, st) => sum + (st['durationMs'] as int));
+    if (cycle <= 0) return 1;
+    return ((s['elapsedMs'] as int) ~/ cycle + 1).clamp(1, _breathCycles);
+  }
+
   String _clock(int ms) {
     final s = (ms / 1000).floor();
     return '${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}';
@@ -835,6 +892,13 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
           HudItem(label: L.t('hud_step'), value: '${eye.position.index + 1}/${eye.steps.length}', icon: Icons.format_list_numbered),
           HudItem(label: L.t('timeLeftLabel'), value: '${eye.remainSec}${L.t('secShort')}', icon: Icons.timer_outlined),
         ],
+        // «Цикл n/N» — как у веба (`hud_cycle`): сколько кругов осталось, видно без счёта в уме.
+        if (s != null && _breath && _breathFormat == 'cycles' && wim == null)
+          HudItem(
+            label: L.t('hud_cycle'),
+            value: '${_cycleNow(s)}/$_breathCycles',
+            icon: Icons.loop,
+          ),
         if (s != null)
           HudItem(
             label: L.t('time'),
@@ -865,6 +929,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
                 seconds: L.t('secShort'),
                 locale: _locale,
                 onEyeHit: () => _haptics.hit(s['plan'], s['elapsedMs'] as int),
+                hint: lead == null && _breath && _tech.web == 'calm478' ? _calmHint(s['elapsedMs'] as int) : null,
               ),
         // У Вима Хофа сессии ядра нет — итог берётся из его раундов.
         PausePhase.done => _Done(screen: this, session: s ?? const <String, dynamic>{}),
@@ -875,12 +940,23 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
           ? Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
               child: _wimWarning
-                  ? FilledButton.icon(
-                      key: const Key('pause-wim-agree'),
-                      onPressed: startWim,
-                      icon: const Icon(Icons.check),
-                      label: Text(L.t('brWimAgree')),
-                    )
+                  // «Понимаю» и «Назад» — как у веба: передумавший уходит к технике, а не из игры.
+                  ? Row(children: [
+                      OutlinedButton(
+                        key: const Key('pause-wim-back'),
+                        onPressed: () => edit(() => _wimWarning = false),
+                        child: Text(L.t('back')),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton.icon(
+                          key: const Key('pause-wim-agree'),
+                          onPressed: startWim,
+                          icon: const Icon(Icons.check),
+                          label: Text(L.t('brWimAgree')),
+                        ),
+                      ),
+                    ])
                   : FilledButton.icon(
                       key: const Key('pause-start'),
                       onPressed: selectionReady ? start : null,
@@ -929,7 +1005,13 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     );
     // Ночной шаг зарядки («Не спится», `dim=1`): яркий экран в три часа ночи
     // работает против задачи — как у веба, приглушаем.
-    return _dim ? Theme(data: ThemeData(brightness: Brightness.dark, colorSchemeSeed: const Color(0xff4ca1af)), child: shell) : shell;
+    // В «Авроре» — её же тёмная тема (роли и плашки остаются), в Classic — прежняя бирюзовая.
+    if (!_dim) return shell;
+    if (ChromeArt.aurora(context)) {
+      final t = Theme.of(context);
+      return Theme(data: t.copyWith(brightness: Brightness.dark, colorScheme: t.colorScheme.copyWith(brightness: Brightness.dark)), child: shell);
+    }
+    return Theme(data: ThemeData(brightness: Brightness.dark, colorSchemeSeed: const Color(0xff4ca1af)), child: shell);
   }
 }
 
@@ -1014,16 +1096,36 @@ class _BreathConfig extends StatelessWidget {
         key: const Key('pause-config'),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          const PauseAbout(descriptionKey: 'breathingIntroDesc', benefits: breathBenefits),
+          const SizedBox(height: 12),
           Text(L.t('brTechniqueLabel'), style: label),
+          // Раскрытый список — название, ритм и описание каждой техники (как у веба «с припиской»,
+          // задача 7caec33c); закрытый — одной строкой.
           DropdownButton<String>(
             key: const Key('pause-breath-tech'),
             isExpanded: true,
+            itemHeight: null,
             value: st._tech.web,
+            selectedItemBuilder: (context) => [
+              for (final t in breathTechs)
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text([L.t(t.nameKey), _rhythm(engine, t)].where((x) => x.isNotEmpty).join(' · '),
+                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                ),
+            ],
             items: [
               for (final t in breathTechs)
                 DropdownMenuItem(
                   value: t.web,
-                  child: Text([L.t(t.nameKey), _rhythm(engine, t)].where((x) => x.isNotEmpty).join(' · ')),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                      Text([L.t(t.nameKey), _rhythm(engine, t)].where((x) => x.isNotEmpty).join(' · '),
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                      Text(L.t(t.descKey), key: Key('pause-breath-tech-desc-${t.web}'), style: theme.textTheme.bodySmall),
+                    ]),
+                  ),
                 ),
             ],
             onChanged: (web) => st.edit(() {
@@ -1073,6 +1175,17 @@ class _BreathConfig extends StatelessWidget {
                 ),
             ]),
           ],
+          const SizedBox(height: 16),
+          // Тропинка подходов (задача 936e3a5e): веб `LevelProgressMap countsRuns` — путь из
+          // подходов, не ступеней сложности, поэтому узлы не нажимаются.
+          PauseLevelTrail(
+            keyPrefix: 'pause-breath-trail',
+            title: L.f('levelOfMax', {'n': '${st._ledger.run}', 'max': '${math.max(15, st._ledger.run)}'}),
+            last: math.max(15, st._ledger.run),
+            best: st._ledger.run,
+            current: st._ledger.run,
+            stars: levelStarsOf(st.widget.state, 'breathing'),
+          ),
         ]),
       ),
     );
@@ -1109,20 +1222,24 @@ class _EyeConfig extends StatelessWidget {
         key: const Key('pause-config'),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          const PauseAbout(descriptionKey: 'eyeGymIntroDesc', benefits: eyeBenefits),
+          const SizedBox(height: 12),
           chips<bool>('road', const [(true, 'sudokuModeLevels'), (false, 'sudokuModeFree')], st._eyeByLevel,
               (v) => st._eyeByLevel = v),
           const SizedBox(height: 12),
           if (st._eyeByLevel)
-            // Тропинка уровней: пройденные можно переиграть, дальше лучшего — нельзя.
-            Wrap(spacing: 8, runSpacing: 8, children: [
-              for (var n = 1; n <= st.eyeBest; n++)
-                ChoiceChip(
-                  key: Key('pause-eye-level-$n'),
-                  label: Text('$n · ${eyeGymLevelMinutes(n)}′'),
-                  selected: st._eyePicked == n,
-                  onSelected: (_) => st.edit(() => st._eyePicked = n),
-                ),
-            ])
+            // Тропинка уровней (задача af5c3ae9, веб `LevelProgressMap` с `onPickLevel`): весь путь
+            // до 15-го, пройденные нажимаются и переигрываются, дальше лучшего — замок, звёзды — общие с вебом.
+            PauseLevelTrail(
+              keyPrefix: 'pause-eye-level',
+              title: L.f('levelOfMax', {'n': '${st._eyePicked}', 'max': '$eyeMaxLevel'}),
+              last: eyeMaxLevel,
+              best: st.eyeBest,
+              current: st._eyePicked,
+              stars: levelStarsOf(st.widget.state, 'eye_gym'),
+              nodeLabel: (n) => '${eyeGymLevelMinutes(n)}′',
+              onPick: (n) => st.edit(() => st._eyePicked = n),
+            )
           else ...[
             Text(L.t('mode'), style: label),
             const SizedBox(height: 6),
@@ -1177,7 +1294,15 @@ class _WimView extends StatelessWidget {
         ),
         Expanded(
           child: Center(
-            child: GestureDetector(
+            // Кнопка для читалки экрана (задача 9e046132, веб `accessibilityRole="button"`):
+            // незрячий человек иначе не находит, чем закончить задержку.
+            child: Semantics(
+              container: true,
+              excludeSemantics: true,
+              button: run.stage == 'hold',
+              label: [title, big, hint].where((x) => x.isNotEmpty).join('. '),
+              onTap: run.stage == 'hold' ? screen.releaseWimHold : null,
+              child: GestureDetector(
               key: const Key('pause-wim-box'),
               onTap: run.stage == 'hold' ? screen.releaseWimHold : null,
               child: Container(
@@ -1194,6 +1319,7 @@ class _WimView extends StatelessWidget {
                   if (hint.isNotEmpty) Text(hint, style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
                 ]),
               ),
+            ),
             ),
           ),
         ),
@@ -1345,7 +1471,7 @@ class _Config extends StatelessWidget {
           ],
           if (warnings.isNotEmpty) ...[
             const SizedBox(height: 16),
-            Text(st.pc('warningsTitle'), style: label),
+            Text(L.t('pauseWarningsTitle'), style: label),
             for (final id in warnings)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
@@ -1369,7 +1495,11 @@ class _Playing extends StatelessWidget {
     this.seconds = 's',
     this.locale = 'en',
     this.onEyeHit,
+    this.hint,
   });
+
+  /// Подсказка под сценой (4-7-8 у «Дыхания»).
+  final Widget? hint;
 
   final Practices engine;
   final Json session;
@@ -1417,6 +1547,14 @@ class _Playing extends StatelessWidget {
             onEyeHit: onEyeHit,
           ),
         ),
+        if (hint != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+            child: DefaultTextStyle.merge(
+              style: theme.textTheme.bodySmall!.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              child: hint!,
+            ),
+          ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: Semantics(
@@ -1435,115 +1573,65 @@ class _Done extends StatelessWidget {
   final PauseScreenState screen;
   final Json session;
 
+  String _mmss(int secs) => '${secs ~/ 60}:${(secs % 60).toString().padLeft(2, '0')}';
+
   @override
   Widget build(BuildContext context) {
     final st = screen;
     final engine = st._engine!;
-    final theme = Theme.of(context);
+    void home() => Navigator.of(context).maybePop();
+    // 🔴 ИТОГ — ОБЩИМ ЭКРАНОМ (задача b9517e77): у веба это был `LevelCleared` — три звезды,
+    // уровень, серия, звук победы. Здесь был голый «Готово». В «Авроре» — лист 15
+    // (`GameResultPanel`), в Classic — та же раскладка.
     if (st._eyes && st._eye != null) {
       final e = st._eye!;
-      return ListView(
-        key: const Key('pause-done'),
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text(st.ps('completed'), style: theme.textTheme.headlineSmall, textAlign: TextAlign.center),
-          const SizedBox(height: 12),
-          Text('${e.totalSec ~/ 60}:${(e.totalSec % 60).toString().padLeft(2, '0')}',
-              style: theme.textTheme.headlineMedium, textAlign: TextAlign.center),
-          if (e.byLevel) Text('${e.level} → ${st.eyeLevel}', key: const Key('pause-eye-level'), textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          FilledButton.icon(key: const Key('pause-again'), onPressed: st._again, icon: const Icon(Icons.replay), label: Text(L.t('retry'))),
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            key: const Key('pause-home'),
-            onPressed: () => Navigator.of(context).maybePop(),
-            icon: const Icon(Icons.home_outlined),
-            label: Text(L.t('goHome')),
-          ),
+      return PauseResult(
+        title: L.t('pausePracticeComplete'),
+        subtitle: L.t('eyeGym'),
+        stats: [
+          if (e.byLevel)
+            PauseResultStat(Icons.trending_up, L.f('levelOfMax', {'n': '${e.level}', 'max': '$eyeMaxLevel'}),
+                '${e.level} → ${st.eyeLevel}', key: const Key('pause-eye-level')),
+          PauseResultStat(Icons.timer_outlined, L.t('time'), _mmss(e.totalSec)),
         ],
+        onAgain: st._again,
+        onHome: home,
       );
     }
     if (st._breath) {
       final wim = st._wim;
       final ms = wim != null ? wim.activeMs : (session['result']['durationMs'] as int);
-      final secs = (ms / 1000).round();
-      return ListView(
-        key: const Key('pause-done'),
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text(st.ps('completed'), style: theme.textTheme.headlineSmall, textAlign: TextAlign.center),
-          const SizedBox(height: 12),
-          Text(L.t(st._tech.nameKey), style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
-          Text('${secs ~/ 60}:${(secs % 60).toString().padLeft(2, '0')}', style: theme.textTheme.headlineMedium, textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          FilledButton.icon(key: const Key('pause-again'), onPressed: st._again, icon: const Icon(Icons.replay), label: Text(L.t('retry'))),
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            key: const Key('pause-home'),
-            onPressed: () => Navigator.of(context).maybePop(),
-            icon: const Icon(Icons.home_outlined),
-            label: Text(L.t('goHome')),
-          ),
+      final run = st._lastRun ?? st._ledger.run;
+      final streak = st._ledger.streakDays;
+      return PauseResult(
+        title: L.t('brDoneTitle'),
+        subtitle: L.t(st._tech.nameKey),
+        stats: [
+          PauseResultStat(Icons.flag_outlined, L.f('levelOfMax', {'n': '$run', 'max': '${math.max(15, run)}'}), '$run',
+              key: const Key('pause-breath-run')),
+          PauseResultStat(Icons.timer_outlined, L.t('time'), _mmss((ms / 1000).round())),
+          if (streak > 0)
+            PauseResultStat(Icons.local_fire_department, L.t('streakLabel'), '🔥$streak', key: const Key('pause-breath-streak')),
         ],
+        onAgain: st._again,
+        onHome: home,
       );
     }
     final Json result = session['result'];
     final int duration = result['durationMs'];
     final sets = List<String>.from(result['completedSetIds']);
-    return ListView(
-      key: const Key('pause-done'),
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text(st.ps('completed'), style: theme.textTheme.headlineSmall, textAlign: TextAlign.center),
-        const SizedBox(height: 12),
-        // Две равные колонки: подпись на длинном языке переносится, а не выталкивает соседа.
-        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Expanded(child: _Metric(label: st.pc('summaryMin'), value: '${(duration / 60000).round()}', icon: Icons.timer_outlined)),
-          Expanded(
-            child: _Metric(
-              label: st.pc('catalogItems').replaceAll('{count}', '').trim(),
-              value: '${sets.length}',
-              icon: Icons.self_improvement,
-            ),
-          ),
-        ]),
-        const SizedBox(height: 12),
-        for (final id in sets) Text('✓ ${st._text(engine.set(id)['title'])}', textAlign: TextAlign.center),
-        const SizedBox(height: 8),
-        Text(st.pc('completionPrivacy'), style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
-        const SizedBox(height: 16),
-        FilledButton.icon(
-          key: const Key('pause-again'),
-          onPressed: st._again,
-          icon: const Icon(Icons.replay),
-          label: Text(L.t('retry')),
-        ),
-        const SizedBox(height: 8),
-        OutlinedButton.icon(
-          key: const Key('pause-home'),
-          onPressed: () => Navigator.of(context).maybePop(),
-          icon: const Icon(Icons.home_outlined),
-          label: Text(L.t('goHome')),
-        ),
+    return PauseResult(
+      title: st.ps('completed'),
+      stats: [
+        PauseResultStat(Icons.timer_outlined, st.pc('summaryMin'), '${(duration / 60000).round()}'),
+        PauseResultStat(Icons.self_improvement, st.pc('catalogItems').replaceAll('{count}', '').trim(), '${sets.length}'),
       ],
+      lines: [
+        for (final id in sets) '✓ ${st._text(engine.set(id)['title'])}',
+        st.pc('completionPrivacy'),
+      ],
+      onAgain: st._again,
+      onHome: home,
     );
-  }
-}
-
-class _Metric extends StatelessWidget {
-  const _Metric({required this.label, required this.value, required this.icon});
-
-  final String label;
-  final String value;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(children: [
-      Icon(icon),
-      Text(value, style: theme.textTheme.headlineMedium),
-      Text(label, style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
-    ]);
   }
 }

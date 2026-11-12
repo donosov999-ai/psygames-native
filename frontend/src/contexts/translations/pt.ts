@@ -3821,5 +3821,9 @@ const t: Record<string, string> = {
   "coachSignInFailed": "Não foi possível entrar. Tente de novo.",
   "coachSharedScopes": "Visível para o professor",
   "coachLastAt": "último {date}",
+  "pauseSetupTitle": "Configure uma prática curta",
+  "pauseExperiencedOnly": "Só para técnica já dominada",
+  "pauseWarningsTitle": "Antes de começar",
+  "pausePracticeComplete": "Prática concluída",
 };
 export default t;
