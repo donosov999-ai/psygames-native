@@ -85,9 +85,15 @@ class BreathLedger {
   }
 
   /// Подход завершён: счётчик вперёд, серия дней — как `bumpStreak` веба.
+  /// Экран с общей лестницей двигает счётчик ею (`LevelLadder.win`) и зовёт только [bumpStreak].
   Future<void> complete(DateTime today) async {
     final done = run;
     await state.set(_level, '${done + 1}');
+    await bumpStreak(today);
+  }
+
+  /// Серия дней дыхания — `bumpStreak` веба.
+  Future<void> bumpStreak(DateTime today) async {
     Map<String, dynamic> d;
     try {
       d = jsonDecode(state.get(_streak) ?? '') as Map<String, dynamic>;

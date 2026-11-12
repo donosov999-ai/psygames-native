@@ -42,6 +42,7 @@ class DeepCfg {
     required this.rating,
     required this.feedCount,
     required this.unlockShare,
+    this.portalPairs = 2,
   });
 
   /// Слоёв всего, включая корень: 2 или 3.
@@ -55,6 +56,10 @@ class DeepCfg {
 
   /// Доля дырок, которую надо закрыть, чтобы узел отдал цифру наверх.
   final double unlockShare;
+
+  /// Пар порталов на родителя предпоследнего слоя: у веба всегда 2; больше — ступени лестницы
+  /// 9–10 (`levels.dart`). Сколько выйдет на деле, ограничивают кормящие клетки.
+  final int portalPairs;
 }
 
 /// Узел без решения — дёшево, для счёта дерева и карточек.

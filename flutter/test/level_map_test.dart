@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/level_ladder.dart';
 import 'package:psygames_flutter/games/fractal/screen.dart';
 import 'package:psygames_flutter/games/samurai/screen.dart';
 import 'package:psygames_flutter/games/sudoku/level_map.dart';
@@ -27,6 +28,7 @@ void main() {
 
   Future<void> boot(WidgetTester tester, Widget Function(SharedState) screen, Map<String, Object> prefs, String ready) async {
     SharedPreferences.setMockInitialValues(prefs);
+    LevelLadder.newScreen(); // как оболочка при открытии игры: выбор переигровки прошлой пробы снят
     await tester.runAsync(() async {
       state = await SharedState.open();
       await tester.pumpWidget(MaterialApp(home: screen(state)));
@@ -149,7 +151,8 @@ void main() {
     await openMap(tester);
     await pickNode(tester, 2);
     expect(snapshot('psygames_resume_sudoku_fractal_nzt48')['level'], 2);
-    expect(state.get('psygames_sudoku_fractal_level_nzt48'), '2', reason: 'ступень фрактала — выбранная');
+    // Переигровка живёт в памяти (c3f27cd6): личная ступень, которую берёт зарядка, не опущена.
+    expect(state.get('psygames_sudoku_fractal_level_nzt48'), '6', reason: 'личная ступень не опущена');
     expect(state.get('psygames_sudoku_fractal_best_nzt48'), '9', reason: 'потолок не тронут');
   });
 
@@ -158,7 +161,8 @@ void main() {
         {'psygames_sudoku_samurai_level_nzt48': '5', 'psygames_sudoku_samurai_best_nzt48': '8'}, 'cell_0_0');
     await openMap(tester);
     await pickNode(tester, 2);
-    expect(state.get('psygames_sudoku_samurai_level_nzt48'), '2');
+    expect(snapshot('psygames_resume_sudoku_samurai_nzt48')['level'], 2, reason: 'раздана доска выбранной ступени');
+    expect(state.get('psygames_sudoku_samurai_level_nzt48'), '5', reason: 'личная ступень не опущена (c3f27cd6)');
     expect(state.get('psygames_sudoku_samurai_best_nzt48'), '8');
   });
 

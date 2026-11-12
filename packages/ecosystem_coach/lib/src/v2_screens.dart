@@ -13,6 +13,9 @@ import 'skin.dart';
 import 'v2_model.dart';
 import 'v2_strings.dart';
 
+/// Редактор данных шага урока (свой у приложения): текст преподавателя, позиция FEN, id задачи.
+typedef CoachStepDataEditor = Future<Map<String, Object?>?> Function(BuildContext context, CoachLessonStep step);
+
 String _d(DateTime? d) => d == null
     ? ''
     : '${d.toLocal().day.toString().padLeft(2, '0')}.${d.toLocal().month.toString().padLeft(2, '0')}';
@@ -299,13 +302,17 @@ class _GroupScreenState extends State<GroupScreen> {
 /// Редактор урока: шаги из каталога приложений, уровень, сколько раз / минут, порядок перетаскиванием.
 class LessonEditorScreen extends StatefulWidget {
   const LessonEditorScreen({super.key, required this.catalog, this.lesson, this.strings = CoachV2Strings.en, this.frame = defaultCoachFrame,
-      this.appNames = const {}, this.onSave, this.onAssign});
+      this.appNames = const {}, this.onSave, this.onAssign, this.stepDataEditor});
   final List<CoachStepKind> catalog;
   final CoachLesson? lesson;
   final CoachV2Strings strings;
   final CoachFrame frame;
   final Map<String, String> appNames;
   final ValueChanged<CoachLesson>? onSave, onAssign;
+
+  /// Свой редактор данных шага у приложения (текст преподавателя, позиция FEN). Вызывается для видов с
+  /// `editableData`: при добавлении шага и по «✎». null в ответе — без изменений.
+  final CoachStepDataEditor? stepDataEditor;
 
   @override
   State<LessonEditorScreen> createState() => _LessonEditorScreenState();
@@ -359,7 +366,14 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       ),
     );
     if (kind != null) {
-      setState(() => _steps.add(CoachLessonStep(kind: kind, level: kind.maxLevel > 0 ? 1 : 0, amount: kind.unit == CoachStepUnit.minutes ? 5 : 3)));
+      var step = CoachLessonStep(kind: kind, level: kind.maxLevel > 0 ? 1 : 0, amount: kind.unit == CoachStepUnit.minutes ? 5 : 3,
+          data: kind.defaultData);
+      final editor = widget.stepDataEditor;
+      if (kind.editableData && editor != null && mounted) {
+        final data = await editor(context, step);
+        if (data != null) step = step.copyWith(data: data);
+      }
+      setState(() => _steps.add(step));
     }
   }
 
@@ -406,6 +420,16 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                         _stepper(_steps[i].amount, (v) => setState(() => _steps[i] = _steps[i].copyWith(amount: v))),
                         Text(_steps[i].kind.unit == CoachStepUnit.minutes ? s.minutes : s.times),
                       ]),
+                      if (_steps[i].kind.editableData && widget.stepDataEditor != null)
+                        IconButton(
+                          key: Key('coach-step-data-$i'),
+                          tooltip: s.change,
+                          icon: const Icon(Icons.edit_outlined),
+                          onPressed: () async {
+                            final data = await widget.stepDataEditor!(context, _steps[i]);
+                            if (data != null && mounted) setState(() => _steps[i] = _steps[i].copyWith(data: data));
+                          },
+                        ),
                     ]),
                   ]),
                 ),

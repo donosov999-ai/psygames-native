@@ -35,7 +35,10 @@ import '../../shell/chrome_art.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_ladder.dart';
 import '../../shell/session_report.dart';
+import '../../shell/sessions.dart' show readSessions;
+import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/voice.dart';
 import '../../shell/voice_system.dart';
@@ -150,6 +153,23 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   bool _wimWarning = false;
   late final BreathLedger _ledger = BreathLedger(widget.state);
 
+  /*
+   * 🔴 ОБЩАЯ ЛЕСТНИЦА У «ДЫХАНИЯ» И «ГИМНАСТИКИ ДЛЯ ГЛАЗ» (задача c345a8f1, правило Дениса 12.11:
+   * «все функции — у всех 131 игр»). В вебе у обеих была карта уровней (`LevelProgressMap`,
+   * `usePersistentLevel('breathing' | 'eye_gym')`); на Flutter свои счётчики шли мимо LevelLadder —
+   * в паузе не было ни карты, ни «проще / сложнее», ни звёзд. Ключи те же, что у веба и прежних
+   * счётчиков (`psygames_breathing_level_<профиль>`, `psygames_eye_gym_level|best_<профиль>`), —
+   * накопленное не теряется.
+   * «Глаза и дыхание» (свободная сборка) — решение Дениса 12.11: уровень = пройденные сеансы
+   * (`psygames_pause_level_<профиль>`); у кого ключа ещё нет, стартовый уровень — из уже записанных
+   * партий `pause`, чтобы накопленное не обнулилось.
+   */
+  LevelLadder? _ladder;
+
+  /// Лестница двигает уровень только в обычной игре: шаг зарядки и пресет считают подход по-своему,
+  /// как веб (гимнастика в зарядке поднимает уровень фактом завершения, проба pause_eye_gym_test).
+  LevelLadder? get _playLadder => GamePreset.isPreset || GamePreset.isWarmup ? null : _ladder;
+
   // Режим «Гимнастика для глаз»: лестница 15 уровней или свободная игра, как в вебе.
   bool get _eyes => widget.flavor == PauseFlavor.eyeGym;
   bool _eyeByLevel = true;
@@ -194,6 +214,24 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     super.initState();
     _sessionLaunch = SessionLaunch.capture();
     WidgetsBinding.instance.addObserver(this);
+    final store = SharedLevelStore(widget.state);
+    final ladder = _ladder = LevelLadder(
+      gameId: _eyes ? 'eye_gym' : (_breath ? 'breathing' : 'pause'),
+      store: store,
+      maxLevel: _eyes ? eyeMaxLevel : 999,
+      lastLevel: _eyes ? eyeMaxLevel : null,
+    );
+    unawaited(() async {
+      if (!_eyes && !_breath && await store.readInt('pause.level') == null) {
+        final played = readSessions(widget.state, const {}).where((x) => x['game_type'] == 'pause').length;
+        if (played > 0) {
+          await store.writeInt('pause.level', played + 1);
+          await store.writeInt('pause.best', played + 1);
+        }
+      }
+      await ladder.load();
+      if (mounted) setState(() {});
+    }());
     final given = widget.engine;
     if (given != null) {
       _apply(given, widget.copy ?? const {});
@@ -501,6 +539,8 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
       unawaited(_buzz.selection());
       return;
     }
+    // Выбор уровня — через лестницу: ниже достигнутого — переигровка на подход, достигнутое не опускается.
+    if (_eyeByLevel) unawaited(_playLadder?.pick(_eyePicked));
     final cfg = eyeGymLevel(_eyePicked);
     final steps = _eyeByLevel ? eyeSteps('full', cfg.scale) : eyeSteps(_eyeMode, _eyeScale);
     setState(() {
@@ -676,6 +716,8 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
       mastery[id] = (mastery[id] ?? 0) + 1;
     }
     unawaited(widget.state.set(_masteryKey, jsonEncode(mastery)));
+    // Сеанс — ступень лестницы «Глаз и дыхания» (уровень = пройденные сеансы, Денис 12.11).
+    unawaited(_playLadder?.win(report: false, errors: 0));
     final int duration = result['durationMs'];
     unawaited(SessionReport.send(
       launch: _sessionLaunch,
@@ -692,11 +734,19 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   /// Подход дыхания завершён: партия под прежним `breathing` с полями веба,
   /// счётчик подходов вперёд, серия дней — как у веб-экрана.
   void _completeBreath(double seconds, String technique) {
-    final run = _ledger.run;
+    final ladder = _playLadder;
+    final run = ladder?.level ?? _ledger.run;
     _lastRun = run;
-    unawaited(_ledger.complete(widget.today?.call() ?? DateTime.now())); // wall-clock: день серии
-    // Звёзды подхода — общая запись с вебом (`levelStars.ts`): их показывает тропинка.
-    unawaited(saveLevelStars(widget.state, 'breathing', run, 3));
+    final today = widget.today?.call() ?? DateTime.now(); // wall-clock: день серии
+    if (ladder != null) {
+      // Подход — ступень общей лестницы (партию пишет отчёт ниже, лестница — уровень и звёзды).
+      unawaited(ladder.win(report: false, errors: 0));
+      unawaited(_ledger.bumpStreak(today));
+    } else {
+      unawaited(_ledger.complete(today));
+      // Без лестницы звёзды подхода — общая запись с вебом (`levelStars.ts`): их показывает тропинка.
+      unawaited(saveLevelStars(widget.state, 'breathing', run, 3));
+    }
     _breathCues.play(BreathCue.win);
     final wim = technique == 'wimhof';
     unawaited(SessionReport.send(
@@ -725,9 +775,13 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     _ticker.stop();
     unawaited(_buzz.heavy());
     final done = e.level;
-    // «Лучший» — до записи уровня: после неё он читается уже от нового уровня.
-    final best = eyeBest;
-    if (e.byLevel && done < eyeMaxLevel && done + 1 > eyeLevel) {
+    final ladder = _playLadder;
+    if (e.byLevel && ladder != null) {
+      // Лестница: на достигнутом — следующая ступень и лучший; переигровка — звёзды, уровень на месте.
+      unawaited(ladder.win(report: false, errors: 0));
+    } else if (e.byLevel && done < eyeMaxLevel && done + 1 > eyeLevel) {
+      // «Лучший» — до записи уровня: после неё он читается уже от нового уровня.
+      final best = eyeBest;
       unawaited(widget.state.set(_eyeLevelKey, '${done + 1}'));
       if (done + 1 > best) unawaited(widget.state.set(_eyeBestKey, '${done + 1}'));
     }
@@ -764,6 +818,21 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     _tech = breathTechFor('box');
     _programOf['breathing'] = _tech.program;
     _again();
+  }
+
+  /// Уровень, выбранный на карте или пунктом «проще / сложнее»: подход начинается заново на нём.
+  Future<void> _playLevel(int level) async {
+    final ladder = _ladder;
+    if (ladder == null || !mounted) return;
+    await ladder.pick(level);
+    if (!mounted) return;
+    _again();
+    if (_eyes) {
+      setState(() {
+        _eyeByLevel = true;
+        _eyePicked = clampEyeLevel(level);
+      });
+    }
   }
 
   void _again() {
@@ -887,6 +956,8 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     final shell = GameShell(
       title: _eyes ? L.t('eyeGym') : (_breath ? L.t('breathing') : L.t('pause')),
       onBack: _back,
+      // Карта уровней и «проще / сложнее» каркаса раздают уровень сюда: подход заново на выбранном.
+      playLevel: _ladder == null ? null : _playLevel,
       hud: [
         if (eye != null) ...[
           HudItem(label: L.t('hud_step'), value: '${eye.position.index + 1}/${eye.steps.length}', icon: Icons.format_list_numbered),

@@ -28,7 +28,8 @@ class CoachStepCatalog {
     final unit = m['unit'] == 'minutes' ? CoachStepUnit.minutes : CoachStepUnit.times;
     final kind = known ??
         CoachStepKind(appId: appId, ref: ref, title: _s(m['title']).isEmpty ? ref : _s(m['title']), unit: unit);
-    return CoachLessonStep(kind: kind, level: _i(m['level']), amount: _i(m['amount']).clamp(1, 1000), note: _s(m['note']));
+    return CoachLessonStep(kind: kind, level: _i(m['level']), amount: _i(m['amount']).clamp(1, 1000), note: _s(m['note']),
+        data: _m(m['data']));
   }
 
   String title(String ref) => _byRef[ref]?.title ?? ref;
