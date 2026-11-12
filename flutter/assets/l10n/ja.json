@@ -793,6 +793,8 @@
 "hint_autocheck":"入力すると自動で判定します",
 "hint_center_arrow":"真ん中の矢印で答える。両側は引っかけ",
 "hint_simon_color_rule":"🔵 → ⬅️ 左 ・ 🔴 → ➡️ 右（位置ではなく色で判断）",
+"hint_targets_field":"フィールド：3つのうち2つが同じ色",
+"hint_targets_joker":"ジョーカー：前の円の色＝四角の色",
 "hint_top_to_bottom":"上から下へ、左から右へ",
 "historyBetter":"{n} 改善",
 "historyEmptyCta":"種目を選ぶ",

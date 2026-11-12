@@ -793,6 +793,8 @@
 "hint_autocheck":"Auto-Prüfung nach Eingabe",
 "hint_center_arrow":"Antworte nach dem MITTLEREN Pfeil – die äußeren lenken ab",
 "hint_simon_color_rule":"🔵 → ⬅️ links  ·  🔴 → ➡️ rechts  (nach Farbe, nicht nach Position)",
+"hint_targets_field":"Feld: 2 von 3 Formen gleiche Farbe",
+"hint_targets_joker":"Joker: Farbe des vorigen Kreises = Farbe des Quadrats",
 "hint_top_to_bottom":"Oben nach unten, links nach rechts",
 "historyBetter":"{n} besser",
 "historyEmptyCta":"Übung wählen",

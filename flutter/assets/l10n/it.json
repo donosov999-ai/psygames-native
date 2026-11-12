@@ -793,6 +793,8 @@
 "hint_autocheck":"verifica automatica dopo l'inserimento",
 "hint_center_arrow":"Rispondi in base alla freccia CENTRALE: quelle laterali confondono",
 "hint_simon_color_rule":"🔵 → ⬅️ sinistra  ·  🔴 → ➡️ destra  (per colore, non per posizione)",
+"hint_targets_field":"Campo: 2 figure su 3 dello stesso colore",
+"hint_targets_joker":"Jolly: colore del cerchio precedente = colore del quadrato",
 "hint_top_to_bottom":"Dall'alto in basso, da sinistra a destra",
 "historyBetter":"{n} in meglio",
 "historyEmptyCta":"Scegli un esercizio",

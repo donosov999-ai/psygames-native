@@ -793,6 +793,8 @@
 "hint_autocheck":"इनपुट के बाद ऑटो-जाँच",
 "hint_center_arrow":"बीच वाले तीर से जवाब दें — किनारे वाले भटकाते हैं",
 "hint_simon_color_rule":"🔵 → ⬅️ बायाँ · 🔴 → ➡️ दायाँ (रंग से, स्थिति से नहीं)",
+"hint_targets_field":"क्षेत्र: 3 में से 2 आकृतियाँ एक ही रंग की",
+"hint_targets_joker":"जोकर: पिछले वृत्त का रंग = वर्ग का रंग",
 "hint_top_to_bottom":"ऊपर से नीचे, बाएँ से दाएँ",
 "historyBetter":"{n} बेहतर",
 "historyEmptyCta":"अभ्यास चुनें",

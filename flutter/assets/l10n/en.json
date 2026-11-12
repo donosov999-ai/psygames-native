@@ -793,6 +793,8 @@
 "hint_autocheck":"auto-check after input",
 "hint_center_arrow":"Answer by the CENTRE arrow — the side ones mislead",
 "hint_simon_color_rule":"🔵 → ⬅️ left  ·  🔴 → ➡️ right  (by color, not by position)",
+"hint_targets_field":"Field: 2 of 3 shapes same color",
+"hint_targets_joker":"Joker: prev circle color = square color",
 "hint_top_to_bottom":"Top to bottom, left to right",
 "historyBetter":"{n} better",
 "historyEmptyCta":"Pick an exercise",

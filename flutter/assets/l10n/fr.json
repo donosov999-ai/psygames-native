@@ -793,6 +793,8 @@
 "hint_autocheck":"vérification auto après la saisie",
 "hint_center_arrow":"Réponds selon la flèche CENTRALE : celles des côtés trompent",
 "hint_simon_color_rule":"🔵 → ⬅️ gauche  ·  🔴 → ➡️ droite  (selon la couleur, pas la position)",
+"hint_targets_field":"Plateau : 2 figures sur 3 de la même couleur",
+"hint_targets_joker":"Joker : couleur du cercle précédent = couleur du carré",
 "hint_top_to_bottom":"De haut en bas, de gauche à droite",
 "historyBetter":"{n} de mieux",
 "historyEmptyCta":"Choisir un exercice",
