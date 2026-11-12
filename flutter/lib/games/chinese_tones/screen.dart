@@ -316,6 +316,18 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
       height: h,
       child: Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
+          // Как играть — одной строкой на первых уровнях: человек, пришедший из «Зарядки» мимо экрана
+          // настроек, иначе видит вопрос и четыре линии без объяснения (отзыв b852842b, fr).
+          if (_levelPlayed <= 3) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(L.t('chineseTonesDesc'),
+                  key: const Key('ct-howto'),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall),
+            ),
+            const SizedBox(height: 8),
+          ],
           Text(_params.pinyinMode ? L.t('ctPickPinyin') : L.t('ctPickTone'), textAlign: TextAlign.center),
           // Иероглиф и пиньинь — ПОСЛЕ ответа и только на младших уровнях:
           // раньше времени они превращают слух в чтение.
