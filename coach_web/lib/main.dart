@@ -53,8 +53,9 @@ Future<StepCatalogs> _loadCatalogs() async {
 }
 
 String _pick(Object? m, String lang) {
-  if (m is! Map) return '';
-  return '${m[lang] ?? m['en'] ?? ''}';
+  if (m is! Map || m.isEmpty) return '';
+  // Нет ни нужного языка, ни английского (тексты библиотеки TypeFree) — любое имеющееся название.
+  return '${m[lang] ?? m['en'] ?? m.values.first}';
 }
 
 class CoachWebApp extends StatefulWidget {
@@ -78,7 +79,14 @@ class _CoachWebAppState extends State<CoachWebApp> {
 
   CoachStepCatalog _catalog(String app) => CoachStepCatalog([
         for (final k in widget.catalogs[app] ?? const <Map<String, Object?>>[])
-          CoachStepKind(appId: app, ref: '${k['ref']}', title: _pick(k['title'], _lang), group: _pick(k['group'], _lang)),
+          CoachStepKind(
+            appId: app,
+            ref: '${k['ref']}',
+            title: _pick(k['title'], _lang),
+            group: _pick(k['group'], _lang),
+            maxLevel: k['max_level'] is num ? (k['max_level'] as num).toInt() : 0,
+            unit: k['unit'] == 'minutes' ? CoachStepUnit.minutes : CoachStepUnit.times,
+          ),
       ]);
 
   Widget _frame(BuildContext context, String title, Widget body, List<CoachBarAction> actions) {
