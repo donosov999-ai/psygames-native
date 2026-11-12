@@ -970,6 +970,7 @@
 "levelDone":"¡Nivel {n} superado!",
 "levelDownRetry":"Bajas al nivel {n} — otra vez…",
 "levelMap":"Mapa de niveles",
+"levelOfMax":"Nivel {n}/{max}",
 "levelSector1":"Calentamiento",
 "levelSector10":"Sobre las nubes",
 "levelSector2":"Sendero",

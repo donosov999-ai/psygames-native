@@ -970,6 +970,7 @@
 "levelDone":"اكتمل المستوى {n}!",
 "levelDownRetry":"نزول إلى المستوى {n} — مرة أخرى…",
 "levelMap":"خريطة المستويات",
+"levelOfMax":"المستوى {n}/{max}",
 "levelSector1":"الإحماء",
 "levelSector10":"فوق السحاب",
 "levelSector2":"الدرب",

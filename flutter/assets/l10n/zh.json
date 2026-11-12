@@ -970,6 +970,7 @@
 "levelDone":"第 {n} 关通过！",
 "levelDownRetry":"降到第 {n} 关——再来一次…",
 "levelMap":"关卡地图",
+"levelOfMax":"关卡 {n}/{max}",
 "levelSector1":"热身",
 "levelSector10":"云端",
 "levelSector2":"小径",

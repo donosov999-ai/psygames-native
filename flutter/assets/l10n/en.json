@@ -970,6 +970,7 @@
 "levelDone":"Level {n} done!",
 "levelDownRetry":"Down to level {n} — retry…",
 "levelMap":"Level map",
+"levelOfMax":"Level {n}/{max}",
 "levelSector1":"Warm-up",
 "levelSector10":"Above the Clouds",
 "levelSector2":"Trail",

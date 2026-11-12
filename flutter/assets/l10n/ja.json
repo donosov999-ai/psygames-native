@@ -970,6 +970,7 @@
 "levelDone":"レベル{n}クリア！",
 "levelDownRetry":"レベル {n} に下がってもう一度…",
 "levelMap":"レベルマップ",
+"levelOfMax":"レベル {n}/{max}",
 "levelSector1":"ウォームアップ",
 "levelSector10":"雲の上",
 "levelSector2":"小道",

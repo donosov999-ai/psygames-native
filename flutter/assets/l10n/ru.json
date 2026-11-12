@@ -970,6 +970,7 @@
 "levelDone":"Уровень {n} пройден!",
 "levelDownRetry":"Уровень ниже — {n}. Ещё раз…",
 "levelMap":"Карта уровней",
+"levelOfMax":"Уровень {n}/{max}",
 "levelSector1":"Разминка",
 "levelSector10":"Заоблачье",
 "levelSector2":"Тропа",

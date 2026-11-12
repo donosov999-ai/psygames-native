@@ -970,6 +970,7 @@
 "levelDone":"स्तर {n} पूरा!",
 "levelDownRetry":"स्तर {n} पर वापस — फिर से…",
 "levelMap":"स्तर मानचित्र",
+"levelOfMax":"स्तर {n}/{max}",
 "levelSector1":"वार्म-अप",
 "levelSector10":"बादलों के पार",
 "levelSector2":"पगडंडी",
