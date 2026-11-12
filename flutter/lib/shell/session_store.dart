@@ -6,6 +6,7 @@ import 'achievements_check.dart';
 import 'earn.dart';
 import 'sessions.dart';
 import 'shared_state.dart';
+import 'warmup_owner.dart';
 
 /// УЧЁТ ПАРТИЙ НА DART — ОДИН ПИСАТЕЛЬ (задача 0f3d3910, вариант Б d6a60b02, шаг а).
 ///
@@ -24,7 +25,17 @@ import 'shared_state.dart';
 /// `psygames_pet_record_at`) и вызов дня (`commitChallengeIfPending`: задуманный на сегодня в этой игре
 /// засчитывается, серия по дням).
 /// Срез 4: достижения ([checkAchievements]) по журналу с только что записанной партией.
-/// Дальше: облако, замки уровней тематических профилей.
+/// Срез 5: поток [saved] — подписка зарядки (шаг в) вместо `setSessionListener` веба.
+/// Дальше: облако (шаг г). Замки уровней тематических профилей (`level-unlocks.ts`) НЕ переносятся:
+/// их читает только веб-экран настроек (`useLevelGate`), а все 9 игр с замками нативные.
+
+/// Записанная партия для подписчиков [SessionStore.saved].
+///
+/// `replay` — партия с этим `id` уже была в журнале, и пришла от того же владельца шага зарядки:
+/// подписчик дозакрывает шаг по записи из журнала, начисления второй раз нет (у веба — вызов
+/// `_sessionListener(duplicate)`).
+typedef SavedSession = ({Session session, bool replay});
+
 class SessionStore {
   SessionStore(this.state, {required this.legacy, this.achievements, int Function()? nowMs, EarnWall? wall})
     : _nowMs = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch), // wall-clock: метка начисления
@@ -52,6 +63,12 @@ class SessionStore {
   /// затирает первое (`inWriteQueue` веба).
   static Future<void> _queue = Future.value();
 
+  static final _saved = StreamController<SavedSession>.broadcast(sync: true);
+
+  /// Партии после записи, начисления, вызова дня и достижений — в том же порядке, что подписчик веба.
+  /// Ошибка подписчика партию не трогает.
+  static Stream<SavedSession> get saved => _saved.stream;
+
   /// Сохранить партию. Вернёт записанную партию или `null`, если партия с таким `id` уже в журнале.
   ///
   /// `profileId` — активный профиль (у веба `__psygames_active_profile_id`); партия со своим
@@ -75,7 +92,12 @@ class SessionStore {
 
   Future<Session?> _write(Session stored, bool warmupStep, String active) async {
     final log = readSessions(state, legacy);
-    if (log.any((s) => jsTruthy(s['id']) && s['id'] == stored['id'])) return null;
+    final duplicate = log.where((s) => jsTruthy(s['id']) && s['id'] == stored['id']).firstOrNull;
+    if (duplicate != null) {
+      final owner = _owner(stored);
+      if (owner != null && owner == _owner(duplicate)) _emit((session: duplicate, replay: true));
+      return null;
+    }
     final all = [...log, stored];
     await state.set(sessionsKey, jsonEncode(all));
     final nowMs = _nowMs();
@@ -120,7 +142,21 @@ class SessionStore {
         local: _wall(nowMs),
       );
     }
+    _emit((session: stored, replay: false));
     return stored;
+  }
+
+  static WarmupOwner? _owner(Session s) {
+    final d = s['details'];
+    return d is Map ? WarmupOwner.fromJson(d['warmup_owner']) : null;
+  }
+
+  static void _emit(SavedSession e) {
+    try {
+      _saved.add(e);
+    } on Object {
+      // подписчик не имеет права ронять сохранение партии
+    }
   }
 
   /// `commitChallengeIfPending` + `commitChallengeDay`.

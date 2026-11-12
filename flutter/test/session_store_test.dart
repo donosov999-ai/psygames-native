@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -95,5 +96,79 @@ void main() {
     expect(saved?['timestamp'], isA<String>());
     expect(saved?['profile_id'], 'nzt48');
     expect(await store.save({'id': saved!['id'], 'game_type': 'corsi', 'score': 1}, profileId: 'nzt48'), isNull);
+  });
+
+  group('поток saved — подписка зарядки (срез 5)', () {
+    Map<String, Object?> owner(String attempt) => {'run_id': 'run1', 'step_idx': 2, 'attempt_id': attempt};
+
+    test('🔴 новая партия приходит ПОСЛЕ начисления; повтор без владельца — тишина', () async {
+      SharedPreferences.setMockInitialValues({});
+      final state = await SharedState.open();
+      final store = SessionStore(state, legacy: const {});
+      final got = <SavedSession>[];
+      final tokensAtEvent = <String?>[];
+      final sub = SessionStore.saved.listen((e) {
+        got.add(e);
+        tokensAtEvent.add(state.get('psygames_tokens_v1'));
+      });
+      addTearDown(sub.cancel);
+      await store.save({'id': 'x1', 'game_type': 'corsi', 'score': 100, 'errors': 0}, profileId: 'nzt48');
+      await store.save({'id': 'x1', 'game_type': 'corsi', 'score': 100, 'errors': 0}, profileId: 'nzt48');
+      expect(got, hasLength(1));
+      expect(got.single.replay, isFalse);
+      expect(got.single.session['id'], 'x1');
+      expect(tokensAtEvent.single, isNotNull, reason: 'подписчик видит уже начисленное');
+    });
+
+    test('🔴 повтор того же владельца шага — replay с записью из журнала; чужой владелец — тишина', () async {
+      SharedPreferences.setMockInitialValues({});
+      final state = await SharedState.open();
+      final store = SessionStore(state, legacy: const {});
+      final got = <SavedSession>[];
+      final sub = SessionStore.saved.listen(got.add);
+      addTearDown(sub.cancel);
+      await store.save(
+        {
+          'id': 'w1', 'game_type': 'stroop', 'score': 7, //
+          'details': {'warmup_owner': owner('a1')},
+        },
+        profileId: 'nzt48',
+        warmupStep: true,
+      );
+      final tokens = state.get('psygames_tokens_v1');
+      await store.save(
+        {
+          'id': 'w1', 'game_type': 'stroop', 'score': 99, //
+          'details': {'warmup_owner': owner('a1')},
+        },
+        profileId: 'nzt48',
+        warmupStep: true,
+      );
+      await store.save(
+        {
+          'id': 'w1', 'game_type': 'stroop', 'score': 99, //
+          'details': {'warmup_owner': owner('a2')},
+        },
+        profileId: 'nzt48',
+        warmupStep: true,
+      );
+      expect([for (final e in got) e.replay], [false, true]);
+      expect(got.last.session['score'], 7, reason: 'шаг дозакрывается по записи из журнала, не по повтору');
+      expect(state.get('psygames_tokens_v1'), tokens, reason: 'повтор не начисляет');
+    });
+
+    test('упавший подписчик не роняет сохранение', () async {
+      SharedPreferences.setMockInitialValues({});
+      final state = await SharedState.open();
+      final store = SessionStore(state, legacy: const {});
+      final errors = <Object>[];
+      await runZonedGuarded(() async {
+        final sub = SessionStore.saved.listen((_) => throw StateError('подписчик'));
+        addTearDown(sub.cancel);
+        final saved = await store.save({'id': 'y1', 'game_type': 'corsi', 'score': 1}, profileId: 'nzt48');
+        expect(saved?['id'], 'y1');
+      }, (e, _) => errors.add(e));
+      expect(state.get(SessionStore.sessionsKey), contains('y1'));
+    });
   });
 }
