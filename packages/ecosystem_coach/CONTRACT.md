@@ -130,3 +130,13 @@ Migration `supabase/migrations/20261112060000_ecosystem_coach_v3_1.sql` (additio
   the old assignment is archived with its report (the past is not rewritten); the new one keeps the start when the lesson
   is the same (done steps still count) or starts now with the new lesson. Client: `updateAssignment(...)`; UI —
   «Change» on the assignment report (`AssignmentReportScreen.onEdit`).
+
+## coach/3.2 — step data (`data`)
+
+Migration `supabase/migrations/20261112100000_ecosystem_coach_v3_2.sql` (additions only; local 121 checks).
+A lesson step may carry `data` — a JSON object up to 4 KB that the server stores in the lesson and the assignment
+snapshot and returns to the student as is (it does not interpret it): the teacher's own text (TypeFree), a FEN position or a
+PGN game (Chess & Go), a puzzle id. Package: `CoachLessonStep.data`; catalog entries may ship `CoachStepKind.defaultData`
+(a ready exercise) and `editableData: true` (the teacher fills the data). Give `TeacherCabinetV2(stepDataEditor: ...)` /
+`LessonEditorScreen(stepDataEditor: ...)` your own editor `(context, step) => Future<Map?>` — it opens when such a step is
+added and by «✎». The student side gets it in `StudentAssignmentsPanel.onStart(task, i)` → `task.lesson.steps[i].data`.

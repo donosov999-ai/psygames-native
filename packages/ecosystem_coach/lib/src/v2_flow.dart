@@ -32,6 +32,7 @@ class TeacherCabinetV2 extends StatefulWidget {
     this.frame = defaultCoachFrame,
     this.lang,
     this.header,
+    this.stepDataEditor,
   });
   final CoachClient client;
   final CoachStepCatalog catalog;
@@ -45,6 +46,9 @@ class TeacherCabinetV2 extends StatefulWidget {
 
   /// Над группами: переключатель режима или своё.
   final Widget? header;
+
+  /// Свой редактор данных шага (свой текст, позиция) — передаётся в редактор урока.
+  final CoachStepDataEditor? stepDataEditor;
 
   @override
   State<TeacherCabinetV2> createState() => _TeacherCabinetV2State();
@@ -265,6 +269,7 @@ class _TeacherCabinetV2State extends State<TeacherCabinetV2> {
           strings: _s,
           frame: widget.frame,
           appNames: widget.strings.appNames,
+          stepDataEditor: widget.stepDataEditor,
           onSave: (l) => _guard(() async {
             if (l.title.isEmpty || l.steps.isEmpty) return;
             await _c.saveLesson(l);
