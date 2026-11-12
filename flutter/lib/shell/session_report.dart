@@ -111,7 +111,7 @@ class SessionReport {
       // (`hybrid_app.dart`, `window.__psySaveSession`), и при снятии WebView он исчезнет. Громко
       // говорим о потере — в журнал и колбэку; в релизе не бросаем: пробы без приёмника штатны.
       if ((launch ?? SessionLaunch.capture()).isWarmup) {
-        debugPrint('[SessionReport] отчёт зарядки ($gameType) потерян: нет приёмника партий');
+        debugPrint('[SessionReport] warmup report ($gameType) lost: no session sink');
         onDropped?.call(gameType);
       }
       return;
