@@ -101,12 +101,36 @@ class AnagramBoard extends StatelessWidget {
 
 }
 
+/// Размер плитки колеса и радиус круга, по которому они стоят — одно место для вёрстки и для
+/// попадания пальцем (иначе они разъедутся).
+double ringTileSize(double side) => min(56.0, side / 3.2);
+double ringRadius(double side) => side / 2 - min(30.0, side / 8);
+
+/// Плитка колеса под точкой [p] (локальные координаты колеса) или null. Первая буква сверху,
+/// дальше по часовой — как в [LetterRing]. Попадание — внутри круга плитки.
+int? ringTileAt(Offset p, int n, double side) {
+  final c = Offset(side / 2, side / 2);
+  final r = ringRadius(side);
+  final hit = ringTileSize(side) / 2;
+  for (var i = 0; i < n; i++) {
+    final a = -pi / 2 + 2 * pi * i / n;
+    if ((p - (c + Offset(r * cos(a), r * sin(a)))).distance <= hit) return i;
+  }
+  return null;
+}
+
 /// КОЛЕСО БУКВ — ОДНО НА ВСЕ РЕЖИМЫ АНАГРАММ.
 ///
 /// Вынесено из поля классики, когда понадобилось второму режиму: второй экземпляр
 /// того же круга означал бы две раскладки, которые разъедутся при первой правке.
 /// Родня в вебе — `src/components/letterWheel/LetterWheel.tsx`, тоже общий.
-class LetterRing extends StatelessWidget {
+///
+/// 🔴 ВВОД ДВУМЯ СПОСОБАМИ: тап по плитке и ПРОТЯЖКА пальцем по буквам без отрыва. В вебе колесо
+/// вело палец (`onResponderMove`), в нативе остались только тапы — отзыв игрока 2b597852:
+/// «смысл круга в том, что буквы соединяют пальцем». Протяжка берёт каждую новую плитку под
+/// пальцем ровно один раз, взятые не трогает; тап работает как раньше (InkWell отменяется,
+/// когда палец ушёл дальше касательного допуска).
+class LetterRing extends StatefulWidget {
   const LetterRing({
     super.key,
     required this.letters,
@@ -124,30 +148,89 @@ class LetterRing extends StatelessWidget {
   final ValueChanged<int> onPick;
 
   @override
+  State<LetterRing> createState() => _LetterRingState();
+}
+
+class _LetterRingState extends State<LetterRing> {
+  /// Что взято в ТЕКУЩЕЙ протяжке: родитель перерисуется позже, чем придёт следующее движение.
+  final Set<int> _dragged = {};
+  Offset? _down;
+  int? _downTile;
+  bool _dragging = false;
+
+  /// Дальше этого от места касания — уже протяжка, а не тап (логические точки).
+  static const _slop = 10.0;
+
+  bool _free(int i) => !widget.picked.contains(i) && !_dragged.contains(i);
+
+  void _take(int i) {
+    if (!_free(i)) return;
+    _dragged.add(i);
+    widget.onPick(i);
+  }
+
+  void _move(Offset p) {
+    final down = _down;
+    if (down == null) return;
+    if (!_dragging) {
+      if ((p - down).distance < _slop) return;
+      _dragging = true;
+      final first = _downTile;
+      if (first != null) _take(first);
+    }
+    final t = ringTileAt(p, widget.letters.length, widget.side);
+    if (t != null) _take(t);
+  }
+
+  void _end() {
+    _down = null;
+    _downTile = null;
+    _dragging = false;
+    _dragged.clear();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final r = side / 2 - min(30.0, side / 8);
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Container(
-          width: side,
-          height: side,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+    final side = widget.side;
+    final r = ringRadius(side);
+    final n = widget.letters.length;
+    return Listener(
+      key: const Key('letter-ring'),
+      onPointerDown: (e) {
+        _down = e.localPosition;
+        _downTile = ringTileAt(e.localPosition, n, side);
+        _dragging = false;
+        _dragged.clear();
+      },
+      onPointerMove: (e) => _move(e.localPosition),
+      onPointerUp: (_) => _end(),
+      onPointerCancel: (_) => _end(),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: side,
+            height: side,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            ),
           ),
-        ),
-        for (var i = 0; i < letters.length; i++) _tile(context, i, letters.length, r, side),
-      ],
+          for (var i = 0; i < n; i++) _tile(context, i, n, r, side),
+        ],
+      ),
     );
   }
 
   Widget _tile(BuildContext context, int i, int n, double r, double side) {
+    final letters = widget.letters;
+    final picked = widget.picked;
+    final onPick = widget.onPick;
     final scheme = Theme.of(context).colorScheme;
     // Первая буква сверху, дальше по часовой — как в веб-версии.
     final a = -pi / 2 + 2 * pi * i / n;
-    final d = min(56.0, side / 3.2);
+    final d = ringTileSize(side);
     final used = picked.contains(i);
     return Transform.translate(
       offset: Offset(r * cos(a), r * sin(a)),
