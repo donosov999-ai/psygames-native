@@ -165,6 +165,30 @@ class RoadTrack {
     intended += gain;
   }
 
+  /// ОПЕРАЦИЯ В ЗАПАС (Денис 11.11.2026, вариант Б): в одной полосе — «×2» в слот, в двух других —
+/// числа сразу. Выбор «взять сейчас или удвоить потом» и момент применения — за игроком.
+  void reserve(int stage, double k, [String op = '×2']) {
+    final lane = (rng() * 3).floor() - 1.0;
+    final values = runnerShuffle([2 * k, k], rng);
+    var v = 0;
+    add(
+        stage,
+        (id, z) => RoadRow.of(
+              kind: 'pickups',
+              id: id,
+              stage: stage,
+              z: z,
+              shape: 'reserve',
+              station: 'reserve',
+              window: 3,
+              items: [
+                for (final x in const [-1.0, 0.0, 1.0])
+                  x == lane ? RoadItem(x: x, value: 0, half: .5, reserve: op) : RoadItem(x: x, value: values[v++]),
+              ],
+            ));
+    intended += 2 * k;
+  }
+
   void snake(int stage, double k, int redCount) {
     const dzs = <double>[-18, -15, -12, -9, -6, -3, 0];
     final mirror = rng() < .5 ? -1.0 : 1.0;

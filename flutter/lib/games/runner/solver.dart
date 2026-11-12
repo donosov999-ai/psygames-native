@@ -24,12 +24,27 @@ class SolverStep {
 }
 
 class _Candidate {
-  const _Candidate(this.sum, this.lane, this.z, this.path);
+  const _Candidate(this.sum, this.lane, this.z, this.path, [this.reserve]);
   final double sum, lane, z;
   final List<SolverStep> path;
+
+  /// Операция в запасе, которую путь ещё держит («×2»), или `null`.
+  final String? reserve;
 }
 
-String _key(double sum, double lane) => '${jsNum(sum)}:${jsNum(lane)}';
+/// Сумма, если применить запас прямо сейчас: по ней путь ранжируется, чтобы «держу ×2» не
+/// проигрывал «уже удвоил» до того, как удвоение станет выгоднее.
+double _potential(_Candidate c, double limit) {
+  final op = c.reserve;
+  if (op == null) return c.sum;
+  try {
+    return applyOperation(c.sum, op, limit);
+  } catch (_) {
+    return c.sum;
+  }
+}
+
+String _key(double sum, double lane, [String? reserve]) => '${jsNum(sum)}:${jsNum(lane)}:${reserve ?? ''}';
 
 /// Сколько возьмёт стоящий в полосе [lane] на ряду чисел: столб прижимает к своей стороне,
 /// трамплин в его полосе уносит над числами.
@@ -53,9 +68,11 @@ double _stationaryGain(RoadRow r, double lane) {
 /// Выигрывает ли тот, кто всю дорогу стоит в одной полосе. Такую раздачу уровень перебрасывает.
 bool stationaryWins(RoadCourse course, double lane) {
   var sum = course.start;
+  String? held;
   final limit = course.mode == 'journey' ? 1e6 : 9999.0;
   for (final r in course.rows) {
     if (r.kind == 'pickups') {
+      held ??= r.items.where((i) => i.reserve != null && i.x == lane).firstOrNull?.reserve;
       sum += _stationaryGain(r, lane);
     } else if (r.kind == 'answer') {
       sum += lane + 1 == r.correct ? r.reward : -r.penalty;
@@ -77,6 +94,7 @@ bool stationaryWins(RoadCourse course, double lane) {
   }
   return true;
 }
+
 
 /// Эталонный путь: полные накопленные состояния и промежуточные ворота. `null` — пути нет.
 List<SolverStep>? solveCourse(RoadCourse course) {
@@ -100,6 +118,7 @@ List<SolverStep>? solveCourse(RoadCourse course) {
           continue;
         }
         double sum;
+        String? picked;
         try {
           if (route != null) {
             sum = c.sum + route.gain;
@@ -108,6 +127,8 @@ List<SolverStep>? solveCourse(RoadCourse course) {
           } else if (row.kind == 'pickups') {
             final hit = row.items.where((i) => i.x == lane);
             sum = c.sum + (hit.isEmpty ? 0 : hit.first.value);
+            final op = hit.isEmpty ? null : hit.first.reserve;
+            if (op != null && c.reserve == null) picked = op;
           } else if (row.kind == 'operation') {
             final label = _optionAt(row, lane);
             if (label == null) throw StateError('no option');
@@ -124,13 +145,22 @@ List<SolverStep>? solveCourse(RoadCourse course) {
             !roadMeets(sum, row.rules.length == 1 ? row.rules[0] : row.rules[(lane + 1).toInt()])) {
           continue;
         }
-        final key = _key(sum, lane);
-        next.putIfAbsent(
-            key,
-            () => _Candidate(sum, lane, row.z + (row.window ?? 0), [
-                  ...c.path,
-                  SolverStep(id: row.id, lane: lane, sum: sum, route: route?.id),
-                ]));
+        final held = c.reserve ?? picked;
+        final z = row.z + (row.window ?? 0);
+        final path = [...c.path, SolverStep(id: row.id, lane: lane, sum: sum, route: route?.id)];
+        next.putIfAbsent(_key(sum, lane, held), () => _Candidate(sum, lane, z, path, held));
+        // Применить запас сразу после этого ряда — отдельная ветка пути.
+        if (held != null) {
+          try {
+            final applied = applyOperation(sum, held, limit);
+            next.putIfAbsent(
+                _key(applied, lane),
+                () => _Candidate(applied, lane, z, [
+                      ...c.path,
+                      SolverStep(id: row.id, lane: lane, sum: applied, route: route?.id),
+                    ]));
+          } catch (_) {}
+        }
       }
     }
     candidates = next.values.toList();
@@ -139,13 +169,26 @@ List<SolverStep>? solveCourse(RoadCourse course) {
     if (course.mode == 'journey') {
       final indexed = [for (var i = 0; i < candidates.length; i++) (i, candidates[i])]
         ..sort((a, b) {
-          final d = b.$2.sum - a.$2.sum;
-          return d != 0 ? d.sign.toInt() : a.$1 - b.$1;
+          final d = _potential(b.$2, limit) - _potential(a.$2, limit);
+          if (d != 0) return d.sign.toInt();
+          // При равенстве — тот, кто ещё держит запас: удвоение позже не хуже удвоения сейчас.
+          final r = (b.$2.reserve != null ? 1 : 0) - (a.$2.reserve != null ? 1 : 0);
+          return r != 0 ? r : a.$1 - b.$1;
         });
       candidates = [for (final e in indexed.take(3)) e.$2];
     }
   }
-  return candidates.isEmpty ? null : candidates.first.path;
+  if (candidates.isEmpty) return null;
+  // Непотраченный запас эталон применяет перед финишем: финал меряется по лучшему числу.
+  // Без запаса — прежний выбор (первый кандидат), чтобы эталоны прежних уровней не сдвинулись.
+  if (candidates.every((c) => c.reserve == null)) return candidates.first.path;
+  final best = candidates.reduce((a, b) => _potential(b, limit) > _potential(a, limit) ? b : a);
+  if (best.reserve == null || best.path.isEmpty) return best.path;
+  final last = best.path.last;
+  return [
+    ...best.path.sublist(0, best.path.length - 1),
+    SolverStep(id: last.id, lane: last.lane, sum: _potential(best, limit), route: last.route),
+  ];
 }
 
 /// `row.penalties[lane + 1]`: у полосы-половинки в JS это `undefined`.
