@@ -568,14 +568,22 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
    * «Подсказка» — в нижнем тулбаре каркаса, а не кнопкой под доской (стандарт игрового экрана,
    * Денис 31.10; CHATS_RULES.md §1в). Условие прежнее; до него — неактивная кнопка, ряд не прыгает.
    */
-  AuxBar _aux(ScholarsRun run) => AuxBar(children: [
-        AuxAction(
-          key: const Key('sm-hint'),
-          icon: Icons.lightbulb_outline,
-          label: '${L.t('btn_hint')} −1⭐',
-          onPressed: run.verdict == null && run.puzzle.kind != ScholarsKind.threat && run.secondsLeft <= run.seconds / 2 && !(run.hintSquare != null) ? () => setState(run.takeHint) : null,
-        ),
-      ]);
+  AuxBar _aux(ScholarsRun run) => AuxBar(
+    children: [
+      AuxAction(
+        key: const Key('sm-hint'),
+        icon: Icons.lightbulb_outline,
+        label: '${L.t('btn_hint')} −1⭐',
+        onPressed:
+            run.verdict == null &&
+                run.puzzle.kind != ScholarsKind.threat &&
+                run.secondsLeft <= run.seconds / 2 &&
+                !(run.hintSquare != null)
+            ? () => setState(run.takeHint)
+            : null,
+      ),
+    ],
+  );
 
   Widget _play(ScholarsRun run, double fieldHeight) {
     final scheme = Theme.of(context).colorScheme;
@@ -649,6 +657,7 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
               pieces: scholarsPieces(run.fen, whiteBottom: white),
               side: side,
               keyPrefix: 'sm',
+              squareName: (i) => scholarsSquareName(i, whiteBottom: white),
               onTapSquare: threat
                   ? null
                   : (i) => setState(
@@ -666,7 +675,10 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
                   : scholarsSquareIndex(run.hintSquare!, whiteBottom: white),
             ),
             const SizedBox(height: 8),
-            if (verdict == null && !threat && left <= run.seconds / 2 && run.hintSquare != null)
+            if (verdict == null &&
+                !threat &&
+                left <= run.seconds / 2 &&
+                run.hintSquare != null)
               Text(L.t('hintUsed'), key: const Key('sm-hint-used')),
             if (threat)
               Row(
@@ -788,6 +800,7 @@ class ScholarsLessonBoard extends StatelessWidget {
       pieces: scholarsPieces(frame.fen, whiteBottom: white),
       side: side,
       keyPrefix: 'sml',
+      squareName: (i) => scholarsSquareName(i, whiteBottom: white),
       selected: at(frame.from),
       targets: {?at(frame.to)},
       hinted: at(frame.focus),

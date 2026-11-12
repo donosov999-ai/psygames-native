@@ -18,6 +18,8 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../shell/l10n.dart';
+
 /// Строка авторства для экрана «О приложении».
 const String piecesNotice =
     'Chess piece images © Colin M.L. Burnett, BSD 3-Clause (via Wikimedia Commons)';
@@ -73,6 +75,7 @@ class ChessBoardView extends StatelessWidget {
     this.sideDiscs = false,
     this.cornerCoords = false,
     this.dim = 8,
+    this.squareName,
   });
 
   /// Клетка → фигура. Пустые клетки просто отсутствуют.
@@ -121,6 +124,12 @@ class ChessBoardView extends StatelessWidget {
   /// Клетка — `ряд * dim + столбец`, ряд 0 — верхний, как и у 8×8.
   final int dim;
 
+  /// 🔴 ИМЯ ПОЛЯ ДЛЯ ЭКРАННОГО ЧТЕЦА (VoiceOver/TalkBack): веб подписывал каждую клетку
+  /// (`accessibilityLabel={squareName(…)}`), в нативе доска была немой. По умолчанию — белые
+  /// внизу (клетка 0 = a8); доска, перевёрнутая к чёрным («Детский мат», «Найди ход»), даёт
+  /// своё имя, иначе чтец назвал бы клетку не тем полем.
+  final String Function(int index)? squareName;
+
   static const _light = Color(0xFFE8C48A);
   static const _dark = Color(0xFFC8A06A);
 
@@ -150,6 +159,11 @@ class ChessBoardView extends StatelessWidget {
                     masked: masked,
                     keyPrefix: keyPrefix,
                     onTap: onTapSquare,
+                    spokenSquare:
+                        (squareName ??
+                        (i) => '${'abcdefgh'[i % dim]}${dim - i ~/ dim}')(
+                          row * dim + col,
+                        ),
                     hinted: hinted == row * dim + col,
                     outline: outlines[row * dim + col],
                     strong: strong == row * dim + col,
@@ -182,6 +196,7 @@ class _Square extends StatelessWidget {
     required this.masked,
     required this.keyPrefix,
     required this.onTap,
+    required this.spokenSquare,
     this.hinted = false,
     this.outline,
     this.strong = false,
@@ -203,6 +218,7 @@ class _Square extends StatelessWidget {
   final bool masked;
   final String keyPrefix;
   final void Function(int square)? onTap;
+  final String spokenSquare;
   final bool hinted;
   final Color? outline;
   final bool strong;
@@ -214,107 +230,122 @@ class _Square extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = piece;
-    return GestureDetector(
-      key: Key('$keyPrefix-$index'),
-      onTap: onTap == null ? null : () => onTap!(index),
-      child: Container(
-        width: step,
-        height: step,
-        decoration: BoxDecoration(
-          color: hinted
-              ? const Color(0xFFF3B95F)
-              : light
-              ? lightColor
-              : darkColor,
-          border: outline != null
-              ? Border.all(color: outline!, width: step * (strong ? 0.1 : 0.06))
-              : selected
-              ? Border.all(color: mark, width: step * 0.06)
-              : null,
-        ),
-        alignment: Alignment.center,
-        child: Stack(
+    // Скрытую маской фигуру чтец НЕ называет — иначе «Доска в уме» теряет смысл вслепую.
+    final spoken = p == null
+        ? spokenSquare
+        : (masked && !revealed)
+        ? spokenSquare
+        : '$spokenSquare, ${L.t('chessPc${p.white ? 'W' : 'B'}${p.type.toUpperCase()}')}';
+    return Semantics(
+      label: spoken,
+      button: onTap != null,
+      selected: selected,
+      excludeSemantics: true,
+      child: GestureDetector(
+        key: Key('$keyPrefix-$index'),
+        onTap: onTap == null ? null : () => onTap!(index),
+        child: Container(
+          width: step,
+          height: step,
+          decoration: BoxDecoration(
+            color: hinted
+                ? const Color(0xFFF3B95F)
+                : light
+                ? lightColor
+                : darkColor,
+            border: outline != null
+                ? Border.all(
+                    color: outline!,
+                    width: step * (strong ? 0.1 : 0.06),
+                  )
+                : selected
+                ? Border.all(color: mark, width: step * 0.06)
+                : null,
+          ),
           alignment: Alignment.center,
-          children: [
-            // Куда можно пойти — точкой под фигурой, а не вместо неё: иначе
-            // взятие выглядит как пустая клетка.
-            if (target)
-              Container(
-                width: step * (p == null ? 0.3 : 0.86),
-                height: step * (p == null ? 0.3 : 0.86),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: p == null ? mark.withValues(alpha: 0.55) : null,
-                  border: p == null
-                      ? null
-                      : Border.all(color: mark, width: step * 0.07),
-                ),
-              ),
-            if (strong)
-              Positioned.fill(
-                child: ColoredBox(color: const Color(0x5538BDF8)),
-              ),
-            if (rankLabel != null)
-              Positioned(
-                top: 1,
-                left: 2,
-                child: Text(
-                  rankLabel!,
-                  style: TextStyle(
-                    fontSize: step * 0.22,
-                    color: light
-                        ? const Color(0xFF5D4433)
-                        : const Color(0xFFC9B29A),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Куда можно пойти — точкой под фигурой, а не вместо неё: иначе
+              // взятие выглядит как пустая клетка.
+              if (target)
+                Container(
+                  width: step * (p == null ? 0.3 : 0.86),
+                  height: step * (p == null ? 0.3 : 0.86),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: p == null ? mark.withValues(alpha: 0.55) : null,
+                    border: p == null
+                        ? null
+                        : Border.all(color: mark, width: step * 0.07),
                   ),
                 ),
-              ),
-            if (fileLabel != null)
-              Positioned(
-                bottom: 1,
-                right: 2,
-                child: Text(
-                  fileLabel!,
-                  style: TextStyle(
-                    fontSize: step * 0.22,
-                    color: light
-                        ? const Color(0xFF5D4433)
-                        : const Color(0xFFC9B29A),
-                  ),
+              if (strong)
+                Positioned.fill(
+                  child: ColoredBox(color: const Color(0x5538BDF8)),
                 ),
-              ),
-            if (p != null)
-              masked && !revealed
-                  ? sideDiscs
-                        ? Container(
-                            key: Key(
-                              '$keyPrefix-disc-$index-${p.white ? 'w' : 'b'}',
-                            ),
-                            width: step * 0.62,
-                            height: step * 0.62,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: p.white
-                                  ? const Color(0xFFCBD5E1)
-                                  : const Color(0xFF475569),
-                              border: Border.all(
-                                color: p.white
-                                    ? const Color(0xFF94A3B8)
-                                    : const Color(0xFF1E293B),
-                                width: 2,
-                              ),
-                            ),
-                          )
-                        : Icon(
-                            Icons.circle,
-                            size: step * 0.42,
-                            color: const Color(0xFF5B5B5B),
-                          )
-                  : ChessPieceImage(
-                      type: p.type,
-                      white: p.white,
-                      size: step * 0.92,
+              if (rankLabel != null)
+                Positioned(
+                  top: 1,
+                  left: 2,
+                  child: Text(
+                    rankLabel!,
+                    style: TextStyle(
+                      fontSize: step * 0.22,
+                      color: light
+                          ? const Color(0xFF5D4433)
+                          : const Color(0xFFC9B29A),
                     ),
-          ],
+                  ),
+                ),
+              if (fileLabel != null)
+                Positioned(
+                  bottom: 1,
+                  right: 2,
+                  child: Text(
+                    fileLabel!,
+                    style: TextStyle(
+                      fontSize: step * 0.22,
+                      color: light
+                          ? const Color(0xFF5D4433)
+                          : const Color(0xFFC9B29A),
+                    ),
+                  ),
+                ),
+              if (p != null)
+                masked && !revealed
+                    ? sideDiscs
+                          ? Container(
+                              key: Key(
+                                '$keyPrefix-disc-$index-${p.white ? 'w' : 'b'}',
+                              ),
+                              width: step * 0.62,
+                              height: step * 0.62,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: p.white
+                                    ? const Color(0xFFCBD5E1)
+                                    : const Color(0xFF475569),
+                                border: Border.all(
+                                  color: p.white
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF1E293B),
+                                  width: 2,
+                                ),
+                              ),
+                            )
+                          : Icon(
+                              Icons.circle,
+                              size: step * 0.42,
+                              color: const Color(0xFF5B5B5B),
+                            )
+                    : ChessPieceImage(
+                        type: p.type,
+                        white: p.white,
+                        size: step * 0.92,
+                      ),
+            ],
+          ),
         ),
       ),
     );

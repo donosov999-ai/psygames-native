@@ -357,14 +357,21 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
    * «Подсказка» — в нижнем тулбаре каркаса, а не кнопкой под доской (стандарт игрового экрана,
    * Денис 31.10; CHATS_RULES.md §1в). Условие прежнее; до него — неактивная кнопка, ряд не прыгает.
    */
-  AuxBar _aux(FindMoveRun run) => AuxBar(children: [
-        AuxAction(
-          key: const Key('fm-hint'),
-          icon: Icons.lightbulb_outline,
-          label: L.t('btn_hint'),
-          onPressed: run.verdict == null && run.secondsLeft <= findMoveSeconds / 2 && !(run.hintSquare != null) ? () => setState(run.takeHint) : null,
-        ),
-      ]);
+  AuxBar _aux(FindMoveRun run) => AuxBar(
+    children: [
+      AuxAction(
+        key: const Key('fm-hint'),
+        icon: Icons.lightbulb_outline,
+        label: L.t('btn_hint'),
+        onPressed:
+            run.verdict == null &&
+                run.secondsLeft <= findMoveSeconds / 2 &&
+                !(run.hintSquare != null)
+            ? () => setState(run.takeHint)
+            : null,
+      ),
+    ],
+  );
 
   Widget _play(FindMoveRun run, double fieldHeight) {
     final scheme = Theme.of(context).colorScheme;
@@ -419,6 +426,7 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
               pieces: scholarsPieces(run.fen, whiteBottom: white),
               side: side,
               keyPrefix: 'fm',
+              squareName: (i) => scholarsSquareName(i, whiteBottom: white),
               // Вердикт называет ход записью («Rc8#») — без подписей полей его не найти глазами.
               cornerCoords: true,
               onTapSquare: (i) => setState(
@@ -452,7 +460,9 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
                     ),
                 ],
               )
-            else if (verdict == null && left <= findMoveSeconds / 2 && run.hintSquare != null)
+            else if (verdict == null &&
+                left <= findMoveSeconds / 2 &&
+                run.hintSquare != null)
               Text(L.t('hintUsed'), key: const Key('fm-hint-used')),
             Text(
               verdictText(),
@@ -543,6 +553,7 @@ class FindMoveLessonBoard extends StatelessWidget {
       pieces: scholarsPieces(frame.fen, whiteBottom: white),
       side: side,
       keyPrefix: 'fml',
+      squareName: (i) => scholarsSquareName(i, whiteBottom: white),
       cornerCoords: true,
       selected: at(frame.from),
       targets: {?at(frame.to)},
