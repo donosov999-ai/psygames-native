@@ -365,10 +365,17 @@ class _PhonemicFluencyScreenState extends State<PhonemicFluencyScreen> {
             const SizedBox(height: 8),
             Text('${L.t('hud_words')}: $valid', key: const Key('pf-count')),
             const SizedBox(height: 20),
+            // 🔴 Денис 12.11: «Дальше» после уровня — сразу следующая партия, не настройки.
             FilledButton(
               key: const Key('pf-again'),
-              onPressed: () => setState(() => _phase = PhonemicPhase.config),
+              onPressed: _start,
               child: Text(L.t('nextNow')),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              key: const Key('phonemic-to-settings'),
+              onPressed: () => setState(() => _phase = PhonemicPhase.config),
+              child: Text(L.t('settings')),
             ),
           ]),
         ),
