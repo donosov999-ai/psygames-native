@@ -1,0 +1,23 @@
+name: coach_web
+description: Веб-кабинет преподавателя (teach.asiapps.pro) — те же экраны пакета ecosystem_coach, что в приложениях.
+publish_to: 'none'
+version: 0.1.0+1
+environment:
+  sdk: ^3.13.4
+dependencies:
+  flutter:
+    sdk: flutter
+  ecosystem_account:
+    path: ../packages/ecosystem_account
+  ecosystem_coach:
+    path: ../packages/ecosystem_coach
+  url_launcher: ^6.3.2
+  web: ^1.1.1
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/catalogs.json

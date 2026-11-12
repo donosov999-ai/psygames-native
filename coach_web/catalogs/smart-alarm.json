@@ -1,0 +1,68 @@
+[
+  {
+    "ref": "breathing",
+    "title": {
+      "en": "Breathing",
+      "ru": "Дыхание"
+    },
+    "group": {
+      "en": "Practices",
+      "ru": "Практики"
+    }
+  },
+  {
+    "ref": "eye-gym",
+    "title": {
+      "en": "Eye gym",
+      "ru": "Гимнастика для глаз"
+    },
+    "group": {
+      "en": "Practices",
+      "ru": "Практики"
+    }
+  },
+  {
+    "ref": "face-speech",
+    "title": {
+      "en": "Face, voice and articulation",
+      "ru": "Лицо, голос и артикуляция"
+    },
+    "group": {
+      "en": "Practices",
+      "ru": "Практики"
+    }
+  },
+  {
+    "ref": "relaxation",
+    "title": {
+      "en": "Relaxation",
+      "ru": "Расслабление"
+    },
+    "group": {
+      "en": "Practices",
+      "ru": "Практики"
+    }
+  },
+  {
+    "ref": "pelvic-floor",
+    "title": {
+      "en": "Kegel / pelvic floor",
+      "ru": "Кегель / тазовое дно"
+    },
+    "group": {
+      "en": "Practices",
+      "ru": "Практики"
+    }
+  },
+  {
+    "ref": "mobility",
+    "title": {
+      "en": "Joint mobility",
+      "ru": "Подвижность суставов"
+    },
+    "group": {
+      "en": "Practices",
+      "ru": "Практики"
+    }
+  }
+]
