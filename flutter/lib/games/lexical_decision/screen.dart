@@ -433,7 +433,7 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
               child: TextButton(
                 key: const Key('ld-reset-level'),
                 onPressed: () async {
-                  await _lad.pick(1);
+                  await _lad.setLevel(1);
                   if (mounted) setState(() {});
                 },
                 child: Semantics(label: L.t('a11yResetLevel'), child: const Text('↺ 1')),

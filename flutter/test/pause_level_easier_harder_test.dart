@@ -69,14 +69,16 @@ void main() {
 
   setUp(() => GamePreset.clear());
 
-  testWidgets('🔴 уровень 3 из достигнутых 5: оба пункта; «проще» — уровень 2 и новая партия', (t) async {
+  testWidgets('🔴 уровень 3 из достигнутых 5: оба пункта; «проще» — партия на уровне 2, личный уровень не опущен', (t) async {
     final store = await open(t, level: 3, best: 5);
     expect(find.text(L.t('pauseEasier')), findsOneWidget);
     expect(find.text(L.t('pauseHarder')), findsOneWidget);
     final before = _Game.builds;
     await t.tap(find.text(L.t('pauseEasier')));
     await t.pumpAndSettle();
-    expect(store.m['probe.level'], 2, reason: 'выбор уровня сохранён');
+    // Переигровка живёт в памяти (c3f27cd6): личный уровень, который берёт зарядка, не опущен.
+    expect(store.m['probe.level'], 3, reason: 'личный уровень не опущен');
+    expect(LevelLadder.current?.level, 2, reason: 'новая партия — на уровне проще');
     expect(store.m['probe.best'], 5, reason: 'достигнутое не срезается');
     expect(_Game.builds, greaterThan(before), reason: 'партия раздана заново');
   });
