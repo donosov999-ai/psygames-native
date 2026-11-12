@@ -44,6 +44,7 @@ class GameShell extends StatelessWidget {
     this.playLevel,
     this.levelRule,
     this.fieldOnly = false,
+    this.fieldOnlyPauseBottom = false,
     this.auroraTransparentField = false,
     this.auroraJewelPause = true,
     this.practice,
@@ -116,6 +117,14 @@ class GameShell extends StatelessWidget {
    */
   final bool fieldOnly;
 
+  /*
+   * ПАУЗА ВНИЗУ В РЕЖИМЕ [fieldOnly] — решение Дениса для «Числового забега» (11.11.2026): «раннер
+   * запускается в полноэкранном режиме, внизу можно оставить только кнопку паузы, и то без тулбара —
+   * просто плавающую»; «паузу двигать в центр не просил — оставить на прежнем месте, слева». Пауза —
+   * внизу слева, где она стоит в нижнем ряду «Авроры»; та же золотая сфера. По умолчанию — сверху справа, как было.
+   */
+  final bool fieldOnlyPauseBottom;
+
   /// «Аврора», по выбору игры: поле и клавиатура без своей подложки — за ними фон рамки (боке,
   /// в светлой — переливы PrismaLoop). Пилот Codex 31.10 — Судоку; остальные игры сохраняют свой
   /// фон, пока их контраст не проверен отдельно.
@@ -159,6 +168,24 @@ class GameShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     feedbackState = _feedbackState();
+    if (fieldOnly && fieldOnlyPauseBottom) {
+      // Поле до краёв экрана (раннер: дорога под строкой статуса и полоской «домой»), пауза — в
+      // безопасной зоне. Отступы для своих надписей игра берёт из MediaQuery.paddingOf.
+      return Scaffold(
+        body: _withFeedback(Stack(children: [
+          Positioned.fill(
+            child: LayoutBuilder(
+              key: const Key('game-field'),
+              builder: (context, c) => field(context, c.maxHeight),
+            ),
+          ),
+          SafeArea(child: Stack(children: [
+            Positioned(top: 8, left: 12, child: _practiceHud(fieldOnly: true)),
+            Positioned(left: 16, bottom: 10, child: _fieldOnlyPause(context)),
+          ])),
+        ])),
+      );
+    }
     if (fieldOnly) {
       return Scaffold(
         body: _withFeedback(SafeArea(
@@ -170,29 +197,10 @@ class GameShell extends StatelessWidget {
               ),
             ),
             Positioned(top: 8, left: 12, child: _practiceHud(fieldOnly: true)),
-            Positioned(
-              top: 8,
-              right: 12,
-              child: Semantics(
-                button: true,
-                label: L.t('gamePauseOpen'),
-                child: Material(
-                  key: const Key('field-only-pause'),
-                  color: pauseYellow,
-                  shape: const CircleBorder(),
-                  elevation: 3,
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: () => _pause(context),
-                    child: const SizedBox(
-                      width: 52,
-                      height: 52,
-                      child: Icon(Icons.pause, size: 28, color: onPauseYellow),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            if (fieldOnlyPauseBottom)
+              Positioned(left: 16, bottom: 10, child: _fieldOnlyPause(context))
+            else
+              Positioned(top: 8, right: 12, child: _fieldOnlyPause(context)),
           ]),
         )),
       );
@@ -277,6 +285,33 @@ class GameShell extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: spot == null ? body : LevelRuleWatcher(spot: spot, child: body),
+      ),
+    );
+  }
+
+  /// Круглая пауза режима [fieldOnly]: в «Авроре» — золотая сфера нижнего ряда, иначе — жёлтый круг.
+  Widget _fieldOnlyPause(BuildContext context) {
+    final aurora = auroraFrameOf(context) != null;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Semantics(
+      button: true,
+      label: L.t('gamePauseOpen'),
+      child: Material(
+        key: const Key('field-only-pause'),
+        color: aurora ? Colors.transparent : pauseYellow,
+        shape: const CircleBorder(),
+        elevation: aurora ? 0 : 3,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: () => _pause(context),
+          child: SizedBox(
+            width: aurora ? 60 : 52,
+            height: aurora ? 60 : 52,
+            child: aurora
+                ? Image.asset('assets/aurora_game_chrome/sudoku_buttons/${dark ? 'dark' : 'light'}_pause.webp')
+                : const Icon(Icons.pause, size: 28, color: onPauseYellow),
+          ),
+        ),
       ),
     );
   }

@@ -92,6 +92,9 @@ void main() {
   group('уровни и забег — ряд в ряд', () {
     for (final l in (courses['levels'] as List).cast<Map<String, dynamic>>()) {
       final level = l['level'] as int, seed = l['seed'] as int;
+      // С главы «операция в запасе» (L19, решение Дениса 11.11.2026) натив расходится с вебом
+      // намеренно: новая станция сдвигает план. Эти уровни сверяет группа «операция в запасе».
+      if (level >= reserveFrom) continue;
       test('🔴 уровень $level, зерно $seed: план, ряды, путь решателя, финал', () {
         expect(isBossLevel(level), l['boss']);
         expect(stationPlan(level, isBossLevel(level)), l['plan']);
@@ -158,6 +161,10 @@ void main() {
 
   group('прогоны кадров', () {
     for (final run in (runsRef['runs'] as List).cast<Map<String, dynamic>>()) {
+      // Уровни с главы «операция в запасе» в вебе другие (решение Дениса 11.11.2026) — их прогон
+      // веба по нативному уровню не воспроизвести; ядро запаса сверяет number_run_reserve_test.
+      final lvl = (run['source'] as Map<String, dynamic>)['level'];
+      if (lvl is int && lvl >= reserveFrom) continue;
       test('🔴 ${run['name']}: след и события совпадают с живым ядром', () {
         final src = run['source'] as Map<String, dynamic>;
         final course = src.containsKey('course')

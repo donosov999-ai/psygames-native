@@ -4,7 +4,7 @@
 /// лестница 10 стен (пройден при ≥ 5) или «Страж» на уровне-боссе (пройден, если число не
 /// меньше стража). Главы вводят станции хаба «Счёт» по одной: 1–3 дорога · 4–6 + блиц-арки ·
 /// 7–9 + ворота «ровно N» · 10–12 + ряд на арках · 13–15 + шкала · 16–18 + память в пути ·
-/// 19+ смесь (схема `~/dev/psygames/counting-chat/SPEC_RUNNER_HUB_STATIONS.md`).
+/// 19–21 + операция в запасе · 22+ смесь (схема `~/dev/psygames/counting-chat/SPEC_RUNNER_HUB_STATIONS.md`).
 ///
 /// 🔴 ЗАДАЧИ СТАНЦИЙ — ГЕНЕРАТОРЫ САМИХ УПРАЖНЕНИЙ, уже перенесённые на Dart: блиц берёт пример у
 /// «Мат. спринта», ворота — у «Состава числа», ряд — у «Паттернов», шкала — у «Мат. шкалы»,
@@ -45,7 +45,12 @@ const List<Chapter> chapters = [
   Chapter(10, 'pattern'),
   Chapter(13, 'scale'),
   Chapter(16, 'memory'),
+  // Денис 11.11.2026 (вариант Б): «операция в запасе» — своя глава, как станции.
+  Chapter(19, 'reserve'),
 ];
+
+/// С какого уровня входит «операция в запасе» — первая глава, которой нет в вебе.
+final int reserveFrom = chapters.firstWhere((c) => c.station == 'reserve').from;
 
 /// С какого уровня все введённые станции идут вперемешку: через главу после последней.
 final int mixFrom = chapters.last.from + 3;
@@ -194,6 +199,8 @@ RoadCourse? _buildLevel(int level, int seed, int salt, RunnerTasks tasks, bool b
       track.memoryShow(1, k, memory);
     } else if (station == 'memory-recall') {
       track.memoryRecall(1, k, memory!);
+    } else if (station == 'reserve') {
+      track.reserve(1, k);
     } else if (i == levelSlots - 1) {
       if (boss) {
         track.doubling(1, k, .85);

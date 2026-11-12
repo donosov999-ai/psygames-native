@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/number_run/campaign.dart';
 import 'package:psygames_flutter/games/number_run/level.dart';
@@ -69,9 +70,8 @@ void main() {
     return p.lane;
   }
 
-  final buttons = {-1.0: 'nr-steer-left', 0.0: 'nr-steer-center', 1.0: 'nr-steer-right'};
-
-  /// Ведёт партию кнопками до итога; тень — то же ядро на тех же кадрах и нажатиях.
+  /// Ведёт партию стрелками клавиатуры до итога (забег во весь экран — ряда кнопок полос нет,
+  /// Денис 11.11.2026); тень — то же ядро на тех же кадрах и нажатиях.
   Future<RoadState> drive(WidgetTester tester, RoadCourse course,
       {bool steer = true, double dt = .05, void Function(RoadState s)? onFrame}) async {
     final path = solveCourse(course)!;
@@ -84,7 +84,11 @@ void main() {
       if (steer && shadow.status == RoadStatus.running) {
         final want = jsRound(aim(course, path, shadow)).clamp(-1.0, 1.0);
         if (want != pressed) {
-          await tester.tap(find.byKey(Key(buttons[want]!)));
+          final from = pressed ?? 0;
+          final key = want > from ? LogicalKeyboardKey.arrowRight : LogicalKeyboardKey.arrowLeft;
+          for (var i = 0; i < (want - from).abs().round(); i++) {
+            await tester.sendKeyEvent(key);
+          }
           shadow = roadSetTarget(shadow, want);
           pressed = want;
         }
@@ -117,10 +121,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
     expect(find.byKey(const Key('nr-road')), findsOneWidget);
     expect(find.byKey(const Key('nr-car')), findsOneWidget);
-    expect(find.byKey(const Key('nr-steer-center')), findsOneWidget);
+    expect(find.byKey(const Key('field-only-pause')), findsOneWidget, reason: 'пауза — одна, плавающая');
+    expect(find.byKey(const Key('nr-steer-center')), findsNothing, reason: 'во весь экран — без ряда кнопок');
   });
 
-  testWidgets('🔴 уровень 1 кнопками: число = ядро на тех же кадрах, финал, итог и запись партии', (tester) async {
+  testWidgets('🔴 уровень 1 стрелками: число = ядро на тех же кадрах, финал, итог и запись партии', (tester) async {
     await open(tester);
     final course = makeLevel(1, seed, countingTasks);
     var finaleFrames = 0;
@@ -130,7 +135,7 @@ void main() {
         finaleFrames++;
       }
     });
-    expect(shadow.status, RoadStatus.won, reason: 'автопилот по кнопкам не доехал: ${shadow.failure}');
+    expect(shadow.status, RoadStatus.won, reason: 'автопилот стрелками не доехал: ${shadow.failure}');
     final seconds = finaleDuration(course, shadow.sum);
     expect(finaleFrames * .05, closeTo(seconds, .1), reason: 'финал шёл ${finaleFrames * .05} с, а должен $seconds с');
     final o = numberRunOutcome(course, shadow);
@@ -143,7 +148,7 @@ void main() {
     expect(r['score'], o.number);
     final d = r['details'] as Map<String, dynamic>;
     expect([d['walls'], d['walls_total'], d['level'], d['boss'], d['reason'], d['seed']], [o.walls, 10, 1, false, 'finished', seed]);
-    expect(find.text(o.passed ? L.t('levelDone').replaceAll('{n}', '1') : L.t('levelAlmost').replaceAll('{n}', '1')),
+    expect(find.text((o.passed ? L.t('levelDone').replaceAll('{n}', '1') : L.t('levelAlmost').replaceAll('{n}', '1')).toUpperCase()),
         findsOneWidget, reason: 'вердикт словами итога');
     // Лестница: засчитанный уровень ведёт на следующий.
     final prefs = await SharedPreferences.getInstance();
@@ -160,10 +165,10 @@ void main() {
     final d = reports.single['details'] as Map<String, dynamic>;
     expect([d['reason'], d['walls']], ['fell', 0]);
     expect(find.byKey(const Key('nr-finale')), findsNothing, reason: 'после падения финала нет');
-    expect(find.text(L.t('retry')), findsWidgets);
+    expect(find.text(L.t('retry').toUpperCase()), findsWidgets);
   });
 
-  testWidgets('«Свободно»: забег на 12 этапов, в шапке этап, а не уровень', (tester) async {
+  testWidgets('«Свободно»: забег на 12 этапов, в капсуле этап, а не уровень', (tester) async {
     await open(tester);
     await tester.tap(find.text(L.t('sudokuModeFree')));
     await tester.pump();
@@ -172,7 +177,8 @@ void main() {
     await tester.tap(find.byKey(const Key('nr-start')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
-    expect(find.text('1/$campaignStageCount'), findsOneWidget);
+    // Во весь экран шапки нет — этап в капсуле HUD («РАУНД 1/12»), уровня нет.
+    expect(find.textContaining('1/$campaignStageCount'), findsOneWidget);
     expect(makeCampaign(seed).rows.length, campaignStageCount * 14);
   });
 
@@ -307,10 +313,9 @@ void main() {
         final r = tester.getRect(find.byKey(Key(k)));
         expect(r.top >= field.top - .5 && r.bottom <= field.bottom + .5, isTrue, reason: '$k вне поля: $r при $field');
       }
-      for (final k in const ['nr-steer-left', 'nr-steer-center', 'nr-steer-right']) {
-        final b = tester.getRect(find.byKey(Key(k)));
-        expect(b.width >= 48 && b.height >= 48, isTrue, reason: '$k мельче пальца: $b');
-      }
+      final b = tester.getRect(find.byKey(const Key('field-only-pause')));
+      expect(b.width >= 48 && b.height >= 48, isTrue, reason: 'пауза мельче пальца: $b');
+      expect(b.bottom <= field.bottom + .5, isTrue, reason: 'пауза вне поля: $b');
     });
   }
 }
