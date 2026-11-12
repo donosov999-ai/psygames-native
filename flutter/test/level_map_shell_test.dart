@@ -132,8 +132,10 @@ void main() {
       await t.pumpAndSettle();
       await t.tap(find.byKey(const Key('level-node-2')));
       await t.pumpAndSettle();
-      expect(await store.readInt('probe.level'), 2);
+      // Переигровка живёт в памяти (c3f27cd6): личный уровень — тот, что берёт зарядка, — не опущен.
+      expect(await store.readInt('probe.level'), 4, reason: 'личный уровень не опущен');
       expect(await store.readInt('probe.best'), 4, reason: 'достигнутое не срезается');
+      expect(LevelLadder.current?.level, 2, reason: 'партия идёт на выбранном уровне');
       expect(_Game.builds, greaterThan(before), reason: 'партия раздана заново');
     });
 
