@@ -18,7 +18,10 @@ const path = require('path');
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 type Sess = Record<string, unknown>;
-type Case = { name: string; storage?: Record<string, string>; sessions: Sess[] };
+type Case = { name: string; storage?: Record<string, string>; sessions: Sess[]; warmup?: boolean };
+
+/** Часы образца: начисление пишет метку и календарный день устройства — Dart сверяется на тех же. */
+const NOW = Date.parse('2026-11-12T10:00:00.000Z');
 
 const s = (id: string, game: string, score: number, errors: number, extra: Sess = {}): Sess => ({
   id, game_type: game, score, errors, time_seconds: 30, difficulty: '3', timestamp: `2026-11-12T10:0${id.slice(-1)}:00.000Z`, ...extra,
@@ -44,6 +47,20 @@ const CASES: Case[] = [
     },
     sessions: [s('f1', 'schulte_table', 33, 0)],
   },
+  // Срез 2 — начисление (earn.ts): суточная квота ×2 в одной игре — три партии, четвёртая без множителя.
+  { name: 'earnQuota', sessions: [s('g1', 'corsi', 400, 0), s('g2', 'corsi', 400, 0), s('g3', 'corsi', 400, 0), s('g4', 'corsi', 400, 0), s('g5', 'n_back', 400, 0)] },
+  // Серия трёх дней → ×2 и за партию с ошибками; база ограничена 50.
+  {
+    name: 'earnDayStreak',
+    storage: {
+      psygames_earn_v1: JSON.stringify({ nzt48: { entries: [], days: ['2026-11-10', '2026-11-11'] } }),
+      psygames_tokens_v1: JSON.stringify({ nzt48: 7 }),
+      psygames_earned_total_v1: JSON.stringify({ nzt48: 7 }),
+    },
+    sessions: [s('h1', 'stroop', 300, 2), s('h2', 'stroop', 5000, 0)],
+  },
+  // Шаг зарядки — без множителя (комплекс платит свой бонус).
+  { name: 'earnWarmupStep', warmup: true, sessions: [s('i1', 'digit_span', 400, 0)] },
 ];
 
 describe('учёт партий — эталон хранилища для Dart', () => {
@@ -51,6 +68,8 @@ describe('учёт партий — эталон хранилища для Dart'
   for (const c of CASES) {
     it(c.name, async () => {
       jest.resetModules();
+      jest.useFakeTimers({ now: NOW, doNotFake: ['setTimeout', 'setInterval', 'setImmediate', 'nextTick', 'queueMicrotask', 'clearTimeout', 'clearInterval', 'clearImmediate'] });
+      (globalThis as any).__psygames_warmup_active = c.warmup === true;
       const mod = require('@react-native-async-storage/async-storage'); // eslint-disable-line @typescript-eslint/no-require-imports
       const AsyncStorage = mod.default ?? mod;
       await AsyncStorage.clear();
@@ -66,7 +85,9 @@ describe('учёт партий — эталон хранилища для Dart'
         for (const k of keys) storage[k] = await AsyncStorage.getItem(k);
         steps.push({ session: sess, storage });
       }
-      out.push({ name: c.name, profile: 'nzt48', storage: c.storage ?? {}, steps });
+      jest.useRealTimers();
+      (globalThis as any).__psygames_warmup_active = undefined;
+      out.push({ name: c.name, profile: 'nzt48', warmup: c.warmup === true, storage: c.storage ?? {}, steps });
       const last = steps[steps.length - 1] as { storage: Record<string, string> };
       expect(last.storage.psygames_sessions).toBeTruthy();
     });
@@ -74,6 +95,8 @@ describe('учёт партий — эталон хранилища для Dart'
   afterAll(() => {
     if (process.env.WRITE !== '1') return;
     const file = path.join(__dirname, '../../../flutter/test/fixtures/session_store_reference.json');
-    fs.writeFileSync(file, JSON.stringify({ source: 'frontend/src/services/api.ts saveSession', cases: out }, null, 2) + '\n');
+    // Пояс образца: день начисления — МЕСТНЫЙ (`dayKey`), Dart считает его на том же сдвиге.
+    const tzOffsetMinutes = new Date(NOW).getTimezoneOffset();
+    fs.writeFileSync(file, JSON.stringify({ source: 'frontend/src/services/api.ts saveSession', now: NOW, tzOffsetMinutes, cases: out }, null, 2) + '\n');
   });
 });

@@ -18,20 +18,30 @@ void main() {
   final fixture = jsonDecode(File('test/fixtures/session_store_reference.json').readAsStringSync()) as Map;
   final rules = StatsRules.fromJson((jsonDecode(File('assets/stats_rules.json').readAsStringSync()) as Map).cast());
 
-  /// Ключи, которые уже ведёт Dart (срез 1).
-  bool inSlice(String key) => key == SessionStore.sessionsKey || key.startsWith('psygames_clean_run_');
+  /// Ключи, которые уже ведёт Dart: срез 1 — журнал и серия «чисто», срез 2 — начисление.
+  const jsonKeys = {SessionStore.sessionsKey, 'psygames_earn_v1', 'psygames_tokens_v1', 'psygames_earned_total_v1'};
+  bool inSlice(String key) => jsonKeys.contains(key) || key.startsWith('psygames_clean_run_');
 
-  Object? decoded(String key, String? raw) => key == SessionStore.sessionsKey && raw != null ? jsonDecode(raw) : raw;
+  Object? decoded(String key, String? raw) => jsonKeys.contains(key) && raw != null ? jsonDecode(raw) : raw;
+
+  // Часы образца: миг и пояс, на которых веб считал начисление.
+  final nowMs = (fixture['now'] as num).toInt();
+  final tz = (fixture['tzOffsetMinutes'] as num).toInt();
+  DateTime wall(int ms) => DateTime.fromMillisecondsSinceEpoch(ms - tz * 60000, isUtc: true);
 
   for (final c in (fixture['cases'] as List).cast<Map>()) {
     test('🔴 ${c['name']}: хранилище после каждой партии — как у веба', () async {
       SharedPreferences.setMockInitialValues({...(c['storage'] as Map).cast<String, Object>()});
       final state = await SharedState.open();
-      final store = SessionStore(state, legacy: rules.legacyGameTypes);
+      final store = SessionStore(state, legacy: rules.legacyGameTypes, nowMs: () => nowMs, wall: wall);
       var i = 0;
       for (final step in (c['steps'] as List).cast<Map>()) {
         i++;
-        await store.save((step['session'] as Map).cast<String, Object?>(), profileId: c['profile'] as String);
+        await store.save(
+          (step['session'] as Map).cast<String, Object?>(),
+          profileId: c['profile'] as String,
+          warmupStep: c['warmup'] == true,
+        );
         final want = (step['storage'] as Map).cast<String, Object?>();
         for (final key in want.keys.where(inSlice)) {
           expect(
