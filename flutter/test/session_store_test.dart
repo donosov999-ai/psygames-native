@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/achievements_check.dart';
 import 'package:psygames_flutter/shell/session_store.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:psygames_flutter/shell/training_history.dart';
@@ -18,11 +19,29 @@ void main() {
   final fixture = jsonDecode(File('test/fixtures/session_store_reference.json').readAsStringSync()) as Map;
   final rules = StatsRules.fromJson((jsonDecode(File('assets/stats_rules.json').readAsStringSync()) as Map).cast());
 
-  /// Ключи, которые уже ведёт Dart: срез 1 — журнал и серия «чисто», срез 2 — начисление.
-  const jsonKeys = {SessionStore.sessionsKey, 'psygames_earn_v1', 'psygames_tokens_v1', 'psygames_earned_total_v1'};
-  bool inSlice(String key) => jsonKeys.contains(key) || key.startsWith('psygames_clean_run_');
+  /// Ключи, которые уже ведёт Dart: срез 1 — журнал и серия «чисто», срез 2 — начисление,
+  // Срез 3 — рекорд питомца и вызов дня.
+  const jsonKeys = {
+    SessionStore.sessionsKey,
+    'psygames_earn_v1',
+    'psygames_tokens_v1',
+    'psygames_earned_total_v1',
+    'psygames_achievements_unlocked', // срез 4 — достижения
+  };
+  bool isJson(String key) => jsonKeys.contains(key) || key.startsWith('psygames_daily_challenge_');
+  bool inSlice(String key) => isJson(key) || key.startsWith('psygames_clean_run_') || key == SessionStore.petRecordKey;
 
-  Object? decoded(String key, String? raw) => jsonKeys.contains(key) && raw != null ? jsonDecode(raw) : raw;
+  Object? decoded(String key, String? raw) => isJson(key) && raw != null ? jsonDecode(raw) : raw;
+
+  final ach = jsonDecode(File('assets/achievements.json').readAsStringSync()) as Map;
+  final cat = jsonDecode(File('assets/catalog.json').readAsStringSync()) as Map;
+  final AchievementsCatalog catalog = (
+    achievements: [
+      for (final a in (ach['achievements'] as List).cast<Map>()) (id: '${a['id']}', category: '${a['category']}'),
+    ],
+    games: [for (final g in (cat['games'] as List).cast<Map>()) g.cast<String, Object?>()],
+    categoryOrder: [for (final c in (cat['categories'] as List).cast<Map>()) '${c['id']}'],
+  );
 
   // Часы образца: миг и пояс, на которых веб считал начисление.
   final nowMs = (fixture['now'] as num).toInt();
@@ -33,7 +52,13 @@ void main() {
     test('🔴 ${c['name']}: хранилище после каждой партии — как у веба', () async {
       SharedPreferences.setMockInitialValues({...(c['storage'] as Map).cast<String, Object>()});
       final state = await SharedState.open();
-      final store = SessionStore(state, legacy: rules.legacyGameTypes, nowMs: () => nowMs, wall: wall);
+      final store = SessionStore(
+        state,
+        legacy: rules.legacyGameTypes,
+        achievements: catalog,
+        nowMs: () => nowMs,
+        wall: wall,
+      );
       var i = 0;
       for (final step in (c['steps'] as List).cast<Map>()) {
         i++;

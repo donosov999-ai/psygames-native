@@ -20,11 +20,12 @@
             "timestamp": "2026-11-12T10:01:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "1",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"schulte_table\",\"base\":3,\"multiplier\":2,\"total\":6,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":12}",
             "psygames_sessions": "[{\"id\":\"a1\",\"game_type\":\"schulte_table\",\"score\":50,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":6}"
+            "psygames_tokens_v1": "{\"nzt48\":56}"
           }
         },
         {
@@ -38,11 +39,12 @@
             "timestamp": "2026-11-12T10:02:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "2",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"schulte_table\",\"base\":3,\"multiplier\":2,\"total\":6,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"schulte_table\",\"base\":3,\"multiplier\":2,\"total\":6,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":18}",
             "psygames_sessions": "[{\"id\":\"a1\",\"game_type\":\"schulte_table\",\"score\":50,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"a2\",\"game_type\":\"schulte_table\",\"score\":60,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":12}"
+            "psygames_tokens_v1": "{\"nzt48\":62}"
           }
         },
         {
@@ -56,11 +58,12 @@
             "timestamp": "2026-11-12T10:03:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "0",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"schulte_table\",\"base\":3,\"multiplier\":2,\"total\":6,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"schulte_table\",\"base\":3,\"multiplier\":2,\"total\":6,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":0,\"multiplier\":1,\"total\":0,\"reason\":\"none\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":18}",
             "psygames_sessions": "[{\"id\":\"a1\",\"game_type\":\"schulte_table\",\"score\":50,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"a2\",\"game_type\":\"schulte_table\",\"score\":60,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"a3\",\"game_type\":\"corsi\",\"score\":10,\"errors\":2,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:03:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":12}"
+            "psygames_tokens_v1": "{\"nzt48\":62}"
           }
         },
         {
@@ -74,11 +77,12 @@
             "timestamp": "2026-11-12T10:04:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "1",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"schulte_table\",\"base\":3,\"multiplier\":2,\"total\":6,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"schulte_table\",\"base\":3,\"multiplier\":2,\"total\":6,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":0,\"multiplier\":1,\"total\":0,\"reason\":\"none\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":1,\"multiplier\":2,\"total\":2,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":20}",
             "psygames_sessions": "[{\"id\":\"a1\",\"game_type\":\"schulte_table\",\"score\":50,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"a2\",\"game_type\":\"schulte_table\",\"score\":60,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"a3\",\"game_type\":\"corsi\",\"score\":10,\"errors\":2,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:03:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"a4\",\"game_type\":\"corsi\",\"score\":12,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:04:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":14}"
+            "psygames_tokens_v1": "{\"nzt48\":64}"
           }
         }
       ]
@@ -100,11 +104,12 @@
             "timestamp": "2026-11-12T10:01:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "1",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"n_back\",\"base\":2,\"multiplier\":2,\"total\":4,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":8}",
             "psygames_sessions": "[{\"id\":\"b1\",\"game_type\":\"n_back\",\"score\":40,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":4}"
+            "psygames_tokens_v1": "{\"nzt48\":54}"
           }
         },
         {
@@ -118,11 +123,12 @@
             "timestamp": "2026-11-12T10:01:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "1",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"n_back\",\"base\":2,\"multiplier\":2,\"total\":4,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":8}",
             "psygames_sessions": "[{\"id\":\"b1\",\"game_type\":\"n_back\",\"score\":40,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":4}"
+            "psygames_tokens_v1": "{\"nzt48\":54}"
           }
         },
         {
@@ -136,11 +142,12 @@
             "timestamp": "2026-11-12T10:02:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "2",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"n_back\",\"base\":2,\"multiplier\":2,\"total\":4,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"n_back\",\"base\":2,\"multiplier\":2,\"total\":4,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":12}",
             "psygames_sessions": "[{\"id\":\"b1\",\"game_type\":\"n_back\",\"score\":40,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"b2\",\"game_type\":\"n_back\",\"score\":45,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":8}"
+            "psygames_tokens_v1": "{\"nzt48\":58}"
           }
         }
       ]
@@ -162,11 +169,12 @@
             "timestamp": "2026-11-12T10:01:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "1",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"sudoku\",\"base\":5,\"multiplier\":2,\"total\":10,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":20}",
             "psygames_sessions": "[{\"id\":\"c1\",\"game_type\":\"sudoku\",\"score\":90,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":10}"
+            "psygames_tokens_v1": "{\"nzt48\":60}"
           }
         },
         {
@@ -183,11 +191,12 @@
             }
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "1",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"sudoku\",\"base\":5,\"multiplier\":2,\"total\":10,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"sudoku\",\"base\":4,\"multiplier\":1,\"total\":4,\"reason\":\"lesson\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":24}",
             "psygames_sessions": "[{\"id\":\"c1\",\"game_type\":\"sudoku\",\"score\":90,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"c2\",\"game_type\":\"sudoku\",\"score\":80,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"details\":{\"lesson\":true},\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":14}"
+            "psygames_tokens_v1": "{\"nzt48\":64}"
           }
         },
         {
@@ -204,11 +213,12 @@
             }
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "1",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"sudoku\",\"base\":5,\"multiplier\":2,\"total\":10,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"sudoku\",\"base\":4,\"multiplier\":1,\"total\":4,\"reason\":\"lesson\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"sudoku\",\"base\":3,\"multiplier\":1,\"total\":3,\"reason\":\"lesson\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":27}",
             "psygames_sessions": "[{\"id\":\"c1\",\"game_type\":\"sudoku\",\"score\":90,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"c2\",\"game_type\":\"sudoku\",\"score\":80,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"details\":{\"lesson\":true},\"profile_id\":\"nzt48\"},{\"id\":\"c3\",\"game_type\":\"sudoku\",\"score\":85,\"errors\":1,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:03:00.000Z\",\"details\":{\"solver_used\":true},\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":17}"
+            "psygames_tokens_v1": "{\"nzt48\":67}"
           }
         }
       ]
@@ -230,11 +240,12 @@
             "timestamp": "2026-11-12T10:01:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "1",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"stroop\",\"base\":1,\"multiplier\":2,\"total\":2,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":4}",
             "psygames_sessions": "[{\"id\":\"d1\",\"game_type\":\"stroop\",\"score\":20,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":2}"
+            "psygames_tokens_v1": "{\"nzt48\":52}"
           }
         },
         {
@@ -248,11 +259,12 @@
             "timestamp": "2026-11-12T10:02:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "0",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"stroop\",\"base\":1,\"multiplier\":2,\"total\":2,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"stroop\",\"base\":0,\"multiplier\":1,\"total\":0,\"reason\":\"none\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":4}",
             "psygames_sessions": "[{\"id\":\"d1\",\"game_type\":\"stroop\",\"score\":20,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"d2\",\"game_type\":\"stroop\",\"score\":0,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":2}"
+            "psygames_tokens_v1": "{\"nzt48\":52}"
           }
         }
       ]
@@ -275,11 +287,12 @@
             "profile_id": "free"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_free": "1",
             "psygames_earn_v1": "{\"free\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"digit_span\",\"base\":2,\"multiplier\":2,\"total\":4,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"free\":8}",
             "psygames_sessions": "[{\"id\":\"e1\",\"game_type\":\"digit_span\",\"score\":30,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"free\"}]",
-            "psygames_tokens_v1": "{\"free\":4}"
+            "psygames_tokens_v1": "{\"free\":4,\"nzt48\":50}"
           }
         },
         {
@@ -293,12 +306,13 @@
             "timestamp": "2026-11-12T10:02:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_free": "1",
             "psygames_clean_run_nzt48": "1",
             "psygames_earn_v1": "{\"free\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"digit_span\",\"base\":2,\"multiplier\":2,\"total\":4,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]},\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"digit_span\",\"base\":2,\"multiplier\":2,\"total\":4,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
-            "psygames_earned_total_v1": "{\"free\":8,\"nzt48\":8}",
+            "psygames_earned_total_v1": "{\"free\":8,\"nzt48\":58}",
             "psygames_sessions": "[{\"id\":\"e1\",\"game_type\":\"digit_span\",\"score\":30,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"free\"},{\"id\":\"e2\",\"game_type\":\"digit_span\",\"score\":31,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"free\":4,\"nzt48\":4}"
+            "psygames_tokens_v1": "{\"free\":4,\"nzt48\":54}"
           }
         }
       ]
@@ -323,11 +337,12 @@
             "timestamp": "2026-11-12T10:01:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"},{\"id\":\"clean_run_5\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "5",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"schulte_table\",\"base\":2,\"multiplier\":2,\"total\":4,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":8}",
             "psygames_sessions": "[{\"id\":\"old1\",\"game_type\":\"mnemonics\",\"score\":5,\"errors\":0,\"timestamp\":\"2026-10-01T10:00:00.000Z\",\"mode\":\"words\"},{\"id\":\"old2\",\"game_type\":\"sudoku_samurai\",\"score\":70,\"errors\":0,\"details\":{\"samurai\":true},\"timestamp\":\"2026-10-02T10:00:00.000Z\"},{\"id\":\"f1\",\"game_type\":\"schulte_table\",\"score\":33,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":4}"
+            "psygames_tokens_v1": "{\"nzt48\":154}"
           }
         }
       ]
@@ -349,11 +364,12 @@
             "timestamp": "2026-11-12T10:01:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "1",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":20,\"multiplier\":2,\"total\":40,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":80}",
             "psygames_sessions": "[{\"id\":\"g1\",\"game_type\":\"corsi\",\"score\":400,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":40}"
+            "psygames_tokens_v1": "{\"nzt48\":90}"
           }
         },
         {
@@ -367,11 +383,12 @@
             "timestamp": "2026-11-12T10:02:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "2",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":20,\"multiplier\":2,\"total\":40,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":20,\"multiplier\":2,\"total\":40,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":120}",
             "psygames_sessions": "[{\"id\":\"g1\",\"game_type\":\"corsi\",\"score\":400,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"g2\",\"game_type\":\"corsi\",\"score\":400,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":80}"
+            "psygames_tokens_v1": "{\"nzt48\":130}"
           }
         },
         {
@@ -385,11 +402,12 @@
             "timestamp": "2026-11-12T10:03:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "3",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":20,\"multiplier\":2,\"total\":40,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":20,\"multiplier\":2,\"total\":40,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":20,\"multiplier\":2,\"total\":40,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":160}",
             "psygames_sessions": "[{\"id\":\"g1\",\"game_type\":\"corsi\",\"score\":400,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"g2\",\"game_type\":\"corsi\",\"score\":400,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"g3\",\"game_type\":\"corsi\",\"score\":400,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:03:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":120}"
+            "psygames_tokens_v1": "{\"nzt48\":170}"
           }
         },
         {
@@ -403,11 +421,12 @@
             "timestamp": "2026-11-12T10:04:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "4",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":20,\"multiplier\":2,\"total\":40,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":20,\"multiplier\":2,\"total\":40,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":20,\"multiplier\":2,\"total\":40,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":20,\"multiplier\":1,\"total\":20,\"reason\":\"repeat\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":180}",
             "psygames_sessions": "[{\"id\":\"g1\",\"game_type\":\"corsi\",\"score\":400,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"g2\",\"game_type\":\"corsi\",\"score\":400,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"g3\",\"game_type\":\"corsi\",\"score\":400,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:03:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"g4\",\"game_type\":\"corsi\",\"score\":400,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:04:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":140}"
+            "psygames_tokens_v1": "{\"nzt48\":190}"
           }
         },
         {
@@ -421,11 +440,12 @@
             "timestamp": "2026-11-12T10:05:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"},{\"id\":\"clean_run_5\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "5",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":20,\"multiplier\":2,\"total\":40,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":20,\"multiplier\":2,\"total\":40,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":20,\"multiplier\":2,\"total\":40,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":20,\"multiplier\":1,\"total\":20,\"reason\":\"repeat\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"n_back\",\"base\":20,\"multiplier\":2,\"total\":40,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":220}",
             "psygames_sessions": "[{\"id\":\"g1\",\"game_type\":\"corsi\",\"score\":400,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"g2\",\"game_type\":\"corsi\",\"score\":400,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"g3\",\"game_type\":\"corsi\",\"score\":400,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:03:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"g4\",\"game_type\":\"corsi\",\"score\":400,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:04:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"g5\",\"game_type\":\"n_back\",\"score\":400,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:05:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":180}"
+            "psygames_tokens_v1": "{\"nzt48\":330}"
           }
         }
       ]
@@ -451,11 +471,12 @@
             "timestamp": "2026-11-12T10:01:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "0",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"stroop\",\"base\":13,\"multiplier\":2,\"total\":26,\"reason\":\"streak\"}],\"days\":[\"2026-11-10\",\"2026-11-11\",\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":33}",
             "psygames_sessions": "[{\"id\":\"h1\",\"game_type\":\"stroop\",\"score\":300,\"errors\":2,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":33}"
+            "psygames_tokens_v1": "{\"nzt48\":83}"
           }
         },
         {
@@ -469,11 +490,12 @@
             "timestamp": "2026-11-12T10:02:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "1",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"stroop\",\"base\":13,\"multiplier\":2,\"total\":26,\"reason\":\"streak\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"stroop\",\"base\":50,\"multiplier\":2,\"total\":100,\"reason\":\"clean\"}],\"days\":[\"2026-11-10\",\"2026-11-11\",\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":133}",
             "psygames_sessions": "[{\"id\":\"h1\",\"game_type\":\"stroop\",\"score\":300,\"errors\":2,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"h2\",\"game_type\":\"stroop\",\"score\":5000,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":133}"
+            "psygames_tokens_v1": "{\"nzt48\":183}"
           }
         }
       ]
@@ -495,11 +517,228 @@
             "timestamp": "2026-11-12T10:01:00.000Z"
           },
           "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
             "psygames_clean_run_nzt48": "1",
             "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"digit_span\",\"base\":20,\"multiplier\":1,\"total\":20,\"reason\":\"warmup\"}],\"days\":[\"2026-11-12\"]}}",
             "psygames_earned_total_v1": "{\"nzt48\":40}",
             "psygames_sessions": "[{\"id\":\"i1\",\"game_type\":\"digit_span\",\"score\":400,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"}]",
-            "psygames_tokens_v1": "{\"nzt48\":20}"
+            "psygames_tokens_v1": "{\"nzt48\":70}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "petRecord",
+      "profile": "nzt48",
+      "warmup": false,
+      "storage": {
+        "psygames_sessions": "[{\"id\":\"p1\",\"game_type\":\"corsi\",\"score\":10,\"errors\":0,\"timestamp\":\"2026-11-01T10:00:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"p2\",\"game_type\":\"corsi\",\"score\":30,\"errors\":0,\"timestamp\":\"2026-11-02T10:00:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"p3\",\"game_type\":\"corsi\",\"score\":20,\"errors\":0,\"timestamp\":\"2026-11-03T10:00:00.000Z\",\"profile_id\":\"nzt48\"}]"
+      },
+      "steps": [
+        {
+          "session": {
+            "id": "j1",
+            "game_type": "corsi",
+            "score": 30,
+            "errors": 0,
+            "time_seconds": 30,
+            "difficulty": "3",
+            "timestamp": "2026-11-12T10:01:00.000Z"
+          },
+          "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
+            "psygames_clean_run_nzt48": "1",
+            "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":2,\"multiplier\":2,\"total\":4,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
+            "psygames_earned_total_v1": "{\"nzt48\":8}",
+            "psygames_sessions": "[{\"id\":\"p1\",\"game_type\":\"corsi\",\"score\":10,\"errors\":0,\"timestamp\":\"2026-11-01T10:00:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"p2\",\"game_type\":\"corsi\",\"score\":30,\"errors\":0,\"timestamp\":\"2026-11-02T10:00:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"p3\",\"game_type\":\"corsi\",\"score\":20,\"errors\":0,\"timestamp\":\"2026-11-03T10:00:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"j1\",\"game_type\":\"corsi\",\"score\":30,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"}]",
+            "psygames_tokens_v1": "{\"nzt48\":54}"
+          }
+        },
+        {
+          "session": {
+            "id": "j2",
+            "game_type": "corsi",
+            "score": 31,
+            "errors": 0,
+            "time_seconds": 30,
+            "difficulty": "3",
+            "timestamp": "2026-11-12T10:02:00.000Z"
+          },
+          "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
+            "psygames_clean_run_nzt48": "2",
+            "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":2,\"multiplier\":2,\"total\":4,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":2,\"multiplier\":2,\"total\":4,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
+            "psygames_earned_total_v1": "{\"nzt48\":12}",
+            "psygames_pet_record_at": "1794477600000",
+            "psygames_sessions": "[{\"id\":\"p1\",\"game_type\":\"corsi\",\"score\":10,\"errors\":0,\"timestamp\":\"2026-11-01T10:00:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"p2\",\"game_type\":\"corsi\",\"score\":30,\"errors\":0,\"timestamp\":\"2026-11-02T10:00:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"p3\",\"game_type\":\"corsi\",\"score\":20,\"errors\":0,\"timestamp\":\"2026-11-03T10:00:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"j1\",\"game_type\":\"corsi\",\"score\":30,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"j2\",\"game_type\":\"corsi\",\"score\":31,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"profile_id\":\"nzt48\"}]",
+            "psygames_tokens_v1": "{\"nzt48\":58}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "petNoRecordTooFew",
+      "profile": "nzt48",
+      "warmup": false,
+      "storage": {},
+      "steps": [
+        {
+          "session": {
+            "id": "k1",
+            "game_type": "stroop",
+            "score": 10,
+            "errors": 0,
+            "time_seconds": 30,
+            "difficulty": "3",
+            "timestamp": "2026-11-12T10:01:00.000Z"
+          },
+          "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
+            "psygames_clean_run_nzt48": "1",
+            "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"stroop\",\"base\":1,\"multiplier\":2,\"total\":2,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
+            "psygames_earned_total_v1": "{\"nzt48\":4}",
+            "psygames_sessions": "[{\"id\":\"k1\",\"game_type\":\"stroop\",\"score\":10,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"}]",
+            "psygames_tokens_v1": "{\"nzt48\":52}"
+          }
+        },
+        {
+          "session": {
+            "id": "k2",
+            "game_type": "stroop",
+            "score": 20,
+            "errors": 0,
+            "time_seconds": 30,
+            "difficulty": "3",
+            "timestamp": "2026-11-12T10:02:00.000Z"
+          },
+          "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
+            "psygames_clean_run_nzt48": "2",
+            "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"stroop\",\"base\":1,\"multiplier\":2,\"total\":2,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"stroop\",\"base\":1,\"multiplier\":2,\"total\":2,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
+            "psygames_earned_total_v1": "{\"nzt48\":6}",
+            "psygames_sessions": "[{\"id\":\"k1\",\"game_type\":\"stroop\",\"score\":10,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"k2\",\"game_type\":\"stroop\",\"score\":20,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"profile_id\":\"nzt48\"}]",
+            "psygames_tokens_v1": "{\"nzt48\":54}"
+          }
+        },
+        {
+          "session": {
+            "id": "k3",
+            "game_type": "stroop",
+            "score": 30,
+            "errors": 0,
+            "time_seconds": 30,
+            "difficulty": "3",
+            "timestamp": "2026-11-12T10:03:00.000Z"
+          },
+          "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
+            "psygames_clean_run_nzt48": "3",
+            "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"stroop\",\"base\":1,\"multiplier\":2,\"total\":2,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"stroop\",\"base\":1,\"multiplier\":2,\"total\":2,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"stroop\",\"base\":2,\"multiplier\":2,\"total\":4,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
+            "psygames_earned_total_v1": "{\"nzt48\":10}",
+            "psygames_sessions": "[{\"id\":\"k1\",\"game_type\":\"stroop\",\"score\":10,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"k2\",\"game_type\":\"stroop\",\"score\":20,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"k3\",\"game_type\":\"stroop\",\"score\":30,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:03:00.000Z\",\"profile_id\":\"nzt48\"}]",
+            "psygames_tokens_v1": "{\"nzt48\":58}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "challengeCommit",
+      "profile": "nzt48",
+      "warmup": false,
+      "storage": {
+        "psygames_daily_challenge_pending_nzt48": "{\"date\":\"2026-11-12\",\"gameId\":\"n_back\"}",
+        "psygames_daily_challenge_streak_nzt48": "{\"streak\":2,\"total\":5,\"last\":\"2026-11-11\"}"
+      },
+      "steps": [
+        {
+          "session": {
+            "id": "l1",
+            "game_type": "corsi",
+            "score": 100,
+            "errors": 0,
+            "time_seconds": 30,
+            "difficulty": "3",
+            "timestamp": "2026-11-12T10:01:00.000Z"
+          },
+          "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
+            "psygames_clean_run_nzt48": "1",
+            "psygames_daily_challenge_pending_nzt48": "{\"date\":\"2026-11-12\",\"gameId\":\"n_back\"}",
+            "psygames_daily_challenge_streak_nzt48": "{\"streak\":2,\"total\":5,\"last\":\"2026-11-11\"}",
+            "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":5,\"multiplier\":2,\"total\":10,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
+            "psygames_earned_total_v1": "{\"nzt48\":20}",
+            "psygames_sessions": "[{\"id\":\"l1\",\"game_type\":\"corsi\",\"score\":100,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"}]",
+            "psygames_tokens_v1": "{\"nzt48\":60}"
+          }
+        },
+        {
+          "session": {
+            "id": "l2",
+            "game_type": "n_back",
+            "score": 100,
+            "errors": 0,
+            "time_seconds": 30,
+            "difficulty": "3",
+            "timestamp": "2026-11-12T10:02:00.000Z"
+          },
+          "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
+            "psygames_clean_run_nzt48": "2",
+            "psygames_daily_challenge_streak_nzt48": "{\"streak\":3,\"total\":6,\"last\":\"2026-11-12\"}",
+            "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":5,\"multiplier\":2,\"total\":10,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"n_back\",\"base\":5,\"multiplier\":2,\"total\":10,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
+            "psygames_earned_total_v1": "{\"nzt48\":30}",
+            "psygames_sessions": "[{\"id\":\"l1\",\"game_type\":\"corsi\",\"score\":100,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"l2\",\"game_type\":\"n_back\",\"score\":100,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"profile_id\":\"nzt48\"}]",
+            "psygames_tokens_v1": "{\"nzt48\":70}"
+          }
+        },
+        {
+          "session": {
+            "id": "l3",
+            "game_type": "n_back",
+            "score": 120,
+            "errors": 0,
+            "time_seconds": 30,
+            "difficulty": "3",
+            "timestamp": "2026-11-12T10:03:00.000Z"
+          },
+          "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
+            "psygames_clean_run_nzt48": "3",
+            "psygames_daily_challenge_streak_nzt48": "{\"streak\":3,\"total\":6,\"last\":\"2026-11-12\"}",
+            "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"corsi\",\"base\":5,\"multiplier\":2,\"total\":10,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"n_back\",\"base\":5,\"multiplier\":2,\"total\":10,\"reason\":\"clean\"},{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"n_back\",\"base\":6,\"multiplier\":2,\"total\":12,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
+            "psygames_earned_total_v1": "{\"nzt48\":42}",
+            "psygames_sessions": "[{\"id\":\"l1\",\"game_type\":\"corsi\",\"score\":100,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"l2\",\"game_type\":\"n_back\",\"score\":100,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:02:00.000Z\",\"profile_id\":\"nzt48\"},{\"id\":\"l3\",\"game_type\":\"n_back\",\"score\":120,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:03:00.000Z\",\"profile_id\":\"nzt48\"}]",
+            "psygames_tokens_v1": "{\"nzt48\":82}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "challengeStalePending",
+      "profile": "nzt48",
+      "warmup": false,
+      "storage": {
+        "psygames_daily_challenge_pending_nzt48": "{\"date\":\"2026-11-11\",\"gameId\":\"n_back\"}"
+      },
+      "steps": [
+        {
+          "session": {
+            "id": "m1",
+            "game_type": "n_back",
+            "score": 100,
+            "errors": 0,
+            "time_seconds": 30,
+            "difficulty": "3",
+            "timestamp": "2026-11-12T10:01:00.000Z"
+          },
+          "storage": {
+            "psygames_achievements_unlocked": "[{\"id\":\"first_session\",\"date\":\"2026-11-12\"}]",
+            "psygames_clean_run_nzt48": "1",
+            "psygames_daily_challenge_pending_nzt48": "{\"date\":\"2026-11-11\",\"gameId\":\"n_back\"}",
+            "psygames_earn_v1": "{\"nzt48\":{\"entries\":[{\"ts\":1794477600000,\"day\":\"2026-11-12\",\"game\":\"n_back\",\"base\":5,\"multiplier\":2,\"total\":10,\"reason\":\"clean\"}],\"days\":[\"2026-11-12\"]}}",
+            "psygames_earned_total_v1": "{\"nzt48\":20}",
+            "psygames_sessions": "[{\"id\":\"m1\",\"game_type\":\"n_back\",\"score\":100,\"errors\":0,\"time_seconds\":30,\"difficulty\":\"3\",\"timestamp\":\"2026-11-12T10:01:00.000Z\",\"profile_id\":\"nzt48\"}]",
+            "psygames_tokens_v1": "{\"nzt48\":60}"
           }
         }
       ]

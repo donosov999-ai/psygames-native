@@ -9,7 +9,9 @@
  * «чисто» `psygames_clean_run_<профиль>`. Остальные ключи пишутся в образец целиком — следующие срезы
  * (начисление, вызов дня, достижения) сверяют их без перезаписи образца.
  * Сеть не трогается: облако без согласия не пишет (`cloudConsentGranted`).
- * Перезапись — `WRITE=1 npx jest -i --runTestsByPath src/__tests__/session-store-reference.test.ts`.
+ * Перезапись — `WRITE=1 NODE_OPTIONS=--experimental-vm-modules npx jest -i --runTestsByPath src/__tests__/session-store-reference.test.ts`.
+ * ⚠️ Без `--experimental-vm-modules` динамический `import()` в jest падает, а `saveSession` глотает ошибку:
+ * рекорд питомца, вызов дня и достижения молча не срабатывают — образец вышел бы без них.
  */
 declare const process: { env: Record<string, string | undefined> };
 /* eslint-disable @typescript-eslint/no-require-imports -- загрузка после сброса модулей */
@@ -61,6 +63,33 @@ const CASES: Case[] = [
   },
   // Шаг зарядки — без множителя (комплекс платит свой бонус).
   { name: 'earnWarmupStep', warmup: true, sessions: [s('i1', 'digit_span', 400, 0)] },
+  // Срез 3 — рекорд для питомца: ≥ 3 прошлые партии этой игры и счёт выше их максимума; равный — не рекорд.
+  {
+    name: 'petRecord',
+    storage: {
+      psygames_sessions: JSON.stringify([
+        { id: 'p1', game_type: 'corsi', score: 10, errors: 0, timestamp: '2026-11-01T10:00:00.000Z', profile_id: 'nzt48' },
+        { id: 'p2', game_type: 'corsi', score: 30, errors: 0, timestamp: '2026-11-02T10:00:00.000Z', profile_id: 'nzt48' },
+        { id: 'p3', game_type: 'corsi', score: 20, errors: 0, timestamp: '2026-11-03T10:00:00.000Z', profile_id: 'nzt48' },
+      ]),
+    },
+    sessions: [s('j1', 'corsi', 30, 0), s('j2', 'corsi', 31, 0)],
+  },
+  { name: 'petNoRecordTooFew', sessions: [s('k1', 'stroop', 10, 0), s('k2', 'stroop', 20, 0), s('k3', 'stroop', 30, 0)] },
+  // Срез 3 — вызов дня: задуманный на сегодня в этой игре засчитывается (вчера был → серия +1), чужая игра — нет.
+  {
+    name: 'challengeCommit',
+    storage: {
+      psygames_daily_challenge_pending_nzt48: JSON.stringify({ date: '2026-11-12', gameId: 'n_back' }),
+      psygames_daily_challenge_streak_nzt48: JSON.stringify({ streak: 2, total: 5, last: '2026-11-11' }),
+    },
+    sessions: [s('l1', 'corsi', 100, 0), s('l2', 'n_back', 100, 0), s('l3', 'n_back', 120, 0)],
+  },
+  {
+    name: 'challengeStalePending',
+    storage: { psygames_daily_challenge_pending_nzt48: JSON.stringify({ date: '2026-11-11', gameId: 'n_back' }) },
+    sessions: [s('m1', 'n_back', 100, 0)],
+  },
 ];
 
 describe('учёт партий — эталон хранилища для Dart', () => {
