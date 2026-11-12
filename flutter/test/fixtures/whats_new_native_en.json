@@ -7,6 +7,13 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.63",
+   "date": "2026-11-12",
+   "items": [
+    "Pause: the night step keeps a dark frame in Aurora, voice prompts follow the sound switch"
+   ]
+  },
+  {
    "version": "v2.56.62",
    "date": "2026-11-11",
    "items": [
