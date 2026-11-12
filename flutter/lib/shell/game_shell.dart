@@ -7,6 +7,7 @@ import 'design_template.dart';
 import 'game_clock.dart';
 import 'game_colors.dart';
 import 'feedback_fab.dart';
+import 'game_about.dart';
 import 'game_pet.dart';
 import 'game_rules.dart';
 import 'l10n.dart';
@@ -168,6 +169,8 @@ class GameShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     feedbackState = _feedbackState();
+    // «Об игре» в паузе берёт таблицу из ассета — загрузить заранее, к нажатию паузы она готова.
+    GameAboutData.ensureLoaded().ignore();
     if (fieldOnly && fieldOnlyPauseBottom) {
       // Поле до краёв экрана (раннер: дорога под строкой статуса и полоской «домой»), пауза — в
       // безопасной зоне. Отступы для своих надписей игра берёт из MediaQuery.paddingOf.
@@ -520,6 +523,7 @@ class GameShell extends StatelessWidget {
         child: _PauseScreen(
           title: title,
           ruleKey: GameRules.fullKeyFor(GameRules.currentRoute),
+          about: GameAboutData.of(LevelLadder.current?.gameId),
           hud: hud,
           actions: actions,
           onLeave: () => _leave(context),
@@ -552,6 +556,7 @@ class _PauseScreen extends StatelessWidget {
   const _PauseScreen({
     required this.title,
     this.ruleKey,
+    this.about,
     required this.hud,
     required this.actions,
     required this.onLeave,
@@ -560,6 +565,9 @@ class _PauseScreen extends StatelessWidget {
 
   final String title;
   final String? ruleKey;
+
+  /// «Об игре» (описание и польза) — общий блок каркаса, задача 3a365b5d; нет данных — нет блока.
+  final GameAboutData? about;
 
   final List<HudItem> hud;
   final List<PauseAction> actions;
@@ -662,6 +670,11 @@ class _PauseScreen extends StatelessWidget {
                               child: Text(L.t(ruleKey!), style: const TextStyle(fontSize: 16, height: 1.35)),
                             ),
                           ),
+                        ),
+                      if (about != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: GameAbout.of(about!, keyPrefix: 'pause-game-about'),
                         ),
                       for (final a in actions)
                         button(a.label, a.icon, () {
@@ -872,6 +885,11 @@ extension on _PauseScreen {
                 Padding(
                   padding: const EdgeInsets.only(top: gap),
                   child: _AuroraPauseRules(text: L.t(ruleKey!), dark: dark),
+                ),
+              if (about != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: gap),
+                  child: GameAbout.of(about!, aurora: dark, keyPrefix: 'pause-game-about'),
                 ),
               const SizedBox(height: gap),
               // «Заново» слева, «Продолжить» справа — одним рядом (требование Дениса 30.10).
