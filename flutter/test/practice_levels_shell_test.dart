@@ -19,7 +19,9 @@ import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  final engine = Practices(jsonDecode(File('../packages/practice_kit/assets/practices.json').readAsStringSync()) as Json);
+  final engine = Practices(
+    jsonDecode(File('../packages/practice_kit/assets/practices.json').readAsStringSync()) as Json,
+  );
   final copy = jsonDecode(File('assets/pause/copy.json').readAsStringSync()) as Json;
   late SharedState state;
 
@@ -42,9 +44,18 @@ void main() {
     t.view.physicalSize = const Size(390, 844);
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.reset);
-    await t.pumpWidget(MaterialApp(
-      home: PauseScreen(state: state, flavor: flavor, engine: engine, copy: copy, clock: () => 0, today: () => DateTime(2026, 11, 12)),
-    ));
+    await t.pumpWidget(
+      MaterialApp(
+        home: PauseScreen(
+          state: state,
+          flavor: flavor,
+          engine: engine,
+          copy: copy,
+          clock: () => 0,
+          today: () => DateTime(2026, 11, 12),
+        ),
+      ),
+    );
     await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
     await t.pump();
     await t.pump();
@@ -60,7 +71,9 @@ void main() {
     (PauseFlavor.breathing, 'breathing', 'Дыхание'),
     (PauseFlavor.eyeGym, 'eye_gym', 'Гимнастика для глаз'),
   ]) {
-    testWidgets('🔴 $name: в паузе — карта уровней и «проще / сложнее» каркаса, накопленный уровень на месте', (t) async {
+    testWidgets('🔴 $name: в паузе — карта уровней и «проще / сложнее» каркаса, накопленный уровень на месте', (
+      t,
+    ) async {
       await open(t, flavor, {
         'psygames_active_profile': 'nzt48',
         SharedState.levelKey(game, 'nzt48'): '4',
