@@ -75,6 +75,7 @@ class CoachV2Strings {
     required this.pickLesson,
     required this.noStudentsYet,
     required this.openCabinet,
+    required this.change,
   });
 
   final String roleTitle, roleStudent, roleTeacher, roleHint;
@@ -87,7 +88,7 @@ class CoachV2Strings {
   final String report, byWeeks, skills, mistakes, praise, comment;
   final String groupReport, avgWeek, doneShare, lagging, export;
   final String fromTeacher, counted, start, stepsN;
-  final String create, cancel, noGroups, noAssignments, noLessons, copied, saved, assigned, daysIdle, neverTrained, pickLesson, noStudentsYet, openCabinet;
+  final String create, cancel, noGroups, noAssignments, noLessons, copied, saved, assigned, daysIdle, neverTrained, pickLesson, noStudentsYet, openCabinet, change;
 
   static String n(String pattern, Object value) => pattern.replaceAll('{n}', '$value');
 
@@ -164,6 +165,7 @@ class CoachV2Strings {
     pickLesson: 'Choose a lesson',
     noStudentsYet: 'No students yet — share the group link.',
     openCabinet: 'Open teacher cabinet',
+    change: 'Change',
   );
 
   static const ru = CoachV2Strings(
@@ -239,6 +241,7 @@ class CoachV2Strings {
     pickLesson: 'Выберите урок',
     noStudentsYet: 'Учеников пока нет — дайте ссылку группы.',
     openCabinet: 'Открыть кабинет преподавателя',
+    change: 'Изменить',
   );
 
   static const es = CoachV2Strings(
@@ -314,6 +317,7 @@ class CoachV2Strings {
     pickLesson: 'Elige una lección',
     noStudentsYet: 'Aún no hay alumnos: comparte el enlace del grupo.',
     openCabinet: 'Abrir panel del profesor',
+    change: 'Cambiar',
   );
 
   static const de = CoachV2Strings(
@@ -389,6 +393,7 @@ class CoachV2Strings {
     pickLesson: 'Lektion wählen',
     noStudentsYet: 'Noch keine Schüler – teile den Gruppenlink.',
     openCabinet: 'Lehrerbereich öffnen',
+    change: 'Ändern',
   );
 
   static const fr = CoachV2Strings(
@@ -464,6 +469,7 @@ class CoachV2Strings {
     pickLesson: 'Choisir une leçon',
     noStudentsYet: 'Pas encore d\'élève — partagez le lien du groupe.',
     openCabinet: 'Ouvrir l\'espace enseignant',
+    change: 'Modifier',
   );
 
   static const it = CoachV2Strings(
@@ -539,6 +545,7 @@ class CoachV2Strings {
     pickLesson: 'Scegli una lezione',
     noStudentsYet: 'Ancora nessuno studente: condividi il link del gruppo.',
     openCabinet: 'Apri l\'area insegnante',
+    change: 'Modifica',
   );
 
   static const pt = CoachV2Strings(
@@ -614,6 +621,7 @@ class CoachV2Strings {
     pickLesson: 'Escolha uma aula',
     noStudentsYet: 'Ainda não há alunos — compartilhe o link do grupo.',
     openCabinet: 'Abrir painel do professor',
+    change: 'Alterar',
   );
 
   static const ar = CoachV2Strings(
@@ -689,6 +697,7 @@ class CoachV2Strings {
     pickLesson: 'اختر درسًا',
     noStudentsYet: 'لا يوجد طلاب بعد — شارك رابط المجموعة.',
     openCabinet: 'فتح لوحة المعلّم',
+    change: 'تعديل',
   );
 
   static const hi = CoachV2Strings(
@@ -764,6 +773,7 @@ class CoachV2Strings {
     pickLesson: 'पाठ चुनें',
     noStudentsYet: 'अभी कोई छात्र नहीं — समूह लिंक साझा करें।',
     openCabinet: 'शिक्षक कक्ष खोलें',
+    change: 'बदलें',
   );
 
   static const ja = CoachV2Strings(
@@ -839,6 +849,7 @@ class CoachV2Strings {
     pickLesson: 'レッスンを選択',
     noStudentsYet: 'まだ生徒がいません。グループのリンクを共有してください。',
     openCabinet: '先生ページを開く',
+    change: '変更',
   );
 
   static const ko = CoachV2Strings(
@@ -914,6 +925,7 @@ class CoachV2Strings {
     pickLesson: '수업 선택',
     noStudentsYet: '아직 학생이 없습니다. 그룹 링크를 공유하세요.',
     openCabinet: '교사 화면 열기',
+    change: '변경',
   );
 
   static const zh = CoachV2Strings(
@@ -989,6 +1001,7 @@ class CoachV2Strings {
     pickLesson: '选择课程',
     noStudentsYet: '还没有学生——分享小组链接吧。',
     openCabinet: '打开老师页面',
+    change: '修改',
   );
 
   /// Подписи по коду языка приложения (12 языков PsyGames); незнакомый — английский.

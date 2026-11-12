@@ -158,14 +158,28 @@ extension CoachClientV3 on CoachClient {
 
   Future<void> archiveLesson(String programId) => _v3('lesson_archive', {'program_id': programId});
 
+  /// [tzOffsetMin] — смещение пояса преподавателя: «каждый день» считается от его полуночи (по умолчанию — пояс устройства).
   Future<String> assignLesson(String programId, CoachTarget to,
-          {DateTime? due, CoachRecurrence repeat = CoachRecurrence.none, DateTime? startsAt}) async =>
+          {DateTime? due, CoachRecurrence repeat = CoachRecurrence.none, DateTime? startsAt, int? tzOffsetMin}) async =>
       _s((await _v3('assign_lesson', {
         'program_id': programId,
         if (to.isGroup) 'group_id': to.id else 'connection_id': to.id,
         if (due != null) 'due_at': due.toUtc().toIso8601String(),
         if (startsAt != null) 'starts_at': startsAt.toUtc().toIso8601String(),
         'recurrence': repeat.name,
+        'tz_offset_min': tzOffsetMin ?? DateTime.now().timeZoneOffset.inMinutes,
+      }))['id']);
+
+  /// Изменить назначение «с этого момента»: прошлое остаётся в старом (оно уходит в архив), сервер отдаёт id нового.
+  /// Урок тот же — сделанное засчитано; [programId] другой урок — отсчёт заново. [clearDue] — убрать срок.
+  Future<String> updateAssignment(String id,
+          {String? programId, DateTime? due, bool clearDue = false, CoachRecurrence? repeat, int? tzOffsetMin}) async =>
+      _s((await _v3('assignment_update', {
+        'assignment_id': id,
+        'program_id': ?programId,
+        if (clearDue) 'due_at': null else if (due != null) 'due_at': due.toUtc().toIso8601String(),
+        if (repeat != null) 'recurrence': repeat.name,
+        'tz_offset_min': tzOffsetMin ?? DateTime.now().timeZoneOffset.inMinutes,
       }))['id']);
 
   Future<void> archiveAssignment(String id) => _v3('assignment_archive', {'assignment_id': id});

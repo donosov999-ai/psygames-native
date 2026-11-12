@@ -197,7 +197,7 @@ class _TeacherCabinetV2State extends State<TeacherCabinetV2> {
   Future<void> _openAssignment(CoachAssignment a) => _guard(() async {
         final rep = await _c.assignmentReport(a.id, widget.catalog);
         if (!mounted) return;
-        await _push<void>((_) => AssignmentReportScreen(
+        await _push<void>((reportCtx) => AssignmentReportScreen(
               assignment: rep.assignment,
               rows: rep.rows,
               strings: _s,
@@ -206,6 +206,21 @@ class _TeacherCabinetV2State extends State<TeacherCabinetV2> {
                 final id = rep.connectionIds[row.student];
                 if (id != null && id.isNotEmpty) unawaited(_openStudent(id));
               },
+              // Срок и повтор — с этого момента: старое назначение уходит в архив со своим отчётом.
+              onEdit: () => unawaited(_push<void>((editCtx) => AssignLessonScreen(
+                    lesson: rep.assignment.lesson,
+                    targets: {'this': rep.assignment.target},
+                    strings: _s,
+                    frame: widget.frame,
+                    initialDue: rep.assignment.due,
+                    initialRepeat: rep.assignment.recurrence,
+                    onAssign: (_, due, repeat) => _guard(() async {
+                      await _c.updateAssignment(a.id, due: due, clearDue: due == null && rep.assignment.due != null, repeat: repeat);
+                      if (editCtx.mounted) Navigator.of(editCtx).pop();
+                      if (reportCtx.mounted) Navigator.of(reportCtx).pop();
+                      _toast(_s.saved);
+                    }),
+                  ))),
             ));
       });
 
