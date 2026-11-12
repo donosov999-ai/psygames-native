@@ -87,7 +87,7 @@ packages:
       path: "../ecosystem_account"
       relative: true
     source: path
-    version: "0.1.7"
+    version: "0.1.8"
   fake_async:
     dependency: transitive
     description:

@@ -120,3 +120,13 @@ Same account, invite, connection and consent. Fudao consent scopes: `completion`
 Fudao and vice versa (server check + `require_scopes` by `app_id`). Migration `20261111200000_ecosystem_coach_fudao.sql`,
 LIVE in `personal-nzt` (local 100 checks; prod smoke with rollback passed). Readings, materials, specialist notes and
 suggested steps are Fudao's own objects next to the connection — not in this schema.
+
+## coach/3.1 — editing future assignments, schedule timezone (TeamOps 0ff0b928)
+
+Migration `supabase/migrations/20261112060000_ecosystem_coach_v3_1.sql` (additions only; local 116 checks).
+- `assign_lesson` accepts `tz_offset_min` (−840..840; the client sends the device offset): «daily / weekdays / weekly»
+  count from the teacher's local midnight / Monday, not from UTC.
+- `assignment_update {assignment_id, program_id?, due_at? (null = no due), recurrence?, tz_offset_min?}` — «change from now on»:
+  the old assignment is archived with its report (the past is not rewritten); the new one keeps the start when the lesson
+  is the same (done steps still count) or starts now with the new lesson. Client: `updateAssignment(...)`; UI —
+  «Change» on the assignment report (`AssignmentReportScreen.onEdit`).

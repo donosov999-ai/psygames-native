@@ -474,7 +474,7 @@ class LessonLibraryScreen extends StatelessWidget {
 /// Назначение урока: кому (группы и ученики), срок, повтор.
 class AssignLessonScreen extends StatefulWidget {
   const AssignLessonScreen({super.key, required this.lesson, required this.targets, this.strings = CoachV2Strings.en,
-      this.frame = defaultCoachFrame, this.initialDue, this.onAssign});
+      this.frame = defaultCoachFrame, this.initialDue, this.initialRepeat = CoachRecurrence.none, this.onAssign});
   final CoachLesson lesson;
 
   /// Варианты «кому»: id → название (группы и ученики).
@@ -482,6 +482,7 @@ class AssignLessonScreen extends StatefulWidget {
   final CoachV2Strings strings;
   final CoachFrame frame;
   final DateTime? initialDue;
+  final CoachRecurrence initialRepeat;
   final void Function(Set<String> targets, DateTime? due, CoachRecurrence repeat)? onAssign;
 
   @override
@@ -491,7 +492,7 @@ class AssignLessonScreen extends StatefulWidget {
 class _AssignLessonScreenState extends State<AssignLessonScreen> {
   late final Set<String> _to = {if (widget.targets.isNotEmpty) widget.targets.keys.first};
   late DateTime? _due = widget.initialDue;
-  CoachRecurrence _repeat = CoachRecurrence.none;
+  late CoachRecurrence _repeat = widget.initialRepeat;
 
   @override
   Widget build(BuildContext context) {
@@ -553,12 +554,15 @@ class _AssignLessonScreenState extends State<AssignLessonScreen> {
 /// Отчёт по заданию: ученики × шаги.
 class AssignmentReportScreen extends StatelessWidget {
   const AssignmentReportScreen({super.key, required this.assignment, required this.rows, this.strings = CoachV2Strings.en,
-      this.frame = defaultCoachFrame, this.onStudent});
+      this.frame = defaultCoachFrame, this.onStudent, this.onEdit});
   final CoachAssignment assignment;
   final List<CoachAssignmentRow> rows;
   final CoachV2Strings strings;
   final CoachFrame frame;
   final ValueChanged<CoachAssignmentRow>? onStudent;
+
+  /// «Изменить» — срок и повтор с этого момента (прошлое не переписывается).
+  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -605,7 +609,10 @@ class AssignmentReportScreen extends StatelessWidget {
             ),
           ),
       ]),
-      const [],
+      [
+        if (onEdit != null)
+          CoachBarAction(key: const Key('coach-assignment-edit'), icon: Icons.edit_calendar_outlined, label: s.change, onPressed: onEdit!),
+      ],
     );
   }
 }

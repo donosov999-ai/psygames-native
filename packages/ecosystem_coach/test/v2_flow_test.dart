@@ -174,4 +174,45 @@ void main() {
     expect(coachApps['fudao'], 'com.odv999.fydao');
     expect(CoachStrings.ru.scope('diary_shared'), contains('дневника'));
   });
+
+  test('клиент: назначение несёт пояс устройства; правка — assignment_update «с этого момента»', () async {
+    final t = FakeTransport({..._server(), 'assignment_update': (_) => {'id': 'a2', 'replaced': 'a1'}});
+    final client = CoachClient(t, appId: 'psygames');
+    await client.assignLesson('p1', const CoachTarget.group('g1'), repeat: CoachRecurrence.daily, tzOffsetMin: 300);
+    expect(t.calls.last.$2['tz_offset_min'], 300);
+    expect(await client.updateAssignment('a1', repeat: CoachRecurrence.weekly, clearDue: true, tzOffsetMin: 300), 'a2');
+    expect(t.calls.last.$1, 'assignment_update');
+    expect(t.calls.last.$2, containsPair('due_at', null));
+    expect(t.calls.last.$2, containsPair('recurrence', 'weekly'));
+    expect(t.calls.last.$2.containsKey('program_id'), isFalse);
+  });
+
+  testWidgets('кабинет: отчёт по заданию → «Изменить» → повтор сохраняется через assignment_update', (tester) async {
+    final t = FakeTransport({
+      ..._server(assignments: [
+        {'id': 'a1', 'title': 'Внимание', 'app_id': 'psygames', 'program_id': 'p1', 'target': '5А', 'recurrence': 'daily',
+         'steps': [{'ref': 'schulte_table', 'amount': 2}], 'counts': {'done': 1}},
+      ]),
+      'assignment_report': (_) => {
+            'id': 'a1', 'title': 'Внимание', 'app_id': 'psygames', 'target': '5А', 'recurrence': 'daily',
+            'steps': [{'ref': 'schulte_table', 'amount': 2}],
+            'rows': [{'connection_id': 'c1', 'student': 'Маша', 'done': [2], 'status': 'done'}],
+          },
+      'assignment_update': (_) => {'id': 'a2', 'replaced': 'a1'},
+    });
+    await tester.pumpWidget(_app(TeacherCabinetV2(client: CoachClient(t, appId: 'psygames'), catalog: _catalog)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('coach-assignment-a1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('coach-assignment-edit')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('coach-repeat-weekly')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('coach-assign-go')));
+    await tester.pumpAndSettle();
+    final upd = t.calls.where((c) => c.$1 == 'assignment_update').single.$2;
+    expect(upd['assignment_id'], 'a1');
+    expect(upd['recurrence'], 'weekly');
+    expect(t.calls.where((c) => c.$1 == 'assign_lesson'), isEmpty, reason: 'правка не создаёт второе назначение рядом');
+  });
 }
