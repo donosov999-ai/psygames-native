@@ -95,10 +95,14 @@ void main() {
 
   testWidgets('🔴 свободно: слежение, 5 мин, быстро — уровень в историю не пишется и не двигается', (tester) async {
     await open(tester);
+    await tester.ensureVisible(find.byKey(const Key('pause-eye-road-false')));
     await tester.tap(find.byKey(const Key('pause-eye-road-false')));
     await tester.pump();
+    await tester.ensureVisible(find.byKey(const Key('pause-eye-mode-pursuit')));
     await tester.tap(find.byKey(const Key('pause-eye-mode-pursuit')));
+    await tester.ensureVisible(find.byKey(const Key('pause-eye-scale-1.7')));
     await tester.tap(find.byKey(const Key('pause-eye-scale-1.7')));
+    await tester.ensureVisible(find.byKey(const Key('pause-eye-speed-1.4')));
     await tester.tap(find.byKey(const Key('pause-eye-speed-1.4')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('pause-start')));
@@ -116,7 +120,11 @@ void main() {
   testWidgets('🔴 переиграть третий при лучшем десятом — прогресс не сбит', (tester) async {
     await boot({'flutter.psygames_eye_gym_level_nzt48': '10', 'flutter.psygames_eye_gym_best_nzt48': '10'});
     await open(tester);
-    await tester.ensureVisible(find.byKey(const Key('pause-eye-level-3')));
+    // Тропинка открыта на текущем (10-м) — к 3-му её листают, как пальцем.
+    await tester.ensureVisible(find.byKey(const Key('pause-eye-level')));
+    await tester.dragUntilVisible(
+        find.byKey(const Key('pause-eye-level-3')), find.byKey(const Key('pause-eye-level')), const Offset(120, 0));
+    await tester.pump();
     await tester.tap(find.byKey(const Key('pause-eye-level-3')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('pause-start')));
@@ -128,6 +136,7 @@ void main() {
 
   testWidgets('отдых: пальминг — тёмное поле с ладонями, а не точка', (tester) async {
     await open(tester);
+    await tester.ensureVisible(find.byKey(const Key('pause-eye-road-false')));
     await tester.tap(find.byKey(const Key('pause-eye-road-false')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('pause-eye-mode-relax')));

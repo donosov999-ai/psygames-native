@@ -74,6 +74,16 @@ class BreathLedger {
   /// Номер подхода, который сейчас идёт (веб: `runs.level`, по умолчанию 1).
   int get run => int.tryParse(state.get(_level) ?? '') ?? 1;
 
+  /// Серия дней подряд (веб `getStreak`): 0 — подходов ещё не было.
+  int get streakDays {
+    try {
+      final d = jsonDecode(state.get(_streak) ?? '') as Map<String, dynamic>;
+      return (d['streak'] as num?)?.toInt() ?? 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
   /// Подход завершён: счётчик вперёд, серия дней — как `bumpStreak` веба.
   /// Экран с общей лестницей двигает счётчик ею (`LevelLadder.win`) и зовёт только [bumpStreak].
   Future<void> complete(DateTime today) async {

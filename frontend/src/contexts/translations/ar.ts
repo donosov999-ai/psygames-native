@@ -3817,5 +3817,9 @@ const t: Record<string, string> = {
   "coachSignInFailed": "تعذّر تسجيل الدخول. حاول مرة أخرى.",
   "coachSharedScopes": "يراه المعلم",
   "coachLastAt": "الأخير {date}",
+  "pauseSetupTitle": "جهّز تمرينًا قصيرًا",
+  "pauseExperiencedOnly": "فقط لتقنية أتقنتها من قبل",
+  "pauseWarningsTitle": "قبل أن تبدأ",
+  "pausePracticeComplete": "اكتمل التمرين",
 };
 export default t;

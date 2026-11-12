@@ -94,6 +94,17 @@ void main() {
       expect(find.text('Зарядка'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('aurora-home-hero-start')));
       expect(taps, 1);
+      expect(find.byKey(const ValueKey('aurora-home-hero-chip')), findsNothing, reason: 'серии нет — плашки нет');
     });
   }
+
+  testWidgets('главная «Авроры»: серия дней зарядки видна плашкой «🔥3» (задача b2b99411)', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      theme: applyUiTemplate(classicShellTheme(Brightness.dark), UiTemplate.aurora),
+      home: Scaffold(
+          body: SizedBox(width: 390, child: AuroraHomeHero(title: 'Зарядка', sub: 'Утро', cta: 'СТАРТ', chip: '🔥3', onTap: () {}))),
+    ));
+    expect(find.byKey(const ValueKey('aurora-home-hero-chip')), findsOneWidget);
+    expect(find.text('🔥3'), findsOneWidget);
+  });
 }

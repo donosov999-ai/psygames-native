@@ -3821,5 +3821,9 @@ const t: Record<string, string> = {
   "coachSignInFailed": "登录失败，请重试。",
   "coachSharedScopes": "老师可见",
   "coachLastAt": "最近 {date}",
+  "pauseSetupTitle": "设置一次简短练习",
+  "pauseExperiencedOnly": "仅适用于已掌握的技巧",
+  "pauseWarningsTitle": "开始之前",
+  "pausePracticeComplete": "练习完成",
 };
 export default t;

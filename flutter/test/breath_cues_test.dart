@@ -84,7 +84,8 @@ void main() {
         final head = _hz(wav, 0, n ~/ 4, rate), tail = _hz(wav, 3 * n ~/ 4, n, rate);
         switch (cue) {
           case BreathCue.inhale:
-            expect(tail, greaterThan(head * 1.2), reason: 'вдох не поднимается: $head → $tail');
+          case BreathCue.win:
+            expect(tail, greaterThan(head * 1.2), reason: '$cue не поднимается: $head → $tail');
           case BreathCue.exhale:
             expect(tail, lessThan(head / 1.2), reason: 'выдох не опускается: $head → $tail');
           case BreathCue.tap:
