@@ -299,7 +299,7 @@ class HybridApp extends StatefulWidget {
         // Все четыре упражнения лаборатории перенесены, поэтому перехват честен: адрес с
         // `?mode=` попадает в ту же строку карты, и ни один режим не остаётся в вебе.
         '/games/spatial-lab': (s) => SpatialLabScreen(state: s),
-        '/games/spatial-hub': (s) => SpatialHubScreen(state: s),
+        '/games/spatial-hub': (s) => SpatialHubScreen(state: s, isNative: native.containsKey),
         '/games/goods-sort': (s) => GoodsSortScreen(state: s),
       '/games/water-sort': (s) => SortTubesScreen(
             state: s, gameId: 'water_sort', title: L.t('waterSort'), skin: TubeSkin.water),

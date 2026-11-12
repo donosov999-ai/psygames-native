@@ -93,7 +93,7 @@ void main() {
     });
 
     testWidgets('🔴 Развилка не переполняет ${w.key}', (tester) async {
-      expect(await openAt(tester, SpatialHubScreen(state: state, onOpen: (_) {}), w.value), isNull);
+      expect(await openAt(tester, SpatialHubScreen(state: state), w.value), isNull);
     });
   }
 }
