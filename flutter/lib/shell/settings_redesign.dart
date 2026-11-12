@@ -898,6 +898,35 @@ extension _SettingsRedesign on _SettingsScreenState {
             style: TextStyle(color: _secondary),
           ),
         ),
+      // Кабинет преподавателя (флаг PSY_COACH, поверх облачного пилота): тот же аккаунт.
+      if (PsyGamesCoach.instance case final coach?) ...[
+        ValueListenableBuilder<CoachRole>(
+          valueListenable: coach.role,
+          builder: (context, mode, _) => _settingSwitch(
+            context,
+            'coach-role',
+            Icons.swap_horiz,
+            '${PsyGamesCoach.v2Strings.roleTitle}: ${PsyGamesCoach.v2Strings.roleTeacher}',
+            mode == CoachRole.teacher,
+            (v) => coach.setRole(v ? CoachRole.teacher : CoachRole.student),
+            hint: PsyGamesCoach.v2Strings.roleHint,
+          ),
+        ),
+        _settingsRow(
+          context,
+          key: 'settings-coach-teacher',
+          icon: Icons.school_outlined,
+          title: coach.strings.teacherTitle,
+          onTap: () => coach.openTeacher(context),
+        ),
+        _settingsRow(
+          context,
+          key: 'settings-coach-mine',
+          icon: Icons.people_outline,
+          title: coach.strings.studentTitle,
+          onTap: () => coach.openMyCoaches(context),
+        ),
+      ],
       _settingsRow(
         context,
         key: 'settings-backup-save',

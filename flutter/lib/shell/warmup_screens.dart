@@ -11,6 +11,7 @@ import 'chrome_art.dart';
 import 'compact_workout_art.dart';
 import 'game_colors.dart';
 import 'l10n.dart';
+import 'ui_kit/aurora_button.dart';
 
 /// 🔴 ВЫБОР ЗАРЯДКИ И ИТОГ — НАТИВНЫЕ ЭКРАНЫ (задача 748c3f5f).
 ///
@@ -443,8 +444,28 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
                             _s(c['note']),
                             style: const TextStyle(fontSize: 12),
                           ),
+                        if (c['durs'] is List) _chips(c, 'durs', 'dur'),
                         if (c['ownLens'] is List)
                           _chips(c, 'ownLens', 'ownLen'),
+                        // 🔴 Шаги серии и своего потока (задача 1748565f): в Classic видны всегда,
+                        // в «Авроре» их не было — человек выбирал серию, не зная, что в ней.
+                        if (steps.isNotEmpty)
+                          Padding(
+                            key: Key('warmup-steps-${c['key']}'),
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                for (final line in steps)
+                                  Text(
+                                    line,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant),
+                                  ),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -836,6 +857,67 @@ class _WarmupPickerScreenState extends State<WarmupPickerScreen> {
 }
 
 /// Итог зарядки (`/warmup-complete`) — рисунок по модели страницы.
+/// 🔴 ЦВЕТА ИТОГА И МОСТА ЗАРЯДКИ (задача ef2fcde7). В «Авроре» — роли [GameColors.aurora] и
+/// плашки/кнопки «Авроры»; в Classic — прежние янтарь, зелёный и красный, как были.
+/// До этого оба экрана красили 0xFFFBBF24 напрямую и в «Авроре» выпадали из темы
+/// ровно на наградном моменте.
+class _Tone {
+  const _Tone({
+    required this.aurora,
+    required this.amber,
+    required this.onAmber,
+    required this.green,
+    required this.red,
+    required this.surface,
+    required this.text,
+  });
+
+  final bool aurora;
+  final Color amber, onAmber, green, red, surface, text;
+
+  static _Tone of(BuildContext context) {
+    final theme = Theme.of(context);
+    if (ChromeArt.aurora(context)) {
+      final roles = GameColors.aurora(theme.brightness);
+      final dark = theme.brightness == Brightness.dark;
+      return _Tone(
+        aurora: true,
+        amber: roles.reward,
+        onAmber: roles.onStrong,
+        green: roles.correct,
+        red: roles.wrong,
+        surface: auroraToken('surface', dark: dark)!,
+        text: auroraToken('text', dark: dark)!,
+      );
+    }
+    return _Tone(
+      aurora: false,
+      amber: const Color(0xFFFBBF24),
+      onAmber: Colors.black,
+      green: const Color(0xFF22C55E),
+      red: const Color(0xFFF43F5E),
+      surface: theme.colorScheme.surfaceContainerLow,
+      text: theme.colorScheme.onSurface,
+    );
+  }
+
+  /// Главная кнопка: в «Авроре» — общая оранжевая [AuroraButton], в Classic — янтарная.
+  Widget primary({required Key key, required String label, required IconData icon, required VoidCallback onTap}) =>
+      aurora
+          ? AuroraButton(key: key, label: label, icon: icon, onTap: onTap, primary: true)
+          : FilledButton.icon(
+              key: key,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(double.infinity, 52),
+                backgroundColor: amber,
+                foregroundColor: onAmber,
+              ),
+              onPressed: onTap,
+              icon: Icon(icon),
+              label: Text(label, style: const TextStyle(fontWeight: FontWeight.w900)),
+            );
+}
+
 class WarmupCompleteScreen extends StatefulWidget {
   const WarmupCompleteScreen({super.key});
 
@@ -853,12 +935,12 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
   }
 
   Widget _box(Widget child, {Color? border}) {
-    final scheme = Theme.of(context).colorScheme;
+    final tone = _Tone.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
+        color: tone.surface,
         borderRadius: BorderRadius.circular(14),
         border: border == null
             ? null
@@ -870,6 +952,8 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
 
   List<Widget> _body(Map<String, Object?> m) {
     final scheme = Theme.of(context).colorScheme;
+    final tone = _Tone.of(context);
+    final roles = GameColors.aurora(Theme.of(context).brightness);
     final hero = m['hero'] is Map
         ? Map<String, Object?>.from(m['hero'] as Map)
         : const <String, Object?>{};
@@ -877,26 +961,29 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
     final heroColors = done
         ? const [Color(0xFFFBBF24), Color(0xFFF59E0B)]
         : const [Color(0xFF94A3B8), Color(0xFF64748B)];
-    final onHero = done ? Colors.black : Colors.white;
+    // «Аврора»: плашка темы, значок — цветом награды; текст — цветом текста темы.
+    final onHero = tone.aurora ? tone.text : (done ? Colors.black : Colors.white);
     final out = <Widget>[
       Container(
         key: const Key('warmup-complete-hero'),
         padding: const EdgeInsets.all(22),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: heroColors,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
+        decoration: tone.aurora
+            ? ChromeArt.panel(context, selected: done)
+            : BoxDecoration(
+                gradient: LinearGradient(
+                  colors: heroColors,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
         child: Column(
           children: [
             // Значок, а не эмодзи страницы: символы во Flutter бывают пустыми квадратами.
             Icon(
               done ? Icons.celebration : Icons.pause_circle_outline,
               size: 44,
-              color: onHero,
+              color: tone.aurora ? (done ? roles.reward : roles.muted) : onHero,
             ),
             Text(
               _s(hero['title']),
@@ -922,7 +1009,7 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.emoji_events, size: 16, color: onHero),
+                    Icon(Icons.emoji_events, size: 16, color: tone.aurora ? roles.reward : onHero),
                     const SizedBox(width: 6),
                     Text(
                       _s(hero['personalBest']),
@@ -948,7 +1035,7 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: scheme.surfaceContainerLow,
+            color: tone.surface,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Row(
@@ -981,9 +1068,7 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
                             _s(r['score']),
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
-                              color: r['negative'] == true
-                                  ? const Color(0xFFF43F5E)
-                                  : const Color(0xFF22C55E),
+                              color: r['negative'] == true ? tone.red : tone.green,
                             ),
                           ),
                         Text(
@@ -998,17 +1083,10 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
-                                Icons.close,
-                                size: 14,
-                                color: Color(0xFFF43F5E),
-                              ),
+                              Icon(Icons.close, size: 14, color: tone.red),
                               Text(
                                 '${r['errors']}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFFF43F5E),
-                                ),
+                                style: TextStyle(fontWeight: FontWeight.w700, color: tone.red),
                               ),
                             ],
                           ),
@@ -1017,7 +1095,7 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
                   ],
                 ),
               ),
-              const Icon(Icons.check_circle, color: Color(0xFF22C55E)),
+              Icon(Icons.check_circle, color: tone.green),
             ],
           ),
         ),
@@ -1079,9 +1157,7 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
                         _s(r['delta']),
                         style: TextStyle(
                           fontWeight: FontWeight.w800,
-                          color: r['up'] == true
-                              ? const Color(0xFF22C55E)
-                              : const Color(0xFFF43F5E),
+                          color: r['up'] == true ? tone.green : tone.red,
                         ),
                       ),
                     ],
@@ -1121,10 +1197,10 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
               Text(
                 _s(t['value']),
                 key: const Key('warmup-complete-total'),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 42,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFFFBBF24),
+                  color: tone.amber,
                 ),
               ),
               if (t['compare'] is String)
@@ -1143,13 +1219,13 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFBBF24),
+                    color: tone.amber,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     _s(t['combo']),
-                    style: const TextStyle(
-                      color: Colors.black,
+                    style: TextStyle(
+                      color: tone.onAmber,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -1163,19 +1239,22 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
     if (s is Map) {
       out.add(
         Container(
+          key: const Key('warmup-complete-streak'),
           padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF22C55E), Color(0xFF0D9488)],
-            ),
-            borderRadius: BorderRadius.circular(14),
-          ),
+          decoration: tone.aurora
+              ? ChromeArt.panel(context)
+              : BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF22C55E), Color(0xFF0D9488)],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                ),
           child: Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.local_fire_department,
                 size: 36,
-                color: Colors.white,
+                color: tone.aurora ? roles.reward : Colors.white,
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -1184,17 +1263,17 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
                   children: [
                     Text(
                       _s(s['value']),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                        color: tone.aurora ? tone.text : Colors.white,
                       ),
                     ),
                     Text(
                       _s(s['label']),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: Colors.white70,
+                        color: tone.aurora ? scheme.onSurfaceVariant : Colors.white70,
                       ),
                     ),
                   ],
@@ -1207,11 +1286,11 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
     }
     final v = m['verdict'];
     if (v is Map) {
-      final tone = v['tone'] == 'up'
-          ? const Color(0xFF22C55E)
+      final mark = v['tone'] == 'up'
+          ? tone.green
           : v['tone'] == 'down'
-          ? const Color(0xFFF43F5E)
-          : const Color(0xFFFBBF24);
+          ? tone.red
+          : tone.amber;
       out.add(
         _box(
           Column(
@@ -1235,7 +1314,7 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
               ),
             ],
           ),
-          border: tone,
+          border: mark,
         ),
       );
     }
@@ -1257,7 +1336,7 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: rem['kind'] == 'done' ? const Color(0xFF22C55E) : null,
+                  color: rem['kind'] == 'done' ? tone.green : null,
                 ),
               ),
               if (rem['kind'] == 'ask') ...[
@@ -1335,40 +1414,36 @@ class _WarmupCompleteScreenState extends State<WarmupCompleteScreen> {
                         children: [
                           if (m['again'] is String) ...[
                             Expanded(
-                              child: FilledButton.icon(
+                              child: _Tone.of(context).primary(
                                 key: const Key('warmup-complete-again'),
-                                style: FilledButton.styleFrom(
-                                  minimumSize: const Size(0, 48),
-                                  backgroundColor: const Color(0xFFFBBF24),
-                                  foregroundColor: Colors.black,
-                                ),
-                                onPressed: () =>
-                                    WarmupUi.act('complete', 'again'),
-                                icon: const Icon(Icons.refresh),
-                                label: Text(
-                                  _s(m['again']),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
+                                label: _s(m['again']),
+                                icon: Icons.refresh,
+                                onTap: () => WarmupUi.act('complete', 'again'),
                               ),
                             ),
                             const SizedBox(width: 10),
                           ],
                           Expanded(
-                            child: OutlinedButton(
-                              key: const Key('warmup-complete-home'),
-                              style: OutlinedButton.styleFrom(
-                                minimumSize: const Size(0, 48),
-                              ),
-                              onPressed: () => WarmupUi.act('complete', 'home'),
-                              child: Text(
-                                _s(m['home']),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
+                            child: _Tone.of(context).aurora
+                                ? AuroraButton(
+                                    key: const Key('warmup-complete-home'),
+                                    label: _s(m['home']),
+                                    icon: Icons.home_outlined,
+                                    onTap: () => WarmupUi.act('complete', 'home'),
+                                  )
+                                : OutlinedButton(
+                                    key: const Key('warmup-complete-home'),
+                                    style: OutlinedButton.styleFrom(
+                                      minimumSize: const Size(0, 48),
+                                    ),
+                                    onPressed: () => WarmupUi.act('complete', 'home'),
+                                    child: Text(
+                                      _s(m['home']),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ),
                           ),
                         ],
                       ),
@@ -1439,13 +1514,14 @@ class _WarmupBridgeScreenState extends State<WarmupBridgeScreen> {
 
   Widget _done(Map<String, Object?> d) {
     final scheme = Theme.of(context).colorScheme;
+    final tone = _Tone.of(context);
     final skipped = d['skipped'] == true;
     return Container(
       key: const Key('warmup-bridge-web-done'),
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
+        color: tone.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -1463,7 +1539,7 @@ class _WarmupBridgeScreenState extends State<WarmupBridgeScreen> {
           Icon(
             skipped ? Icons.skip_next : Icons.check_circle,
             size: 48,
-            color: skipped ? scheme.onSurfaceVariant : const Color(0xFF22C55E),
+            color: skipped ? scheme.onSurfaceVariant : tone.green,
           ),
           Text(
             _s(d['title']),
@@ -1478,9 +1554,7 @@ class _WarmupBridgeScreenState extends State<WarmupBridgeScreen> {
                   _s(d['score']),
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    color: d['negative'] == true
-                        ? const Color(0xFFF43F5E)
-                        : const Color(0xFF22C55E),
+                    color: d['negative'] == true ? tone.red : tone.green,
                   ),
                 ),
               if (d['time'] is String)
@@ -1495,13 +1569,10 @@ class _WarmupBridgeScreenState extends State<WarmupBridgeScreen> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.close, size: 14, color: Color(0xFFF43F5E)),
+                    Icon(Icons.close, size: 14, color: tone.red),
                     Text(
                       '${d['errors']}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFFF43F5E),
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.w700, color: tone.red),
                     ),
                   ],
                 ),
@@ -1584,9 +1655,10 @@ class _WarmupBridgeScreenState extends State<WarmupBridgeScreen> {
       if (m == null) return const _Waiting();
       final scheme = Theme.of(context).colorScheme;
       final evening = m['evening'] == true;
+      final tone = _Tone.of(context);
       final accent = evening
           ? const Color(0xFF818CF8)
-          : const Color(0xFFFBBF24);
+          : tone.amber;
       final progress = m['progress'] is num
           ? (m['progress'] as num).toDouble().clamp(0.0, 1.0)
           : 0.0;
@@ -1669,29 +1741,18 @@ class _WarmupBridgeScreenState extends State<WarmupBridgeScreen> {
                             const SizedBox(height: 12),
                             if (ask is Map) ...[
                               // Безопасный ответ первым и залитым — как в вопросе о выходе из игры.
-                              FilledButton(
+                              tone.primary(
                                 key: const Key('warmup-bridge-web-keep'),
-                                style: FilledButton.styleFrom(
-                                  minimumSize: const Size(double.infinity, 52),
-                                  backgroundColor: const Color(0xFFFBBF24),
-                                  foregroundColor: Colors.black,
-                                ),
-                                onPressed: () => WarmupUi.act('bridge', 'keep'),
-                                child: Text(
-                                  _s(ask['keep']),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
+                                label: _s(ask['keep']),
+                                icon: Icons.play_arrow_rounded,
+                                onTap: () => WarmupUi.act('bridge', 'keep'),
                               ),
                               const SizedBox(height: 12),
                               OutlinedButton.icon(
                                 key: const Key('warmup-bridge-web-stop-yes'),
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFFF43F5E),
-                                  side: const BorderSide(
-                                    color: Color(0xFFF43F5E),
-                                  ),
+                                  foregroundColor: tone.red,
+                                  side: BorderSide(color: tone.red),
                                   minimumSize: const Size(0, 48),
                                 ),
                                 onPressed: () =>
@@ -1700,21 +1761,11 @@ class _WarmupBridgeScreenState extends State<WarmupBridgeScreen> {
                                 label: Text(_s(ask['stop'])),
                               ),
                             ] else ...[
-                              FilledButton(
+                              tone.primary(
                                 key: const Key('warmup-bridge-web-start'),
-                                style: FilledButton.styleFrom(
-                                  minimumSize: const Size(double.infinity, 52),
-                                  backgroundColor: const Color(0xFFFBBF24),
-                                  foregroundColor: Colors.black,
-                                ),
-                                onPressed: () =>
-                                    WarmupUi.act('bridge', 'start'),
-                                child: Text(
-                                  _s(m['primary']),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
+                                label: _s(m['primary']),
+                                icon: Icons.play_arrow_rounded,
+                                onTap: () => WarmupUi.act('bridge', 'start'),
                               ),
                               const SizedBox(height: 12),
                               // Ряд не шире экрана: «Пропустить: <имя>» сжимается, «Остановить» — нет.
@@ -1743,10 +1794,8 @@ class _WarmupBridgeScreenState extends State<WarmupBridgeScreen> {
                                   OutlinedButton.icon(
                                     key: const Key('warmup-bridge-web-stop'),
                                     style: OutlinedButton.styleFrom(
-                                      foregroundColor: const Color(0xFFF43F5E),
-                                      side: const BorderSide(
-                                        color: Color(0xFFF43F5E),
-                                      ),
+                                      foregroundColor: tone.red,
+                                      side: BorderSide(color: tone.red),
                                       minimumSize: const Size(0, 48),
                                     ),
                                     onPressed: () =>

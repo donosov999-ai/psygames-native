@@ -1,0 +1,236 @@
+[
+  {
+    "ref": "go-capture",
+    "title": {
+      "en": "Go: capture stones",
+      "ru": "Го: захват камней"
+    },
+    "group": {
+      "en": "Go",
+      "ru": "Го"
+    },
+    "max_level": 24,
+    "unit": "times"
+  },
+  {
+    "ref": "go-life",
+    "title": {
+      "en": "Go: life of a group",
+      "ru": "Го: жизнь группы"
+    },
+    "group": {
+      "en": "Go",
+      "ru": "Го"
+    },
+    "max_level": 24,
+    "unit": "times"
+  },
+  {
+    "ref": "corners",
+    "title": {
+      "en": "Corners",
+      "ru": "Уголки"
+    },
+    "group": {
+      "en": "Draughts and corners",
+      "ru": "Шашки и уголки"
+    },
+    "max_level": 24,
+    "unit": "times"
+  },
+  {
+    "ref": "draughts_combo",
+    "title": {
+      "en": "Draughts combinations",
+      "ru": "Шашечные комбинации"
+    },
+    "group": {
+      "en": "Draughts and corners",
+      "ru": "Шашки и уголки"
+    },
+    "max_level": 24,
+    "unit": "times"
+  },
+  {
+    "ref": "xiangqi",
+    "title": {
+      "en": "Xiangqi puzzles",
+      "ru": "Сянци: задачи"
+    },
+    "group": {
+      "en": "Xiangqi and shogi",
+      "ru": "Сянци и сёги"
+    },
+    "max_level": 24,
+    "unit": "times"
+  },
+  {
+    "ref": "shogi",
+    "title": {
+      "en": "Shogi puzzles",
+      "ru": "Сёги: задачи"
+    },
+    "group": {
+      "en": "Xiangqi and shogi",
+      "ru": "Сянци и сёги"
+    },
+    "max_level": 24,
+    "unit": "times"
+  },
+  {
+    "ref": "lichess:mateIn1",
+    "title": {
+      "en": "Mate in 1",
+      "ru": "Мат в 1 ход"
+    },
+    "group": {
+      "en": "Lichess puzzles",
+      "ru": "Задачи Lichess"
+    },
+    "max_level": 0,
+    "unit": "times"
+  },
+  {
+    "ref": "lichess:mateIn2",
+    "title": {
+      "en": "Mate in 2",
+      "ru": "Мат в 2 хода"
+    },
+    "group": {
+      "en": "Lichess puzzles",
+      "ru": "Задачи Lichess"
+    },
+    "max_level": 0,
+    "unit": "times"
+  },
+  {
+    "ref": "lichess:mateIn3",
+    "title": {
+      "en": "Mate in 3",
+      "ru": "Мат в 3 хода"
+    },
+    "group": {
+      "en": "Lichess puzzles",
+      "ru": "Задачи Lichess"
+    },
+    "max_level": 0,
+    "unit": "times"
+  },
+  {
+    "ref": "lichess:fork",
+    "title": {
+      "en": "Fork",
+      "ru": "Вилка"
+    },
+    "group": {
+      "en": "Lichess puzzles",
+      "ru": "Задачи Lichess"
+    },
+    "max_level": 0,
+    "unit": "times"
+  },
+  {
+    "ref": "lichess:pin",
+    "title": {
+      "en": "Pin",
+      "ru": "Связка"
+    },
+    "group": {
+      "en": "Lichess puzzles",
+      "ru": "Задачи Lichess"
+    },
+    "max_level": 0,
+    "unit": "times"
+  },
+  {
+    "ref": "lichess:skewer",
+    "title": {
+      "en": "Skewer",
+      "ru": "Сквозной удар"
+    },
+    "group": {
+      "en": "Lichess puzzles",
+      "ru": "Задачи Lichess"
+    },
+    "max_level": 0,
+    "unit": "times"
+  },
+  {
+    "ref": "lichess:hangingPiece",
+    "title": {
+      "en": "Hanging piece",
+      "ru": "Незащищённая фигура"
+    },
+    "group": {
+      "en": "Lichess puzzles",
+      "ru": "Задачи Lichess"
+    },
+    "max_level": 0,
+    "unit": "times"
+  },
+  {
+    "ref": "lichess:discoveredAttack",
+    "title": {
+      "en": "Discovered attack",
+      "ru": "Вскрытое нападение"
+    },
+    "group": {
+      "en": "Lichess puzzles",
+      "ru": "Задачи Lichess"
+    },
+    "max_level": 0,
+    "unit": "times"
+  },
+  {
+    "ref": "lichess:backRankMate",
+    "title": {
+      "en": "Back rank mate",
+      "ru": "Мат по последней горизонтали"
+    },
+    "group": {
+      "en": "Lichess puzzles",
+      "ru": "Задачи Lichess"
+    },
+    "max_level": 0,
+    "unit": "times"
+  },
+  {
+    "ref": "lichess:sacrifice",
+    "title": {
+      "en": "Sacrifice",
+      "ru": "Жертва"
+    },
+    "group": {
+      "en": "Lichess puzzles",
+      "ru": "Задачи Lichess"
+    },
+    "max_level": 0,
+    "unit": "times"
+  },
+  {
+    "ref": "lichess:endgame",
+    "title": {
+      "en": "Endgame",
+      "ru": "Эндшпиль"
+    },
+    "group": {
+      "en": "Lichess puzzles",
+      "ru": "Задачи Lichess"
+    },
+    "max_level": 0,
+    "unit": "times"
+  },
+  {
+    "ref": "lichess:short",
+    "title": {
+      "en": "Short",
+      "ru": "Короткие"
+    },
+    "group": {
+      "en": "Lichess puzzles",
+      "ru": "Задачи Lichess"
+    },
+    "max_level": 0,
+    "unit": "times"
+  }
+]

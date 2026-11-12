@@ -7,6 +7,30 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.63",
+   "date": "2026-11-12",
+   "items": [
+    "Pause: the night step keeps a dark frame in Aurora, voice prompts follow the sound switch"
+   ]
+  },
+  {
+   "version": "v2.56.62",
+   "date": "2026-11-11",
+   "items": [
+    "Teacher cabinet: sign in with Apple or Google on iPhone too"
+   ]
+  },
+  {
+   "version": "v2.56.61",
+   "date": "2026-11-11",
+   "items": [
+    "Level map: games with levels share one path map — named sectors, stars for every level; open it from the pause menu",
+    "Word Sort: new Baskets mode — drop cards into baskets by dragging or with two taps",
+    "Aurora: backgrounds, frames and colours you bought now show on Home",
+    "Teacher cabinet in Settings: connect to a teacher with an invite link and choose exactly what they see from your training (sign in with Google or an email link; on iPhone — email link)"
+   ]
+  },
+  {
    "version": "v2.56.60",
    "date": "2026-11-05",
    "items": [

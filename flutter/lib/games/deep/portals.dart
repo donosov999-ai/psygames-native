@@ -37,7 +37,6 @@ class DeepPortal {
   final int digit;
 }
 
-const _portalPairsPerParent = 2;
 const _portalTryBudget = 36;   // проб (дроп×клетка) на пару — как PORTAL_TRY_BUDGET веба
 
 const _all = (1 << deepN) - 1;
@@ -153,7 +152,7 @@ List<DeepPortal> deepPortalsFor(
 
   final portals = <DeepPortal>[];
   final used = <String>{};
-  for (var k = 0; k + 1 < order.length && portals.length < _portalPairsPerParent; k += 2) {
+  for (var k = 0; k + 1 < order.length && portals.length < cfg.portalPairs; k += 2) {
     final a = order[k], b = order[k + 1];
     final aPath = childPath(parentPath, a[0], a[1]);
     final bPath = childPath(parentPath, b[0], b[1]);

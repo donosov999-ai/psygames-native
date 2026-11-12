@@ -1,0 +1,2048 @@
+[
+  {
+    "app_id": "typerighting",
+    "ref": "practice",
+    "unit": "minutes",
+    "title": {
+      "en": "Practice",
+      "ru": "Практика",
+      "es": "Práctica",
+      "de": "Üben",
+      "fr": "Pratique",
+      "it": "Pratica",
+      "pt": "Prática"
+    },
+    "group": {
+      "en": "Modes",
+      "ru": "Режимы",
+      "es": "Modos",
+      "de": "Modi",
+      "fr": "Modes",
+      "it": "Modalità",
+      "pt": "Modos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course",
+    "unit": "times",
+    "title": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    },
+    "group": {
+      "en": "Modes",
+      "ru": "Режимы",
+      "es": "Modos",
+      "de": "Modi",
+      "fr": "Modes",
+      "it": "Modalità",
+      "pt": "Modos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "weak",
+    "unit": "times",
+    "title": {
+      "en": "Weak keys",
+      "ru": "Слабые клавиши",
+      "es": "Teclas débiles",
+      "de": "Schwache Tasten",
+      "fr": "Touches faibles",
+      "it": "Tasti deboli",
+      "pt": "Teclas fracas"
+    },
+    "group": {
+      "en": "Modes",
+      "ru": "Режимы",
+      "es": "Modos",
+      "de": "Modi",
+      "fr": "Modes",
+      "it": "Modalità",
+      "pt": "Modos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "learn",
+    "unit": "minutes",
+    "title": {
+      "en": "AI training",
+      "ru": "AI-обучение",
+      "es": "Entrenamiento IA",
+      "de": "KI-Training",
+      "fr": "Entraînement IA",
+      "it": "Allenamento IA",
+      "pt": "Treino IA"
+    },
+    "group": {
+      "en": "Modes",
+      "ru": "Режимы",
+      "es": "Modos",
+      "de": "Modi",
+      "fr": "Modes",
+      "it": "Modalità",
+      "pt": "Modos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "compete",
+    "unit": "times",
+    "title": {
+      "en": "Typing Compete",
+      "ru": "Тест-соревнование",
+      "es": "Competición",
+      "de": "Wettkampf",
+      "fr": "Compétition",
+      "it": "Gara",
+      "pt": "Competição"
+    },
+    "group": {
+      "en": "Modes",
+      "ru": "Режимы",
+      "es": "Modos",
+      "de": "Modi",
+      "fr": "Modes",
+      "it": "Modalità",
+      "pt": "Modos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "memorize",
+    "unit": "times",
+    "title": {
+      "en": "By heart",
+      "ru": "Наизусть",
+      "es": "De memoria",
+      "de": "Auswendig",
+      "fr": "Par cœur",
+      "it": "A memoria",
+      "pt": "De cor"
+    },
+    "group": {
+      "en": "Modes",
+      "ru": "Режимы",
+      "es": "Modos",
+      "de": "Modi",
+      "fr": "Modes",
+      "it": "Modalità",
+      "pt": "Modos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "recall",
+    "unit": "times",
+    "title": {
+      "en": "Memory",
+      "ru": "Память",
+      "es": "Memoria",
+      "de": "Gedächtnis",
+      "fr": "Mémoire",
+      "it": "Memoria",
+      "pt": "Memória"
+    },
+    "group": {
+      "en": "Modes",
+      "ru": "Режимы",
+      "es": "Modos",
+      "de": "Modi",
+      "fr": "Modes",
+      "it": "Modalità",
+      "pt": "Modos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "exam",
+    "unit": "minutes",
+    "title": {
+      "en": "Typing Test",
+      "ru": "Тест печати",
+      "es": "Prueba de mecanografía",
+      "de": "Tipptest",
+      "fr": "Test de frappe",
+      "it": "Test di battitura",
+      "pt": "Teste de digitação"
+    },
+    "group": {
+      "en": "Modes",
+      "ru": "Режимы",
+      "es": "Modos",
+      "de": "Modi",
+      "fr": "Modes",
+      "it": "Modalità",
+      "pt": "Modos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-1",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 1 · Home row",
+      "ru": "Урок 1 · Домашний ряд",
+      "es": "Lección 1 · Fila base",
+      "de": "Lektion 1 · Grundreihe",
+      "fr": "Leçon 1 · Rangée de repos",
+      "it": "Lezione 1 · Fila base",
+      "pt": "Lição 1 · Fila base"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-2",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 2 · New keys: D K",
+      "ru": "Урок 2 · Новые клавиши: В Л",
+      "es": "Lección 2 · Teclas nuevas: D K",
+      "de": "Lektion 2 · Neue Tasten: D K",
+      "fr": "Leçon 2 · Nouvelles touches: D K",
+      "it": "Lezione 2 · Nuovi tasti: D K",
+      "pt": "Lição 2 · Teclas novas: D K"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-3",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 3 · New keys: S L",
+      "ru": "Урок 3 · Новые клавиши: Ы Д",
+      "es": "Lección 3 · Teclas nuevas: S L",
+      "de": "Lektion 3 · Neue Tasten: S L",
+      "fr": "Leçon 3 · Nouvelles touches: S L",
+      "it": "Lezione 3 · Nuovi tasti: S L",
+      "pt": "Lição 3 · Teclas novas: S L"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-4",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 4 · New keys: A",
+      "ru": "Урок 4 · Новые клавиши: Ф Ж",
+      "es": "Lección 4 · Teclas nuevas: A",
+      "de": "Lektion 4 · Neue Tasten: A",
+      "fr": "Leçon 4 · Nouvelles touches: A",
+      "it": "Lezione 4 · Nuovi tasti: A",
+      "pt": "Lição 4 · Teclas novas: A"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-5",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 5 · Home row review",
+      "ru": "Урок 5 · Повторение домашнего ряда",
+      "es": "Lección 5 · Repaso de la fila base",
+      "de": "Lektion 5 · Grundreihe wiederholen",
+      "fr": "Leçon 5 · Révision rangée de repos",
+      "it": "Lezione 5 · Ripasso fila base",
+      "pt": "Lição 5 · Revisão da fila base"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-6",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 6 · New keys: E I",
+      "ru": "Урок 6 · Новые клавиши: П Р",
+      "es": "Lección 6 · Teclas nuevas: E I",
+      "de": "Lektion 6 · Neue Tasten: E I",
+      "fr": "Leçon 6 · Nouvelles touches: E I",
+      "it": "Lezione 6 · Nuovi tasti: E I",
+      "pt": "Lição 6 · Teclas novas: E I"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-7",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 7 · New keys: G H",
+      "ru": "Урок 7 · Новые клавиши: Е Н",
+      "es": "Lección 7 · Teclas nuevas: G H",
+      "de": "Lektion 7 · Neue Tasten: G H",
+      "fr": "Leçon 7 · Nouvelles touches: G H",
+      "it": "Lezione 7 · Nuovi tasti: G H",
+      "pt": "Lição 7 · Teclas novas: G H"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-8",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 8 · New keys: R U",
+      "ru": "Урок 8 · Новые клавиши: К Г",
+      "es": "Lección 8 · Teclas nuevas: R U",
+      "de": "Lektion 8 · Neue Tasten: R U",
+      "fr": "Leçon 8 · Nouvelles touches: R U",
+      "it": "Lezione 8 · Nuovi tasti: R U",
+      "pt": "Lição 8 · Teclas novas: R U"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-9",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 9 · New keys: T Y",
+      "ru": "Урок 9 · Новые клавиши: У Ш",
+      "es": "Lección 9 · Teclas nuevas: T Y",
+      "de": "Lektion 9 · Neue Tasten: T Y",
+      "fr": "Leçon 9 · Nouvelles touches: T Y",
+      "it": "Lezione 9 · Nuovi tasti: T Y",
+      "pt": "Lição 9 · Teclas novas: T Y"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-10",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 10 · New keys: W O",
+      "ru": "Урок 10 · Новые клавиши: Ц Щ",
+      "es": "Lección 10 · Teclas nuevas: W O",
+      "de": "Lektion 10 · Neue Tasten: W O",
+      "fr": "Leçon 10 · Nouvelles touches: W O",
+      "it": "Lezione 10 · Nuovi tasti: W O",
+      "pt": "Lição 10 · Teclas novas: W O"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-11",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 11 · New keys: Q P",
+      "ru": "Урок 11 · Новые клавиши: Й З",
+      "es": "Lección 11 · Teclas nuevas: Q P",
+      "de": "Lektion 11 · Neue Tasten: Q P",
+      "fr": "Leçon 11 · Nouvelles touches: Q P",
+      "it": "Lezione 11 · Nuovi tasti: Q P",
+      "pt": "Lição 11 · Teclas novas: Q P"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-12",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 12 · New keys: V N",
+      "ru": "Урок 12 · Новые клавиши: Я Ч",
+      "es": "Lección 12 · Teclas nuevas: V N",
+      "de": "Lektion 12 · Neue Tasten: V N",
+      "fr": "Leçon 12 · Nouvelles touches: V N",
+      "it": "Lezione 12 · Nuovi tasti: V N",
+      "pt": "Lição 12 · Teclas novas: V N"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-13",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 13 · New keys: Z X C B",
+      "ru": "Урок 13 · Новые клавиши: С М И Т",
+      "es": "Lección 13 · Teclas nuevas: Z X C B",
+      "de": "Lektion 13 · Neue Tasten: Z X C B",
+      "fr": "Leçon 13 · Nouvelles touches: Z X C B",
+      "it": "Lezione 13 · Nuovi tasti: Z X C B",
+      "pt": "Lição 13 · Teclas novas: Z X C B"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-14",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 14 · New keys: M",
+      "ru": "Урок 14 · Новые клавиши: Ь Б Ю Х Э Ъ",
+      "es": "Lección 14 · Teclas nuevas: M",
+      "de": "Lektion 14 · Neue Tasten: M",
+      "fr": "Leçon 14 · Nouvelles touches: M",
+      "it": "Lezione 14 · Nuovi tasti: M",
+      "pt": "Lição 14 · Teclas novas: M"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-15",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 15 · Capitals (Shift)",
+      "ru": "Урок 15 · Заглавные буквы (Shift)",
+      "es": "Lección 15 · Mayúsculas (Shift)",
+      "de": "Lektion 15 · Großbuchstaben (Shift)",
+      "fr": "Leçon 15 · Majuscules (Maj)",
+      "it": "Lezione 15 · Maiuscole (Shift)",
+      "pt": "Lição 15 · Maiúsculas (Shift)"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-16",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 16 · Numbers",
+      "ru": "Урок 16 · Цифры",
+      "es": "Lección 16 · Números",
+      "de": "Lektion 16 · Zahlen",
+      "fr": "Leçon 16 · Chiffres",
+      "it": "Lezione 16 · Numeri",
+      "pt": "Lição 16 · Números"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-17",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 17 · Punctuation",
+      "ru": "Урок 17 · Знаки препинания",
+      "es": "Lección 17 · Puntuación",
+      "de": "Lektion 17 · Satzzeichen",
+      "fr": "Leçon 17 · Ponctuation",
+      "it": "Lezione 17 · Punteggiatura",
+      "pt": "Lição 17 · Pontuação"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-18",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 18 · Common words",
+      "ru": "Урок 18 · Частые слова",
+      "es": "Lección 18 · Palabras comunes",
+      "de": "Lektion 18 · Häufige Wörter",
+      "fr": "Leçon 18 · Mots fréquents",
+      "it": "Lezione 18 · Parole comuni",
+      "pt": "Lição 18 · Palavras comuns"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "course-19",
+    "unit": "times",
+    "title": {
+      "en": "Lesson 19 · Sentences",
+      "ru": "Урок 19 · Предложения",
+      "es": "Lección 19 · Frases",
+      "de": "Lektion 19 · Sätze",
+      "fr": "Leçon 19 · Phrases",
+      "it": "Lezione 19 · Frasi",
+      "pt": "Lição 19 · Frases"
+    },
+    "group": {
+      "en": "Typing course",
+      "ru": "Курс печати",
+      "es": "Curso de mecanografía",
+      "de": "Tippkurs",
+      "fr": "Cours de dactylo",
+      "it": "Corso di dattilografia",
+      "pt": "Curso de digitação"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "classic-en-1",
+    "unit": "times",
+    "title": {
+      "en": "Shakespeare — Sonnets - 1/2"
+    },
+    "group": {
+      "en": "Texts"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "classic-en-2",
+    "unit": "times",
+    "title": {
+      "en": "Shakespeare — Sonnets - 2/2"
+    },
+    "group": {
+      "en": "Texts"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-en-1",
+    "unit": "times",
+    "title": {
+      "en": "The Raven - 1/6"
+    },
+    "group": {
+      "en": "Texts"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-en-2",
+    "unit": "times",
+    "title": {
+      "en": "The Raven - 2/6"
+    },
+    "group": {
+      "en": "Texts"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-en-3",
+    "unit": "times",
+    "title": {
+      "en": "The Raven - 3/6"
+    },
+    "group": {
+      "en": "Texts"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-en-4",
+    "unit": "times",
+    "title": {
+      "en": "The Raven - 4/6"
+    },
+    "group": {
+      "en": "Texts"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-en-5",
+    "unit": "times",
+    "title": {
+      "en": "The Raven - 5/6"
+    },
+    "group": {
+      "en": "Texts"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-en-6",
+    "unit": "times",
+    "title": {
+      "en": "The Raven - 6/6"
+    },
+    "group": {
+      "en": "Texts"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "digits-1",
+    "unit": "times",
+    "title": {
+      "en": "1",
+      "ru": "1",
+      "es": "1",
+      "de": "1",
+      "fr": "1",
+      "it": "1",
+      "pt": "1"
+    },
+    "group": {
+      "en": "Texts",
+      "ru": "Тексты",
+      "es": "Textos",
+      "de": "Texte",
+      "fr": "Textes",
+      "it": "Testi",
+      "pt": "Textos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "digits-2",
+    "unit": "times",
+    "title": {
+      "en": "2",
+      "ru": "2",
+      "es": "2",
+      "de": "2",
+      "fr": "2",
+      "it": "2",
+      "pt": "2"
+    },
+    "group": {
+      "en": "Texts",
+      "ru": "Тексты",
+      "es": "Textos",
+      "de": "Texte",
+      "fr": "Textes",
+      "it": "Testi",
+      "pt": "Textos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "digits-3",
+    "unit": "times",
+    "title": {
+      "en": "3",
+      "ru": "3",
+      "es": "3",
+      "de": "3",
+      "fr": "3",
+      "it": "3",
+      "pt": "3"
+    },
+    "group": {
+      "en": "Texts",
+      "ru": "Тексты",
+      "es": "Textos",
+      "de": "Texte",
+      "fr": "Textes",
+      "it": "Testi",
+      "pt": "Textos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "digits-4",
+    "unit": "times",
+    "title": {
+      "en": "4",
+      "ru": "4",
+      "es": "4",
+      "de": "4",
+      "fr": "4",
+      "it": "4",
+      "pt": "4"
+    },
+    "group": {
+      "en": "Texts",
+      "ru": "Тексты",
+      "es": "Textos",
+      "de": "Texte",
+      "fr": "Textes",
+      "it": "Testi",
+      "pt": "Textos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "digits-5",
+    "unit": "times",
+    "title": {
+      "en": "5",
+      "ru": "5",
+      "es": "5",
+      "de": "5",
+      "fr": "5",
+      "it": "5",
+      "pt": "5"
+    },
+    "group": {
+      "en": "Texts",
+      "ru": "Тексты",
+      "es": "Textos",
+      "de": "Texte",
+      "fr": "Textes",
+      "it": "Testi",
+      "pt": "Textos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "digits-6",
+    "unit": "times",
+    "title": {
+      "en": "6",
+      "ru": "6",
+      "es": "6",
+      "de": "6",
+      "fr": "6",
+      "it": "6",
+      "pt": "6"
+    },
+    "group": {
+      "en": "Texts",
+      "ru": "Тексты",
+      "es": "Textos",
+      "de": "Texte",
+      "fr": "Textes",
+      "it": "Testi",
+      "pt": "Textos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "classic-ru-1",
+    "unit": "times",
+    "title": {
+      "ru": "Пушкин — Евгений Онегин - 1/2"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "classic-ru-2",
+    "unit": "times",
+    "title": {
+      "ru": "Пушкин — Евгений Онегин - 2/2"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-ru-1",
+    "unit": "times",
+    "title": {
+      "ru": "Ворон - 1/6"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-ru-2",
+    "unit": "times",
+    "title": {
+      "ru": "Ворон - 2/6"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-ru-3",
+    "unit": "times",
+    "title": {
+      "ru": "Ворон - 3/6"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-ru-4",
+    "unit": "times",
+    "title": {
+      "ru": "Ворон - 4/6"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-ru-5",
+    "unit": "times",
+    "title": {
+      "ru": "Ворон - 5/6"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-ru-6",
+    "unit": "times",
+    "title": {
+      "ru": "Ворон - 6/6"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-1",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 1/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-2",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 2/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-3",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 3/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-4",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 4/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-5",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 5/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-6",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 6/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-7",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 7/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-8",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 8/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-9",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 9/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-10",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 10/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-11",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 11/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-12",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 12/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-13",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 13/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-14",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 14/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-15",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 15/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-16",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 16/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-17",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 17/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-18",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 18/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-19",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 19/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-20",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 20/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-21",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 21/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruw-22",
+    "unit": "times",
+    "title": {
+      "ru": "Русские слова — 22/22"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-1",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 1/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-2",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 2/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-3",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 3/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-4",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 4/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-5",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 5/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-6",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 6/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-7",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 7/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-8",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 8/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-9",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 9/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-10",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 10/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-11",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 11/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-12",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 12/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-13",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 13/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-14",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 14/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-15",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 15/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-16",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 16/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-17",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 17/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-18",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 18/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-19",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 19/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-20",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 20/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-21",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 21/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-22",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 22/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-23",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 23/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-24",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 24/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-25",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 25/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-26",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 26/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-27",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 27/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-28",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 28/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-29",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 29/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-30",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 30/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-31",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 31/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-32",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 32/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-33",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 33/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-34",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 34/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-35",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 35/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-36",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 36/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-37",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 37/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-38",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 38/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-39",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 39/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-40",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 40/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-41",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 41/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-42",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 42/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-43",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 43/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-44",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 44/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-45",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 45/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-46",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 46/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-47",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 47/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-48",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 48/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-49",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 49/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "ruph-50",
+    "unit": "times",
+    "title": {
+      "ru": "Русские фразы — 50/50"
+    },
+    "group": {
+      "ru": "Тексты"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "classic-es-1",
+    "unit": "times",
+    "title": {
+      "es": "Cervantes — Don Quijote - 1/2"
+    },
+    "group": {
+      "es": "Textos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "classic-es-2",
+    "unit": "times",
+    "title": {
+      "es": "Cervantes — Don Quijote - 2/2"
+    },
+    "group": {
+      "es": "Textos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-es-1",
+    "unit": "times",
+    "title": {
+      "es": "El cuervo - 1/3"
+    },
+    "group": {
+      "es": "Textos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-es-2",
+    "unit": "times",
+    "title": {
+      "es": "El cuervo - 2/3"
+    },
+    "group": {
+      "es": "Textos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-es-3",
+    "unit": "times",
+    "title": {
+      "es": "El cuervo - 3/3"
+    },
+    "group": {
+      "es": "Textos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "classic-de-1",
+    "unit": "times",
+    "title": {
+      "de": "Kafka — Die Verwandlung - 1/2"
+    },
+    "group": {
+      "de": "Texte"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "classic-de-2",
+    "unit": "times",
+    "title": {
+      "de": "Kafka — Die Verwandlung - 2/2"
+    },
+    "group": {
+      "de": "Texte"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-de-1",
+    "unit": "times",
+    "title": {
+      "de": "Der Rabe - 1/4"
+    },
+    "group": {
+      "de": "Texte"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-de-2",
+    "unit": "times",
+    "title": {
+      "de": "Der Rabe - 2/4"
+    },
+    "group": {
+      "de": "Texte"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-de-3",
+    "unit": "times",
+    "title": {
+      "de": "Der Rabe - 3/4"
+    },
+    "group": {
+      "de": "Texte"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-de-4",
+    "unit": "times",
+    "title": {
+      "de": "Der Rabe - 4/4"
+    },
+    "group": {
+      "de": "Texte"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "classic-fr-1",
+    "unit": "times",
+    "title": {
+      "fr": "Proust — Du côté de chez Swann - 1/2"
+    },
+    "group": {
+      "fr": "Textes"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "classic-fr-2",
+    "unit": "times",
+    "title": {
+      "fr": "Proust — Du côté de chez Swann - 2/2"
+    },
+    "group": {
+      "fr": "Textes"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-fr-1",
+    "unit": "times",
+    "title": {
+      "fr": "Le Corbeau - 1/3"
+    },
+    "group": {
+      "fr": "Textes"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-fr-2",
+    "unit": "times",
+    "title": {
+      "fr": "Le Corbeau - 2/3"
+    },
+    "group": {
+      "fr": "Textes"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-fr-3",
+    "unit": "times",
+    "title": {
+      "fr": "Le Corbeau - 3/3"
+    },
+    "group": {
+      "fr": "Textes"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "classic-it-1",
+    "unit": "times",
+    "title": {
+      "it": "Dante — Divina Commedia - 1/3"
+    },
+    "group": {
+      "it": "Testi"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "classic-it-2",
+    "unit": "times",
+    "title": {
+      "it": "Dante — Divina Commedia - 2/3"
+    },
+    "group": {
+      "it": "Testi"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "classic-it-3",
+    "unit": "times",
+    "title": {
+      "it": "Dante — Divina Commedia - 3/3"
+    },
+    "group": {
+      "it": "Testi"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-it-1",
+    "unit": "times",
+    "title": {
+      "it": "Il corvo - 1/4"
+    },
+    "group": {
+      "it": "Testi"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-it-2",
+    "unit": "times",
+    "title": {
+      "it": "Il corvo - 2/4"
+    },
+    "group": {
+      "it": "Testi"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-it-3",
+    "unit": "times",
+    "title": {
+      "it": "Il corvo - 3/4"
+    },
+    "group": {
+      "it": "Testi"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-it-4",
+    "unit": "times",
+    "title": {
+      "it": "Il corvo - 4/4"
+    },
+    "group": {
+      "it": "Testi"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "classic-pt-1",
+    "unit": "times",
+    "title": {
+      "pt": "Machado de Assis — Dom Casmurro - 1/2"
+    },
+    "group": {
+      "pt": "Textos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "classic-pt-2",
+    "unit": "times",
+    "title": {
+      "pt": "Machado de Assis — Dom Casmurro - 2/2"
+    },
+    "group": {
+      "pt": "Textos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-pt-1",
+    "unit": "times",
+    "title": {
+      "pt": "O Corvo - 1/4"
+    },
+    "group": {
+      "pt": "Textos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-pt-2",
+    "unit": "times",
+    "title": {
+      "pt": "O Corvo - 2/4"
+    },
+    "group": {
+      "pt": "Textos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-pt-3",
+    "unit": "times",
+    "title": {
+      "pt": "O Corvo - 3/4"
+    },
+    "group": {
+      "pt": "Textos"
+    }
+  },
+  {
+    "app_id": "typerighting",
+    "ref": "raven-pt-4",
+    "unit": "times",
+    "title": {
+      "pt": "O Corvo - 4/4"
+    },
+    "group": {
+      "pt": "Textos"
+    }
+  }
+]

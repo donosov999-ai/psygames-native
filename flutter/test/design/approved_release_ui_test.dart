@@ -30,6 +30,8 @@ void main() {
       'PSYGAMES_LIQUID_GLASS': true,
       'PSYGAMES_SFX_ENGINE': 'off',
       'PSYGAMES_EVENT_HAPTICS': false,
+      // Кабинет преподавателя (coach/2, сервер применён 11.11.2026); на iOS вход только по почте (App Store 4.8).
+      'PSY_COACH': true,
     });
     // Validate compiled constants too when invoked with the actual release file.
     if (const bool.fromEnvironment('VERIFY_APPROVED_UI_CONFIG')) {

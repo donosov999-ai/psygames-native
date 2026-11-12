@@ -74,6 +74,11 @@ void main() {
     expect(howTo, findsOneWidget, reason: 'без снимка экран открывается настройкой с карточкой правила');
     expect(tester.widget<Text>(howTo).data, L.t('deepHowTo'));
     expect(L.t('deepHowTo'), contains('пунктирн'), reason: 'карточка — текст веба, а не сырой ключ');
+    // Новая игра — по уровню (лестница «Бездны», решение Дениса 12.11): ступень 1 = «Разведка»;
+    // объём руками — в «Свободно», там же, в этом окне.
+    expect(find.byKey(const Key('deep-level-info')), findsOneWidget, reason: 'по умолчанию — партия по уровню');
+    await tester.tap(find.byKey(const Key('deep-mode-free')));
+    await tester.pump();
     expect(find.byKey(const Key('deep-preset-abyss')), findsOneWidget, reason: 'объём выбирается тут же');
     expect(find.byKey(const Key('cell_0_0')), findsNothing, reason: 'доска не раздаётся молча до выбора');
     expect(state.get(resumeKey), isNull, reason: 'партии ещё нет');

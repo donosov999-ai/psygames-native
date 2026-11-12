@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/shell/app_theme.dart';
+import 'package:psygames_flutter/shell/design_template.dart';
+import 'package:psygames_flutter/shell/game_colors.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
+import 'package:psygames_flutter/shell/ui_kit/aurora_button.dart';
 import 'package:psygames_flutter/shell/warmup_screens.dart';
 
 /// 🔴 ВЫБОР ЗАРЯДКИ И ИТОГ — НАТИВНЫЕ (задача 748c3f5f).
@@ -341,6 +345,73 @@ void main() {
       expect(routeAction(opened, toBridge), RouteAction.closeThenOpen, reason: 'мост перед веб-игрой — экраном оболочки');
       opened = toBridge;
       expect(routeAction(opened, HybridApp.routeOf('http://127.0.0.1:8123/games/web-only-game')), RouteAction.close);
+    });
+  });
+
+  group('«Аврора»: итог, мост и выбор — в теме, без жёсткого янтаря (ef2fcde7, 1748565f)', () {
+    Future<void> aurora(WidgetTester tester, Widget screen, {bool dark = true}) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(
+        theme: applyUiTemplate(classicShellTheme(dark ? Brightness.dark : Brightness.light), UiTemplate.aurora),
+        home: screen,
+      ));
+      await tester.pump();
+    }
+
+    for (final dark in [true, false]) {
+      testWidgets('итог: кнопки «Авроры», счёт — цветом награды темы (${dark ? 'тёмная' : 'светлая'})', (tester) async {
+        WarmupUi.complete.value = {
+          'completed': true,
+          'hero': {'title': 'warmupDoneTitle', 'sub': '5/5'},
+          'resultsTitle': 'Результаты',
+          'rows': <Object>[],
+          'total': {'label': 'Очки', 'value': '120'},
+          'again': 'Ещё раз',
+          'home': 'На главную',
+        };
+        await aurora(tester, const WarmupCompleteScreen(), dark: dark);
+        expect(find.descendant(of: find.byType(AuroraButton), matching: find.text('Ещё раз')), findsOneWidget);
+        expect(find.descendant(of: find.byType(AuroraButton), matching: find.text('На главную')), findsOneWidget);
+        final total = tester.widget<Text>(find.byKey(const Key('warmup-complete-total')));
+        expect(total.style?.color, GameColors.aurora(dark ? Brightness.dark : Brightness.light).reward);
+        expect(total.style?.color, isNot(const Color(0xFFFBBF24)));
+      });
+    }
+
+    testWidgets('мост: «Старт сейчас» — главная кнопка «Авроры»', (tester) async {
+      WarmupUi.bridge.value = {
+        'evening': false,
+        'hud': 'complexWarmup · 2/5',
+        'progress': 0.4,
+        'countdown': 'Начинаем через 4',
+        'primary': 'Старт сейчас',
+        'skip': 'Пропустить',
+        'stop': 'Остановить',
+      };
+      await aurora(tester, const WarmupBridgeScreen());
+      expect(find.descendant(of: find.byType(AuroraButton), matching: find.text('Старт сейчас')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('warmup-bridge-web-start')));
+      expect(called('bridge', 'start'), isTrue);
+    });
+
+    testWidgets('выбор: у серии в «Авроре» виден состав по шагам', (tester) async {
+      final m = picker();
+      m['series'] = [
+        {
+          ...card('series-mix'),
+          'steps': ['1. Шульте · ~1 мин', '2. Объём цифр · ~1 мин'],
+        },
+      ];
+      WarmupUi.picker.value = m;
+      await aurora(tester, const WarmupPickerScreen());
+      await tester.scrollUntilVisible(find.byKey(const Key('warmup-steps-series-mix')), 200,
+          scrollable: find.byType(Scrollable).first);
+      expect(
+        find.descendant(of: find.byKey(const Key('warmup-steps-series-mix')), matching: find.text('2. Объём цифр · ~1 мин')),
+        findsOneWidget,
+      );
     });
   });
 }

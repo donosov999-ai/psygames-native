@@ -16,7 +16,8 @@ library;
 
 import 'dart:math';
 
-import '../../shell/level_ladder.dart' show LevelStore;
+import '../../shell/level_ladder.dart' show LevelStore, StarsStore;
+import '../../shell/shared_level_store.dart' show decodeLevelStars, encodeLevelStars;
 import '../../shell/shared_state.dart';
 
 /// Дороги ОТ ЛЁГКОЙ К ТЯЖЁЛОЙ: из порядка выводится, какие дороги «тяжелее».
@@ -89,7 +90,8 @@ int sudokuRoadHintMax(int hintMax, SudokuRoad road) => switch (road) {
 /// УРОВНЕМ ДОРОГИ (с переносом вниз) и пишет только её собственный счётчик — и только
 /// вверх, как `reachRoadLevel` веба: на пройденный уровень можно вернуться, и переигровка
 /// не должна срезать достигнутое.
-class SudokuRoadStore implements LevelStore {
+/// Звёзды — общая запись с вебом `psygames_sudoku_stars_<профиль>`, одна на все дороги (как `levelStars.ts`).
+class SudokuRoadStore implements LevelStore, StarsStore {
   SudokuRoadStore(this.state, this.road, {String? profile})
       : _profile = profile;   // ignore: prefer_initializing_formals — поле приватное, параметр именованный
 
@@ -103,6 +105,14 @@ class SudokuRoadStore implements LevelStore {
     final base = '${SharedState.prefix}sudoku_best_$profile';
     return road == defaultSudokuRoad ? base : '${base}_${road.name}';
   }
+
+  String _starsKey(String gameId) => '${SharedState.prefix}${gameId}_stars_$profile';
+
+  @override
+  Future<Map<int, int>> readStars(String gameId) async => decodeLevelStars(state.get(_starsKey(gameId)));
+
+  @override
+  Future<void> writeStars(String gameId, Map<int, int> stars) async => state.set(_starsKey(gameId), encodeLevelStars(stars));
 
   @override
   Future<int?> readInt(String key) async {

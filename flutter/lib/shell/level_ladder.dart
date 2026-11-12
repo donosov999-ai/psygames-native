@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:synapse_advisor/synapse_advisor.dart' show Outcome;
 
 import 'game_preset.dart';
@@ -24,6 +26,8 @@ class LevelLadder {
     this.maxLevel = 999,
     this.sessionType,
     this.sessionMode,
+    this.lastLevel,
+    this.sectors,
   }) : _store = store; // ignore: prefer_initializing_formals — поле приватное, а параметр именованный
 
   final String gameId;
@@ -45,6 +49,15 @@ class LevelLadder {
   final int failStreakThreshold;
   final int maxLevel;
 
+  /// Последний узел карты уровней, если он не [maxLevel] («Судоку»: потолок — ступень ЗА последней).
+  /// Не задан и лестница без потолка (999) — карта показывает пройденное и несколько закрытых узлов.
+  final int? lastLevel;
+
+  /// Секторы карты уровней — ДАННЫЕ игры (Денис 11.11: «название секторов могла задать каждая игра сама»):
+  /// «Судоку» — по вариантам правил своей лестницы. Не задано — каркас режет по 10 уровней и
+  /// подписывает общими названиями ([defaultLevelSectors] в `level_map.dart`).
+  final List<LevelSector>? sectors;
+
   int _level = 1;
   int _best = 1;
   int _failStreak = 0;
@@ -55,8 +68,27 @@ class LevelLadder {
   SessionLaunch? _sessionLaunch;
   String get _levelId => _training ? '${gameId}_warmup' : gameId;
 
-  int get level => _level;
+  /// Уровень, на котором идёт партия: выбранный на переигровку ([pick] ниже достигнутого) или достигнутый.
+  int get level => _picked ?? _level;
   int get best => _best;
+
+  /*
+   * 🔴 ПЕРЕИГРОВКА НЕ ПИШЕТ ЛИЧНЫЙ УРОВЕНЬ (задача c3f27cd6, 12.11.2026).
+   * В вебе выбор пройденного уровня жил в памяти (`usePersistentLevel.pick`): раунд на нём, потом снова
+   * достигнутое; провал на переигровке уровень не понижает. Натив писал выбранное в
+   * `psygames_<игра>_level_<профиль>` — ключ, который зарядка берёт как освоенный. С 2.56.58 («Уровень
+   * проще» в паузе) и 2.56.61 (карта уровней в паузе) одно нажатие навсегда опускало уровень во всех играх
+   * с лестницей. Теперь выбор ниже достигнутого держится здесь, в памяти приложения по ключу игры: он
+   * переживает перезапуск экрана («Заново» после выбора создаёт новую лестницу), но снимается на конце
+   * раунда ([win]/[fail]), при открытии другой игры ([newScreen]) и при перезапуске приложения.
+   */
+  static final Map<String, int> _picks = {};
+  int? _picked;
+
+  void _endReplay() {
+    _picked = null;
+    _picks.remove(_levelId);
+  }
 
   /*
    * 🔴 ЛЕСТНИЦА ОТКРЫТОЙ ИГРЫ — ДЛЯ ПАУЗЫ КАРКАСА («Уровень проще / сложнее», задача 654b5a60).
@@ -68,8 +100,11 @@ class LevelLadder {
   static int _screen = 0;
   int _loadedOn = -1;
 
-  /// Открыта новая игра: прежняя лестница больше не «текущая».
-  static void newScreen() => _screen++;
+  /// Открыта новая игра: прежняя лестница больше не «текущая», выбор переигровки прежней снят.
+  static void newScreen() {
+    _screen++;
+    _picks.clear();
+  }
 
   /// Лестница игры на экране; `null` — у игры нет лестницы или она ещё не загружена.
   static LevelLadder? get current => _active != null && _active!._loadedOn == _screen ? _active : null;
@@ -121,6 +156,10 @@ class LevelLadder {
         ? int.tryParse(_launchParams['lvl'] ?? '')
         : null;
     if (lvl != null && lvl >= 1) _level = lvl.clamp(1, maxLevel);
+    // Выбор переигровки — только для обычной партии: у ступени-перехода и тренировки уровень задан снаружи.
+    final picked = _picks[_levelId];
+    _picked = lvl == null && !_training && picked != null && picked < _level ? picked : null;
+    if (picked != null && picked >= _level) _picks.remove(_levelId);
   }
 
   /// Победа: следующий уровень, достигнутое подтягивается.
@@ -193,6 +232,7 @@ class LevelLadder {
     Map<String, Object?>? details,
     bool report = true,
     bool advance = true,
+    int? stars,
   }) async {
     if (_launchParams['wu'] == '1' && !identical(_launchParams, GamePreset.params)) return false;
     // A playlist step may report completion twice while the host changes routes.
@@ -205,7 +245,11 @@ class LevelLadder {
     // must not become a clean win after LessonUsed.reset().
     if (_training) _trainingWinRecorded = true;
     _failStreak = 0;
-    final before = _level;
+    final before = level;
+    // Переигровка пройденного: звёзды за сыгранный уровень пишутся, достигнутое не двигается — следующая
+    // ступень после выбранной всё равно не выше достигнутой. Раунд кончился — выбор снимается.
+    final replay = _picked != null;
+    _endReplay();
     // Пресет — шаг зарядки, разбор — партия с показанным решением. В обоих
     // случаях лестница меряла бы не человека, поэтому не двигается.
     final lesson = LessonUsed.inRound;
@@ -213,7 +257,7 @@ class LevelLadder {
     // на «вехе» внутри чужой партии быть не должно ([BossRound.due] смотрит сюда).
     final counted = advance && !_frozen && !lesson;
     LessonUsed.reset();
-    if (counted) {
+    if (counted && !replay) {
       if (_level < maxLevel) _level += 1;
       if (_level > _best) _best = _level;
       await _save();
@@ -232,7 +276,7 @@ class LevelLadder {
         timeSeconds: timeSeconds,
         errors: errors,
         mode: mode ?? _stepLabel('mode') ?? sessionMode,
-        difficulty: difficulty ?? _stepLabel('diff') ?? '$_level',
+        difficulty: difficulty ?? _stepLabel('diff') ?? '${replay ? before : _level}',
         details: _withLesson(
           _training
               ? {...?details, 'warmup_progress': true, 'level': before}
@@ -242,6 +286,8 @@ class LevelLadder {
       );
     }
     reportOutcome(true, lesson: lesson);
+    // Звёзды — ПОСЛЕ отчёта и исхода: ступень-переход ждёт исход в прежнем порядке (fractal_outcome_test).
+    if (counted && !_training) unawaited(_saveStars(before, stars ?? starsForErrors(errors)));
     return counted;
   }
 
@@ -277,10 +323,13 @@ class LevelLadder {
     if (_launchParams['wu'] == '1' && !identical(_launchParams, GamePreset.params)) return;
     if (_training && !identical(_trainingLaunch, GamePreset.params)) return;
     final lesson = LessonUsed.inRound;
-    final before = _level;
+    final before = level;
     LessonUsed.reset(); // см. [win]: отметку съедает партия, которую она не засчитала
+    // Переигровка пройденного провалов не копит (как веб): человек сам полез в лёгкое — это не показатель.
+    final replay = _picked != null;
+    _endReplay();
     // `advance: false` — как у [win]: партия с купленной жизнью провалов тоже не копит.
-    if (!advance || _frozen || _training || lesson) {
+    if (!advance || _frozen || _training || lesson || replay) {
       // Ни пресет, ни переход, ни партия с разбором не копят провалов: иначе три шага зарядки
       // подряд (или три подсмотренных решения) опустили бы личный уровень, который
       // человек в этих партиях и не защищал.
@@ -297,7 +346,7 @@ class LevelLadder {
           timeSeconds: timeSeconds,
           errors: errors,
           mode: mode ?? _stepLabel('mode') ?? sessionMode,
-          difficulty: difficulty ?? _stepLabel('diff') ?? '$_level',
+          difficulty: difficulty ?? _stepLabel('diff') ?? '$before',
           details: _withLesson(
             _training
                 ? {...?details, 'warmup_progress': true, 'level': before}
@@ -335,18 +384,71 @@ class LevelLadder {
     reportOutcome(false);
   }
 
-  /// Человек сам выбрал уровень на карте: достигнутое при этом не срезается.
+  /// Человек сам выбрал уровень (карта, «Уровень проще / сложнее»).
+  ///
+  /// Ниже достигнутого — переигровка: только в памяти, на один раунд (см. [_picks]); личный уровень и
+  /// достигнутое не трогаются. На достигнутом и выше — как [setLevel]: выбор снимается, уровень пишется
+  /// («сложнее» до достигнутого раньше, «Мишени» записывают взятую ступень).
   Future<void> pick(int level) async {
+    final n = level.clamp(1, maxLevel);
+    if (n < _level && !_training && !_frozen) {
+      _picked = n;
+      _picks[_levelId] = n;
+      return;
+    }
+    await setLevel(n);
+  }
+
+  /// Записать уровень как личный (веб `setLevel`): «↺ 1» — начать лестницу с первого уровня, взятая
+  /// ступень в игре со своим счётом ступеней. Достигнутое не срезается.
+  Future<void> setLevel(int level) async {
+    _endReplay();
     _level = level.clamp(1, maxLevel);
     _failStreak = 0;
     if (_level > _best) _best = _level;
     await _save();
   }
 
+  /*
+   * 🔴 ЗВЁЗДЫ ЗА УРОВЕНЬ — ЗДЕСЬ, ОДНИМ МЕСТОМ ДЛЯ ВСЕХ ИГР С ЛЕСТНИЦЕЙ (задача a5fe49c9, 11.11.2026).
+   * В вебе их писал `LevelCleared` у каждой игры (`levelStars.ts`, ключ `psygames_<игра>_stars_<профиль>`),
+   * при переезде на Flutter запись осталась у 3 игр из ~70 — тропинке уровней нечего было показывать,
+   * а счётчик «пройдено уровней» в каталоге стоял на нуле. Засчитанная победа пишет лучшее за уровень;
+   * своя формула игры — аргументом `stars`, иначе по ошибкам, как в вебе по умолчанию (без ошибок — 3).
+   */
+  /// Звёзды по числу ошибок: 0 → 3, до двух → 2, больше → 1; ошибок игра не знает → 3 (как `LevelCleared`).
+  static int starsForErrors(int? errors) => errors == null || errors == 0 ? 3 : errors <= 2 ? 2 : 1;
+
+  /// Лучшие звёзды по уровням (`{уровень: звёзды}`); пусто — побед со звёздами не было.
+  Future<Map<int, int>> stars() async {
+    final s = _store;
+    return s is StarsStore ? (s as StarsStore).readStars(gameId) : const {};
+  }
+
+  Future<void> _saveStars(int level, int stars) async {
+    if (_store case final StarsStore s) {
+      await _writeBest(s, level, stars);
+    }
+  }
+
+  Future<void> _writeBest(StarsStore s, int level, int stars) async {
+    final map = Map<int, int>.of(await s.readStars(gameId));
+    if ((map[level] ?? 0) >= stars) return;
+    map[level] = stars.clamp(1, 3);
+    await s.writeStars(gameId, map);
+  }
+
   Future<void> _save() async {
     await _store.writeInt('$_levelId.level', _level);
     await _store.writeInt('$_levelId.best', _best);
   }
+}
+
+/// Сектор карты уровней: уровни [from]…[to] (включительно) под одним названием.
+class LevelSector {
+  const LevelSector({required this.from, required this.to, required this.name});
+  final int from, to;
+  final String name;
 }
 
 /// Хранилище уровня. Отдельным интерфейсом, чтобы пробы шли без файлов и без
@@ -356,8 +458,22 @@ abstract class LevelStore {
   Future<void> writeInt(String key, int value);
 }
 
-class MemoryLevelStore implements LevelStore {
+/// Хранилище, умеющее звёзды по уровням (общая запись с вебом). Лестница пишет их, только если
+/// её хранилище это умеет: у «Судоку» своё хранилище дороги и свои звёзды.
+abstract class StarsStore {
+  Future<Map<int, int>> readStars(String gameId);
+  Future<void> writeStars(String gameId, Map<int, int> stars);
+}
+
+class MemoryLevelStore implements LevelStore, StarsStore {
   final Map<String, int> _data = {};
+  final Map<String, Map<int, int>> _stars = {};
+
+  @override
+  Future<Map<int, int>> readStars(String gameId) async => _stars[gameId] ?? const {};
+
+  @override
+  Future<void> writeStars(String gameId, Map<int, int> stars) async => _stars[gameId] = Map.of(stars);
 
   @override
   Future<int?> readInt(String key) async => _data[key];

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'coach_bridge.dart';
 import 'cloud_gateway.dart';
 import 'cloud_pilot.dart';
 import 'cloud_restore.dart';
@@ -34,8 +35,11 @@ class PsyGamesAccountVault implements AccountVault {
 
 /// Explicit developer pilot only. No shipped default cloud, recovery or uploads.
 class PsyGamesCloudRuntime {
-  PsyGamesCloudRuntime(this.pilot, this.links);
+  PsyGamesCloudRuntime(this.pilot, this.links, [this.account]);
   final CloudPilot pilot;
+
+  /// Общий аккаунт пилота — его же берёт кабинет преподавателя (один владелец на пространство имён).
+  final EcosystemAccount? account;
   final Stream<Uri> links;
   static const enabled = bool.fromEnvironment('PSY_CLOUD_PILOT');
   static const callback = 'com.psygames.app://auth/callback';
@@ -78,7 +82,7 @@ class PsyGamesCloudRuntime {
       account: account,
       backupEnabled: () => pilot.enabled,
     );
-    return PsyGamesCloudRuntime(pilot, links);
+    return PsyGamesCloudRuntime(pilot, links, account);
   }
 
   /// Invoked before language/theme/gameplay/WebView consumers. Failure propagates
@@ -130,6 +134,13 @@ class _CloudLinkHostState extends State<CloudLinkHost>
   }
 
   Future<void> _link(Uri uri) async {
+    final coach = PsyGamesCoach.instance;
+    final navigator = widget.navigatorKey.currentState;
+    if (coach != null && navigator != null && uri.host == 'coach') {
+      await _startup;
+      if (mounted) coach.openInvite(navigator, uri);
+      return;
+    }
     if (uri.scheme != 'com.psygames.app' ||
         uri.host != 'auth' ||
         uri.path != '/callback' ||
@@ -165,6 +176,7 @@ class _CloudLinkHostState extends State<CloudLinkHost>
   Future<void> _process(PsyGamesCloudRuntime runtime, Uri uri) async {
     final cold = runtime.pilot.stage == CloudPilotStage.local;
     await runtime.pilot.completeLink(uri);
+    PsyGamesCoach.instance?.auth?.refresh();
     if (!mounted || !cold || runtime.pilot.stage != CloudPilotStage.history) {
       return;
     }

@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'game_preset.dart';
 import 'warmup_owner.dart';
 import '../synapse/synapse_feed.dart';
@@ -76,7 +78,15 @@ class SessionReport {
   /// Кто принимает отчёт. Ставит оболочка гибрида; в пробах — подменяется.
   static Future<void> Function(String json)? sink;
 
+  /// Вызывается, когда отчёт ЗАРЯДКИ некуда отправить (`sink == null`): проба слышит потерю,
+  /// в приложении можно повесить журнал. Не заменяет `debugPrint` — он пишется всегда.
+  static void Function(String gameType)? onDropped;
+
   static bool get installed => sink != null;
+
+  /// Кто ещё слушает отправленную партию (кабинет преподавателя, флаг PSY_COACH). Получает то же
+  /// тело, что ушло в оболочку; ошибки слушателя партию не трогают.
+  static void Function(Map<String, Object?> body)? observer;
 
   /// Отправить партию. `gameType` — то же имя, что у веб-версии: у обеих половин
   /// это ключ лестницы в нижнем подчёркивании (`digit_span`, `chess_blind`), и
@@ -96,6 +106,14 @@ class SessionReport {
     final f = sink;
     if (f == null) {
       SynapseFeed.expect(outcome: SynapseFeed.silent);   // партии не было — исход не переносится на следующую
+      // 🔴 Партия ЗАРЯДКИ без приёмника пропадает молча: серия и история перестают копиться без
+      // единой ошибки (инвентарь 12.11.2026, задача 4191419c). Приёмник сегодня — JS веб-половины
+      // (`hybrid_app.dart`, `window.__psySaveSession`), и при снятии WebView он исчезнет. Громко
+      // говорим о потере — в журнал и колбэку; в релизе не бросаем: пробы без приёмника штатны.
+      if ((launch ?? SessionLaunch.capture()).isWarmup) {
+        debugPrint('[SessionReport] warmup report ($gameType) lost: no session sink');
+        onDropped?.call(gameType);
+      }
       return;
     }
     // 🔴 Партия ступени чужой лестницы несёт метку ступени (`LevelTransition`): по ней
@@ -128,6 +146,11 @@ class SessionReport {
       if (marked.isNotEmpty) 'details': marked,
     };
     await f(jsonEncode(body));
+    try {
+      observer?.call(body);
+    } on Object {
+      // слушатель не имеет права ронять сохранение партии
+    }
     // 🗨 Синапс (852e4b4a): реплика по фактам этой партии — не задерживая игру и не роняя её.
     unawaited(SynapseFeed.onSession(body).catchError((Object _) {}));
   }

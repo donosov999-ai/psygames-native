@@ -307,6 +307,49 @@ class EcosystemAccount {
     if (!_currentAttempt(generation)) throw StateError('Login request superseded');
   }
 
+  /// Вход через Google (провайдер Supabase Auth, включён 11.11.2026 — эпик 892cd2c3). Возвращает адрес
+  /// страницы входа Google: приложение открывает его в браузере, Google возвращает в [callback] с `code`,
+  /// дальше — тот же [completeLink] (PKCE), что у входа по почте. Код-верификатор пишется в ту же
+  /// очередь хранения, вход без согласия на сеть невозможен.
+  Future<Uri> googleSignInUrl({required bool consent}) async {
+    if (!consent) throw StateError('Account network consent is OFF');
+    suspend();
+    _activate();
+    final generation = _generation;
+    final response = await _sdk.auth.getOAuthSignInUrl(provider: OAuthProvider.google, redirectTo: callback.toString());
+    if (!_currentAttempt(generation)) throw StateError('Login request superseded');
+    return Uri.parse(response.url);
+  }
+
+  /// Вход через Apple внутри приложения iOS/macOS (правило App Store 4.8): id-токен от системного окна Apple
+  /// и исходный nonce (в окно Apple уходит его SHA-256). Сессия пишется той же очередью, что и вход по ссылке.
+  Future<void> signInWithAppleIdToken({required String idToken, required String rawNonce, required bool consent}) async {
+    if (!consent) throw StateError('Account network consent is OFF');
+    suspend();
+    _activate();
+    final generation = _generation;
+    try {
+      await _sdk.auth.signInWithIdToken(provider: OAuthProvider.apple, idToken: idToken, nonce: rawNonce);
+      if (!_currentAttempt(generation)) throw StateError('Account operation cancelled');
+      await flushCredentials();
+      _credentialsReady = true;
+      _sdk.auth.startAutoRefresh();
+    } catch (_) {
+      if (_currentAttempt(generation)) suspend();
+      rethrow;
+    }
+  }
+
+  /// Вызов разрешённой серверной функции общего контура от имени вошедшего аккаунта. Белый список:
+  /// только `ecosystem_coach_v2` (кабинет преподавателя, contract ecosystem.coach/2) и `fudao_specialist_v1`
+  /// (разборы, материалы, заметки и шаги специалиста Fudao поверх той же связи и согласия). Сырого SDK наружу нет.
+  static const rpcAllowlist = {'ecosystem_coach_v2', 'fudao_specialist_v1'};
+  Future<Object?> rpc(String function, Map<String, Object?> params) async {
+    if (!rpcAllowlist.contains(function)) throw ArgumentError('RPC not allowed: $function');
+    if (accountId == null) throw StateError('A restored and consent-bound account is required');
+    return _sdk.rpc(function, params: params);
+  }
+
   /// Explicit opt-in for a cold PKCE callback, never cached-session recovery.
   /// Retire any older SDK/generation without reading the vault or creating an SDK.
   /// completeLink will read only this app/issuer's verifier and durably commit

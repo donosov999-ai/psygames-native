@@ -50,6 +50,9 @@ void main() {
     await tester.tap(find.byTooltip(L.t('sdkNewGame')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('deep-new')), findsOneWidget, reason: '«Новая партия» сначала спрашивает');
+    // Партия по уровню (лестница «Бездны», c345a8f1) — объём и ступень выбираются в «Свободно».
+    await tester.tap(find.byKey(const Key('deep-mode-free')));
+    await tester.pump();
   }
 
   testWidgets('🔴 выбор «Экспедиции» и третьей ступени доходит до партии и снимка', (tester) async {
@@ -64,6 +67,9 @@ void main() {
       expect(find.byKey(Key('deep-band-$i')), findsOneWidget, reason: 'ступень ${i + 1} на выбор');
     }
     await tester.tap(find.byKey(const Key('deep-preset-trek')));
+    await tester.pump();
+    // Окно выросло на строку «Уровни · Свободно» — ступени ниже края, сперва прокрутить.
+    await tester.ensureVisible(find.byKey(const Key('deep-band-2')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('deep-band-2')));
     await tester.pump();

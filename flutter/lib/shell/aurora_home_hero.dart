@@ -19,12 +19,17 @@ class AuroraHomeHero extends StatelessWidget {
     required this.sub,
     required this.cta,
     required this.onTap,
+    this.chip,
   });
 
   final String title;
   final String sub;
   final String cta;
   final VoidCallback onTap;
+
+  /// Серия дней зарядки («🔥3») — та же строка `chip` карточки модели, что и в Classic
+  /// (`home_model.dart`). Нет серии — нет плашки. Без неё «Аврора» прятала серию с главной.
+  final String? chip;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +57,26 @@ class AuroraHomeHero extends StatelessWidget {
               Positioned.fill(
                 child: Image.asset(dark ? 'assets/aurora_game_chrome/home_training_hero_pilot.png' : 'assets/aurora_game_chrome/home_training_hero_light_v2.png', fit: BoxFit.cover),
               ),
+              if (chip != null && chip!.isNotEmpty)
+                Positioned(
+                  top: 14,
+                  right: 14,
+                  child: Semantics(
+                    container: true,
+                    child: DecoratedBox(
+                      key: const ValueKey('aurora-home-hero-chip'),
+                      decoration: BoxDecoration(
+                        color: auroraToken('surface', dark: dark)!.withValues(alpha: .85),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: border),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        child: Text(chip!, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: text)),
+                      ),
+                    ),
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 18, 18, 88),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
