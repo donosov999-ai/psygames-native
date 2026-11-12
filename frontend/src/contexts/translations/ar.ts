@@ -3821,5 +3821,8 @@ const t: Record<string, string> = {
   "pauseExperiencedOnly": "فقط لتقنية أتقنتها من قبل",
   "pauseWarningsTitle": "قبل أن تبدأ",
   "pausePracticeComplete": "اكتمل التمرين",
+  "goalDayOf": "اليوم {n} من {m}",
+  "homeChooseWorkout": "اختر التمرين",
+  "brChangeTech": "تغيير الأسلوب",
 };
 export default t;

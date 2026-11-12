@@ -3825,5 +3825,8 @@ const t: Record<string, string> = {
   "pauseExperiencedOnly": "Solo si ya dominas la técnica",
   "pauseWarningsTitle": "Antes de empezar",
   "pausePracticeComplete": "Práctica completada",
+  "goalDayOf": "Día {n} de {m}",
+  "homeChooseWorkout": "Elegir entrenamiento",
+  "brChangeTech": "Cambiar técnica",
 };
 export default t;

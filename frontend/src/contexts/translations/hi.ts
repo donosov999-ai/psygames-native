@@ -3828,5 +3828,8 @@ const t: Record<string, string> = {
   "pauseExperiencedOnly": "केवल पहले से सीखी गई तकनीक के लिए",
   "pauseWarningsTitle": "शुरू करने से पहले",
   "pausePracticeComplete": "अभ्यास पूरा हुआ",
+  "goalDayOf": "दिन {n}/{m}",
+  "homeChooseWorkout": "अभ्यास चुनें",
+  "brChangeTech": "तकनीक बदलें",
 };
 export default t;

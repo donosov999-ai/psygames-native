@@ -748,6 +748,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
       unawaited(saveLevelStars(widget.state, 'breathing', run, 3));
     }
     _breathCues.play(BreathCue.win);
+    _eyeRest = EyeRestTracker.tick();
     final wim = technique == 'wimhof';
     unawaited(SessionReport.send(
       launch: _sessionLaunch,
@@ -787,6 +788,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     }
     if (e.byLevel) unawaited(saveLevelStars(widget.state, 'eye_gym', done, 3));
     _breathCues.play(BreathCue.win);
+    _eyeRest = EyeRestTracker.tick();
     final scale = e.byLevel ? eyeGymLevel(done).scale : _eyeScale;
     unawaited(SessionReport.send(
       launch: _sessionLaunch,
@@ -812,6 +814,9 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
 
   /// Номер только что завершённого подхода дыхания — для итога (счётчик уже ушёл вперёд).
   int? _lastRun;
+
+  /// Эта практика — десятая подряд: на итоге предлагаем передышку для глаз ([EyeRestTracker]).
+  bool _eyeRest = false;
 
   /// 4-7-8 непривычен — «хочу поровну»: сразу на квадрат, к настройкам (веб `brSwitchToBox`).
   void switchToBox() {
@@ -1072,6 +1077,16 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
           PauseAction(label: L.t('storyDone'), icon: Icons.check, onPressed: stereoFinish),
         ] else if (eye != null)
           PauseAction(label: ps('restart'), icon: Icons.replay, onPressed: _again),
+        // Смена техники посреди подхода (задача 7caec33c): из меню паузы каркаса, а не нажатием на шапку —
+        // у `HudItem`/заголовка `GameShell` нет нажатия, и править общий слой ради одной игры нельзя.
+        // `_again` ничего не пишет (ни партии, ни серии, ни звёзд): подход просто не засчитан, как при
+        // `switchToBox`; на экране настроек уже есть выбор техники. Название нынешней — в подписи.
+        if (_breath && phase == PausePhase.playing)
+          PauseAction(
+            label: '${L.t('brChangeTech')} · ${L.t(_tech.nameKey)}',
+            icon: Icons.swap_horiz,
+            onPressed: _again,
+          ),
       ],
     );
     // Ночной шаг зарядки («Не спится», `dim=1`): яркий экран в три часа ночи
@@ -1646,6 +1661,16 @@ class _Done extends StatelessWidget {
 
   String _mmss(int secs) => '${secs ~/ 60}:${(secs % 60).toString().padLeft(2, '0')}';
 
+  /// Строки под итогом дыхания и глаз (задача b9517e77): «День n из m» цели-серии и, на каждой десятой
+  /// практике подряд, передышка для глаз — то, что веб показывал в `LevelCleared`.
+  List<String> _extraLines(PauseScreenState st) {
+    final goal = streakGoalLine(st.widget.state, st.widget.today?.call() ?? DateTime.now());
+    return [
+      ?goal,
+      if (st._eyeRest) ...[L.t('eyeBreakTitle'), L.t('eyeBreakHint')],
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final st = screen;
@@ -1665,6 +1690,7 @@ class _Done extends StatelessWidget {
                 '${e.level} → ${st.eyeLevel}', key: const Key('pause-eye-level')),
           PauseResultStat(Icons.timer_outlined, L.t('time'), _mmss(e.totalSec)),
         ],
+        lines: _extraLines(st),
         onAgain: st._again,
         onHome: home,
       );
@@ -1684,6 +1710,7 @@ class _Done extends StatelessWidget {
           if (streak > 0)
             PauseResultStat(Icons.local_fire_department, L.t('streakLabel'), '🔥$streak', key: const Key('pause-breath-streak')),
         ],
+        lines: _extraLines(st),
         onAgain: st._again,
         onHome: home,
       );

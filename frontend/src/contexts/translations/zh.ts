@@ -3825,5 +3825,8 @@ const t: Record<string, string> = {
   "pauseExperiencedOnly": "仅适用于已掌握的技巧",
   "pauseWarningsTitle": "开始之前",
   "pausePracticeComplete": "练习完成",
+  "goalDayOf": "第 {n} 天，共 {m} 天",
+  "homeChooseWorkout": "选择训练",
+  "brChangeTech": "更换呼吸法",
 };
 export default t;

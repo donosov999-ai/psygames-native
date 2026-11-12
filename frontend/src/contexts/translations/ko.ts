@@ -3820,5 +3820,8 @@ const t: Record<string, string> = {
   "pauseExperiencedOnly": "이미 익힌 기법에만",
   "pauseWarningsTitle": "시작하기 전에",
   "pausePracticeComplete": "연습 완료",
+  "goalDayOf": "{m}일 중 {n}일째",
+  "homeChooseWorkout": "훈련 선택",
+  "brChangeTech": "호흡법 바꾸기",
 };
 export default t;
