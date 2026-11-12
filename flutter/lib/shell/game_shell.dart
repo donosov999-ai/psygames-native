@@ -431,7 +431,9 @@ class GameShell extends StatelessWidget {
 
   List<PauseAction> _levelActions(BuildContext context, VoidCallback? restart) {
     final ladder = LevelLadder.current;
-    if (ladder == null || GamePreset.isPreset || GamePreset.isWarmup) return const [];
+    // Партия не по лестнице (`levelMap: false` — «Свободно», режимы, малыши, свободная «Бездна») —
+    // ни карты, ни «проще / сложнее»: выбор двигал бы лестницу, по которой эта партия не идёт.
+    if (ladder == null || !levelMap || GamePreset.isPreset || GamePreset.isWarmup) return const [];
     final map = _levelMapAction(context, ladder, restart);
     // Раздать выбранный уровень: своей раздачей игры ([playLevel] — экран без пересоздания, «Пауза»,
     // «Судоку»), как карта; нет её — выбор и «Заново» через [RestartScope].

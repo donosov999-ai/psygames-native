@@ -11,6 +11,7 @@ import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/session_report.dart';
+import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -18,7 +19,9 @@ import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../sudoku/lesson.dart';
 import '../fractal/rules.dart' show conflictsInChild;
+import '../sudoku/leave_guard.dart' show restartGuarded;
 import '../sudoku/marks.dart';
+import 'levels.dart';
 import 'portals.dart';
 import 'tree.dart';
 
@@ -88,6 +91,17 @@ class _DeepScreenState extends State<DeepScreen> {
 
   String _preset = 'scout';
   int _band = 0;
+
+  /*
+   * 🔴 ЛЕСТНИЦА «БЕЗДНЫ» (решение Дениса 12.11: «сложность + бесконечные ступени», задача c345a8f1).
+   * Партия по уровню берёт объём, ступень досок, порталы и долю закрытия из `deepLevel` (levels.dart);
+   * свободная — как прежде, руками. Уровень партии пишется в снимок полем `level` (веб его не знает
+   * и переносит как есть): без него дерево ступеней 9+ после возврата собралось бы другим.
+   */
+  late final LevelLadder _ladder = LevelLadder(gameId: gameId, store: SharedLevelStore(widget.state));
+
+  /// Ступень лестницы, на которой идёт партия; `null` — свободная партия.
+  int? _level;
   String _seed = '';
   String _path = '';
   final DeepPlayed _grids = {};
@@ -110,12 +124,22 @@ class _DeepScreenState extends State<DeepScreen> {
 
   DeepCfg get _cfg {
     final p = _presets[_preset]!;
+    final lvl = _level == null ? null : deepLevel(_level!);
     return DeepCfg(
       depth: p.depth,
       rating: deepBands[_band.clamp(0, deepBands.length - 1)],
       feedCount: p.feedCount,
-      unlockShare: p.unlockShare,
+      unlockShare: lvl?.unlockShare ?? p.unlockShare,
+      portalPairs: lvl?.portalPairs ?? 2,
     );
+  }
+
+  /// Объём и ступень досок — из ступени лестницы.
+  void _applyLevel(int level) {
+    final d = deepLevel(level);
+    _level = level;
+    _preset = d.preset;
+    _band = d.band;
   }
 
   String get _resumeKey =>
@@ -132,6 +156,7 @@ class _DeepScreenState extends State<DeepScreen> {
 
   Future<void> _boot() async {
     final bank = await DeepBank.load();
+    await _ladder.load();
     if (!mounted) return;
     setState(() => _bank = bank);
     if (!_restore()) _firstEntry();
@@ -170,6 +195,7 @@ class _DeepScreenState extends State<DeepScreen> {
       setState(() {
         _preset = preset;
         _band = (s['band'] as num?)?.toInt() ?? 0;
+        _level = (s['level'] as num?)?.toInt();
         _seed = s['seed'] as String? ?? '';
         _path = s['path'] as String? ?? '';
         _grids.clear();
@@ -205,7 +231,7 @@ class _DeepScreenState extends State<DeepScreen> {
         // Поля, которых мы не умеем (время, приправа), переносим как есть.
         _otherFields = {
           for (final e in s.entries)
-            if (!const {'preset', 'band', 'seed', 'path', 'grids', 'history', 'errors', 'marks'}.contains(e.key))
+            if (!const {'preset', 'band', 'level', 'seed', 'path', 'grids', 'history', 'errors', 'marks'}.contains(e.key))
               e.key: e.value,
         };
         _cache.clear();
@@ -225,6 +251,7 @@ class _DeepScreenState extends State<DeepScreen> {
       ..._otherFields,
       'preset': _preset,
       'band': _band,
+      'level': ?_level,
       'rating': _cfg.rating,
       'seed': _seed,
       'path': _path,
@@ -254,6 +281,8 @@ class _DeepScreenState extends State<DeepScreen> {
   Future<bool> _chooseAndStart() async {
     var preset = _preset;
     var band = _band;
+    // По уровню — по умолчанию у новой игры и у партии лестницы; свободная остаётся свободной.
+    var byLevel = _level != null || _seed.isEmpty;
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -265,6 +294,29 @@ class _DeepScreenState extends State<DeepScreen> {
               // Карточка «как играть» — та же, что на экране настройки веба.
               Text(L.t('deepHowTo'), key: const Key('deep-howto'), style: const TextStyle(fontSize: 15, height: 1.35)),
               const Divider(),
+              Wrap(spacing: 6, runSpacing: 6, children: [
+                ChoiceChip(
+                  key: const Key('deep-mode-levels'),
+                  label: Text(L.t('sudokuModeLevels')),
+                  selected: byLevel,
+                  onSelected: (_) => setLocal(() => byLevel = true),
+                ),
+                ChoiceChip(
+                  key: const Key('deep-mode-free'),
+                  label: Text(L.t('sudokuModeFree')),
+                  selected: !byLevel,
+                  onSelected: (_) => setLocal(() => byLevel = false),
+                ),
+              ]),
+              if (byLevel) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '${L.t('level')} ${_ladder.level} · ${L.t('deepPreset_${deepLevel(_ladder.level).preset}')} · '
+                  '${L.t(deepBandKeys[deepLevel(_ladder.level).band])}',
+                  key: const Key('deep-level-info'),
+                ),
+              ],
+              if (!byLevel) ...[
               RadioGroup<String>(
                 groupValue: preset,
                 onChanged: (v) => setLocal(() => preset = v ?? preset),
@@ -288,6 +340,7 @@ class _DeepScreenState extends State<DeepScreen> {
                     onSelected: (_) => setLocal(() => band = i),
                   ),
               ]),
+              ],
             ]),
           ),
           actions: [
@@ -299,12 +352,30 @@ class _DeepScreenState extends State<DeepScreen> {
     );
     if (ok != true || !mounted) return false;
     setState(() {
-      _preset = preset;
-      _band = band;
+      if (byLevel) {
+        _applyLevel(_ladder.level);
+      } else {
+        _level = null;
+        _preset = preset;
+        _band = band;
+      }
     });
     _newGame();
     return true;
   }
+
+  /// Ступень с карты уровней или пункта «проще / сложнее» каркаса: «Заново?» при начатой партии,
+  /// затем раздача на выбранной ступени (переигровка ниже достигнутой уровень не опускает).
+  Future<void> _playLevel(int level) => restartGuarded(
+        context,
+        live: _past.isNotEmpty && !_won,
+        deal: () => unawaited(() async {
+          await _ladder.pick(level);
+          if (!mounted) return;
+          setState(() => _applyLevel(_ladder.level));
+          _newGame();
+        }()),
+      );
 
   void _newGame() {
     final rnd = Random();
@@ -464,14 +535,20 @@ class _DeepScreenState extends State<DeepScreen> {
       errors: _errors,
       details: {
         'preset': _preset,
+        'level': ?_level,
         'depth': _cfg.depth,
         'solved_nodes': solved,
         'touched': _grids.length,
       },
     ));
-    // Своей лестницы у «Бездны» нет, а босс «Судоку» на ней стоит (уровни 128, 176):
+    // Партия по уровню — победа на лестнице «Бездны» (звёзды по ошибкам, исход ступени-переходу шлёт
+    // сама лестница). Свободная — только исход: босс «Судоку» на «Бездне» стоит (уровни 128, 176),
     // итог ступени-переходу — отсюда (level_transition.dart).
-    LevelLadder.reportOutcome(true);
+    if (_level != null) {
+      unawaited(_ladder.win(report: false, errors: _errors));
+    } else {
+      LevelLadder.reportOutcome(true);
+    }
   }
 
   void _undo() {
@@ -571,6 +648,9 @@ class _DeepScreenState extends State<DeepScreen> {
 
     return GameShell(
       title: _title,
+      // Карта уровней и «проще / сложнее» каркаса — у партии по уровню; свободная — без лестницы.
+      levelMap: _level != null,
+      playLevel: _level == null ? null : _playLevel,
       onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       // По адресу каркас правила не найдёт: карточки «Бездны» нет ни в одной развилке
       // (вход — дверь из фрактала), а `sudokuFractalDeepDesc` в словаре нет. Даём сами —
@@ -584,6 +664,7 @@ class _DeepScreenState extends State<DeepScreen> {
         ),
         if (node != null)
           HudItem(label: L.t('sdkNode'), value: '$progress/${node.unlockCells}', icon: Icons.grid_on),
+        if (_level != null) HudItem(label: L.t('level'), value: '$_level', icon: Icons.flag_outlined),
         HudItem(label: L.t('sdkHudStage'), value: '${_band + 1}/${deepBands.length}', icon: Icons.trending_up),
         HudItem(label: L.t('errors'), value: '$_errors', icon: Icons.close),
       ],
