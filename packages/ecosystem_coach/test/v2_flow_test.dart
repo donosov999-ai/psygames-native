@@ -215,4 +215,39 @@ void main() {
     expect(upd['recurrence'], 'weekly');
     expect(t.calls.where((c) => c.$1 == 'assign_lesson'), isEmpty, reason: 'правка не создаёт второе назначение рядом');
   });
+
+  test('данные шага (coach/3.2): уходят в lesson_save и читаются из задания ученика', () async {
+    final t = FakeTransport({
+      ..._server(),
+      'lesson_save': (_) => {'id': 'p9'},
+      'student_assignments': (_) => {
+            'assignments': [
+              {'id': 'a1', 'app_id': 'psygames', 'title': 'T', 'coach_name': 'A', 'done': [0],
+               'steps': [{'ref': 'stroop', 'amount': 1, 'data': {'text': 'Мама мыла раму'}}]},
+            ],
+          },
+    });
+    final client = CoachClient(t, appId: 'psygames');
+    const kind = CoachStepKind(appId: 'psygames', ref: 'stroop', title: 'Stroop', editableData: true);
+    await client.saveLesson(const CoachLesson(title: 'T', steps: [CoachLessonStep(kind: kind, data: {'fen': '8/8/8/8/8/8/8/K6k w - - 0 1'})]));
+    expect((t.calls.single.$2['steps'] as List).single, containsPair('data', {'fen': '8/8/8/8/8/8/8/K6k w - - 0 1'}));
+    final tasks = await client.studentAssignments(_catalog);
+    expect(tasks.single.lesson.steps.single.data['text'], 'Мама мыла раму');
+  });
+
+  testWidgets('редактор урока: вид с editableData вызывает редактор данных приложения', (tester) async {
+    const kind = CoachStepKind(appId: 'psygames', ref: 'own_text', title: 'Свой текст', editableData: true);
+    CoachLesson? saved;
+    await tester.pumpWidget(_app(LessonEditorScreen(
+      catalog: const [kind],
+      lesson: const CoachLesson(title: 'Урок', steps: [CoachLessonStep(kind: kind)]),
+      stepDataEditor: (context, step) async => {'text': 'Съешь же ещё этих мягких булок'},
+      onSave: (l) => saved = l,
+    )));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('coach-step-data-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('coach-lesson-save')));
+    expect(saved!.steps.single.data['text'], 'Съешь же ещё этих мягких булок');
+  });
 }

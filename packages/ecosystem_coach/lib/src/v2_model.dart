@@ -7,7 +7,7 @@ enum CoachRole { student, teacher }
 /// Шаг урока, который приложение умеет предложить (свой каталог у каждого приложения).
 class CoachStepKind {
   const CoachStepKind({required this.appId, required this.ref, required this.title, this.group = '', this.maxLevel = 0,
-      this.unit = CoachStepUnit.times});
+      this.unit = CoachStepUnit.times, this.defaultData = const {}, this.editableData = false});
   final String appId;
 
   /// Стабильный ключ упражнения: `mode` или `exercise_ref`, которым приложение шлёт тренировку.
@@ -21,8 +21,22 @@ class CoachStepKind {
   final int maxLevel;
   final CoachStepUnit unit;
 
-  Map<String, Object?> toJson() =>
-      {'app_id': appId, 'ref': ref, 'title': title, 'group': group, 'max_level': maxLevel, 'unit': unit.name};
+  /// Данные шага по умолчанию (позиция FEN, id текста…) — каталог может нести готовое упражнение.
+  final Map<String, Object?> defaultData;
+
+  /// Преподаватель задаёт данные шага сам (свой текст, своя позиция) — редактор урока покажет «✎».
+  final bool editableData;
+
+  Map<String, Object?> toJson() => {
+        'app_id': appId,
+        'ref': ref,
+        'title': title,
+        'group': group,
+        'max_level': maxLevel,
+        'unit': unit.name,
+        if (defaultData.isNotEmpty) 'data': defaultData,
+        if (editableData) 'editable_data': true,
+      };
   factory CoachStepKind.fromJson(Map<String, Object?> j) => CoachStepKind(
         appId: '${j['app_id']}',
         ref: '${j['ref']}',
@@ -30,6 +44,8 @@ class CoachStepKind {
         group: '${j['group'] ?? ''}',
         maxLevel: (j['max_level'] as num?)?.toInt() ?? 0,
         unit: CoachStepUnit.values.firstWhere((u) => u.name == j['unit'], orElse: () => CoachStepUnit.times),
+        defaultData: j['data'] is Map ? (j['data'] as Map).cast<String, Object?>() : const {},
+        editableData: j['editable_data'] == true,
       );
 }
 
@@ -37,14 +53,18 @@ enum CoachStepUnit { times, minutes }
 
 /// Шаг урока: что, на каком уровне, сколько.
 class CoachLessonStep {
-  const CoachLessonStep({required this.kind, this.level = 0, this.amount = 1, this.note = ''});
+  const CoachLessonStep({required this.kind, this.level = 0, this.amount = 1, this.note = '', this.data = const {}});
   final CoachStepKind kind;
   final int level;
   final int amount;
   final String note;
 
-  CoachLessonStep copyWith({int? level, int? amount, String? note}) =>
-      CoachLessonStep(kind: kind, level: level ?? this.level, amount: amount ?? this.amount, note: note ?? this.note);
+  /// Данные шага для приложения (coach/3.2): своя позиция, свой текст, id задачи. Объект до 4 КБ;
+  /// сервер его не толкует — отдаёт ученику как есть, приложение открывает упражнение по нему.
+  final Map<String, Object?> data;
+
+  CoachLessonStep copyWith({int? level, int? amount, String? note, Map<String, Object?>? data}) => CoachLessonStep(
+      kind: kind, level: level ?? this.level, amount: amount ?? this.amount, note: note ?? this.note, data: data ?? this.data);
 
   Map<String, Object?> toJson() => {
         'app_id': kind.appId,
@@ -54,6 +74,7 @@ class CoachLessonStep {
         'amount': amount,
         'unit': kind.unit.name,
         if (note.isNotEmpty) 'note': note,
+        if (data.isNotEmpty) 'data': data,
       };
 }
 
