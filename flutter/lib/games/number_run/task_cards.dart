@@ -303,7 +303,7 @@ class NumberRunReserveSlot extends StatelessWidget {
         ? L.t('numberRunReserveReady')
         : used
             ? L.t('numberRunReserveUsed')
-            : L.t('numberRunReserveEmpty');
+            : L.t('puzzleSecondEmpty');
     return Semantics(
       container: true,
       label: '${L.t('numberRunReserve')}: $caption${op != null ? ' $op' : ''}',
@@ -312,7 +312,7 @@ class NumberRunReserveSlot extends StatelessWidget {
         Transform.translate(offset: const Offset(0, -6), child: NrTab(caption)),
         NrActionButton(
           key: const Key('nr-reserve-apply'),
-          label: L.t('numberRunApply'),
+          label: L.t('apply'),
           height: 44,
           onPressed: op != null && running ? onApply : null,
         ),
