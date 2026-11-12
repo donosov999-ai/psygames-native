@@ -365,10 +365,13 @@ class _SemanticBasketFieldState extends State<SemanticBasketField> {
               button: true,
               selected: selected,
               label: word,
-              child: LongPressDraggable<int>(
+              // 🔴 12.11.2026, Денис: «плохо цепляются слова». Было LongPressDraggable
+              // с задержкой 180 мс: быстрый свайп не брал слово, нужно было зажать и
+              // ждать. Теперь слово берётся сразу касанием. Прокрутка лотка остаётся
+              // по промежуткам между карточками (она нужна только при крупном шрифте).
+              child: Draggable<int>(
                 key: Key('semantic-card-$id'),
                 data: id,
-                delay: const Duration(milliseconds: 180),
                 maxSimultaneousDrags: widget.enabled && _dragging == null
                     ? 1
                     : 0,
