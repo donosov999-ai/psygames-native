@@ -36,6 +36,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/session_report.dart';
+import '../../shell/sessions.dart' show readSessions;
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/voice.dart';
@@ -155,7 +156,10 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
    * `usePersistentLevel('breathing' | 'eye_gym')`); на Flutter свои счётчики шли мимо LevelLadder —
    * в паузе не было ни карты, ни «проще / сложнее», ни звёзд. Ключи те же, что у веба и прежних
    * счётчиков (`psygames_breathing_level_<профиль>`, `psygames_eye_gym_level|best_<профиль>`), —
-   * накопленное не теряется. «Глаза и дыхание» (свободная сборка) лестницы не держит.
+   * накопленное не теряется.
+   * «Глаза и дыхание» (свободная сборка) — решение Дениса 12.11: уровень = пройденные сеансы
+   * (`psygames_pause_level_<профиль>`); у кого ключа ещё нет, стартовый уровень — из уже записанных
+   * партий `pause`, чтобы накопленное не обнулилось.
    */
   LevelLadder? _ladder;
 
@@ -205,17 +209,24 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     super.initState();
     _sessionLaunch = SessionLaunch.capture();
     WidgetsBinding.instance.addObserver(this);
-    if (_breath || _eyes) {
-      final ladder = _ladder = LevelLadder(
-        gameId: _eyes ? 'eye_gym' : 'breathing',
-        store: SharedLevelStore(widget.state),
-        maxLevel: _eyes ? eyeMaxLevel : 999,
-        lastLevel: _eyes ? eyeMaxLevel : null,
-      );
-      unawaited(ladder.load().then((_) {
-        if (mounted) setState(() {});
-      }));
-    }
+    final store = SharedLevelStore(widget.state);
+    final ladder = _ladder = LevelLadder(
+      gameId: _eyes ? 'eye_gym' : (_breath ? 'breathing' : 'pause'),
+      store: store,
+      maxLevel: _eyes ? eyeMaxLevel : 999,
+      lastLevel: _eyes ? eyeMaxLevel : null,
+    );
+    unawaited(() async {
+      if (!_eyes && !_breath && await store.readInt('pause.level') == null) {
+        final played = readSessions(widget.state, const {}).where((x) => x['game_type'] == 'pause').length;
+        if (played > 0) {
+          await store.writeInt('pause.level', played + 1);
+          await store.writeInt('pause.best', played + 1);
+        }
+      }
+      await ladder.load();
+      if (mounted) setState(() {});
+    }());
     final given = widget.engine;
     if (given != null) {
       _apply(given, widget.copy ?? const {});
@@ -686,6 +697,8 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
       mastery[id] = (mastery[id] ?? 0) + 1;
     }
     unawaited(widget.state.set(_masteryKey, jsonEncode(mastery)));
+    // Сеанс — ступень лестницы «Глаз и дыхания» (уровень = пройденные сеансы, Денис 12.11).
+    unawaited(_playLadder?.win(report: false, errors: 0));
     final int duration = result['durationMs'];
     unawaited(SessionReport.send(
       launch: _sessionLaunch,

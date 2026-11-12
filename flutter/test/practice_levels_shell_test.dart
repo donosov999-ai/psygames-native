@@ -91,8 +91,25 @@ void main() {
     });
   }
 
-  testWidgets('«Глаза и дыхание» (свободная сборка) — без лестницы, пунктов уровней нет', (t) async {
-    await open(t, PauseFlavor.hub, {'psygames_active_profile': 'nzt48'});
-    expect(LevelLadder.current, isNull);
+  testWidgets('🔴 «Глаза и дыхание»: уровень = пройденные сеансы (Денис 12.11), старт — из уже сыгранных', (t) async {
+    await open(t, PauseFlavor.hub, {
+      'psygames_active_profile': 'nzt48',
+      'psygames_sessions': jsonEncode([
+        for (var i = 0; i < 3; i++)
+          {
+            'id': 's$i',
+            'game_type': 'pause',
+            'score': 1,
+            'time_seconds': 60,
+            'timestamp': '2026-11-0${i + 1}T10:00:00.000Z',
+          },
+        {'id': 'x', 'game_type': 'breathing', 'score': 1, 'time_seconds': 60, 'timestamp': '2026-11-05T10:00:00.000Z'},
+      ]),
+    });
+    expect(LevelLadder.current?.level, 4, reason: 'три сыгранных сеанса «Паузы» — идёт четвёртый');
+    expect(state.get(SharedState.levelKey('pause', 'nzt48')), '4', reason: 'стартовый уровень записан, не обнулён');
+    await pause(t);
+    expect(find.text(L.t('levelMap')), findsOneWidget);
+    expect(find.text(L.t('pauseEasier')), findsOneWidget);
   });
 }
