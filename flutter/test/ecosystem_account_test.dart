@@ -132,4 +132,8 @@ void main() {
     expect(requests, 2);
     await a.dispose();
   });
+
+  test('rpc allowlist: only the coach cabinet and the Fudao specialist entry', () {
+    expect(EcosystemAccount.rpcAllowlist, {'ecosystem_coach_v2', 'fudao_specialist_v1'});
+  });
 }

@@ -341,8 +341,9 @@ class EcosystemAccount {
   }
 
   /// Вызов разрешённой серверной функции общего контура от имени вошедшего аккаунта. Белый список:
-  /// только `ecosystem_coach_v2` (кабинет преподавателя, contract ecosystem.coach/2). Сырого SDK наружу нет.
-  static const rpcAllowlist = {'ecosystem_coach_v2'};
+  /// только `ecosystem_coach_v2` (кабинет преподавателя, contract ecosystem.coach/2) и `fudao_specialist_v1`
+  /// (разборы, материалы, заметки и шаги специалиста Fudao поверх той же связи и согласия). Сырого SDK наружу нет.
+  static const rpcAllowlist = {'ecosystem_coach_v2', 'fudao_specialist_v1'};
   Future<Object?> rpc(String function, Map<String, Object?> params) async {
     if (!rpcAllowlist.contains(function)) throw ArgumentError('RPC not allowed: $function');
     if (accountId == null) throw StateError('A restored and consent-bound account is required');
