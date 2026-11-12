@@ -25,6 +25,7 @@ import 'recovery.dart';
 import 'lesson.dart';
 import 'ladder.dart';
 import 'step_title.dart';
+import 'undead_glyph.dart';
 import 'zoom.dart';
 
 /// ГОЛОВОЛОМКИ ТЭТХЭМА на общем каркасе: один экран на все режимы.
@@ -711,6 +712,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
         reviewAfterLoss: _reviewAfterLoss,
         status: _status,
         moved: (_engine?.statePos ?? 0) > _dealPos,
+        palette: _palette,
         onDigit: _digit,
         onArrow: _arrow,
         onDiagonal: _diagonal,
@@ -765,6 +767,7 @@ class _Toolbar extends StatelessWidget {
     required this.reviewAfterLoss,
     required this.status,
     this.moved = true,
+    this.palette = const [],
     required this.onDigit,
     required this.onArrow,
     required this.onDiagonal,
@@ -783,6 +786,9 @@ class _Toolbar extends StatelessWidget {
 
   /// На этой доске уже был ход — подсказка «тяни» больше не нужна.
   final bool moved;
+
+  /// Палитра движка — клавиши «Нежити» рисуют чудовищ теми же цветами, что доска.
+  final List<List<int>> palette;
   final void Function(int) onDigit;
   final void Function(int side) onArrow;
   final void Function(String digit) onDiagonal;
@@ -894,10 +900,23 @@ class _Toolbar extends StatelessWidget {
                         key: Key('digit$v'),
                         onPressed: () => onDigit(v),
                         style: FilledButton.styleFrom(padding: EdgeInsets.zero),
-                        child: Text(
-                          labels.isNotEmpty && v <= labels.length ? labels[v - 1] : '$v',
-                          style: TextStyle(fontSize: wide ? 13 : 20),
-                        ),
+                        // «Нежить»: на клавише то же чудовище, что движок рисует на доске (отзыв 91967288);
+                        // имя для чтеца — из digitNames, как было у эмодзи.
+                        child: mode.engineName == 'Undead' && undeadMonsterForKey(v) != 0
+                            ? Semantics(
+                                label: v <= mode.digitNames.length ? L.t(mode.digitNames[v - 1]) : null,
+                                child: ExcludeSemantics(
+                                  child: UndeadMonsterGlyph(
+                                    key: Key('undead-glyph-$v'),
+                                    monster: undeadMonsterForKey(v),
+                                    palette: palette,
+                                  ),
+                                ),
+                              )
+                            : Text(
+                                labels.isNotEmpty && v <= labels.length ? labels[v - 1] : '$v',
+                                style: TextStyle(fontSize: wide ? 13 : 20),
+                              ),
                       ),
                     ),
                 ],
