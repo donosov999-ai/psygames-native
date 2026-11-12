@@ -10,6 +10,7 @@ import 'package:psygames_flutter/games/scholars_mate/ladder.dart';
 import 'package:psygames_flutter/games/scholars_mate/motifs.dart';
 import 'package:psygames_flutter/games/scholars_mate/screen.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/restart_scope.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -35,6 +36,7 @@ void main() {
     WidgetTester tester, {
     int seed = 1,
     Map<String, Object> prefs = const {},
+    bool restartScope = false,
   }) async {
     tester.view.physicalSize = const Size(780, 1688);
     tester.view.devicePixelRatio = 2;
@@ -43,12 +45,22 @@ void main() {
     final state = await SharedState.open();
     await tester.pumpWidget(
       MaterialApp(
-        home: ScholarsMateScreen(
-          state: state,
-          corpus: corpus,
-          clock: () => clock,
-          seed: seed,
-        ),
+        home: restartScope
+            // Как в приложении: любую игру оболочка открывает в RestartScope (hybrid_app.dart).
+            ? RestartScope(
+                builder: (_) => ScholarsMateScreen(
+                  state: state,
+                  corpus: corpus,
+                  clock: () => clock,
+                  seed: seed,
+                ),
+              )
+            : ScholarsMateScreen(
+                state: state,
+                corpus: corpus,
+                clock: () => clock,
+                seed: seed,
+              ),
       ),
     );
     for (var i = 0; i < 5; i++) {
@@ -134,6 +146,28 @@ void main() {
     );
   });
 
+  testWidgets(
+    '🔴 карта уровней — в паузе партии (общий каркас): с достигнутым выше 1 пункт есть',
+    (tester) async {
+      await open(
+        tester,
+        restartScope: true,
+        prefs: {
+          'psygames_active_profile': 'nzt48',
+          'psygames_scholars_mate_level_nzt48': '3',
+          'psygames_scholars_mate_best_nzt48': '5',
+        },
+      );
+      await tester.tap(find.byKey(const Key('sm-start')));
+      await tester.pump();
+      await wait(tester, 300);
+      await tester.tap(find.byIcon(Icons.pause));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text(L.t('levelMap')), findsOneWidget);
+    },
+  );
+
   testWidgets('🔴 пауза останавливает игровые часы', (tester) async {
     await open(tester);
     await tester.tap(find.byKey(const Key('sm-start')));
@@ -169,9 +203,15 @@ void main() {
     await tester.pump();
     await wait(tester, 500);
     // «Подсказка» в нижнем тулбаре есть всегда, до половины времени — неактивна (ряд не прыгает).
-    expect(tester.widget<AuxAction>(find.byKey(const Key('sm-hint'))).onPressed, isNull);
+    expect(
+      tester.widget<AuxAction>(find.byKey(const Key('sm-hint'))).onPressed,
+      isNull,
+    );
     await wait(tester, levelParams(1).seconds * 500);
-    expect(tester.widget<AuxAction>(find.byKey(const Key('sm-hint'))).onPressed, isNotNull);
+    expect(
+      tester.widget<AuxAction>(find.byKey(const Key('sm-hint'))).onPressed,
+      isNotNull,
+    );
     await tester.tap(find.byKey(const Key('sm-hint')));
     await tester.pump();
     expect(find.byKey(const Key('sm-hint-used')), findsOneWidget);
