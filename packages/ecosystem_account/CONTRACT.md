@@ -217,7 +217,7 @@ Canonical broader plan:
 
 - `googleSignInUrl({consent})` — OAuth URL for Google via Supabase Auth (provider enabled in
   `personal-nzt`), redirect back to the app's own callback.
-- `rpc(function, params)` — only functions from `rpcAllowlist` (`ecosystem_coach_v2`);
+- `rpc(function, params)` — only functions from `rpcAllowlist` (`ecosystem_coach_v2`, `fudao_specialist_v1` since 0.1.8);
   anything else throws. No raw SDK is exposed. Used by `ecosystem_coach`.
 
 ## 0.1.7 (11.11.2026): Sign in with Apple (native iOS/macOS)
