@@ -2,128 +2,103 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:psygames_flutter/games/spatial_hub/screen.dart';
+import 'package:psygames_flutter/shell/hub_screen.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// РАЗВИЛКА ВЕДЁТ ТУДА, КУДА НАПИСАНО — И ТУДА, ЧЕГО ЕЩЁ НЕТ НАТИВНО.
+/// РАЗВИЛКА «ПРОСТРАНСТВО» — НА ОБЩЕМ ХАБЕ, СОСТАВ ИЗ `hubs.json` ЦЕЛИКОМ (задачи 73b1c67e, 8ae0a39d).
 ///
-/// 🔴 Половина карточек ведёт в игры, которые ещё в вебе. Проба нажимает КАЖДУЮ и проверяет, что
-/// маршрут ушёл хосту целиком, вместе с `?mode=`: срежь запрос — и «Клоцки» с «Сокобаном»
-/// откроют одну и ту же игру, а никакая проверка маршрутов этого не заметит (адрес-то один).
+/// 🔴 До 12.11.2026 развилка рисовала свою шапку и свой список из девяти строк, а `hubs.json`
+/// давал 24: пятнадцать головоломок (петли, Мосты, Рельсы, Галактики, Сеть, Сдвиг, 15, Куб…)
+/// нельзя было открыть из развилки ни в одном из 13 профилей. Проба открывает развилку тем же
+/// путём, что оболочка (`HybridApp.native`), и сверяет экран с данными, а не со своим списком.
 void main() {
   late SharedState state;
+  final hub = (jsonDecode(File('assets/hubs.json').readAsStringSync()) as Map<String, dynamic>)['hubs']
+      ['/games/spatial-hub'] as List;
+  final cards = [for (final e in hub) HubCard.fromJson(e as Map<String, dynamic>)];
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({
       'psygames_active_profile': 'nzt48',
       'psygames_mental_rotation_level_nzt48': '7',
-      'psygames_spatial_lab_net_level_nzt48': '3',
     });
     state = await SharedState.open();
-    await L.load('ru');
   });
 
-  Future<List<String>> boot(WidgetTester tester) async {
-    final opened = <String>[];
-    await tester.pumpWidget(
-      MaterialApp(home: SpatialHubScreen(state: state, onOpen: opened.add)),
-    );
+  tearDown(() => L.load('ru'));
+
+  Future<void> boot(WidgetTester tester, {Widget Function(Widget)? wrap}) async {
+    // Окно высокое: все 24 строки строятся сразу, проба сверяет состав, а не прокрутку.
+    tester.view.physicalSize = const Size(780, 16000);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    await tester.runAsync(() async {
+      final screen = HybridApp.native['/games/spatial-hub']!(state);
+      await tester.pumpWidget(MaterialApp(home: wrap == null ? screen : wrap(screen)));
+      for (var i = 0; i < 40; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        if (find.byType(Card).evaluate().isNotEmpty) break;
+      }
+    });
     await tester.pump();
-    await tester.pump();
-    return opened;
   }
 
-  testWidgets('🔴 состав развилки — тот же и в том же порядке, что в вебе', (tester) async {
+  testWidgets('🔴 все режимы раздела из hubs.json на экране — не девять из 24', (tester) async {
+    await L.load('ru');
+    expect(cards.length, greaterThan(20), reason: 'данные развилки прочитаны: ${cards.length}');
     await boot(tester);
-    expect(find.text('Пространство'), findsOneWidget);
-    expect(spatialHubCards.map((c) => c.route).toList(), [
-      '/games/mental-rotation',
-      '/games/spatial-lab?mode=twiddle',
-      '/games/spatial-lab?mode=net',
-      '/games/puzzles?mode=Slide',
-      '/games/puzzles?mode=Sokoban',
-      '/games/dots-connect',
-      '/games/one-line',
-      '/games/trail-making',
-      '/games/navigator',
-    ]);
-    expect(find.text('Ментальная ротация'), findsOneWidget);
-    // Сноска — в самом низу списка: до неё доходим прокруткой, как человек.
-    await tester.scrollUntilVisible(find.byKey(const Key('сноска')), 120);
-    expect(find.byKey(const Key('сноска')), findsOneWidget);
-  });
-
-  testWidgets('🔴 каждая карточка уходит хосту своим маршрутом целиком', (tester) async {
-    final opened = await boot(tester);
-    for (final card in spatialHubCards) {
-      await tester.ensureVisible(find.byKey(Key('карточка-${card.route}')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(Key('карточка-${card.route}')));
-      await tester.pump();
-    }
-    expect(opened, spatialHubCards.map((c) => c.route).toList(),
-        reason: 'маршрут уходит как написан — с запросом режима');
-  });
-
-  testWidgets('🔴 уровень на карточке берётся из ОБЩЕЙ памяти, а не заводится заново',
-      (tester) async {
-    await boot(tester);
-    expect(find.text('ур. 7'), findsOneWidget, reason: 'уровень «Ротации» из ключа веб-стороны');
-    expect(find.text('ур. 3'), findsOneWidget, reason: 'уровень «Сети труб»');
-    // У карточек, которых нет в общей памяти, значка уровня нет вовсе — а не «ур. 1».
-    expect(find.text('ур. 1'), findsWidgets);
-  });
-
-  testWidgets('🔴 без хоста нажатие не роняет экран', (tester) async {
-    HybridApp.open = null;
-    await tester.pumpWidget(MaterialApp(home: SpatialHubScreen(state: state)));
-    await tester.pump();
-    await tester.pump();
-    // Карточка далеко внизу и ещё не построена — доезжаем до неё прокруткой.
-    await tester.scrollUntilVisible(find.byKey(const Key('карточка-/games/navigator')), 120);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('карточка-/games/navigator')));
-    await tester.pump();
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('🔴 у каждой из девяти строк — иконка игры из общей карты, а не значок', (tester) async {
-    // Решение Дениса 01.10.2026 (4c3ba7c9): в строке развилки — поле игры в миниатюре. Карта —
-    // та же, что у общего экрана развилок; адрес — целиком, с ?mode= («Клоцки» ≠ «Сокобан»).
-    final index = jsonDecode(File('assets/game_icons/index.json').readAsStringSync()) as Map<String, dynamic>;
-    final byRoute = index['byRoute'] as Map<String, dynamic>;
-    await boot(tester);
-    for (final card in spatialHubCards) {
-      final row = find.byKey(Key('карточка-${card.route}'));
-      await tester.ensureVisible(row);
-      await tester.pump();
-      final icon = find.descendant(of: row, matching: find.byKey(ValueKey('hub-icon-${card.route}')));
-      expect(icon, findsOneWidget, reason: '${card.route}: строка без иконки');
-      final image = tester.widget<Image>(icon);
-      expect((image.image as AssetImage).assetName, 'assets/game_icons/${byRoute[card.route]}',
-          reason: '${card.route}: иконка чужой игры');
-      expect(File('assets/game_icons/${byRoute[card.route]}').existsSync(), isTrue,
-          reason: '${card.route}: файла иконки нет — экран показал бы пустой квадрат');
+    // Строка ищется по маршруту (иконка строки несёт его в ключе), а не по подписи: подпись
+    // каркас берёт из каталога, и проба по тексту сверяла бы словарь, а не состав.
+    for (final c in cards) {
+      final row = find.byKey(ValueKey('hub-icon-${c.route}'));
+      expect(row, findsOneWidget, reason: '${c.route} не виден в развилке');
     }
   });
 
-  testWidgets('нет карты иконок — строки с прежним значком, не пустое место', (tester) async {
-    final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-    messenger.setMockMessageHandler('flutter/assets', (msg) async {
-      final key = Uri.decodeFull(utf8.decode(msg!.buffer.asUint8List(msg.offsetInBytes, msg.lengthInBytes)));
-      if (key == 'assets/game_icons/index.json') return ByteData.sublistView(utf8.encode('{}'));
-      final f = File(key);
-      return f.existsSync() ? ByteData.sublistView(f.readAsBytesSync()) : null;
+  testWidgets('🔴 шапка — общая, заголовок на языке интерфейса, «назад» на месте', (tester) async {
+    await L.load('en');
+    await boot(tester);
+    expect(find.text(L.t('spatialGroup')), findsWidgets, reason: 'заголовок развилки на английском');
+    expect(find.text('Пространство'), findsNothing, reason: 'русский заголовок на английском интерфейсе');
+    expect(find.byTooltip(L.t('back')), findsOneWidget, reason: 'кнопка «назад» общей шапки');
+  });
+
+  testWidgets('🔴 нажатие уводит маршрутом целиком, вместе с ?mode=', (tester) async {
+    await L.load('ru');
+    Object? popped;
+    await boot(tester, wrap: (screen) => Builder(
+          builder: (ctx) => Center(
+            child: TextButton(
+              key: const Key('открыть'),
+              onPressed: () async => popped = await Navigator.of(ctx).push<Object?>(MaterialPageRoute<Object?>(builder: (_) => screen)),
+              child: const Text('открыть'),
+            ),
+          ),
+        ));
+    await tester.tap(find.byKey(const Key('открыть')));
+    await tester.runAsync(() async {
+      for (var i = 0; i < 40; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        if (find.byType(Card).evaluate().isNotEmpty) break;
+      }
     });
-    addTearDown(() => messenger.setMockMessageHandler('flutter/assets', null));
+    final bridges = cards.firstWhere((c) => c.route.contains('mode=Bridges'));
+    final row = find.byKey(ValueKey('hub-icon-${bridges.route}'));
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+    expect(popped, isA<HubCardTap>());
+    expect((popped! as HubCardTap).route, '/games/puzzles?mode=Bridges');
+  });
+
+  testWidgets('уровень на карточке — из общей памяти', (tester) async {
+    await L.load('ru');
     await boot(tester);
-    final row = find.byKey(const Key('карточка-/games/mental-rotation'));
-    expect(find.descendant(of: row, matching: find.byType(Icon)), findsOneWidget);
-    expect(find.descendant(of: row, matching: find.byType(Image)), findsNothing);
+    expect(find.text('${L.t('unitLevelShort')} 7'), findsOneWidget, reason: 'уровень «Вращения» из ключа веб-стороны');
   });
 }
