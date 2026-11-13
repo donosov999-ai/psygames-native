@@ -6,6 +6,7 @@ import 'package:psygames_flutter/games/schulte/model.dart';
 import 'package:psygames_flutter/games/schulte/screen.dart';
 import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
+import 'package:psygames_flutter/shell/game_shell.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
@@ -284,6 +285,16 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(state.get(levelKey), '2', reason: 'уровневая партия засчитана: 1 → 2');
+  });
+
+  testWidgets('🔴 «Свободно» убирает из паузы карту уровней и «проще / сложнее» — выбор двигал бы чужую лестницу',
+      (tester) async {
+    await open(tester);
+    expect(tester.widget<GameShell>(find.byType(GameShell)).levelMap, isTrue, reason: '«Уровни»: карта есть');
+    await pick(tester, 'schulte-mode-free');
+    expect(tester.widget<GameShell>(find.byType(GameShell)).levelMap, isFalse, reason: '«Свободно»: лестницы нет');
+    await pick(tester, 'schulte-mode-levels');
+    expect(tester.widget<GameShell>(find.byType(GameShell)).levelMap, isTrue, reason: 'назад в «Уровни» — снова есть');
   });
 
   testWidgets('шаг зарядки: переключателя «Уровни / Свободно» нет, таблицу задаёт шаг', (tester) async {

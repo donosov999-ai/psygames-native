@@ -527,7 +527,10 @@ class _SchulteScreenState extends State<SchulteScreen> {
     if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
       title: _title,
-      // «Свободно» — не ступень лестницы: карточки правил уровня там не к месту.
+      // «Свободно» — партия не по лестнице: ни карты уровней, ни «проще / сложнее» в паузе (каркас сам
+      // убирает их при `levelMap: false`) — выбор двигал бы лестницу, по которой эта партия не идёт.
+      levelMap: !_isFree,
+      // …и карточки правил уровня там не к месту.
       levelRule: _isFree
           ? null
           : LevelRuleSpot(
