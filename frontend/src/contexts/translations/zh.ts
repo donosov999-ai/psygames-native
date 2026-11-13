@@ -3841,8 +3841,12 @@ const t: Record<string, string> = {
   "pauseWarningsTitle": "开始之前",
   "pausePracticeComplete": "练习完成",
   "suiteSum": "凑出总和",
-  "suiteSumDesc": "用场上的数字凑出目标和：在网格里限时抢答，或用筹码做数的分解",
+  "suiteSumDesc": "用场上的数字凑出目标和：在网格里限时抢答、用筹码做数的分解，或两者混合",
   "suiteModeSpeed": "拼速度",
   "suiteModeComposition": "数的分解",
+  "suiteModeMixed": "混合",
+  "sumRuleSpeedSub": "点按或滑过数字：在时间用完前凑出目标和",
+  "sumRuleCompSub": "用筹码拼出目标，然后点“检查”",
+  "sumMixedRuleChanges": "每一轮的规则都可能改变",
 };
 export default t;

@@ -3841,8 +3841,12 @@ const t: Record<string, string> = {
   "pauseWarningsTitle": "Antes de empezar",
   "pausePracticeComplete": "Práctica completada",
   "suiteSum": "Forma la suma",
-  "suiteSumDesc": "Componer la suma objetivo con los números del campo: contrarreloj en la cuadrícula o como descomposición con fichas",
+  "suiteSumDesc": "Componer la suma objetivo con los números del campo: contrarreloj en la cuadrícula, como descomposición con fichas o mezclado",
   "suiteModeSpeed": "Contrarreloj",
   "suiteModeComposition": "Descomposición",
+  "suiteModeMixed": "Mezclado",
+  "sumRuleSpeedSub": "Toca o desliza por los números: alcanza la suma antes de que acabe el tiempo",
+  "sumRuleCompSub": "Forma el objetivo con las fichas y pulsa «Comprobar»",
+  "sumMixedRuleChanges": "La regla puede cambiar en cada ronda",
 };
 export default t;

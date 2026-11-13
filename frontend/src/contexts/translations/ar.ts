@@ -3837,8 +3837,12 @@ const t: Record<string, string> = {
   "pauseWarningsTitle": "قبل أن تبدأ",
   "pausePracticeComplete": "اكتمل التمرين",
   "suiteSum": "كوّن المجموع",
-  "suiteSumDesc": "كوّن المجموع المطلوب من أرقام الحقل: بالسرعة على الشبكة أو كتفكيك للعدد باستخدام الرقائق",
+  "suiteSumDesc": "كوّن المجموع المطلوب من أرقام الحقل: بالسرعة على الشبكة أو كتفكيك للعدد بالرقائق أو بالتناوب",
   "suiteModeSpeed": "بالسرعة",
   "suiteModeComposition": "تفكيك العدد",
+  "suiteModeMixed": "مختلط",
+  "sumRuleSpeedSub": "اضغط على الأرقام أو اسحب عليها: حقق المجموع قبل انتهاء الوقت",
+  "sumRuleCompSub": "كوّن الهدف من الرقائق ثم اضغط «تحقق»",
+  "sumMixedRuleChanges": "قد تتغير القاعدة في كل جولة",
 };
 export default t;

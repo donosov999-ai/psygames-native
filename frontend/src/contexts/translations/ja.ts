@@ -3835,8 +3835,12 @@ const t: Record<string, string> = {
   "pauseWarningsTitle": "始める前に",
   "pausePracticeComplete": "プラクティス完了",
   "suiteSum": "合計を作ろう",
-  "suiteSumDesc": "盤面の数字で目標の合計を作る：グリッドで時間勝負、またはチップで数の分解",
+  "suiteSumDesc": "盤面の数字で目標の合計を作る：グリッドで時間勝負、チップで数の分解、または交互に",
   "suiteModeSpeed": "スピード",
   "suiteModeComposition": "数の分解",
+  "suiteModeMixed": "ミックス",
+  "sumRuleSpeedSub": "数字をタップかなぞって、時間切れ前に目標の合計を作る",
+  "sumRuleCompSub": "チップで目標を作り「チェック」を押す",
+  "sumMixedRuleChanges": "ラウンドごとにルールが変わることがあります",
 };
 export default t;

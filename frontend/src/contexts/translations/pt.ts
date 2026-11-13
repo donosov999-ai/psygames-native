@@ -3841,8 +3841,12 @@ const t: Record<string, string> = {
   "pauseWarningsTitle": "Antes de começar",
   "pausePracticeComplete": "Prática concluída",
   "suiteSum": "Forme a soma",
-  "suiteSumDesc": "Montar a soma-alvo com os números do campo: contra o tempo na grade ou como decomposição com fichas",
+  "suiteSumDesc": "Montar a soma-alvo com os números do campo: contra o tempo na grade, como decomposição com fichas ou misturado",
   "suiteModeSpeed": "Contra o tempo",
   "suiteModeComposition": "Decomposição",
+  "suiteModeMixed": "Misturado",
+  "sumRuleSpeedSub": "Toque ou deslize pelos números: chegue à soma antes de o tempo acabar",
+  "sumRuleCompSub": "Monte o alvo com as fichas e toque em «Verificar»",
+  "sumMixedRuleChanges": "A regra pode mudar a cada rodada",
 };
 export default t;

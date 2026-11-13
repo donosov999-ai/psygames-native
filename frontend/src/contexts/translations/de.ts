@@ -3841,8 +3841,12 @@ const t: Record<string, string> = {
   "pauseWarningsTitle": "Bevor du beginnst",
   "pausePracticeComplete": "Übung abgeschlossen",
   "suiteSum": "Summe bilden",
-  "suiteSumDesc": "Eine Zielsumme aus Zahlen auf dem Feld zusammensetzen: auf Zeit im Raster oder als Zahlzerlegung mit Chips",
+  "suiteSumDesc": "Eine Zielsumme aus Zahlen auf dem Feld zusammensetzen: auf Zeit im Raster, als Zahlzerlegung mit Chips oder gemischt",
   "suiteModeSpeed": "Auf Tempo",
   "suiteModeComposition": "Zahlzerlegung",
+  "suiteModeMixed": "Gemischt",
+  "sumRuleSpeedSub": "Tippe oder wische über die Zahlen: erreiche die Zielsumme, bevor die Zeit abläuft",
+  "sumRuleCompSub": "Setze das Ziel aus den Chips zusammen und drücke „Prüfen“",
+  "sumMixedRuleChanges": "Die Regel kann sich von Runde zu Runde ändern",
 };
 export default t;

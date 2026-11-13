@@ -3844,8 +3844,12 @@ const t: Record<string, string> = {
   "pauseWarningsTitle": "शुरू करने से पहले",
   "pausePracticeComplete": "अभ्यास पूरा हुआ",
   "suiteSum": "योग बनाओ",
-  "suiteSumDesc": "मैदान की संख्याओं से लक्ष्य योग बनाओ: ग्रिड पर समय के साथ, या चिप्स से संख्या का विभाजन",
+  "suiteSumDesc": "मैदान की संख्याओं से लक्ष्य योग बनाओ: ग्रिड पर समय के साथ, चिप्स से संख्या का विभाजन, या दोनों मिलाकर",
   "suiteModeSpeed": "तेज़ी से",
   "suiteModeComposition": "संख्या का विभाजन",
+  "suiteModeMixed": "मिला-जुला",
+  "sumRuleSpeedSub": "संख्याओं को टैप करें या स्वाइप करें: समय खत्म होने से पहले लक्ष्य योग बनाएँ",
+  "sumRuleCompSub": "चिप्स से लक्ष्य बनाएँ और “जाँचें” दबाएँ",
+  "sumMixedRuleChanges": "हर राउंड में नियम बदल सकता है",
 };
 export default t;

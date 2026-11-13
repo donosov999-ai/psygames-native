@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/counter/screen.dart';
 import 'package:psygames_flutter/games/number_bonds/screen.dart';
+import 'package:psygames_flutter/games/sum_mixed/route.dart';
+import 'package:psygames_flutter/games/sum_mixed/screen.dart';
 import 'package:psygames_flutter/shell/hub_screen.dart' show HubCardTap, HubScreen;
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
@@ -78,6 +80,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('suite-mode-/games/counter')), findsOneWidget);
       expect(find.byKey(const Key('suite-mode-/games/number-bonds')), findsOneWidget);
+      expect(find.byKey(Key('suite-mode-$sumMixedRoute')), findsOneWidget, reason: '«Вперемешку» нет в листе, хотя открыты оба правила');
 
       await tester.tap(find.byKey(Key('suite-mode-$other')));
       await tester.pumpAndSettle();
@@ -106,4 +109,45 @@ void main() {
       expect(find.byKey(const Key('suite-mode-action')), findsNothing);
     });
   }
+
+  testWidgets('🔴 «Вперемешку» выбирается из листа любого режима и ведёт на свой маршрут', (tester) async {
+    await boot(open: both);
+    final result = <Object?>[];
+    await pumpFrom(tester, screens['/games/counter']!, result);
+    await tester.tap(find.byKey(const Key('suite-mode-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('suite-mode-$sumMixedRoute')));
+    await tester.pumpAndSettle();
+    final tap = result.single as HubCardTap;
+    expect(tap.route, sumMixedRoute);
+    expect(tap.replace, isTrue);
+  });
+
+  testWidgets('«Вперемешку»: свой экран, в листе он отмечен, возврат в «На скорость» — замена маршрута', (tester) async {
+    await boot(open: both);
+    final result = <Object?>[];
+    await pumpFrom(tester, () => SumMixedScreen(state: state), result);
+    await tester.tap(find.byKey(const Key('suite-mode-action')));
+    await tester.pumpAndSettle();
+    final mixed = tester.widget<ListTile>(find.byKey(Key('suite-mode-$sumMixedRoute')));
+    expect(mixed.selected, isTrue, reason: 'текущий режим в листе не отмечен');
+    // выбор того же режима экран не закрывает
+    await tester.tap(find.byKey(Key('suite-mode-$sumMixedRoute')));
+    await tester.pumpAndSettle();
+    expect(result, isEmpty);
+    await tester.tap(find.byKey(const Key('suite-mode-action')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('suite-mode-/games/counter')));
+    await tester.pumpAndSettle();
+    final tap = result.single as HubCardTap;
+    expect(tap.route, '/games/counter');
+    expect(tap.replace, isTrue);
+  });
+
+  testWidgets('открыт один режим — «Вперемешку» нет нигде (он собран из обоих правил)', (tester) async {
+    await boot(open: ['/games/counter']);
+    final result = <Object?>[];
+    await pumpFrom(tester, () => SumMixedScreen(state: state), result);
+    expect(find.byKey(const Key('suite-mode-action')), findsNothing);
+  });
 }

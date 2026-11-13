@@ -3836,8 +3836,12 @@ const t: Record<string, string> = {
   "pauseWarningsTitle": "Avant de commencer",
   "pausePracticeComplete": "Pratique terminée",
   "suiteSum": "Fais la somme",
-  "suiteSumDesc": "Composer la somme cible avec les nombres du plateau : contre la montre sur la grille ou en décomposition avec des jetons",
+  "suiteSumDesc": "Composer la somme cible avec les nombres du plateau : contre la montre sur la grille, en décomposition avec des jetons ou en alternance",
   "suiteModeSpeed": "Contre la montre",
   "suiteModeComposition": "Décomposition",
+  "suiteModeMixed": "Mélangé",
+  "sumRuleSpeedSub": "Touche ou glisse sur les nombres : atteins la somme avant la fin du temps",
+  "sumRuleCompSub": "Compose la cible avec les jetons puis appuie sur « Vérifier »",
+  "sumMixedRuleChanges": "La règle peut changer à chaque manche",
 };
 export default t;

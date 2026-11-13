@@ -78,6 +78,7 @@ import '../games/number_bonds/screen.dart';
 import '../games/ospan/screen.dart';
 import '../games/sdmt/screen.dart';
 import '../games/counter/screen.dart';
+import '../games/sum_mixed/screen.dart';
 import '../games/find_differences/screen.dart';
 import '../games/counting_hub/screen.dart';
 import '../games/search_hub/screen.dart';
@@ -257,6 +258,8 @@ class HybridApp extends StatefulWidget {
         '/games/sdmt': (s) => SdmtScreen(state: s),
         '/games/set-game': (s) => SetGameScreen(state: s),
         '/games/counter': (s) => CounterScreen(state: s),
+        // «Собери сумму · Вперемешку» — режим набора, не игра реестра (`games/sum_mixed/route.dart`).
+        '/games/counter?mode=mixed': (s) => SumMixedScreen(state: s),
         // «Числовой забег» (задача 41845727): на общем ядре дороги раннеров; веб-страница с WebGL
         // остаётся для веб-сборки, в приложении — нативный экран.
         '/games/number-run': (s) => NumberRunScreen(state: s),

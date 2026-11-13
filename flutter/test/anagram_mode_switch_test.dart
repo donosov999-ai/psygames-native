@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/games/sum_mixed/route.dart' show sumMixedRoute;
 import 'package:psygames_flutter/games/anagrams/all_words_board.dart';
 import 'package:psygames_flutter/games/anagrams/board.dart';
 import 'package:psygames_flutter/games/anagrams/crossword_board.dart';
@@ -153,7 +154,8 @@ void main() {
     final assets = [
       for (final f in ['assets/hubs.json', 'assets/game_suites.json', 'assets/catalog.json']) File(f).readAsStringSync(),
     ].join('\n');
-    final switches = {for (final m in AnagramMode.values) anagramModeRoute(m)};
+    // Лист «Режим» несёт и «Вперемешку» набора «Собери сумму» (`SuiteModeAction(extra: sumMixedMode)`).
+    final switches = {for (final m in AnagramMode.values) anagramModeRoute(m), sumMixedRoute};
     // Входы зарядки (`warmupEntries.ts`): серия блоков шлёт `/games/schulte?auto=1&series=1`, и разбор
     // адреса (`HybridApp.routeOf`) ведёт её на ключ `?series=1` — по подмножеству хвоста, так и сверяем.
     final warmup = File('../frontend/src/services/warmupEntries.ts').readAsStringSync();

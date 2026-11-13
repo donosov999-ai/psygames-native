@@ -3836,8 +3836,12 @@ const t: Record<string, string> = {
   "pauseWarningsTitle": "Prima di iniziare",
   "pausePracticeComplete": "Pratica completata",
   "suiteSum": "Forma la somma",
-  "suiteSumDesc": "Comporre la somma obiettivo con i numeri del campo: a tempo sulla griglia o come scomposizione con le fiches",
+  "suiteSumDesc": "Comporre la somma obiettivo con i numeri del campo: a tempo sulla griglia, come scomposizione con le fiches o alternando",
   "suiteModeSpeed": "A tempo",
   "suiteModeComposition": "Scomposizione",
+  "suiteModeMixed": "Alternato",
+  "sumRuleSpeedSub": "Tocca o scorri sui numeri: raggiungi la somma prima che scada il tempo",
+  "sumRuleCompSub": "Componi l'obiettivo con le fiches e premi «Controlla»",
+  "sumMixedRuleChanges": "La regola può cambiare a ogni round",
 };
 export default t;

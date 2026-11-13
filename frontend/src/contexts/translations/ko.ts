@@ -3836,8 +3836,12 @@ const t: Record<string, string> = {
   "pauseWarningsTitle": "시작하기 전에",
   "pausePracticeComplete": "연습 완료",
   "suiteSum": "합계 만들기",
-  "suiteSumDesc": "판 위의 숫자로 목표 합을 만든다: 격자에서 시간제로, 또는 칩으로 수 분해",
+  "suiteSumDesc": "판 위의 숫자로 목표 합을 만든다: 격자에서 시간제로, 칩으로 수 분해, 또는 번갈아",
   "suiteModeSpeed": "스피드",
   "suiteModeComposition": "수 분해",
+  "suiteModeMixed": "섞어서",
+  "sumRuleSpeedSub": "숫자를 탭하거나 쓸어서 시간이 끝나기 전에 목표 합을 만드세요",
+  "sumRuleCompSub": "칩으로 목표를 만든 뒤 ‘확인’을 누르세요",
+  "sumMixedRuleChanges": "라운드마다 규칙이 바뀔 수 있어요",
 };
 export default t;

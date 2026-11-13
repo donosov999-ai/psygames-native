@@ -16,6 +16,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/suite_switch.dart' show SuiteModeAction;
+import '../sum_mixed/route.dart' show sumMixedMode;
 import '../../shell/swipe_select.dart';
 import '../counting_common/generator_shadow.dart';
 import 'model.dart';
@@ -241,7 +242,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
         if (_cfg.windowMs > 0)
           HudItem(label: L.t('timeLeftLabel'), value: '${(_leftMs / 1000).ceil()} ${L.t('secShort')}', icon: Icons.timer_outlined),
       ],
-      field: (context, h) => _Field(
+      field: (context, h) => BondsField(
         puzzle: p,
         picked: _picked,
         sum: _sum,
@@ -253,7 +254,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
       ),
       auxRow: AuxBar(children: [
         // Набор «Собери сумму»: режим — листом (экрана настройки у партии нет).
-        SuiteModeAction(route: '/games/number-bonds', state: widget.state),
+        SuiteModeAction(route: '/games/number-bonds', state: widget.state, extra: sumMixedMode),
         AuxAction(
           icon: Icons.backspace_outlined,
           label: L.t('clear'),
@@ -307,9 +308,11 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
   }
 }
 
-/// Поле: цель, набранная сумма и фишки. Размер фишки берётся от высоты поля.
-class _Field extends StatelessWidget {
-  const _Field({
+/// Поле: цель, набранная сумма и фишки. Размер фишки берётся от высоты поля. Публичное: то же поле
+/// рисует режим «Вперемешку» набора «Собери сумму» (`games/sum_mixed`).
+class BondsField extends StatelessWidget {
+  const BondsField({
+    super.key,
     required this.puzzle,
     required this.picked,
     required this.sum,
