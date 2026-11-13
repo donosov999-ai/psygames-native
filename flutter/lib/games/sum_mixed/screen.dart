@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,6 +6,8 @@ import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_clock.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/js_compat.dart' show Rng, createRng;
@@ -71,9 +72,9 @@ class _SumMixedScreenState extends State<SumMixedScreen> {
   bool _ready = false;
   _Phase _phase = _Phase.banner;
   int _leftMs = 0;
-  Timer? _tick;
-  Timer? _next;
-  Timer? _clear;
+  GameTimer? _tick;
+  GameTimer? _next;
+  GameTimer? _clear;
 
   @override
   void initState() {
@@ -129,14 +130,14 @@ class _SumMixedScreenState extends State<SumMixedScreen> {
     _leftMs = _cfg.limitMs(_rule);
     _phase = _Phase.banner;
     _next?.cancel();
-    _next = Timer(_bannerDelay, _startPlaying);
+    _next = gameTimeout(_bannerDelay, _startPlaying);
   }
 
   void _startPlaying() {
     if (!mounted || _phase != _Phase.banner) return;
     setState(() => _phase = _Phase.playing);
     if (_leftMs <= 0) return;
-    _tick = Timer.periodic(const Duration(milliseconds: _tickMs), (_) {
+    _tick = gameInterval(const Duration(milliseconds: _tickMs), () {
       if (!mounted) return;
       setState(() => _leftMs = math.max(0, _leftMs - _tickMs));
       if (_leftMs <= 0) _onTimeout();
@@ -190,7 +191,7 @@ class _SumMixedScreenState extends State<SumMixedScreen> {
     _haptics.miss();
     setState(() => _errors += 1);
     _clear?.cancel();
-    _clear = Timer(_resetDelay, () {
+    _clear = gameTimeout(_resetDelay, () {
       if (!mounted) return;
       setState(_picked.clear);
     });
@@ -231,7 +232,7 @@ class _SumMixedScreenState extends State<SumMixedScreen> {
 
   void _after() {
     _next?.cancel();
-    _next = Timer(_feedbackDelay, _advance);
+    _next = gameTimeout(_feedbackDelay, _advance);
   }
 
   Future<void> _advance() async {
@@ -241,7 +242,7 @@ class _SumMixedScreenState extends State<SumMixedScreen> {
       bool? boss;
       if (passed) {
         boss = await BossRound.winThenBoss(context, _ladder,
-            type: BossType.counting, color: const Color(0xFF7C83FD));
+            type: BossType.counting, color: GameColors.of(context).selected);
       } else {
         await _ladder.fail();
       }
