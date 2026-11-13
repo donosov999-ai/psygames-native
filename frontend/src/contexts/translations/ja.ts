@@ -3834,5 +3834,9 @@ const t: Record<string, string> = {
   "pauseExperiencedOnly": "習得済みのテクニック向け",
   "pauseWarningsTitle": "始める前に",
   "pausePracticeComplete": "プラクティス完了",
+  "suiteSum": "合計を作ろう",
+  "suiteSumDesc": "盤面の数字で目標の合計を作る：グリッドで時間勝負、またはチップで数の分解",
+  "suiteModeSpeed": "スピード",
+  "suiteModeComposition": "数の分解",
 };
 export default t;

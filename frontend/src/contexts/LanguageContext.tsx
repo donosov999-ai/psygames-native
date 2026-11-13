@@ -1986,6 +1986,11 @@ const translations: Translations = {
   suiteModeGrid:      { ru: 'Матрица',                   en: 'Matrix' },
   suiteModeCorsi:     { ru: 'Блоки Корси',               en: 'Corsi blocks' },
   suiteModeBackward:  { ru: 'Наоборот',                  en: 'Backward' },
+  // Набор «Собери сумму» — решение Дениса 13.11.2026: «Считалка: счёт» и «Числовые пары: счёт» — одна игра, режимы внутри.
+  suiteSum:           { ru: 'Собери сумму',              en: 'Make the sum' },
+  suiteSumDesc:       { ru: 'Набрать цель из чисел на поле: на скорость по сетке или составом числа из фишек', en: 'Build the target from the numbers on the board: a timed grid, or a number composition from chips' },
+  suiteModeSpeed:     { ru: 'На скорость',               en: 'Speed' },
+  suiteModeComposition: { ru: 'Состав числа',            en: 'Composition' },
   suiteStreamDesc:    { ru: 'Поток проб без пауз: держать редкую цель и держать правило, которое меняется', en: 'A stream with no breaks: hold a rare target, hold a rule that keeps changing' },
   suiteModeEmotion:   { ru: 'Эмоциональный',             en: 'Emotional' },
   suiteModeFlanker:   { ru: 'Бока',                      en: 'Flankers' },

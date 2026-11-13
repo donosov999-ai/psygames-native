@@ -3840,5 +3840,9 @@ const t: Record<string, string> = {
   "pauseExperiencedOnly": "Nur für bereits erlernte Technik",
   "pauseWarningsTitle": "Bevor du beginnst",
   "pausePracticeComplete": "Übung abgeschlossen",
+  "suiteSum": "Summe bilden",
+  "suiteSumDesc": "Eine Zielsumme aus Zahlen auf dem Feld zusammensetzen: auf Zeit im Raster oder als Zahlzerlegung mit Chips",
+  "suiteModeSpeed": "Auf Tempo",
+  "suiteModeComposition": "Zahlzerlegung",
 };
 export default t;

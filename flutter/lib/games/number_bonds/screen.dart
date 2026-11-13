@@ -15,6 +15,7 @@ import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart' show SuiteModeAction;
 import '../../shell/swipe_select.dart';
 import '../counting_common/generator_shadow.dart';
 import 'model.dart';
@@ -251,6 +252,8 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
         onSwipeUnpick: _swipeUnpick,
       ),
       auxRow: AuxBar(children: [
+        // Набор «Собери сумму»: режим — листом (экрана настройки у партии нет).
+        SuiteModeAction(route: '/games/number-bonds', state: widget.state),
         AuxAction(
           icon: Icons.backspace_outlined,
           label: L.t('clear'),

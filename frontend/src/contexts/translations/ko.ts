@@ -3835,5 +3835,9 @@ const t: Record<string, string> = {
   "pauseExperiencedOnly": "이미 익힌 기법에만",
   "pauseWarningsTitle": "시작하기 전에",
   "pausePracticeComplete": "연습 완료",
+  "suiteSum": "합계 만들기",
+  "suiteSumDesc": "판 위의 숫자로 목표 합을 만든다: 격자에서 시간제로, 또는 칩으로 수 분해",
+  "suiteModeSpeed": "스피드",
+  "suiteModeComposition": "수 분해",
 };
 export default t;

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'aux_action.dart';
 import 'game_preset.dart';
 import 'hub_screen.dart' show HubCardTap, HubScreen;
 import 'l10n.dart';
@@ -153,6 +154,75 @@ class _SuiteSwitchState extends State<SuiteSwitch> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// ПУНКТ «РЕЖИМ» В РЯДУ ЗНАЧКОВ — для игр набора БЕЗ экрана настройки («Собери сумму»: партия
+/// начинается сразу). Плашкам [SuiteSwitch] негде встать, поэтому режимы набора открываются листом,
+/// как режимы «Анаграмм» (`anagrams/mode_switch.dart`). Переход тот же — закрыть экран с
+/// [HubCardTap] (замена маршрута). Не набор, шаг зарядки или открыт один режим — значка нет.
+class SuiteModeAction extends StatefulWidget {
+  const SuiteModeAction({super.key, required this.route, required this.state});
+
+  /// Маршрут этого экрана.
+  final String route;
+  final SharedState state;
+
+  @override
+  State<SuiteModeAction> createState() => _SuiteModeActionState();
+}
+
+class _SuiteModeActionState extends State<SuiteModeAction> {
+  List<SuiteMode>? _open;
+
+  @override
+  void initState() {
+    super.initState();
+    GameSuites.load().then((all) {
+      if (!mounted) return;
+      final suite = GameSuites.of(widget.route, all);
+      setState(() => _open = suite == null ? const [] : GameSuites.openModes(widget.state, suite));
+    });
+  }
+
+  Future<void> _pick(List<SuiteMode> open) async {
+    final picked = await showModalBottomSheet<SuiteMode>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheet) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Text(L.t('mode'), style: Theme.of(sheet).textTheme.titleMedium),
+            ),
+            for (final m in open)
+              ListTile(
+                key: Key('suite-mode-${m.route}'),
+                title: Text(L.t(m.labelKey)),
+                selected: m.route == widget.route,
+                trailing: m.route == widget.route ? const Icon(Icons.check) : null,
+                onTap: () => Navigator.of(sheet).pop(m),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (picked == null || picked.route == widget.route || !mounted) return;
+    Navigator.of(context).pop(HubCardTap(picked.route, replace: true));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final open = _open;
+    if (open == null || open.length < 2 || GamePreset.isPreset) return const SizedBox.shrink();
+    return AuxAction(
+      key: const Key('suite-mode-action'),
+      icon: Icons.dashboard_outlined,
+      label: L.t('mode'),
+      onPressed: () => _pick(open),
     );
   }
 }

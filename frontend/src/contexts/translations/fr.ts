@@ -3835,5 +3835,9 @@ const t: Record<string, string> = {
   "pauseExperiencedOnly": "Uniquement pour une technique déjà maîtrisée",
   "pauseWarningsTitle": "Avant de commencer",
   "pausePracticeComplete": "Pratique terminée",
+  "suiteSum": "Fais la somme",
+  "suiteSumDesc": "Composer la somme cible avec les nombres du plateau : contre la montre sur la grille ou en décomposition avec des jetons",
+  "suiteModeSpeed": "Contre la montre",
+  "suiteModeComposition": "Décomposition",
 };
 export default t;
