@@ -151,7 +151,7 @@ void main() {
     await tester.pump();
     await playPassedRound(tester);
     expect(find.byKey(const Key('practice-run-spent')), findsOneWidget, reason: 'на итоге — «никуда не записана»');
-    expect(find.byKey(const Key('corsi-result')), findsOneWidget, reason: 'партия дошла до итога');
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'партия дошла до итога');
     expect(state.get('psygames_corsi_level_nzt48'), anyOf(isNull, '1'), reason: 'уровень не поднят');
     expect(state.get(corsiBestSpanKey), isNull, reason: 'рекорд размаха не записан');
     expect(AbilityWallet(state).count('practice_run'), 1);
@@ -219,7 +219,7 @@ void main() {
     expect(hud(tester, 'level', '1'), isTrue, reason: 'подсмотренный ряд уровень не поднимает');
     expect(hud(tester, 'hud_span', '0'), isTrue, reason: 'и длину не засчитывает');
 
-    await tester.tap(find.text(L.t('retry')));
+    await tester.tap(find.byKey(const Key('level-result-next')));
     await tester.pump();
     expect(hud(tester, 'level', '1'), isTrue, reason: 'после ответа — тот же уровень заново');
   });
@@ -326,7 +326,7 @@ void main() {
       expect(s['details'], {'level': 1, 'span': 3});
       expect('${s['score']} ${s['errors']}', '${3 * 200 - 2 * 50} 2');
       expect(s['time_seconds'] as int, inInclusiveRange(5, 60), reason: 'секунды партии по игровым часам');
-      final line = tester.widget<Text>(find.byKey(const Key('corsi-result'))).data!;
+      final line = tester.widget<Text>(find.byKey(const Key('level-result-score'))).data!;
       expect(line, contains('${L.t('score')}: 500'));
       expect(line, contains('${L.t('errors')}: 2'));
       expect(hud(tester, 'level', '2'), isTrue);
@@ -363,7 +363,7 @@ void main() {
   testWidgets('🔴 веха: победа на 3-м уровне открывает бой «сложи подсвеченные», на 2-м — нет', (tester) async {
     // В вебе corsi.tsx зовёт BossRound каждые три уровня (BOSS_EVERY = 3, тип counting);
     // при переносе бой пропал молча — задача a2ecb067.
-    await expectBossAfterWin(tester, won: find.text(L.t('nextLabel')), hudKey: 'bossHudCounting', play: (level) async {
+    await expectBossAfterWin(tester, won: find.descendant(of: find.byKey(const Key('level-result-next')), matching: find.textContaining(L.t('nextLabel'))), hudKey: 'bossHudCounting', play: (level) async {
       await open(tester, level);
       await winByTaps(tester);
     });

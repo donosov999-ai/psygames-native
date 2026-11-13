@@ -15,6 +15,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/practice_run.dart';
@@ -64,6 +65,11 @@ class DsStrings {
 /// Личный рекорд — тот же ключ, что у веб-таблицы лидеров (`leaderboard.ts`, `rememberPersonalBest`):
 /// префикс `psygames_`, мост возит его в обе половины.
 const dsPersonalBestKey = 'psygames_leaderboard_personal_best_digit_span';
+
+/// Явный выбор способа подачи — на профиль. Пока человек не выбирал сам, играем «весь ряд сразу»
+/// (решение Дениса 13.11.2026; раньше выбор нигде не хранился и каждый запуск начинался с показа
+/// по одной цифре).
+String dsDeliveryKey(String profile) => '${SharedState.prefix}digit_span_delivery_$profile';
 
 /// Цвет градиента веб-экрана (`#11998e`).
 const _accent = Color(0xFF11998E);
@@ -168,7 +174,11 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
     final voice = widget.voice ?? await AudioHost.voice(widget.state);
     final ds = widget.strings ?? await DsStrings.load();
     // Как веб `useGamePreset().str/num`: параметры адреса шага; вне шага — значения по умолчанию.
-    _delivery = Delivery.values.asNameMap()[GamePreset.str('delivery', 'screen')] ?? Delivery.screen;
+    _delivery = initialDelivery(
+      isWarmup: GamePreset.isWarmup,
+      param: GamePreset.str('delivery', ''),
+      stored: widget.state.get(dsDeliveryKey(widget.state.activeProfile)),
+    );
     _pace = Pace.values.asNameMap()[GamePreset.str('pace', 'normal')] ?? Pace.normal;
     _presetDir = Direction.values.asNameMap()[GamePreset.str('mode', 'forward')] ?? Direction.forward;
     _presetLen = GamePreset.num('startLen', 4);
@@ -197,6 +207,7 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
 
   Future<void> _chooseDelivery(Delivery d) async {
     _delivery = d;
+    if (!GamePreset.isWarmup) unawaited(widget.state.set(dsDeliveryKey(widget.state.activeProfile), d.name));
     await _useLadder();
     if (mounted) setState(_reset);
   }
@@ -457,6 +468,7 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
             text: _showIdx == -3 ? s!.sequence.join(' ') : (_showIdx >= 0 ? '${s!.sequence[_showIdx]}' : ' '),
             listening: _ds.t('listening'),
           ),
+        DsPhase.done || DsPhase.revealed => _result(s!, h),
         _ => _Answer(
             height: h,
             session: s!,
@@ -478,23 +490,47 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
       // Низ — ОТВЕТ: ряд клавиш стоит всю партию и гаснет вне ввода (веб `bottom="answer"`).
       toolbar: playing
           ? _Keypad(on: _canType, onDigit: _press, onErase: _erase)
-          : (_phase == DsPhase.done || _phase == DsPhase.revealed)
-              ? Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    PracticeRunSpent(controller: _practice),
-                    FilledButton.icon(
-                      key: const Key('ds-again'),
-                      onPressed: () => setState(_reset),
-                      icon: const Icon(Icons.arrow_forward),
-                      label: Text(_phase == DsPhase.done && s!.passed ? L.t('nextLabel') : L.t('retry')),
-                    ),
-                  ]),
-                )
-              : null,
+          : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
+    );
+  }
+
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): «дальше» — сразу новая партия (после победы
+  /// лестница уже на следующем уровне), «Настройки» — экран подачи и старта. Под счётом — поле ответа с
+  /// последним рядом («Было: …»). Подсмотренный ряд в лестницу не идёт: «ещё раз» без автоперехода, чтобы
+  /// ряд можно было разглядеть.
+  Widget _result(DigitSpanSession s, double h) {
+    final revealed = _phase == DsPhase.revealed;
+    return SizedBox(
+      height: h,
+      child: LevelResult(
+        passed: !revealed && s.passed,
+        // Пробный заход уровень не двигает — итог без «Уровень N пройден» и «Ур. N+1».
+        level: GamePreset.isPreset || _practice.used ? null : s.level,
+        auto: !revealed,
+        score: revealed ? null : '${L.t('hud_span')}: ${s.maxSpan} · ${L.t('errors')}: ${s.errors}',
+        details: Column(mainAxisSize: MainAxisSize.min, children: [
+          PracticeRunSpent(controller: _practice),
+          SizedBox(
+          height: h * 0.4,
+          child: _Answer(
+            height: h * 0.4,
+            session: s,
+            phase: _phase,
+            feedback: _feedback,
+            prompt: _typePrompt(s.direction),
+            reveal: null,
+          ),
+        ),
+        ]),
+        onNext: () {
+          setState(_reset);
+          unawaited(_start());
+        },
+        onSettings: () => setState(_reset),
+      ),
     );
   }
 }
@@ -738,7 +774,9 @@ class _Answer extends StatelessWidget {
     final status = switch ((phase, feedback)) {
       (DsPhase.revealed, _) => (text: '${L.t('label_was')}: ${s.expected.join()}', color: scheme.primary),
       (_, null) => (text: '${s.entered.length}/${s.seqLen} — ${L.t('hint_autocheck')}', color: scheme.onSurfaceVariant),
-      (_, true) => (text: L.t('msg_correct_level_up'), color: roles.correct),
+      // «+1 уровень» (на деле — +1 цифра) говорим только когда длина взяла шаг; первый из двух верных
+      // рядов подряд — просто «Верно»: длина та же, нужен ещё один.
+      (_, true) => (text: s.streak == 0 ? L.t('msg_correct_level_up') : L.t('hud_correct'), color: roles.correct),
       (_, false) => (text: '${L.t('label_was')}: ${s.expected.join()}', color: roles.wrong),
     };
     return SingleChildScrollView(

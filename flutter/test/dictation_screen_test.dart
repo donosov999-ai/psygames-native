@@ -101,7 +101,7 @@ void main() {
       await type(tester, phrase);
       await tester.pump(const Duration(milliseconds: 500));
     }
-    expect(find.byKey(const Key('dict-score')), findsOneWidget);
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'итог — общий каркаса');
     expect(sent, hasLength(1));
     final d = sent.single['details'] as Map;
     expect(sent.single['game_type'], 'dictation');

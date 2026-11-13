@@ -204,7 +204,7 @@ void main() {
     expect(state.get(SharedState.levelKey('rhythm_pitch', 'nzt48')), '2');
 
     // Следующий уровень: подстройка та же — метроном не просим, сразу «Готовы».
-    await tapAt(tester, 'rp-again');
+    await tapAt(tester, 'level-result-next');
     expect(find.byKey(const Key('rp-play')), findsOneWidget);
     expect(find.byKey(const Key('rp-play-calibration')), findsNothing);
   });

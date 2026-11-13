@@ -112,7 +112,7 @@ void main() {
     await tester.tap(find.byKey(Key('клетка${again.first}')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 800));
-    expect(find.byKey(const Key('ещё-раз')), findsOneWidget,
+    expect(find.byKey(const Key('level-result')), findsOneWidget,
         reason: 'две ошибки на одной длине — конец партии');
     // Непройденная ступень: «охват / планка ступени» дробью.
     // Ни одного верного ряда: охват 0 при планке первой ступени 2.
@@ -152,7 +152,7 @@ void main() {
     await tester.tap(find.byKey(const Key('practice-run-switch')));
     await tester.pump();
     await playPassedRound(tester);
-    expect(find.byKey(const Key('ещё-раз')), findsOneWidget, reason: 'партия кончилась');
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'партия кончилась');
     expect(find.byKey(const Key('practice-run-spent')), findsOneWidget);
     expect(state.get('psygames_spatial_span_level_nzt48'), anyOf(isNull, '1'), reason: 'уровень не поднят');
     expect(AbilityWallet(state).count('practice_run'), 1);

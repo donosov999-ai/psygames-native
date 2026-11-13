@@ -13,6 +13,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -53,6 +54,8 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
   _Phase _phase = _Phase.preview;
   final List<String> _selected = [];
   ObjectTrackerMetrics? _result;
+  /// Сыгранный уровень — для общего итога: после победы лестница уже на следующем.
+  int _levelPlayed = 1;
   bool _reduced = false;
   bool _ready = false;
   bool _submitted = false;
@@ -156,6 +159,7 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
     setState(() => _submitted = true);
     final attempt = _attempt;
     final round = _round!;
+    final played = _playLevel;
     final metrics = scoreObjectTrackerCompletion(
       round,
       List<String>.of(_selected),
@@ -170,6 +174,7 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
     if (!mounted || attempt != _attempt) return;
     setState(() {
       _result = metrics;
+      _levelPlayed = played;
       _phase = _Phase.result;
     });
   }
@@ -221,17 +226,40 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
           icon: _phase == _Phase.moving ? Icons.timer_outlined : Icons.check_circle_outline,
         ),
       ],
-      field: (context, h) => _Field(
-        round: round,
-        world: world,
-        phase: _phase,
-        selected: _selected,
-        height: h,
-        minBall: _minBall,
-        fieldMax: _fieldMax,
-        pad: _fieldPad,
-        onTap: _submitted ? null : _toggle,
-      ),
+      // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень, а снимок
+      // поля с открытыми целями остаётся в подробностях — правду о круге человек видит, как раньше.
+      field: (context, h) => _phase == _Phase.result
+          ? SizedBox(
+              height: h,
+              child: LevelResult(
+                passed: isPassed(_result!),
+                level: _levelPlayed,
+                score: _line,
+                details: _Field(
+                  round: round,
+                  world: world,
+                  phase: _phase,
+                  selected: _selected,
+                  height: math.min(h * 0.3, 220),
+                  minBall: _minBall,
+                  fieldMax: _fieldMax,
+                  pad: _fieldPad,
+                  onTap: null,
+                ),
+                onNext: () => setState(_reset),
+              ),
+            )
+          : _Field(
+              round: round,
+              world: world,
+              phase: _phase,
+              selected: _selected,
+              height: h,
+              minBall: _minBall,
+              fieldMax: _fieldMax,
+              pad: _fieldPad,
+              onTap: _submitted ? null : _toggle,
+            ),
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.slow_motion_video,
@@ -244,8 +272,11 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
       toolbar: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(_line, key: const Key('строка'), textAlign: TextAlign.center),
-          const SizedBox(height: 8),
+          // На итоге строку счёта пишет общий итог каркаса.
+          if (_phase != _Phase.result) ...[
+            Text(_line, key: const Key('строка'), textAlign: TextAlign.center),
+            const SizedBox(height: 8),
+          ],
           if (_phase == _Phase.preview)
             FilledButton.icon(
               key: const Key('поехали'),
@@ -266,13 +297,6 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
               onPressed: _submitted || _selected.isEmpty ? null : _submit,
               icon: const Icon(Icons.check),
               label: Text(L.t('storyDone')),
-            ),
-          if (_phase == _Phase.result)
-            FilledButton.icon(
-              key: const Key('дальше'),
-              onPressed: () => setState(_reset),
-              icon: Icon(isPassed(_result!) ? Icons.arrow_forward : Icons.refresh),
-              label: Text(isPassed(_result!) ? L.t('nextLabel') : L.t('retry')),
             ),
         ]),
       ),

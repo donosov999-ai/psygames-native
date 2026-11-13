@@ -10,6 +10,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
@@ -283,7 +284,9 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
         if (playing && level == 0)
           HudItem(label: L.t('mode'), value: L.t('spatialFreePlay'), icon: Icons.all_inclusive),
       ],
-      field: (context, h) => playing
+      field: (context, h) => playing && _won
+          ? SizedBox(height: h, child: _result(level))
+          : playing
           ? _PlayField(
               mode: _mode,
               deal: deal,
@@ -329,7 +332,8 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
               ],
             )
           : null,
-      toolbar: playing ? _controls(context, deal) : _configToolbar(context),
+      // Решено — итог на поле ([_result]), полоса пустая.
+      toolbar: playing ? (_won ? null : _controls(context, deal)) : _configToolbar(context),
       pauseActions: [
         PauseAction(
           label: L.t('settings'),
@@ -515,19 +519,22 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
 
   // ─── органы управления ──────────────────────────────────────────────────
 
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующую ступень.
+  /// Проигрыша нет — итог всегда «пройдено»; свободная игра (`level == 0`) — без ступени, дальше новая
+  /// свободная раздача. «Отменить» в полосе действий по-прежнему возвращает решённое поле на просмотр.
+  Widget _result(int level) => LevelResult(
+    passed: true,
+    level: level == 0 ? null : level,
+    details: Text(
+      L.t('spatialLabSolved'),
+      textAlign: TextAlign.center,
+      style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700),
+    ),
+    onNext: () => _request(level == 0 ? 0 : math.min(50, level + 1)),
+    onSettings: () => setState(() => _phase = LabPhase.config),
+  );
+
   Widget _controls(BuildContext context, Deal deal) {
-    final level = deal.task?.level ?? 0;
-    if (_won) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: FilledButton.icon(
-          key: const Key('дальше'),
-          onPressed: () => _request(level == 0 ? 0 : math.min(50, level + 1)),
-          icon: const Icon(Icons.arrow_forward),
-          label: Text(level == 0 ? L.t('spatialLabNew') : L.t('nextLabel')),
-        ),
-      );
-    }
     final locked = deal.task?.locked.contains(_selection) ?? false;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),

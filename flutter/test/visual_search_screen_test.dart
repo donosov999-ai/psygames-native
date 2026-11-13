@@ -237,8 +237,8 @@ void main() {
         await tester.pump(const Duration(milliseconds: 500));
         await tester.pump();
       }
-      expect(find.byKey(const Key('result')), findsOneWidget, reason: 'партия не закончилась');
-      return find.text('Следующий').evaluate().isNotEmpty;
+      expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'партия не закончилась');
+      return find.textContaining('Следующий').evaluate().isNotEmpty;
     }
 
     expect(await play(1), isTrue, reason: 'одна ошибка — ровно порог, уровень берётся');
@@ -281,7 +281,7 @@ void main() {
 
   testWidgets('🔴 веха: победа на 3-м уровне открывает бой «сложи подсвеченные», на 2-м — нет', (tester) async {
     // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
-    await expectBossAfterWin(tester, won: find.text('Следующий'), hudKey: 'bossHudCounting', play: (level) async {
+    await expectBossAfterWin(tester, won: find.textContaining('Следующий'), hudKey: 'bossHudCounting', play: (level) async {
       await open(tester, level: level, trials: 3, seed: 'босс$level');
       for (var r = 1; r <= 3; r += 1) {
         final sample = guessSample(tester, vsLevelParams(level, r).targetCount);
@@ -342,11 +342,11 @@ void main() {
       expect(find.text('$r/10'), findsOneWidget, reason: 'идёт раунд $r из 10');
       await clearRound();
     }
-    expect(find.byKey(const Key('result')), findsNothing, reason: 'после 9-го партия не кончилась — раундов 10');
+    expect(find.byKey(const Key('level-result')), findsNothing, reason: 'после 9-го партия не кончилась — раундов 10');
     expect(find.text('10/10'), findsOneWidget);
     await clearRound();
     await tester.pump();
-    expect(find.byKey(const Key('result')), findsOneWidget, reason: 'после 10-го — итог');
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'после 10-го — итог');
     expect(state.get('${SharedState.prefix}visual_search_level_nzt48'), '48', reason: 'все 10 без ошибок — уровень взят');
   });
 }

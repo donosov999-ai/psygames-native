@@ -10,6 +10,7 @@ import '../../shell/l10n.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/practice_run.dart';
 import '../../shell/shared_level_store.dart';
@@ -228,14 +229,16 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
           icon: Icons.close,
         ),
       ],
-      field: (context, h) => _Field(
-        game: g,
-        phase: _phase,
-        lit: _lit,
-        lastAnswer: _lastAnswer,
-        height: h,
-        onTap: _tap,
-      ),
+      field: (context, h) => _phase == Phase.done
+          ? SizedBox(height: h, child: _result(g))
+          : _Field(
+              game: g,
+              phase: _phase,
+              lit: _lit,
+              lastAnswer: _lastAnswer,
+              height: h,
+              onTap: _tap,
+            ),
       auxRow: AuxBar(
         children: [
           AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
@@ -255,23 +258,29 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
             ),
           ]),
         ),
-        Phase.done => Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            PracticeRunSpent(controller: _practice),
-            FilledButton.icon(
-              key: const Key('ещё-раз'),
-              onPressed: _restart,
-              icon: const Icon(Icons.arrow_forward),
-              label: Text(g.passed ? L.t('nextLabel') : L.t('retry')),
-            ),
-          ]),
-        ),
         _ => null,
       },
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
       ],
+    );
+  }
+
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
+  /// Счёт — охват; непройденная ступень — «охват / планка ступени» дробью, как было на поле.
+  /// «Дальше» — новая партия и сразу показ ряда (раньше кнопка вела на «Начать»).
+  Widget _result(SpatialSpanGame g) {
+    final span = '${L.t('hud_span')}: ${g.span}';
+    return LevelResult(
+      passed: g.passed,
+      // Пробный заход уровень не двигает — итог без «Уровень N пройден» и «Ур. N+1».
+      level: _practice.used ? null : g.level,
+      score: g.passed ? span : '$span / ${g.params.startSpan}',
+      details: PracticeRunSpent(controller: _practice),
+      onNext: () {
+        _restart();
+        _start();
+      },
     );
   }
 }

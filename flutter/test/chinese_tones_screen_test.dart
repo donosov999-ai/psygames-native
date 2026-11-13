@@ -91,7 +91,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 1200));
       await tester.pump(const Duration(milliseconds: 450));
     }
-    expect(find.byKey(const Key('ct-score')), findsOneWidget);
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'итог — общий каркаса');
     expect(sent, hasLength(1));
     expect(sent.single['mode'], 'tone');
     expect(sent.single['score'], p.trials * 100);

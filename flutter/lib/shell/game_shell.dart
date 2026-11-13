@@ -387,6 +387,16 @@ class GameShell extends StatelessWidget {
     return () => showGameRules(context, title: title, ruleKey: key);
   }
 
+  /// Выйти из игры тем же путём, что «‹» шапки: изнутри поля (итог уровня [LevelResult] и т. п.).
+  static void leaveFrom(BuildContext context) {
+    final shell = context.findAncestorWidgetOfExactType<GameShell>();
+    if (shell != null) {
+      shell._leave(context);
+    } else {
+      Navigator.of(context).maybePop();
+    }
+  }
+
   void _leave(BuildContext context) {
     if (onBack != null) {
       onBack!();

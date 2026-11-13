@@ -12,6 +12,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/practice_run.dart';
 import '../../shell/shared_level_store.dart';
@@ -301,19 +302,21 @@ class _CorsiScreenState extends State<CorsiScreen> {
           HudItem(label: L.t('hud_best'), value: '$_bestSpan', icon: Icons.emoji_events_outlined),
         if (!GamePreset.isPreset) HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
       ],
-      field: (context, h) => _Board(
-        game: g,
-        phase: _phase,
-        feedback: _feedback,
-        lit: _lit,
-        revealed: _revealed,
-        height: h,
-        onStart: _start,
-        onTap: _tap,
-        // Набор «Позиции»: плашки Матрица · Корси · Наоборот (веб GameSuiteSwitch).
-        suiteSwitch: SuiteSwitch(route: '/games/corsi', state: widget.state),
-        practice: GamePreset.isPreset ? null : _practice,
-      ),
+      field: (context, h) => _phase == Phase.done
+          ? _result(g, h)
+          : _Board(
+              game: g,
+              phase: _phase,
+              feedback: _feedback,
+              lit: _lit,
+              revealed: _revealed,
+              height: h,
+              onStart: _start,
+              onTap: _tap,
+              // Набор «Позиции»: плашки Матрица · Корси · Наоборот (веб GameSuiteSwitch).
+              suiteSwitch: SuiteSwitch(route: '/games/corsi', state: widget.state),
+              practice: GamePreset.isPreset ? null : _practice,
+            ),
       auxRow: AuxBar(children: [
         AuxAction(
           // Тот же обработчик, что «Заново» в паузе — под «Авророй» только в паузе.
@@ -329,39 +332,55 @@ class _CorsiScreenState extends State<CorsiScreen> {
           onPressed: _phase == Phase.recall && _feedback == Feedback.none ? _reveal : null,
         ),
       ]),
-      toolbar: _phase == Phase.done
-          ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  BossOutcomeLine(_boss),
-                  PracticeRunSpent(controller: _practice),
-                  // Итог партии: счёт, время, ошибки — то, что веб показывает экраном итога.
-                  if (!_revealed)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        '${L.t('score')}: ${g.score} · ${L.t('time')}: ${_seconds ~/ 60}:${(_seconds % 60).toString().padLeft(2, '0')}'
-                        ' · ${L.t('errors')}: ${g.errors}',
-                        key: const Key('corsi-result'),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  FilledButton.icon(
-                    onPressed: () => setState(_reset),
-                    icon: const Icon(Icons.arrow_forward),
-                    label: Text(g.passed && !_revealed ? L.t('nextLabel') : L.t('retry')),
-                  ),
-                ],
-              ),
-            )
-          : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
     );
   }
+
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): «дальше» — сразу следующий ряд (после победы
+  /// лестница уже на следующем уровне), «Настройки» — экран «Начать» с плашками набора. Счёт, время, ошибки —
+  /// то, что веб показывает экраном итога. Подсмотренный ответ в лестницу не идёт: итог «ещё раз» без
+  /// автоперехода, а под ним — доска с номерами ряда, чтобы ответ можно было разглядеть.
+  Widget _result(CorsiGame g, double h) => SizedBox(
+        height: h,
+        child: LevelResult(
+          passed: g.passed && !_revealed,
+          // Пробный заход уровень не двигает — итог без «Уровень N пройден» и «Ур. N+1».
+          level: GamePreset.isPreset || _practice.used ? null : g.level,
+          auto: !_revealed,
+          score: _revealed
+              ? null
+              : '${L.t('score')}: ${g.score} · ${L.t('time')}: ${_seconds ~/ 60}:${(_seconds % 60).toString().padLeft(2, '0')}'
+                  ' · ${L.t('errors')}: ${g.errors}',
+          details: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              BossOutcomeLine(_boss),
+              PracticeRunSpent(controller: _practice),
+              if (_revealed)
+                SizedBox(
+                  height: h * 0.5,
+                  child: _Board(
+                    game: g,
+                    phase: _phase,
+                    feedback: _feedback,
+                    lit: _lit,
+                    revealed: true,
+                    height: h * 0.5,
+                    onStart: _start,
+                    onTap: (_) {},
+                  ),
+                ),
+            ],
+          ),
+          onNext: () {
+            setState(_reset);
+            _start();
+          },
+          onSettings: () => setState(_reset),
+        ),
+      );
 }
 
 /// Доска: девять блоков в заданных точках, размер — от поля каркаса.
@@ -447,10 +466,8 @@ class _Board extends StatelessWidget {
   String _caption() {
     if (phase == Phase.show) return L.t('memorize');
     if (phase == Phase.hold) return L.t('memorize');
-    if (phase == Phase.done) {
-      if (revealed) return L.t('puzzleShowSolution');
-      return game.passed ? L.t('nextLabel') : L.t('retry');
-    }
+    // Доска после партии видна только под итогом, когда ответ подсмотрен (см. `_result`).
+    if (phase == Phase.done) return L.t('puzzleShowSolution');
     return game.params.reverse ? L.t('reproduceBackward') : L.t('reproduceForward');
   }
 }

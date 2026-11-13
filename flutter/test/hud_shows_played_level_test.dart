@@ -58,10 +58,10 @@ void main() {
       await tester.pump();
     }
     await settle(tester);
-    expect(find.byKey(const Key('next')), findsOneWidget, reason: 'победа на экране');
+    expect(find.byKey(const Key('level-result-next')), findsOneWidget, reason: 'победа на экране');
     expect(state.get('${SharedState.prefix}cats_level_nzt48'), '2', reason: 'лестница уже поднята');
     expect(hud(tester, L.t('level')), ['${L.t('level')}: 1'], reason: 'над решённой доской — сыгранная ступень');
-    await tester.tap(find.byKey(const Key('next')));
+    await tester.tap(find.byKey(const Key('level-result-next')));
     await settle(tester);
     expect(hud(tester, L.t('level')), ['${L.t('level')}: 2'], reason: 'новая доска — новая ступень');
     semantics.dispose();

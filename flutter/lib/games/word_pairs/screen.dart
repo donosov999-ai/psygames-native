@@ -20,6 +20,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
@@ -378,19 +379,20 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
         ]),
       );
     }
+    // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
     if (s.phase == WordPairsPhase.result) {
-      return _Pad(
+      return SizedBox(
         height: h,
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(s.passed ? Icons.emoji_events_outlined : Icons.replay_outlined,
-              size: 44, color: s.passed ? scheme.primary : scheme.onSurfaceVariant),
-          const SizedBox(height: 10),
-          Text(s.passed ? L.f('levelDone', {'n': '${s.level}'}) : L.t('retry'),
-              style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
-          const SizedBox(height: 8),
-          Text('${L.t('errors')}: ${s.errors}'),
-          Text('${L.t('score')}: ${s.score}', style: const TextStyle(fontWeight: FontWeight.w700)),
-        ]),
+        child: LevelResult(
+          passed: s.passed,
+          level: s.level,
+          score: '${L.t('errors')}: ${s.errors} · ${L.t('score')}: ${s.score}',
+          onNext: _start,
+          onSettings: () {
+            _timer?.cancel();
+            setState(() => _session = null);
+          },
+        ),
       );
     }
     // Соединение: слева — показанные слова, справа — те же пары вразнобой.
@@ -446,14 +448,6 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
         },
         icon: const Icon(Icons.check_circle_outline),
         label: Text(L.t('check')),
-      ));
-    }
-    if (s.phase == WordPairsPhase.result) {
-      return bar(FilledButton.icon(
-        key: const ValueKey('wp-again'),
-        onPressed: _start,
-        icon: const Icon(Icons.arrow_forward),
-        label: Text(s.passed ? L.t('nextLabel') : L.t('retry')),
       ));
     }
     return null;

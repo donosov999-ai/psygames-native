@@ -11,6 +11,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -41,6 +42,9 @@ class _SubmarinesScreenState extends State<SubmarinesScreen> {
   int _levelNo = 1;
   bool _over = false;
   bool _won = false;
+
+  /// Исход записан лестницей — можно показать итог: до того он не знает, взят ли уровень.
+  bool _settled = false;
   // Часы партии (lib/shell/game_clock.dart): стоят под паузой, разбором и в фоне.
   int _startedMs = gameNow();
 
@@ -65,6 +69,7 @@ class _SubmarinesScreenState extends State<SubmarinesScreen> {
     _board = SubBoard.deal(_levelNo, _rnd);
     _over = false;
     _won = false;
+    _settled = false;
     _startedMs = gameNow();
   }
 
@@ -101,7 +106,10 @@ class _SubmarinesScreenState extends State<SubmarinesScreen> {
       await _ladder.fail(score: score, timeSeconds: seconds, errors: misses, details: details);
     }
     if (!mounted) return;
-    setState(() => _won = passed);
+    setState(() {
+      _won = passed;
+      _settled = true;
+    });
   }
 
   /// РАЗБОР — ТРИ ПРИЁМА, НЕ ОТВЕТ: шахматка (самый короткий корабль — две клетки, и шахматка
@@ -135,82 +143,85 @@ class _SubmarinesScreenState extends State<SubmarinesScreen> {
         HudItem(label: L.t('label_found'), value: '${b.level.fleet.length - alive}/${b.level.fleet.length}',
             icon: Icons.directions_boat_outlined),
       ],
-      field: (context, h) => LayoutBuilder(builder: (context, c) {
-        const fleetH = 34.0;
-        final side = math.min(c.maxWidth, c.maxHeight - fleetH - 8) - 12;
-        final cell = side / b.level.size;
-        final shipAt = <(int, int), String>{
-          for (final e in b.sea.ships.entries)
-            for (final x in e.value) x: e.key,
-        };
-        return Column(children: [
-          Expanded(
-            child: Center(
-              child: SizedBox(
-                key: const ValueKey('sub-board'),
-                width: side,
-                height: side,
-                child: Stack(children: [
-                  for (var r = 0; r < b.level.size; r++)
-                    for (var col = 0; col < b.level.size; col++)
-                      Positioned(
-                        left: col * cell,
-                        top: r * cell,
-                        width: cell,
-                        height: cell,
-                        child: _Cell(
-                          key: _over && !b.sea.shots.containsKey((r, col)) && shipAt.containsKey((r, col))
-                              ? ValueKey('sub-reveal-$r-$col')
-                              : null,
-                          tapKey: ValueKey('sub-cell-$r-$col'),
-                          shot: b.sea.shots[(r, col)],
-                          sunk: b.sea.sunk.contains(shipAt[(r, col)]),
-                          reveal: _over && shipAt.containsKey((r, col)),
-                          onTap: () => _fire(r, col),
-                        ),
-                      ),
-                ]),
-              ),
-            ),
-          ),
-          SizedBox(
-            height: fleetH,
-            child: Wrap(
-              key: const ValueKey('sub-fleet'),
-              alignment: WrapAlignment.center,
-              spacing: 10,
-              children: [
-                for (final s in b.level.fleet)
-                  Row(mainAxisSize: MainAxisSize.min, children: [
-                    for (var k = 0; k < s.length; k++)
-                      Container(
-                        width: 10,
-                        height: 10,
-                        margin: const EdgeInsets.all(1),
-                        color: b.sea.sunk.contains(s.name) ? const Color(0xFF334155) : GameColors.of(context).muted,
-                      ),
-                  ]),
-              ],
-            ),
-          ),
-        ]);
-      }),
-      toolbar: !_over
-          ? null
-          : Padding(
-              padding: const EdgeInsets.all(12),
-              child: FilledButton.icon(
-                key: const ValueKey('sub-next'),
-                onPressed: () => setState(_newLevel),
-                icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-                label: Text('${_won ? L.t('nextLabel') : L.t('retry')} · ${b.sea.shots.length}/${b.budget}'),
-              ),
-            ),
+      // Партия кончилась — итог на поле, раскрытый флот — в его подробностях.
+      field: (context, h) => _over && _settled ? SizedBox(height: h, child: _result(b, h)) : _sea(b),
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_newLevel)),
       ],
     );
   }
+
+  /// Море: доска выстрелов и полоса флота. После партии — с раскрытыми кораблями.
+  Widget _sea(SubBoard b) => LayoutBuilder(builder: (context, c) {
+      const fleetH = 34.0;
+      final side = math.min(c.maxWidth, c.maxHeight - fleetH - 8) - 12;
+      final cell = side / b.level.size;
+      final shipAt = <(int, int), String>{
+        for (final e in b.sea.ships.entries)
+          for (final x in e.value) x: e.key,
+      };
+      return Column(children: [
+        Expanded(
+          child: Center(
+            child: SizedBox(
+              key: const ValueKey('sub-board'),
+              width: side,
+              height: side,
+              child: Stack(children: [
+                for (var r = 0; r < b.level.size; r++)
+                  for (var col = 0; col < b.level.size; col++)
+                    Positioned(
+                      left: col * cell,
+                      top: r * cell,
+                      width: cell,
+                      height: cell,
+                      child: _Cell(
+                        key: _over && !b.sea.shots.containsKey((r, col)) && shipAt.containsKey((r, col))
+                            ? ValueKey('sub-reveal-$r-$col')
+                            : null,
+                        tapKey: ValueKey('sub-cell-$r-$col'),
+                        shot: b.sea.shots[(r, col)],
+                        sunk: b.sea.sunk.contains(shipAt[(r, col)]),
+                        reveal: _over && shipAt.containsKey((r, col)),
+                        onTap: () => _fire(r, col),
+                      ),
+                    ),
+              ]),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: fleetH,
+          child: Wrap(
+            key: const ValueKey('sub-fleet'),
+            alignment: WrapAlignment.center,
+            spacing: 10,
+            children: [
+              for (final s in b.level.fleet)
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  for (var k = 0; k < s.length; k++)
+                    Container(
+                      width: 10,
+                      height: 10,
+                      margin: const EdgeInsets.all(1),
+                      color: b.sea.sunk.contains(s.name) ? const Color(0xFF334155) : GameColors.of(context).muted,
+                    ),
+                ]),
+            ],
+          ),
+        ),
+      ]);
+    });
+
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
+  /// Раскрытый флот остаётся виден — уменьшенной доской в подробностях итога.
+  Widget _result(SubBoard b, double h) => LevelResult(
+        passed: _won,
+        level: _levelNo,
+        score: '${L.t('hud_moves')} ${b.sea.shots.length}/${b.budget}',
+        details: SizedBox(height: math.min(h * 0.42, 260), child: _sea(b)),
+        onNext: () => setState(_newLevel),
+      );
 }
 
 class _Cell extends StatelessWidget {

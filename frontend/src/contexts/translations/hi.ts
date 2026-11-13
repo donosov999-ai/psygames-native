@@ -1671,6 +1671,7 @@ const t: Record<string, string> = {
   "classicLabel": "क्लासिक",
   "schulteDividedHint": "एक साथ कई अलग-अलग रंगों के काउंटर — बारी-बारी से ढूँढ़ें",
   "schulteMoving": "भागता लक्ष्य",
+  "schulteGorbov": "शुल्ते–गोर्बोव",
   "schulteMovingHint": "हर सही क्लिक के बाद ग्रिड फिर फिंट जाती है — स्थितियाँ याद नहीं रख सकते",
   "schulteShare": "मैंने PsyGames में {g}×{g} शुल्टे टेबल {t}से में पूरी की — मुझे हराओ!",
   "patternClassArithmetic": "समांतर श्रेणी",
@@ -3848,5 +3849,7 @@ const t: Record<string, string> = {
   "suiteSumDesc": "मैदान की संख्याओं से लक्ष्य योग बनाओ: ग्रिड पर समय के साथ, या चिप्स से संख्या का विभाजन",
   "suiteModeSpeed": "तेज़ी से",
   "suiteModeComposition": "संख्या का विभाजन",
+  "dropModeDrag": "खींचें",
+  "dropModeTap": "छुएँ",
 };
 export default t;

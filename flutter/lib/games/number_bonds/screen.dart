@@ -13,6 +13,7 @@ import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/suite_switch.dart' show SuiteModeAction;
@@ -57,6 +58,9 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
   bool? _right;
   bool _won = false;
 
+  /// Уровень партии — для итога: после победы лестница уже на следующем.
+  int _levelPlayed = 1;
+
   /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
   bool? _boss;
   bool _ready = false;
@@ -100,6 +104,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
     LessonUsed.reset();
     _tick?.cancel();
     _next?.cancel();
+    _levelPlayed = _ladder.level;
     _cfg = levelParams(_ladder.level);
     // ШАГ ЗАРЯДКИ — СВОЁ ЧИСЛО ЗАДАЧ (`?trials=`, по умолчанию 8), как веб (`number-bonds.tsx:115`,
     // `:187–189`). Трудность — личного уровня: тир `?diff=` веб-пресета снят решением 09.09
@@ -241,16 +246,31 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
         if (_cfg.windowMs > 0)
           HudItem(label: L.t('timeLeftLabel'), value: '${(_leftMs / 1000).ceil()} ${L.t('secShort')}', icon: Icons.timer_outlined),
       ],
-      field: (context, h) => _Field(
-        puzzle: p,
-        picked: _picked,
-        sum: _sum,
-        right: _right,
-        height: h,
-        onTap: _toggle,
-        onSwipePick: _swipePick,
-        onSwipeUnpick: _swipeUnpick,
-      ),
+      // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень, итог
+      // вехи — в подробностях.
+      field: (context, h) => _phase == _Phase.result
+          ? SizedBox(
+              height: h,
+              child: LevelResult(
+                passed: _won,
+                level: _levelPlayed,
+                score: _won
+                    ? L.f('nbResultWin', {'hits': '$_hits', 'errors': '$_errors'})
+                    : L.f('nbResultFail', {'errors': '$_errors', 'max': '$bondsErrorsAllowed'}),
+                details: BossOutcomeLine(_boss),
+                onNext: () => setState(_reset),
+              ),
+            )
+          : _Field(
+              puzzle: p,
+              picked: _picked,
+              sum: _sum,
+              right: _right,
+              height: h,
+              onTap: _toggle,
+              onSwipePick: _swipePick,
+              onSwipeUnpick: _swipeUnpick,
+            ),
       auxRow: AuxBar(children: [
         // Набор «Собери сумму»: режим — листом (экрана настройки у партии нет).
         SuiteModeAction(route: '/games/number-bonds', state: widget.state),
@@ -263,7 +283,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
         ),
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
-      toolbar: _toolbar(context),
+      toolbar: _phase == _Phase.result ? null : _toolbar(context),
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
@@ -271,30 +291,6 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
   }
 
   Widget _toolbar(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    if (_phase == _Phase.result) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(
-            _won
-                ? L.f('nbResultWin', {'hits': '$_hits', 'errors': '$_errors'})
-                : L.f('nbResultFail', {'errors': '$_errors', 'max': '$bondsErrorsAllowed'}),
-            key: const Key('итог'),
-            textAlign: TextAlign.center,
-            style: text.titleMedium,
-          ),
-          BossOutcomeLine(_boss),
-          const SizedBox(height: 8),
-          FilledButton.icon(
-            key: const Key('дальше'),
-            onPressed: () => setState(_reset),
-            icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-            label: Text(_won ? L.t('nextLabel') : L.t('retry')),
-          ),
-        ]),
-      );
-    }
     return Padding(
       padding: const EdgeInsets.all(12),
       child: FilledButton.icon(

@@ -78,6 +78,7 @@ function playSession(c: SessionCase, seed: number) {
   let seqLen = startLen;
   let round = 1;
   let atLen = 0;
+  let streak = 0;
   let correctRounds = 0;
   let maxSpan = 0;
   let errors = 0;
@@ -86,9 +87,10 @@ function playSession(c: SessionCase, seed: number) {
     const seq = generateSeq(seqLen, rng);
     const correct = !(seqLen > c.trueSpan || c.wrongAt.includes(round));
     rows.push({ len: seqLen, seq, expected: expectedDigits(seq, dir), correct });
-    const step = spanStep({ seqLen, round, atLenErrors: atLen, correct });
+    const step = spanStep({ seqLen, round, atLenErrors: atLen, correct, streak });
     if (correct) { correctRounds += 1; maxSpan = Math.max(maxSpan, seqLen); } else { errors += 1; }
     atLen = step.atLenErrors;
+    streak = step.streak;
     if (spanFinished(step)) break;
     seqLen = correct ? step.nextLen : seqLen;
     round += 1;
@@ -137,9 +139,11 @@ test('эталон «Цифрового ряда» для Flutter', () => {
   for (let seqLen = 3; seqLen <= 12; seqLen++) {
     for (const round of [1, 6, 11, 12]) {
       for (const atLenErrors of [0, 1]) {
-        for (const correct of [true, false]) {
-          const step = spanStep({ seqLen, round, atLenErrors, correct });
-          steps.push({ seqLen, round, atLenErrorsBefore: atLenErrors, correct, ...step, finished: spanFinished(step) });
+        for (const streak of [0, 1]) {
+          for (const correct of [true, false]) {
+            const step = spanStep({ seqLen, round, atLenErrors, correct, streak });
+            steps.push({ seqLen, round, atLenErrorsBefore: atLenErrors, streakBefore: streak, correct, ...step, finished: spanFinished(step) });
+          }
         }
       }
     }

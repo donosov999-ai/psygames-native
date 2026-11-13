@@ -351,7 +351,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 20));
       // Стратегия пробы: бросать, пока несохранённого меньше 8, потом сохранять.
-      for (var i = 0; i < 600 && find.byKey(const ValueKey('rb-next')).evaluate().isEmpty; i++) {
+      for (var i = 0; i < 600 && find.byKey(const ValueKey('level-result-next')).evaluate().isEmpty; i++) {
         final roll = tester.widget<FilledButton>(find.byKey(const ValueKey('rb-roll')));
         if (roll.onPressed == null) {
           await tester.pump(const Duration(milliseconds: 10)); // ходит бот
@@ -364,7 +364,7 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 10));
       }
-      expect(find.byKey(const ValueKey('rb-next')), findsOneWidget, reason: 'партия не закончилась за 600 шагов');
+      expect(find.byKey(const ValueKey('level-result-next')), findsOneWidget, reason: 'партия не закончилась за 600 шагов');
       expect(reports.length, 1);
       expect(reports.single['game_type'], 'roll_and_bank');
       final d = reports.single['details'] as Map<String, dynamic>;
@@ -411,7 +411,7 @@ void main() {
       ));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 20));
-      for (var i = 0; i < 3000 && find.byKey(const ValueKey('rb-next')).evaluate().isEmpty; i++) {
+      for (var i = 0; i < 3000 && find.byKey(const ValueKey('level-result-next')).evaluate().isEmpty; i++) {
         final roll = tester.widget<FilledButton>(find.byKey(const ValueKey('rb-roll')));
         if (roll.onPressed == null) {
           await tester.pump(const Duration(milliseconds: 10));
@@ -424,7 +424,7 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 10));
       }
-      expect(find.byKey(const ValueKey('rb-next')), findsOneWidget, reason: 'партия не закончилась');
+      expect(find.byKey(const ValueKey('level-result-next')), findsOneWidget, reason: 'партия не закончилась');
       final d = reports.single['details'] as Map<String, dynamic>;
       final s = rollAndBankStep(20);
       expect([d['goal'], d['bot'], d['head_start']], [60, 'solved', s.headStart]);

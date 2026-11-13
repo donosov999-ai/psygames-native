@@ -12,6 +12,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/noise.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -342,19 +343,15 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
     );
   }
 
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
   Widget _result(BuildContext context, double h) => SizedBox(
         height: h,
-        child: Center(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(_passed ? L.t('levelDone').replaceAll('{n}', '$_levelPlayed') : L.t('sameLevelRetry'),
-                style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
-            const SizedBox(height: 8),
-            Text('${L.t('hud_correct')}: $_hits / ${_trials.length} · ${L.t('hud_errors')}: $_errors',
-                key: const Key('ct-score')),
-            const SizedBox(height: 20),
-            FilledButton(key: const Key('ct-again'), onPressed: _start, child: Text(_passed ? L.t('nextNow') : L.t('retry'))),
-            TextButton(onPressed: () => setState(() => _phase = CtPhase.config), child: Text(L.t('skip'))),
-          ]),
+        child: LevelResult(
+          passed: _passed,
+          level: _levelPlayed,
+          score: '${L.t('hud_correct')}: $_hits / ${_trials.length} · ${L.t('hud_errors')}: $_errors',
+          onNext: _start,
+          onSettings: () => setState(() => _phase = CtPhase.config),
         ),
       );
 

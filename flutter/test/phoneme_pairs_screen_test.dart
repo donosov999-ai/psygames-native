@@ -92,7 +92,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 1200));
       await tester.pump(const Duration(milliseconds: 450));
     }
-    expect(find.byKey(const Key('ph-score')), findsOneWidget);
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'итог — общий каркаса');
     expect(sent, hasLength(1));
     final s = sent.single;
     expect(s['game_type'], 'phoneme_pairs');

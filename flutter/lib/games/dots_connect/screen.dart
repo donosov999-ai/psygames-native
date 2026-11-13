@@ -6,6 +6,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
@@ -138,12 +139,30 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
             value: '${game.filledCells}/${level.playableCells}',
             icon: Icons.grid_4x4),
       ],
-      field: (context, h) => DotsBoard(
-        level: level,
-        game: game,
-        fieldHeight: h,
-        onChanged: _check,
-      ),
+      // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень. Решённая
+      // доска остаётся под итогом — только смотреть. Победа в лестницу пишется, как и раньше, при переходе.
+      field: (context, h) => _won
+          ? SizedBox(
+              height: h,
+              child: LevelResult(
+                passed: true,
+                level: _playLevel,
+                score: '${strings.t('hudCoverage')}: ${game.filledCells}/${level.playableCells}',
+                details: SizedBox(
+                  height: h * 0.45,
+                  child: IgnorePointer(
+                    child: DotsBoard(level: level, game: game, fieldHeight: h * 0.45, onChanged: () {}),
+                  ),
+                ),
+                onNext: _next,
+              ),
+            )
+          : DotsBoard(
+              level: level,
+              game: game,
+              fieldHeight: h,
+              onChanged: _check,
+            ),
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.undo,
@@ -160,16 +179,6 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
           onPressed: _won ? null : _showSolution,
         ),
       ]),
-      toolbar: _won
-          ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: FilledButton.icon(
-                onPressed: _next,
-                icon: const Icon(Icons.arrow_forward),
-                label: Text(L.t('nextLabel')),
-              ),
-            )
-          : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
         PauseAction(label: L.t('puzzleShowSolution'), icon: Icons.lightbulb_outline, onPressed: _showSolution),

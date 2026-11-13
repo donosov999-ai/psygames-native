@@ -64,7 +64,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
     }
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.byKey(const Key('cloze-score')), findsOneWidget);
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'итог — общий каркаса');
     expect(state.get(SharedState.levelKey('cloze', 'nzt48')), '2');
     expect(sent, hasLength(1));
     expect(sent.single['game_type'], 'cloze');

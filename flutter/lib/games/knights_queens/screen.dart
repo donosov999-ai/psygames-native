@@ -11,6 +11,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/session_report.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -511,51 +512,22 @@ class _KnightsQueensScreenState extends State<KnightsQueensScreen> {
     );
   }
 
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
+  /// В пресете лестница не растёт — уровня в итоге нет, как раньше «Заново» вместо «Следующий».
   Widget _result() {
     final r = _last;
     if (r == null) return const SizedBox.shrink();
-    final up = r.passed && !GamePreset.isPreset;
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            '${L.t('hud_correct')}: ${r.solved}/${r.total}',
-            key: const Key('kq-solved'),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-          ),
-          Text(
-            L.f('solClean', {'n': '${r.clean}'}),
-            key: const Key('kq-clean'),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 20),
-          FilledButton(
-            key: const Key('kq-next'),
-            onPressed: _start,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(52),
-            ),
-            child: Text(
-              up
-                  ? '${L.t('nextLabel')} · ${L.t('label_level_short')} ${_ladder.level}'
-                  : L.t('restart'),
-            ),
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton(
-            key: const Key('kq-menu'),
-            onPressed: () => setState(() => _phase = _Phase.config),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(48),
-            ),
-            child: Text(L.t('mode')),
-          ),
-        ],
+    return LevelResult(
+      passed: r.passed,
+      level: GamePreset.isPreset ? null : _runLevel,
+      score: '${L.t('hud_correct')}: ${r.solved}/${r.total}',
+      details: Text(
+        L.f('solClean', {'n': '${r.clean}'}),
+        key: const Key('kq-clean'),
+        textAlign: TextAlign.center,
       ),
+      onNext: _start,
+      onSettings: () => setState(() => _phase = _Phase.config),
     );
   }
 }

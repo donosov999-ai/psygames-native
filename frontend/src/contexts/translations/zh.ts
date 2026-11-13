@@ -1668,6 +1668,7 @@ const t: Record<string, string> = {
   "classicLabel": "经典",
   "schulteDividedHint": "同时数条独立计数线，用颜色区分——轮流寻找",
   "schulteMoving": "移动目标",
+  "schulteGorbov": "舒尔特–戈尔博夫",
   "schulteMovingHint": "每次点对后棋盘重新洗牌——无法靠记位置",
   "schulteShare": "我在 PsyGames 用 {t}秒 完成了 {g}×{g} 舒尔特方格——来超越我！",
   "patternClassArithmetic": "等差数列",
@@ -3845,5 +3846,7 @@ const t: Record<string, string> = {
   "suiteSumDesc": "用场上的数字凑出目标和：在网格里限时抢答，或用筹码做数的分解",
   "suiteModeSpeed": "拼速度",
   "suiteModeComposition": "数的分解",
+  "dropModeDrag": "拖动",
+  "dropModeTap": "点按",
 };
 export default t;

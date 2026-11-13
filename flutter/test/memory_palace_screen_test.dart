@@ -100,7 +100,7 @@ void main() {
       await tester.pump();
     }
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('mp-again')), findsOneWidget, reason: 'круг обязан дойти до итога');
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'круг обязан дойти до итога — общего каркаса');
     expect(find.textContaining('score'), findsOneWidget);
   });
 

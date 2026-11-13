@@ -9,6 +9,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -229,7 +230,24 @@ class _RollAndBankScreenState extends State<RollAndBankScreen> {
         HudItem(label: L.t('rbGoal'), value: '${g.goal}', icon: Icons.sports_score),
         HudItem(label: L.t('rbBusts'), value: '${g.busts}', icon: Icons.local_fire_department_outlined),
       ],
-      field: (context, h) => Column(
+      // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход к следующей партии; исход —
+      // строкой счёта, конечные позиции обеих дорожек — в подробностях.
+      field: (context, h) => g.over
+          ? SizedBox(
+              height: h,
+              child: LevelResult(
+                passed: g.winner == 0,
+                level: _levelNo,
+                score: _note,
+                details: Text(
+                  '${L.t('rbYou')}: ${g.position[0]}/${g.goal} · ${L.t('rbBot')}: ${g.position[1]}/${g.goal}',
+                  key: const ValueKey('rb-final'),
+                  textAlign: TextAlign.center,
+                ),
+                onNext: _next,
+              ),
+            )
+          : Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
@@ -252,12 +270,8 @@ class _RollAndBankScreenState extends State<RollAndBankScreen> {
       toolbar: Padding(
         padding: const EdgeInsets.all(12),
         child: g.over
-            ? FilledButton.icon(
-                key: const ValueKey('rb-next'),
-                onPressed: _next,
-                icon: Icon(g.winner == 0 ? Icons.arrow_forward : Icons.refresh),
-                label: Text(g.winner == 0 ? L.t('nextLabel') : L.t('rbAgain')),
-              )
+            // На итоге кнопки рисует общий [LevelResult] в поле.
+            ? const SizedBox.shrink()
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

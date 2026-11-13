@@ -1803,6 +1803,7 @@ const t: Record<string, string> = {
   "classicLabel": "كلاسيكي",
   "schulteDividedHint": "عدّادات مستقلة عدة في آن واحد تميّزها الألوان — ابحث عنها بالتناوب",
   "schulteMoving": "هدف هارب",
+  "schulteGorbov": "شولت–غوربوف",
   "schulteMovingHint": "بعد كل نقرة صحيحة يُعاد خلط الشبكة — لا يمكنك حفظ المواضع",
   "schulteShare": "أنهيت جدول شولت {g}×{g} في {t}ث على PsyGames — تفوّق عليّ!",
   "patternClassArithmetic": "متتالية حسابية",
@@ -3841,5 +3842,7 @@ const t: Record<string, string> = {
   "suiteSumDesc": "كوّن المجموع المطلوب من أرقام الحقل: بالسرعة على الشبكة أو كتفكيك للعدد باستخدام الرقائق",
   "suiteModeSpeed": "بالسرعة",
   "suiteModeComposition": "تفكيك العدد",
+  "dropModeDrag": "اسحب",
+  "dropModeTap": "المس",
 };
 export default t;

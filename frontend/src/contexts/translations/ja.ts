@@ -1000,6 +1000,7 @@ const t: Record<string, string> = {
   "classicLabel": "クラシック",
   "schulteDividedHint": "色分けされた複数のカウンターを同時進行 — 順番に探そう",
   "schulteMoving": "逃げるターゲット",
+  "schulteGorbov": "シュルテ–ゴルボフ",
   "schulteMovingHint": "正解のたびに盤面がシャッフル — 位置を覚えても無駄",
   "schulteShare": "PsyGamesで{g}×{g}のシュルテ表を{t}秒でクリア — 超えてみて！",
   "patternClassArithmetic": "等差数列",
@@ -3839,5 +3840,7 @@ const t: Record<string, string> = {
   "suiteSumDesc": "盤面の数字で目標の合計を作る：グリッドで時間勝負、またはチップで数の分解",
   "suiteModeSpeed": "スピード",
   "suiteModeComposition": "数の分解",
+  "dropModeDrag": "ドラッグ",
+  "dropModeTap": "タップ",
 };
 export default t;

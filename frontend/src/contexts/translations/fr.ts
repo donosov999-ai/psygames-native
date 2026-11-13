@@ -1802,6 +1802,7 @@ const t: Record<string, string> = {
   "classicLabel": "Classique",
   "schulteDividedHint": "Plusieurs compteurs indépendants à la fois, distingués par couleur — cherche-les à tour de rôle",
   "schulteMoving": "Cible fuyante",
+  "schulteGorbov": "Schulte–Gorbov",
   "schulteMovingHint": "Après chaque clic juste, la grille se remélange — impossible de mémoriser les positions",
   "schulteShare": "J’ai bouclé une table de Schulte {g}×{g} en {t}s sur PsyGames — fais mieux !",
   "patternClassArithmetic": "Suite arithmétique",
@@ -3840,5 +3841,7 @@ const t: Record<string, string> = {
   "suiteSumDesc": "Composer la somme cible avec les nombres du plateau : contre la montre sur la grille ou en décomposition avec des jetons",
   "suiteModeSpeed": "Contre la montre",
   "suiteModeComposition": "Décomposition",
+  "dropModeDrag": "Glisser",
+  "dropModeTap": "Toucher",
 };
 export default t;

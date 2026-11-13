@@ -1668,6 +1668,7 @@ const t: Record<string, string> = {
   "classicLabel": "Clásica",
   "schulteDividedHint": "Varios contadores propios a la vez, distinguidos por color — búscalos en círculo",
   "schulteMoving": "Objetivo fugitivo",
+  "schulteGorbov": "Schulte–Gorbov",
   "schulteMovingHint": "Tras cada clic correcto la cuadrícula se baraja de nuevo — no puedes memorizar posiciones",
   "schulteShare": "¡Completé una tabla de Schulte {g}×{g} en {t}s en PsyGames — supérame!",
   "patternClassArithmetic": "Progresión aritmética",
@@ -3845,5 +3846,7 @@ const t: Record<string, string> = {
   "suiteSumDesc": "Componer la suma objetivo con los números del campo: contrarreloj en la cuadrícula o como descomposición con fichas",
   "suiteModeSpeed": "Contrarreloj",
   "suiteModeComposition": "Descomposición",
+  "dropModeDrag": "Arrastrar",
+  "dropModeTap": "Tocar",
 };
 export default t;

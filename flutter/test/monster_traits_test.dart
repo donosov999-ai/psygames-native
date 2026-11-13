@@ -124,8 +124,8 @@ void main() {
       }
       await tester.tap(find.byKey(const ValueKey('mt-check')));
       await settle(tester);
-      expect(find.byKey(const ValueKey('mt-next')), findsOneWidget);
-      expect(find.textContaining('★★★'), findsOneWidget);
+      expect(find.byKey(const Key('level-result-next')), findsOneWidget, reason: 'итог — общий каркаса');
+      expect(find.text(L.t('levelDone').replaceAll('{n}', '1')), findsOneWidget);
       expect(reports.length, 1);
       expect(reports.single['game_type'], 'monster_traits');
       final d = reports.single['details'] as Map<String, dynamic>;
@@ -177,7 +177,7 @@ void main() {
       expect(d['time_up'], isTrue);
       expect(d['seconds'], 40);
       expect(d['selected_count'], 0);
-      expect(find.byKey(const ValueKey('mt-next')), findsOneWidget);
+      expect(find.byKey(const Key('level-result-next')), findsOneWidget);
     });
 
     testWidgets('без времени до L12: минута ожидания ничего не сдаёт', (tester) async {
@@ -205,7 +205,8 @@ void main() {
         }
         await tester.tap(find.byKey(const ValueKey('mt-check')));
         await settle(tester);
-        expect(find.textContaining('★★★'), findsOneWidget, reason: 'L$level: точный набор не засчитан');
+        expect(find.text(L.t('levelDone').replaceAll('{n}', '$level')), findsOneWidget,
+            reason: 'L$level: точный набор не засчитан');
         final d = reports.last['details'] as Map<String, dynamic>;
         expect(d['trait2'], round.trait2!.name);
         expect(d['negate2'] == true, level == 16);

@@ -64,7 +64,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 800));
     }
-    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'десять из десяти — уровень взят');
+    expect(find.textContaining(L.t('nextLabel')), findsOneWidget, reason: 'десять из десяти — уровень взят');
     expect(find.textContaining('звёзд 3'), findsOneWidget, reason: 'без ошибок и без подсказки — три звезды');
   });
 

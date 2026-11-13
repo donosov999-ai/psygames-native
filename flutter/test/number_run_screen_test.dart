@@ -80,7 +80,7 @@ void main() {
     await tester.pump(); // первый кадр часов — dt = 0
     double? pressed;
     var frames = 0;
-    while (find.byKey(const Key('nr-next')).evaluate().isEmpty && frames < 4000) {
+    while (find.byKey(const Key('level-result-next')).evaluate().isEmpty && frames < 4000) {
       if (steer && shadow.status == RoadStatus.running) {
         final want = jsRound(aim(course, path, shadow)).clamp(-1.0, 1.0);
         if (want != pressed) {
@@ -131,7 +131,7 @@ void main() {
     var finaleFrames = 0;
     final shadow = await drive(tester, course, onFrame: (_) {
       // Финал идёт ДО итога: лестница на экране, а кнопки «дальше» ещё нет.
-      if (find.byKey(const Key('nr-finale')).evaluate().isNotEmpty && find.byKey(const Key('nr-next')).evaluate().isEmpty) {
+      if (find.byKey(const Key('nr-finale')).evaluate().isNotEmpty && find.byKey(const Key('level-result-next')).evaluate().isEmpty) {
         finaleFrames++;
       }
     });
@@ -148,7 +148,8 @@ void main() {
     expect(r['score'], o.number);
     final d = r['details'] as Map<String, dynamic>;
     expect([d['walls'], d['walls_total'], d['level'], d['boss'], d['reason'], d['seed']], [o.walls, 10, 1, false, 'finished', seed]);
-    expect(find.text((o.passed ? L.t('levelDone').replaceAll('{n}', '1') : L.t('levelAlmost').replaceAll('{n}', '1')).toUpperCase()),
+    // Заголовок «Уровень N пройден!» — общий итог каркаса; «почти» — строкой забега в подробностях.
+    expect(find.text(o.passed ? L.t('levelDone').replaceAll('{n}', '1') : L.t('levelAlmost').replaceAll('{n}', '1').toUpperCase()),
         findsOneWidget, reason: 'вердикт словами итога');
     // Лестница: засчитанный уровень ведёт на следующий.
     final prefs = await SharedPreferences.getInstance();
@@ -165,7 +166,7 @@ void main() {
     final d = reports.single['details'] as Map<String, dynamic>;
     expect([d['reason'], d['walls']], ['fell', 0]);
     expect(find.byKey(const Key('nr-finale')), findsNothing, reason: 'после падения финала нет');
-    expect(find.text(L.t('retry').toUpperCase()), findsWidgets);
+    expect(find.text(L.t('retry')), findsWidgets, reason: 'итог каркаса: «Ещё раз» на том же уровне');
   });
 
   testWidgets('«Свободно»: забег на 12 этапов, в капсуле этап, а не уровень', (tester) async {

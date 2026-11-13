@@ -44,7 +44,7 @@ Future<void> solve(WidgetTester tester) async {
     await tester.tapAt(origin + Offset(v.x * side, v.y * side));
     await tester.pump();
   }
-  expect(find.text(L.t('nextLabel')), findsOneWidget);
+  expect(find.textContaining(L.t('nextLabel')), findsOneWidget);
 }
 
 void main() {
@@ -73,7 +73,7 @@ void main() {
         isFalse,
       );
       expect(
-        find.text(L.t('nextLabel')),
+        find.textContaining(L.t('nextLabel')),
         findsNothing,
         reason: 'an undone solution is not a completed board',
       );
@@ -90,7 +90,7 @@ void main() {
             ),
       );
       await tester.pump();
-      await tester.tap(find.widgetWithIcon(FilledButton, Icons.arrow_forward));
+      await tester.tap(find.byKey(const Key('level-result-next')));
       await tester.pumpAndSettle();
       expect(reports, hasLength(1));
       await tester.pumpWidget(const SizedBox.shrink());
@@ -108,7 +108,7 @@ void main() {
       };
       await boot(tester, state);
       await solve(tester);
-      await tester.tap(find.widgetWithIcon(FilledButton, Icons.arrow_forward));
+      await tester.tap(find.byKey(const Key('level-result-next')));
       await tester.pump();
       await tester.pumpWidget(const SizedBox.shrink());
       gate.complete();
@@ -144,7 +144,7 @@ void main() {
           LevelLadder.onOutcome = (passed, lesson) => outcomes.add(passed);
           await boot(tester, state);
           await solve(tester);
-          final next = find.widgetWithIcon(FilledButton, Icons.arrow_forward);
+          final next = find.byKey(const Key('level-result-next'));
           await tester.tap(next);
           await tester.pump();
           await tester.tap(next, warnIfMissed: false);
@@ -180,7 +180,7 @@ void main() {
           expect(board.game.trail, isEmpty);
           await solve(tester);
           await tester.tap(
-            find.widgetWithIcon(FilledButton, Icons.arrow_forward),
+            find.byKey(const Key('level-result-next')),
           );
           await tester.pumpAndSettle();
           expect(

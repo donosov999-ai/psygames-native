@@ -101,7 +101,7 @@ void main() {
     }
     expect(hud('hud_correct', '4/4'), isTrue, reason: 'все пары собраны');
     expect(hud('hud_moves', '4'), isTrue, reason: 'четыре хода без промаха');
-    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'уровень пройден');
+    expect(find.textContaining(L.t('nextLabel')), findsOneWidget, reason: 'уровень пройден');
     expect(hud('level', '2'), isTrue, reason: 'лестница подняла уровень');
     // Экран разбирается ВНУТРИ теста: 48 картинок грузятся настоящей асинхронностью,
     // и живое дерево после конца теста вешало его сборку (замер 30.09: 10 минут, 0 % ЦП).
@@ -141,7 +141,7 @@ void main() {
     // (2 за секунду) — сверка веб → натив 02.10.2026; веб считает по gameNow.
     await boot(tester, level: 1);
     await playLevel(tester, level: 1, midHold: const Duration(seconds: 30));
-    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'уровень пройден');
+    expect(find.textContaining(L.t('nextLabel')), findsOneWidget, reason: 'уровень пройден');
     final t = sent.single['time_seconds'] as int;
     expect(t, lessThan(10), reason: 'партия шла пару секунд, 30 секунд паузы — не партия; в отчёте $t');
     await tester.pumpWidget(const SizedBox());
