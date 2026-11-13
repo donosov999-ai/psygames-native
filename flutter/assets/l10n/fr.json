@@ -473,7 +473,7 @@
 "cosName_title_unstoppable":"Inarrêtable",
 "counter":"Compteur : calcul",
 "counterDesc":"Forme des sommes X+Y=Z",
-"counterHint":"Touche des nombres jusqu’à atteindre la somme demandée",
+"counterHint":"Touche ou glisse sur les nombres jusqu’à atteindre la somme demandée",
 "counterIntroDesc":"Touche des nombres de la grille jusqu'à atteindre la somme demandée. Trouve les nombres dont la somme égale la cible. Entraîne le calcul mental et l'analyse rapide des options.",
 "countingGroup":"Calcul",
 "countingGroupDesc":"Les nombres en tête : compter, estimer, vitesse",

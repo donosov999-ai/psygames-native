@@ -473,7 +473,7 @@
 "cosName_title_unstoppable":"止まらない",
 "counter":"カウンター：計算",
 "counterDesc":"X+Y=Z の和を作る",
-"counterHint":"数字をタップして、上の合計をつくる",
+"counterHint":"数字をタップかなぞって、上の合計をつくる",
 "counterIntroDesc":"合計が目標になるまで、マスの数字をタップします。合計が目標値になる数字を探します。暗算と、選択肢を素早く分析する力を鍛えます。",
 "countingGroup":"計算",
 "countingGroupDesc":"頭の中の数：数える・見積もる・速さ",

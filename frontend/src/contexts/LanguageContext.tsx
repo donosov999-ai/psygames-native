@@ -2052,7 +2052,7 @@ const translations: Translations = {
    */
   hint_center_arrow: { ru: 'Отвечай по ЦЕНТРАЛЬНОЙ стрелке — боковые сбивают', en: 'Answer by the CENTRE arrow — the side ones mislead' },
   choiceRtHint:     { ru: 'Появилась стрелка — жми кнопку той же стороны',      en: 'When an arrow appears, press the button on the same side' },
-  counterHint:      { ru: 'Тапай числа, пока не наберётся нужная сумма',        en: 'Tap numbers until they add up to the target' },
+  counterHint:      { ru: 'Тапай или веди пальцем по числам, пока не наберётся нужная сумма', en: 'Tap or swipe across the numbers until they add up to the target' },
   picturePairsHint: { ru: 'Открывай по две карточки и запоминай, где что',      en: 'Flip two cards at a time and remember what is where' },
   schulteHint:      { ru: 'Тапай числа по порядку — какое искать, написано сверху', en: 'Tap the numbers in order — the one to find is shown above' },
   sdmtHint:         { ru: 'Смотри на ключ сверху: под каждым знаком своя цифра', en: 'Use the key above: every symbol has its own digit' },
