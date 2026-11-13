@@ -3842,6 +3842,10 @@ const t: Record<string, string> = {
   "pauseExperiencedOnly": "仅适用于已掌握的技巧",
   "pauseWarningsTitle": "开始之前",
   "pausePracticeComplete": "练习完成",
+  "suiteSum": "凑出总和",
+  "suiteSumDesc": "用场上的数字凑出目标和：在网格里限时抢答，或用筹码做数的分解",
+  "suiteModeSpeed": "拼速度",
+  "suiteModeComposition": "数的分解",
   "dropModeDrag": "拖动",
   "dropModeTap": "点按",
 };

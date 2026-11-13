@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 /// 🔴 КАЖДАЯ ИГРА НАБОРА ДОСТИЖИМА ИЗ РАЗВИЛКИ: на её экране стоят плашки набора
-/// (`SuiteSwitch(route: '<её маршрут>'`).
+/// (`SuiteSwitch(route: '<её маршрут>'`) либо пункт «Режим» (`SuiteModeAction(route: …)`).
 ///
 /// У набора в развилке ОДНА карточка (`gameSuites.ts`): до остальных его игр человек доходит только
 /// плашками «Режим» на экране настройки. Замер 02.10.2026: плашек не было ни в одном нативном экране,
@@ -30,7 +30,10 @@ void main() {
         routes++;
         final route = m['route'] as String;
         final file = File(_screenOf[route] ?? 'lib/games/${route.split('/').last.replaceAll('-', '_')}/screen.dart');
-        final has = file.existsSync() && file.readAsStringSync().contains("SuiteSwitch(route: '$route'");
+        // Плашки на экране настройки (`SuiteSwitch`) ИЛИ пункт «Режим» в ряду значков
+        // (`SuiteModeAction`) — для игр, где партия начинается сразу и экрана настройки нет.
+        final src = file.existsSync() ? file.readAsStringSync() : '';
+        final has = src.contains("SuiteSwitch(route: '$route'") || src.contains("SuiteModeAction(route: '$route'");
         if (!has && !_debt.containsKey(route)) missing.add('$route (${file.path})');
         if (has && _debt.containsKey(route)) stale.add('$route — сними строку из _debt (${_debt[route]})');
       }

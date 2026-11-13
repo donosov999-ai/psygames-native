@@ -3838,6 +3838,10 @@ const t: Record<string, string> = {
   "pauseExperiencedOnly": "فقط لتقنية أتقنتها من قبل",
   "pauseWarningsTitle": "قبل أن تبدأ",
   "pausePracticeComplete": "اكتمل التمرين",
+  "suiteSum": "كوّن المجموع",
+  "suiteSumDesc": "كوّن المجموع المطلوب من أرقام الحقل: بالسرعة على الشبكة أو كتفكيك للعدد باستخدام الرقائق",
+  "suiteModeSpeed": "بالسرعة",
+  "suiteModeComposition": "تفكيك العدد",
   "dropModeDrag": "اسحب",
   "dropModeTap": "المس",
 };
