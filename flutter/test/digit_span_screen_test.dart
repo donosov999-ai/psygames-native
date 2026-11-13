@@ -466,4 +466,24 @@ void main() {
     }, where: 'digit-span L15, ввод');
     await tester.pumpWidget(const SizedBox());
   });
+
+  // Отзыв 0ff51b76 (iPhone 430 pt, 2.56.24): «клава мелкая». Ряд из трёх клавиш занимал 52 % ширины.
+  for (final w in [360.0, 430.0]) {
+    testWidgets('🔴 клавиши ответа на ${w.toInt()} pt: каждая ≥ 96 pt в ширину, ряд из трёх ≥ 75 % ширины (0ff51b76)',
+        (tester) async {
+      tester.view.physicalSize = Size(w, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await boot(tester, level: 1);
+      await tester.tap(find.byKey(const Key('ds-start')));
+      await pumpUntil(tester, () => inputOpen(tester));
+      final one = tester.getRect(find.byKey(const Key('ds-key-1')));
+      final three = tester.getRect(find.byKey(const Key('ds-key-3')));
+      expect(one.width, greaterThanOrEqualTo(96), reason: 'клавиша «1»: $one');
+      expect(one.height, greaterThanOrEqualTo(48), reason: 'высота клавиши $one');
+      expect((three.right - one.left) / w, greaterThanOrEqualTo(0.75), reason: 'ряд $one … $three на $w pt');
+      expect(three.right, lessThanOrEqualTo(w), reason: 'ряд не вылезает за экран');
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
 }

@@ -766,8 +766,9 @@ class _Answer extends StatelessWidget {
   }
 }
 
-/// Ряд клавиш как на телефоне: 1-2-3 / 4-5-6 / 7-8-9 / ·-0-«Стереть». Клавиша 64×52 — веб замерял
-/// ширину 360 pt (3·64 + 2·10 = 212 ≤ 228). «Готово» нет: ответ проверяется сам на последней цифре.
+/// Ряд клавиш как на телефоне: 1-2-3 / 4-5-6 / 7-8-9 / ·-0-«Стереть». Клавиша растёт с шириной
+/// экрана: от 64×52 до 104×60 (отзыв 0ff51b76, iPhone 430 pt: ряд из трёх клавиш занимал 52 % ширины,
+/// «клава мелкая»). Веб замерял ширину 360 pt (3·64 + 2·10 = 212 ≤ 228); на 360 pt клавиша теперь 104. «Готово» нет: ответ проверяется сам на последней цифре.
 class _Keypad extends StatelessWidget {
   const _Keypad({required this.on, required this.onDigit, required this.onErase});
 
@@ -775,11 +776,17 @@ class _Keypad extends StatelessWidget {
   final ValueChanged<int> onDigit;
   final VoidCallback onErase;
 
-  Widget _key(BuildContext context, String id, Widget child, VoidCallback onTap, String a11y) => Padding(
+  /// Размер клавиши по ширине места: три клавиши с отступами и полями в ряд, не меньше прежних 64×52.
+  static Size keySize(double width) {
+    final w = ((width - 16) / 3 - 10).clamp(64.0, 104.0);
+    return Size(w, w >= 96 ? 60 : 52);
+  }
+
+  Widget _key(BuildContext context, String id, Widget child, VoidCallback onTap, String a11y, Size size) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 5),
         child: SizedBox(
-          width: 64,
-          height: 52,
+          width: size.width,
+          height: size.height,
           child: Semantics(
             label: a11y,
             button: true,
@@ -794,9 +801,16 @@ class _Keypad extends StatelessWidget {
       );
 
   @override
-  Widget build(BuildContext context) {
-    Widget digit(int d) => _key(context, 'ds-key-$d', Text('$d', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
-        () => onDigit(d), '$d');
+  Widget build(BuildContext context) => LayoutBuilder(builder: (context, c) => _pad(context, keySize(c.maxWidth)));
+
+  Widget _pad(BuildContext context, Size size) {
+    Widget digit(int d) => _key(
+        context,
+        'ds-key-$d',
+        Text('$d', style: TextStyle(fontSize: size.height >= 60 ? 26 : 22, fontWeight: FontWeight.w700)),
+        () => onDigit(d),
+        '$d',
+        size);
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 4, 8, 10),
       child: Column(
@@ -812,9 +826,9 @@ class _Keypad extends StatelessWidget {
               child: Row(mainAxisSize: MainAxisSize.min, children: [for (final d in row) digit(d)]),
             ),
           Row(mainAxisSize: MainAxisSize.min, children: [
-            const SizedBox(width: 74),
+            SizedBox(width: size.width + 10),
             digit(0),
-            _key(context, 'ds-key-erase', const Icon(Icons.backspace_outlined, size: 20), onErase, L.t('a11yErase')),
+            _key(context, 'ds-key-erase', const Icon(Icons.backspace_outlined, size: 20), onErase, L.t('a11yErase'), size),
           ]),
         ],
       ),
