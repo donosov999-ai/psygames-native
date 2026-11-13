@@ -121,10 +121,15 @@ export const PACE_STEPS: Pace[] = ['slow', 'normal', 'fast'];
  */
 
 export function levelParams(level: number): { startLen: number; showMs: number; gapMs: number; reverse: boolean; holdMs: number; surpriseDir: boolean } {
-  const startLen = Math.min(9, 3 + level);              // L1=4 → L6=9, дальше держим 9
-  const fast = Math.max(0, level - 6);                   // за потолком длины (L7+) ускоряем показ
-  const showMs = Math.max(350, 700 - fast * 45);
-  const gapMs = Math.max(550, 1100 - fast * 70);
+  // 🔴 ПЛАВНЕЕ (Денис 13.11.2026): было 3 + level — к L6 уже девять цифр. Теперь +1 к старту раз в
+  // два уровня: L1–2 = 4 … L9–10 = 8, с L11 держим 9; дальше растут другие оси (показ, обратный ввод, задержка).
+  const startLen = Math.min(9, 4 + Math.floor((level - 1) / 2));
+  const fast = Math.max(0, level - 6);                   // с L7 ускоряем показ
+  // Мягкий старт (13.11.2026): длина растёт раз в два уровня, и пара уровней с одной длиной не должна быть клоном
+  // (правило раздела «клонов нет»). L1–L5 идут чуть медленнее прежнего темпа, L6 и выше — как было.
+  const easy = Math.max(0, 6 - level);
+  const showMs = Math.max(350, 700 - fast * 45 + easy * 24);
+  const gapMs = Math.max(550, 1100 - fast * 70 + easy * 50);
   const reverse = level >= 11;                            // L11+ — обязательный обратный ввод
   const holdMs = Math.max(0, level - DS_VOLUME_TOP) * 700;
   /**
@@ -266,20 +271,29 @@ export function drawDirection(rng: () => number = Math.random): Direction {
  * методика. Модель игрока показывает недомер около 0,1 спана — немного, но это
  * ЗАМЕРЯЕМАЯ величина, и врать в ней нельзя даже на десятую.
  */
-export function spanStep(o: { seqLen: number; round: number; atLenErrors: number; correct: boolean }): { nextLen: number; cont: boolean; atLenErrors: number } {
+export const DS_ROWS_TO_GROW = 2;   // верных рядов подряд на одной длине, чтобы взять следующую
+
+export function spanStep(o: { seqLen: number; round: number; atLenErrors: number; correct: boolean; streak: number }): { nextLen: number; cont: boolean; atLenErrors: number; streak: number } {
   const { seqLen, round, correct } = o;
   let nextLen = seqLen;
   let cont = true;
   // Ошибки НА ТЕКУЩЕЙ ДЛИНЕ: обнуляются, как только длина взята.
   let atLenErrors = o.atLenErrors;
+  let streak = o.streak;
   if (correct) {
-    nextLen = seqLen + 1;
-    atLenErrors = 0;
+    // Длина растёт только после DS_ROWS_TO_GROW верных подряд (было: после каждого верного).
+    streak += 1;
+    if (streak >= DS_ROWS_TO_GROW) {
+      nextLen = seqLen + 1;
+      atLenErrors = 0;
+      streak = 0;
+    }
   } else {
+    streak = 0;
     atLenErrors += 1;
     if (atLenErrors >= 2 || round >= 12) cont = false;
   }
-  return { nextLen, cont, atLenErrors };
+  return { nextLen, cont, atLenErrors, streak };
 }
 
 /** Партия кончена: две ошибки на длине (или двенадцатый раунд), либо длина ушла за двенадцать. */
@@ -440,6 +454,7 @@ export default function DigitSpanGame() {
    * внутри того же обработчика, что и запись, — состояние туда не успело бы доехать.
    */
   const errorsAtLenRef = useRef(0);
+  const streakRef = useRef(0);   // верных рядов подряд на текущей длине
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [clearedPassed, setClearedPassed] = useState(true);
@@ -517,6 +532,7 @@ export default function DigitSpanGame() {
       : p.startLen;
     setCorrectRounds(0); setMaxSpan(0); setRound(1); setErrors(0);
     errorsAtLenRef.current = 0;   // новая партия — счёт ошибок на длине с нуля
+    streakRef.current = 0;
     setStartTime(gameNow());
     setSeqLen(startLen);
     showSequence(startLen);
@@ -614,7 +630,7 @@ export default function DigitSpanGame() {
     let updatedCorrect = correctRounds;
     let updatedErrors = errors;
     // Шаг лесенки — общим правилом (spanStep): ошибки считаются НА ТЕКУЩЕЙ ДЛИНЕ.
-    const step = spanStep({ seqLen, round, atLenErrors: errorsAtLenRef.current, correct });
+    const step = spanStep({ seqLen, round, atLenErrors: errorsAtLenRef.current, correct, streak: streakRef.current });
     const { nextLen, atLenErrors } = step;
 
     if (correct) {
@@ -624,6 +640,7 @@ export default function DigitSpanGame() {
       updatedErrors += 1;
     }
     errorsAtLenRef.current = atLenErrors;
+    streakRef.current = step.streak;
     setCorrectRounds(updatedCorrect);
     setMaxSpan(updatedMax);
     setErrors(updatedErrors);

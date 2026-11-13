@@ -43,7 +43,8 @@ class LevelParams {
     required this.surpriseDir,
   });
 
-  /// Длина ряда на старте уровня: L1 = 4 … L6 = 9, дальше держим 9.
+  /// Длина ряда на старте уровня: +1 раз в два уровня — L1–2 = 4 … L9–10 = 8, с L11 держим 9
+  /// (Денис 13.11.2026: «сложность слишком быстрая», было 3 + уровень — девять цифр уже к L6).
   final int startLen;
 
   /// Сколько цифра держится на экране.
@@ -63,10 +64,13 @@ class LevelParams {
 
   static LevelParams of(int level) {
     final fast = max(0, level - 6);
+    // Мягкий старт (13.11.2026): длина растёт раз в два уровня, и пара уровней с одной длиной не должна быть
+    // клоном (правило раздела «клонов нет»). L1–L5 идут чуть медленнее прежнего темпа, L6 и выше — как было.
+    final easy = max(0, 6 - level);
     return LevelParams(
-      startLen: min(9, 3 + level),
-      showMs: max(350, 700 - fast * 45),
-      gapMs: max(550, 1100 - fast * 70),
+      startLen: min(9, 4 + (level - 1) ~/ 2),
+      showMs: max(350, 700 - fast * 45 + easy * 24),
+      gapMs: max(550, 1100 - fast * 70 + easy * 50),
       reverse: level >= 11,
       holdMs: max(0, level - dsVolumeTop) * 700,
       surpriseDir: level > dsVolumeTop,
@@ -104,6 +108,15 @@ const _paceMs = {
   return _paceMs[pace]!;
 }
 
+/// Способ подачи при открытии экрана: шаг зарядки — по параметру шага (без него, как раньше, по одной
+/// цифре); личная игра — параметр адреса, иначе сохранённый выбор игрока, иначе «весь ряд сразу»
+/// (решение Дениса 13.11.2026).
+Delivery initialDelivery({required bool isWarmup, required String param, required String? stored}) {
+  Delivery? byName(String? n) => Delivery.values.asNameMap()[n ?? ''];
+  if (isWarmup) return byName(param) ?? Delivery.screen;
+  return byName(param) ?? byName(stored) ?? Delivery.all;
+}
+
 /// ЧЕМ ПОДАЁМ НА САМОМ ДЕЛЕ: голос обещать нельзя, пока говорить нечем — тогда партия идёт
 /// экраном, а причина молчания написана на экране настроек. Два экранных способа отдают себя.
 Delivery effectiveDelivery(Delivery chosen, VoiceBlock? block) {
@@ -131,21 +144,30 @@ List<int> generateSeq(int len, double Function() rng) => [for (var i = 0; i < le
 /// Ось 9: направление разыгрывается ОДИН раз на партию, до первого ряда (веб `drawDirection`).
 Direction drawDirection(double Function() rng) => Direction.values[(rng() * Direction.values.length).floor()];
 
-/// Шаг лесенки длин — веб `spanStep`: верно → длина +1 и счёт ошибок на длине с нуля; неверно →
-/// +1 ошибка на ЭТОЙ длине, две — стоп (и стоп на двенадцатом раунде).
-({int nextLen, bool cont, int atLenErrors}) spanStep({
+/// Верных рядов подряд на одной длине, чтобы взять следующую (было: после каждого верного).
+const dsRowsToGrow = 2;
+
+/// Шаг лесенки длин — веб `spanStep`: верно → после [dsRowsToGrow] верных подряд длина +1 и счёт
+/// ошибок на длине с нуля; неверно → серия верных обнуляется, +1 ошибка на ЭТОЙ длине, две — стоп
+/// (и стоп на двенадцатом раунде).
+({int nextLen, bool cont, int atLenErrors, int streak}) spanStep({
   required int seqLen,
   required int round,
   required int atLenErrors,
   required bool correct,
+  required int streak,
 }) {
-  if (correct) return (nextLen: seqLen + 1, cont: true, atLenErrors: 0);
+  if (correct) {
+    final run = streak + 1;
+    if (run >= dsRowsToGrow) return (nextLen: seqLen + 1, cont: true, atLenErrors: 0, streak: 0);
+    return (nextLen: seqLen, cont: true, atLenErrors: atLenErrors, streak: run);
+  }
   final at = atLenErrors + 1;
-  return (nextLen: seqLen, cont: !(at >= 2 || round >= 12), atLenErrors: at);
+  return (nextLen: seqLen, cont: !(at >= 2 || round >= 12), atLenErrors: at, streak: 0);
 }
 
 /// Партия кончена — веб `spanFinished`.
-bool spanFinished(({int nextLen, bool cont, int atLenErrors}) step) => !step.cont || step.nextLen > 12;
+bool spanFinished(({int nextLen, bool cont, int atLenErrors, int streak}) step) => !step.cont || step.nextLen > 12;
 
 /// Метки партии в статистике — веб `sessionLabels`: шаг «Оценки» пишет свои (diff + направление),
 /// личная игра — направление и последнюю длину.
@@ -171,6 +193,9 @@ class DigitSpanSession {
   int seqLen;
   int round = 1;
   int atLenErrors = 0;
+
+  /// Верных рядов подряд на текущей длине.
+  int streak = 0;
   int correctRounds = 0;
   int maxSpan = 0;
   int errors = 0;
@@ -212,7 +237,7 @@ class DigitSpanSession {
   /// Сдать ряд — шаг лесенки. true — партия кончена (длина и раунд тогда не двигаются).
   bool submit() {
     final correct = rowCorrect;
-    final step = spanStep(seqLen: seqLen, round: round, atLenErrors: atLenErrors, correct: correct);
+    final step = spanStep(seqLen: seqLen, round: round, atLenErrors: atLenErrors, correct: correct, streak: streak);
     if (correct) {
       correctRounds += 1;
       maxSpan = max(maxSpan, seqLen);
@@ -220,6 +245,7 @@ class DigitSpanSession {
       errors += 1;
     }
     atLenErrors = step.atLenErrors;
+    streak = step.streak;
     if (spanFinished(step)) return finished = true;
     if (correct) seqLen = step.nextLen;
     round += 1;
