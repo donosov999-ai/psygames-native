@@ -74,7 +74,12 @@ void main() {
 
     final matrixCard = find.byKey(const ValueKey('hub-card-/games/memory-matrix'));
     await until(t, () => matrixCard.evaluate().isNotEmpty);
+    // Строки «Классики» с картинкой выше прежних: картинки догружаются после первой прокрутки,
+    // поэтому довести карточку до экрана ещё раз, когда кадр устоялся.
     await t.ensureVisible(matrixCard);
+    await t.pump(const Duration(milliseconds: 300));
+    await t.ensureVisible(matrixCard);
+    await t.pump(const Duration(milliseconds: 100));
     await t.tap(matrixCard);
     await until(t, () => chip('/games/corsi').evaluate().isNotEmpty);
 

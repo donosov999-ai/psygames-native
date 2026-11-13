@@ -774,6 +774,37 @@ class _HubScreenState extends State<HubScreen> {
     );
   }
 
+  Widget _classicArt(HubCard c, ColorScheme scheme) {
+    final art = HubArt.resolve(_hubArt, c.route, Theme.of(context).brightness);
+    final file = hubIconFile(_icons, c);
+    Widget icon() => file != null
+        ? Image.asset(
+            'assets/game_icons/$file',
+            fit: BoxFit.cover,
+            excludeFromSemantics: true,
+          )
+        : ColoredBox(
+            color: scheme.secondaryContainer,
+            child: Icon(hubIcon(c.icon), color: scheme.onSecondaryContainer),
+          );
+    return ClipRRect(
+      // Скруглённый квадрат, как в каталоге: круг срезал бы углы картинки.
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox.square(
+        key: ValueKey('hub-icon-${c.route}'),
+        dimension: 64,
+        child: art == null
+            ? icon()
+            : Image.asset(
+                art,
+                fit: BoxFit.cover,
+                excludeFromSemantics: true,
+                errorBuilder: (_, _, _) => icon(),
+              ),
+      ),
+    );
+  }
+
   Widget _aurora(List<HubCard>? cards, List<String> skills) => Scaffold(
     bottomNavigationBar: NativeTabs.tabs.isEmpty
         ? null
@@ -1006,27 +1037,10 @@ class _HubScreenState extends State<HubScreen> {
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
                       key: ValueKey('hub-card-${c.route}'),
-                      leading: switch (hubIconFile(_icons, c)) {
-                        final file? => ClipRRect(
-                          // Скруглённый квадрат, как в каталоге: круг срезал бы углы поля игры.
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.asset(
-                            'assets/game_icons/$file',
-                            key: ValueKey('hub-icon-${c.route}'),
-                            width: 40,
-                            height: 40,
-                            fit: BoxFit.cover,
-                            excludeFromSemantics: true,
-                          ),
-                        ),
-                        _ => CircleAvatar(
-                          backgroundColor: scheme.secondaryContainer,
-                          child: Icon(
-                            hubIcon(c.icon),
-                            color: scheme.onSecondaryContainer,
-                          ),
-                        ),
-                      },
+                      // Картинка Кодекса и в «Классике» (Денис 13.11: «да, 2 делай») —
+                      // крупнее прежнего значка, описание строки остаётся. Нет картинки —
+                      // прежний значок каталога.
+                      leading: _classicArt(c, scheme),
                       title: Text(
                         c.name,
                         style: const TextStyle(fontWeight: FontWeight.w700),
