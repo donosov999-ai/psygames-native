@@ -376,10 +376,17 @@ class _ClozeScreenState extends State<ClozeScreen> {
             Text('${L.t('hud_correct')}: $_correct / ${_rounds.length} · ${L.t('hud_errors')}: $_errors',
                 key: const Key('cloze-score')),
             const SizedBox(height: 20),
+            // 🔴 Денис 12.11: «Дальше» после уровня — сразу следующая партия, не настройки.
             FilledButton(
               key: const Key('cloze-again'),
-              onPressed: () => setState(() => _phase = ClozePhase.config),
+              onPressed: _start,
               child: Text(_passed ? L.t('nextLabel') : L.t('retry')),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              key: const Key('cloze-to-settings'),
+              onPressed: () => setState(() => _phase = ClozePhase.config),
+              child: Text(L.t('settings')),
             ),
           ]),
         ),

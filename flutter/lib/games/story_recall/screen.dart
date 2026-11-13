@@ -395,10 +395,17 @@ class _StoryRecallScreenState extends State<StoryRecallScreen> {
           Text('${L.t('storyImmediate')}: $_hits1 / $total', key: const Key('story-hits1')),
           Text('${L.t('storyDelayed')}: $_hits2 / $total', key: const Key('story-hits2')),
           const SizedBox(height: 20),
+          // 🔴 Денис 12.11: «Дальше» после уровня — сразу следующая партия, не настройки.
           FilledButton(
             key: const Key('story-again'),
-            onPressed: () => setState(() => _phase = StoryPhase.config),
+            onPressed: _start,
             child: Text(L.t('nextNow')),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            key: const Key('story-to-settings'),
+            onPressed: () => setState(() => _phase = StoryPhase.config),
+            child: Text(L.t('settings')),
           ),
         ]),
       ),

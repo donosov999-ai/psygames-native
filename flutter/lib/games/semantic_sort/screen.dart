@@ -658,10 +658,19 @@ class _SemanticSortScreenState extends State<SemanticSortScreen> {
               key: const Key('semantic-score'),
             ),
             const SizedBox(height: 20),
+            // 🔴 12.11.2026, Денис: «после прохождения уровня вместо следующего
+            // выкидывает в настройки». «Дальше» / «Ещё раз» сразу запускают партию
+            // (уровень уже взят лестницей); настройки — отдельной кнопкой.
             FilledButton(
               key: const Key('semantic-again'),
-              onPressed: () => setState(() => _phase = SemanticPhase.config),
+              onPressed: _start,
               child: Text(_passed ? L.t('nextLabel') : L.t('retry')),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              key: const Key('semantic-to-settings'),
+              onPressed: () => setState(() => _phase = SemanticPhase.config),
+              child: Text(L.t('settings')),
             ),
           ],
         ),
