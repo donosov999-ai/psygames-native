@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -10,6 +9,7 @@ import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/l10n.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
@@ -67,8 +67,8 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
   bool _ready = false;
   _Phase _phase = _Phase.playing;
   int _leftMs = 0;
-  Timer? _tick;
-  Timer? _next;
+  GameTimer? _tick;
+  GameTimer? _next;
 
   /// Тень генератора уровней (звено 4, задача 4e584381): раздача с новой партией, исход до лестницы.
   late final LadderShadow _shadow =
@@ -128,7 +128,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
     _leftMs = _cfg.windowMs;
     if (_cfg.windowMs <= 0) return;
     // Окно на задачу: просрочка засчитывается ошибкой, как в вебе.
-    _tick = Timer.periodic(const Duration(milliseconds: 100), (_) {
+    _tick = gameInterval(const Duration(milliseconds: 100), () {
       if (!mounted) return;
       setState(() => _leftMs = math.max(0, _leftMs - 100));
       if (_leftMs <= 0) _fail(late: true);
@@ -182,7 +182,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
 
   void _after() {
     _next?.cancel();
-    _next = Timer(_feedbackDelay, () async {
+    _next = gameTimeout(_feedbackDelay, () async {
       if (!mounted) return;
       if (_round >= _cfg.trials) {
         final passed = _errors <= bondsErrorsAllowed;
@@ -223,7 +223,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
 
   /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
   /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => L.t('numberBonds');
+  String get _title => L.t('suiteSum');
 
   /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
   /// а вот чем объём берётся — нет.
