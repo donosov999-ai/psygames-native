@@ -40,6 +40,7 @@ describe('digit-span: лестница различает соседние ур�
     expect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((L) => levelParams(L).startLen)).toEqual([4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9]);
     // пара уровней с одной длиной различается мягким стартовым темпом (L6 и выше — прежний темп)
     expect(levelParams(1).showMs).toBeGreaterThan(levelParams(2).showMs);
+    expect(levelParams(1).gapMs).toBe(1350);   // и digit-span-modes.test.ts держит эту паузу в L1_GAP
     expect(`${levelParams(6).showMs}/${levelParams(6).gapMs}`).toBe('700/1100');
     expect(levelParams(10).reverse).toBe(false);
     expect(levelParams(11).reverse).toBe(true);
