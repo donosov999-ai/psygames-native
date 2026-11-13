@@ -13,6 +13,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/swipe_select.dart';
 import '../../shell/tap_latency.dart';
 import '../fillwords/core/fillwords.dart';
 import 'fillwords_round.dart';
@@ -24,26 +25,13 @@ const Color fwHintColor = Color(0xFF99F6E4);
 /// Вид клетки: заливка, цвет буквы (null — цвет темы), жирность.
 typedef FwCellLook = ({Color? bg, Color? ink, bool bold});
 
-/// Клетка под пальцем — по ШАГУ сетки (зазор плитки внутри шага).
-///
-/// 🔴 [inner] — для ведения линии: клетка засчитывается, только когда палец в её середине
-/// ([fwInnerShare] стороны), у края — null, линия не меняется. Отчёт игрока e39ce923 (10.10.2026,
-/// «не выделяется последнее чтобы финишировать»): на ДИАГОНАЛЬНОМ шаге палец проходит угол и
-/// задевает соседнюю клетку того же слова раньше времени — линия сбивается, слово не сдаётся.
-/// Замер 29.10 (ru, L1–30, каждое слово последним, палец с дрожью 15 % клетки): без зоны не
-/// выделялось 943 из 2685 последних слов (35,1 %), с зоной — 0. Первое касание — без зоны: с
-/// какой клетки начать, человек выбирает сам.
-int? fwCellAt(Offset o, {required double cell, required int rows, required int cols, bool inner = false}) {
-  final col = (o.dx / cell).floor().clamp(0, cols - 1);
-  final row = (o.dy / cell).floor().clamp(0, rows - 1);
-  if (inner) {
-    final cx = (col + 0.5) * cell, cy = (row + 0.5) * cell;
-    final half = cell * fwInnerShare / 2;
-    if ((o.dx - cx).abs() > half || (o.dy - cy).abs() > half) return null;
-  }
-  return row * cols + col;
-}
-
+/// 🔴 Ведение линии засчитывает клетку, только когда палец в её СЕРЕДИНЕ ([fwInnerShare] стороны).
+/// Отчёт игрока e39ce923 (10.10.2026, «не выделяется последнее чтобы финишировать»): на
+/// ДИАГОНАЛЬНОМ шаге палец проходит угол и задевает соседнюю клетку того же слова раньше времени —
+/// линия сбивается, слово не сдаётся. Замер 29.10 (ru, L1–30, каждое слово последним, палец с
+/// дрожью 15 % клетки): без зоны не выделялось 943 из 2685 последних слов (35,1 %), с зоной — 0.
+/// Первое касание — вся клетка: с какой клетки начать, человек выбирает сам. Сам жест — общий
+/// компонент каркаса `SwipeTrack` (`shell/swipe_select.dart`).
 /// Доля стороны клетки, в которой засчитывается ведение линии.
 const double fwInnerShare = 0.65;
 
@@ -77,8 +65,6 @@ class FwGrid extends StatelessWidget {
   final VoidCallback? onRelease;
   final ValueChanged<int>? onTapCell;
 
-  int _cellAt(Offset o) => fwCellAt(o, cell: cell, rows: rows, cols: cols)!;
-
   Widget _tile(BuildContext context, int index) {
     final theme = Theme.of(context);
     final l = look(index);
@@ -107,7 +93,7 @@ class FwGrid extends StatelessWidget {
       ),
     );
     final tap = onTapCell;
-    if (tap == null) return tile;
+    if (tap == null) return SwipeTarget(index: index, child: tile);
     return TapLatency(
       where: 'Flutter/ProofreadingSeries',
       child: GestureDetector(onTap: () => tap(index), child: tile),
@@ -124,17 +110,14 @@ class FwGrid extends StatelessWidget {
       ]),
     );
     if (onTapCell != null) return KeyedSubtree(key: Key('$keyPrefix-grid'), child: grid);
-    return Listener(
+    return SwipeTrack(
       key: Key('$keyPrefix-grid'),
-      behavior: HitTestBehavior.opaque,
-      onPointerDown: (e) => onTouch?.call(_cellAt(e.localPosition)),
-      // Ведение линии засчитывает клетку только в её середине — см. [fwCellAt].
-      onPointerMove: (e) {
-        final c = fwCellAt(e.localPosition, cell: cell, rows: rows, cols: cols, inner: true);
-        if (c != null) onDrag?.call(c);
+      innerShare: fwInnerShare,
+      onStart: (c, _) {
+        if (c != null) onTouch?.call(c);
       },
-      onPointerUp: (_) => onRelease?.call(),
-      onPointerCancel: (_) => onRelease?.call(),
+      onEnter: (c, _) => onDrag?.call(c),
+      onEnd: onRelease,
       child: grid,
     );
   }

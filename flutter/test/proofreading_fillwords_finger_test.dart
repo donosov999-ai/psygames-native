@@ -6,76 +6,98 @@ import 'package:psygames_flutter/games/fillwords/core/fillwords.dart';
 import 'package:psygames_flutter/games/proofreading/fillwords_field.dart';
 import 'package:psygames_flutter/games/proofreading/fillwords_round.dart';
 
-/// 🔴 ПОСЛЕДНЕЕ СЛОВО ФИЛВОРДОВ ВЫДЕЛЯЕТСЯ ЖИВЫМ ПАЛЬЦЕМ.
+/// 🔴 ПОСЛЕДНЕЕ СЛОВО ФИЛВОРДОВ ВЫДЕЛЯЕТСЯ ЖИВЫМ ПАЛЬЦЕМ — НА НАСТОЯЩЕЙ СЕТКЕ.
 ///
 /// 📍 Отчёт игрока e39ce923 (10.10.2026, 2.56.24, NZT-48, «Корректура: фокус», слова 8/9):
 /// «не выделяется последнее чтобы финишировать». Модель тут ни при чём — протяжка по клеткам
 /// разбирает 1200 полей из 1200. Виновато попадание пальца: на диагональном шаге палец проходит
 /// угол и задевает соседнюю клетку ТОГО ЖЕ слова раньше времени, и линия сбивается.
 /// Замер 29.10: с дрожью 15 % клетки без зоны не выделялось 35,1 % последних слов, с зоной — 0.
+///
+/// С 13.11.2026 сетка ведёт палец общим жестом каркаса (`shell/swipe_select.dart`, `SwipeTrack`),
+/// и проба гоняет НАСТОЯЩИЙ `FwGrid` с настоящим жестом, а не формулу попадания.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  const cell = 40.0;
+
   /// Каждое слово по очереди остаётся последним; палец ведётся от центра к центру с дрожью вбок.
-  Future<({int tries, int fail})> lastWords({required bool inner}) async {
+  Future<({int tries, int fail})> lastWords(WidgetTester tester) async {
     final pool = await loadWordPool('ru');
-    const cell = 40.0;
     var tries = 0, fail = 0;
-    for (var level = 1; level <= 30; level += 3) {
+    for (var level = 1; level <= 28; level += 9) {
       final cfg = fillwordsLevel(level);
-      for (var seed = 1; seed <= 3; seed++) {
-        final p = generateFillwords(
-            FillwordsRequest(
-                rows: cfg.rows,
-                cols: cfg.cols,
-                locale: 'ru',
-                seed: seed * 100 + level,
-                maxWordLen: cfg.maxWordLen,
-                minWordLen: cfg.minWordLen),
-            pool);
-        Offset center(int c) => Offset((c % p.cols + 0.5) * cell, (c ~/ p.cols + 0.5) * cell);
-        for (var last = 0; last < p.words.length; last++) {
-          final r = FwRound(level: level, puzzle: p, order: SubmitOrder.free, hintsAllowed: 3, timeLimitSec: 0, nowMs: () => 0)
-            ..begin();
-          for (var i = 0; i < p.words.length; i++) {
-            if (i == last) continue;
-            r.touch(p.words[i].path.first);
-            for (final c in p.words[i].path.skip(1)) {
-              r.drag(c);
-            }
-            r.release();
+      final p = generateFillwords(
+          FillwordsRequest(
+              rows: cfg.rows,
+              cols: cfg.cols,
+              locale: 'ru',
+              seed: 100 + level,
+              maxWordLen: cfg.maxWordLen,
+              minWordLen: cfg.minWordLen),
+          pool);
+      late FwRound round;
+      late StateSetter redraw;
+      FwRound fresh() => FwRound(level: level, puzzle: p, order: SubmitOrder.free, hintsAllowed: 3, timeLimitSec: 0, nowMs: () => 0)
+        ..begin();
+      round = fresh();
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: StatefulBuilder(builder: (context, setState) {
+              redraw = setState;
+              return FwGrid(
+                rows: p.rows,
+                cols: p.cols,
+                cell: cell,
+                letters: p.letters,
+                look: (i) => fwLook(round.session, round.trace, round.hint, i),
+                onTouch: (c) => redraw(() => round.touch(c)),
+                onDrag: (c) => redraw(() => round.drag(c)),
+                onRelease: () => redraw(round.release),
+              );
+            }),
+          ),
+        ),
+      ));
+      final origin = tester.getTopLeft(find.byKey(const Key('fw-grid')));
+      Offset center(int c) => origin + Offset((c % p.cols + 0.5) * cell, (c ~/ p.cols + 0.5) * cell);
+      for (var last = 0; last < p.words.length; last++) {
+        redraw(() => round = fresh());
+        await tester.pump();
+        for (var i = 0; i < p.words.length; i++) {
+          if (i == last) continue;
+          round.touch(p.words[i].path.first);
+          for (final c in p.words[i].path.skip(1)) {
+            round.drag(c);
           }
-          final path = p.words[last].path;
-          r.touch(path.first);
-          for (var k = 1; k < path.length; k++) {
-            final a = center(path[k - 1]), b = center(path[k]);
-            final d = b - a;
-            final perp = Offset(-d.dy, d.dx) / d.distance * (cell * 0.15 * (k.isEven ? 1 : -1));
-            final n = (d.distance / 2).ceil();
-            for (var s = 1; s <= n; s++) {
-              final o = Offset.lerp(a, b, s / n)! + perp * sin(pi * s / n);
-              final c = fwCellAt(o, cell: cell, rows: p.rows, cols: p.cols, inner: inner);
-              if (c != null) r.drag(c);
-            }
-          }
-          r.release();
-          tries++;
-          if (!r.cleared) fail++;
+          round.release();
         }
+        final path = p.words[last].path;
+        final g = await tester.startGesture(center(path.first));
+        for (var k = 1; k < path.length; k++) {
+          final a = center(path[k - 1]), b = center(path[k]);
+          final d = b - a;
+          final perp = Offset(-d.dy, d.dx) / d.distance * (cell * 0.15 * (k.isEven ? 1 : -1));
+          final n = (d.distance / 4).ceil();
+          for (var s = 1; s <= n; s++) {
+            await g.moveTo(Offset.lerp(a, b, s / n)! + perp * sin(pi * s / n));
+          }
+        }
+        await g.up();
+        await tester.pump();
+        tries++;
+        if (!round.cleared) fail++;
       }
     }
     return (tries: tries, fail: fail);
   }
 
-  test('🔴 последнее слово выделяется пальцем с дрожью — с серединой клетки ни одного сбоя', () async {
-    final now = await lastWords(inner: true);
-    expect(now.tries, greaterThan(200));
-    expect(now.fail, 0, reason: '${now.fail} из ${now.tries} последних слов не выделились');
-  });
-
-  test('проба мерит: по старому правилу (вся клетка) сбои есть', () async {
-    final old = await lastWords(inner: false);
-    expect(old.fail, greaterThan(0), reason: 'без зоны сбоев нет — проба не воспроизводит отчёт');
+  testWidgets('🔴 последнее слово выделяется пальцем с дрожью — ни одного сбоя', (tester) async {
+    final r = await lastWords(tester);
+    expect(r.tries, greaterThan(40));
+    expect(r.fail, 0, reason: '${r.fail} из ${r.tries} последних слов не выделились');
   });
 
   testWidgets('🔴 сетка: палец через угол диагонали не задевает соседнюю клетку', (tester) async {

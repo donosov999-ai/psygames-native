@@ -92,11 +92,4 @@ void main() {
     await tester.pump();
     expect(picked, [4, 5]);
   });
-
-  test('попадание: центр плитки — её номер, пустое место — null', () {
-    for (var i = 0; i < n; i++) {
-      expect(ringTileAt(center(i), n, side), i);
-    }
-    expect(ringTileAt(const Offset(side / 2, side / 2), n, side), isNull);
-  });
 }

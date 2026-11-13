@@ -13,6 +13,7 @@ import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/swipe_select.dart';
 import '../counting_common/generator_shadow.dart';
 import 'model.dart';
 
@@ -154,6 +155,16 @@ class _CounterScreenState extends State<CounterScreen> {
     } else if (_sum > _target) {
       _overshoot();
     }
+  }
+
+  /// Протяжка по плиткам (общий жест каркаса, `shell/swipe_select.dart`): берёт плитку, не
+  /// переключая её; возврат на предыдущую снимает последнюю. Правила суммы те же, что у тапа.
+  void _swipePick(int index) {
+    if (_phase == _Phase.playing && !_picked.contains(index)) _tap(index);
+  }
+
+  void _swipeUnpick(int index) {
+    if (_phase == _Phase.playing && _picked.contains(index)) _tap(index);
   }
 
   void _hit() {
@@ -305,6 +316,8 @@ class _CounterScreenState extends State<CounterScreen> {
         phase: _phase,
         height: h,
         onTap: _tap,
+        onSwipePick: _swipePick,
+        onSwipeUnpick: _swipeUnpick,
       ),
       auxRow: AuxBar(
         children: [
@@ -389,6 +402,8 @@ class _Field extends StatelessWidget {
     required this.phase,
     required this.height,
     required this.onTap,
+    required this.onSwipePick,
+    required this.onSwipeUnpick,
   });
 
   final List<int> numbers;
@@ -399,6 +414,8 @@ class _Field extends StatelessWidget {
   final _Phase phase;
   final double height;
   final void Function(int) onTap;
+  final void Function(int) onSwipePick;
+  final void Function(int) onSwipeUnpick;
 
   @override
   Widget build(BuildContext context) {
@@ -465,19 +482,27 @@ class _Field extends StatelessWidget {
                 child: Center(
                   child: SizedBox(
                     width: board,
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        for (var i = 0; i < numbers.length; i += 1)
-                          _Cell(
-                            key: Key('cell$i'),
-                            value: numbers[i],
-                            size: cell,
-                            selected: picked.contains(i),
-                            onTap: () => onTap(i),
-                          ),
-                      ],
+                    child: SwipeSelect(
+                      isSelected: picked.contains,
+                      onSelect: onSwipePick,
+                      onUnselect: onSwipeUnpick,
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (var i = 0; i < numbers.length; i += 1)
+                            SwipeTarget(
+                              index: i,
+                              child: _Cell(
+                                key: Key('cell$i'),
+                                value: numbers[i],
+                                size: cell,
+                                selected: picked.contains(i),
+                                onTap: () => onTap(i),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -541,12 +566,18 @@ class _Cell extends StatelessWidget {
           ),
           borderRadius: BorderRadius.circular(10),
         ),
+        // 🔴 ЦИФРА — ОТ РАЗМЕРА ПЛИТКИ. Раньше текст без размера лежал в FittedBox под Align
+        // контейнера: Align ослабляет ограничения, FittedBox оставался размером с текст и вверх
+        // не растил — на плитке 90 pt цифра была ~16 pt (скрин Дениса 13.11.2026). Теперь размер
+        // задан плиткой, а FittedBox только ужимает длинные числа.
         child: FittedBox(
+          fit: BoxFit.scaleDown,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               '$value',
               style: TextStyle(
+                fontSize: size * 0.48,
                 fontWeight: FontWeight.w700,
                 color: selected ? scheme.onPrimaryContainer : scheme.onSurface,
               ),
