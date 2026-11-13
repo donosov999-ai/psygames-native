@@ -15,6 +15,7 @@ import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/swipe_select.dart';
 import 'model.dart';
 
 /// ЭКРАН «НАЙДИ ПРИЗНАК» — развилка «Поиск глазами», движок MindLab (решение Дениса
@@ -120,6 +121,16 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
     setState(() {
       if (!_selected.remove(i)) _selected.add(i);
     });
+  }
+
+  /// Протяжка по карточкам (общий жест каркаса, `shell/swipe_select.dart`): берёт карточку, не
+  /// переключая её; возврат на предыдущую снимает последнюю. Отметил — значит «с признаком».
+  void _swipePick(int i) {
+    if (!_checked && !_selected.contains(i)) _toggle(i);
+  }
+
+  void _swipeUnpick(int i) {
+    if (!_checked && _selected.contains(i)) _toggle(i);
   }
 
   /// Проверка по кнопке или по концу времени: тогда проверяется то, что успел отметить.
@@ -241,6 +252,8 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
                 maxW: c.maxWidth,
                 maxH: c.maxHeight,
                 onTap: _checked ? null : _toggle,
+                onSwipePick: _swipePick,
+                onSwipeUnpick: _swipeUnpick,
               ),
             ),
           ),
@@ -357,6 +370,8 @@ class _Grid extends StatelessWidget {
     required this.maxW,
     required this.maxH,
     this.onTap,
+    this.onSwipePick,
+    this.onSwipeUnpick,
   });
 
   final TraitRound round;
@@ -365,6 +380,8 @@ class _Grid extends StatelessWidget {
   final double maxW;
   final double maxH;
   final void Function(int)? onTap;
+  final void Function(int)? onSwipePick;
+  final void Function(int)? onSwipeUnpick;
 
   @override
   Widget build(BuildContext context) {
@@ -375,13 +392,20 @@ class _Grid extends StatelessWidget {
     final cell = math.max(40.0, math.min((maxW - 16 - gap * (cols - 1)) / cols, (maxH - 8 - gap * (rows - 1)) / rows));
     final scheme = Theme.of(context).colorScheme;
     return Center(
-      child: Wrap(
-        spacing: gap,
-        runSpacing: gap,
-        alignment: WrapAlignment.center,
-        children: [
-          for (var i = 0; i < n; i++) _card(context, i, cell, scheme, GameColors.of(context)),
-        ],
+      child: SwipeSelect(
+        enabled: onSwipePick != null && onTap != null,
+        isSelected: selected.contains,
+        onSelect: (i) => onSwipePick?.call(i),
+        onUnselect: (i) => onSwipeUnpick?.call(i),
+        child: Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          alignment: WrapAlignment.center,
+          children: [
+            for (var i = 0; i < n; i++)
+              SwipeTarget(index: i, child: _card(context, i, cell, scheme, GameColors.of(context))),
+          ],
+        ),
       ),
     );
   }

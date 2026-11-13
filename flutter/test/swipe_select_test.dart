@@ -1,7 +1,10 @@
+import 'dart:ui' show Tristate;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/counter/model.dart' as counter;
 import 'package:psygames_flutter/games/counter/screen.dart';
+import 'package:psygames_flutter/games/monster_traits/screen.dart';
 import 'package:psygames_flutter/games/number_bonds/model.dart' as bonds;
 import 'package:psygames_flutter/games/number_bonds/screen.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
@@ -249,5 +252,36 @@ void main() {
     await sweep(tester, [a, b]);
     final sum = tester.widget<Text>(find.byKey(const Key('сумма'))).data!;
     expect(sum, contains('${va + vb}'), reason: 'протяжка по двум фишкам не набрала сумму: «$sum»');
+  });
+
+  // ─── «Найди признак» ───
+
+  testWidgets('🔴 «Найди признак»: протяжка по соседним карточкам отмечает их, возврат снимает', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final state = await SharedState.open();
+    await tester.pumpWidget(MaterialApp(home: MonsterTraitsScreen(state: state, seed: 5)));
+    await tester.pump();
+    await tester.pump();
+    int? i;
+    for (var k = 0; k < 8; k++) {
+      final a = find.byKey(ValueKey('mt-card-$k'));
+      final b = find.byKey(ValueKey('mt-card-${k + 1}'));
+      if (a.evaluate().isEmpty || b.evaluate().isEmpty) break;
+      if ((tester.getCenter(a).dy - tester.getCenter(b).dy).abs() < 1) {
+        i = k;
+        break;
+      }
+    }
+    expect(i, isNotNull, reason: 'нет двух соседних карточек в одной строке');
+    final a = tester.getCenter(find.byKey(ValueKey('mt-card-$i')));
+    final b = tester.getCenter(find.byKey(ValueKey('mt-card-${i! + 1}')));
+    final semantics = tester.ensureSemantics();
+    bool marked(int k) => tester.getSemantics(find.byKey(ValueKey('mt-card-$k'))).flagsCollection.isSelected == Tristate.isTrue;
+    await sweep(tester, [a, b]);
+    expect([marked(i), marked(i + 1)], [true, true], reason: 'протяжка не отметила обе карточки');
+    await sweep(tester, [a, b, a]);
+    // Протяжка a→b→a: a и b уже отмечены, возвращаться снимать нечего — отметки целы.
+    expect([marked(i), marked(i + 1)], [true, true]);
+    semantics.dispose();
   });
 }
