@@ -114,11 +114,16 @@ jobs:
           PUZZLES_SRC="$HOME/puzzles" tool/build_tatham_ios.sh arm64
           ls -l build/tatham-ios-arm64/libtatham.a
 
+      # pub get — ВСЕГДА: «Сборка .ipa» зовёт `flutter test --no-pub` и без него падает
+      # (13.11.2026, первый прогон со skip_tests).
+      - name: Зависимости Flutter
+        working-directory: flutter
+        run: flutter pub get
+
       - name: Пробы пилота
         if: ${{ !inputs.skip_tests }}
         working-directory: flutter
         run: |
-          flutter pub get
           flutter analyze
           flutter test --reporter compact
 
