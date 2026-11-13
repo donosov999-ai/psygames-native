@@ -9,6 +9,7 @@ import 'package:psygames_flutter/games/puzzles/frame.dart';
 import 'package:psygames_flutter/games/puzzles/ladder.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/games/puzzles/screen.dart';
+import 'package:psygames_flutter/games/puzzles/undead_glyph.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -68,9 +69,14 @@ void main() {
   testWidgets('🔴 «Нежить»: клавиши подписаны чудовищами, а не голыми цифрами', (tester) async {
     await boot(tester, 'Undead');
     // Отзыв 17.09: «1 2 3» не говорили, какое чудовище ставят. Порядок — из undead.c.
-    expect(find.text('👻'), findsOneWidget);
-    expect(find.text('🧛'), findsOneWidget);
-    expect(find.text('🧟'), findsOneWidget);
+    // С 12.11 (отзыв 91967288) на клавишах не эмодзи, а те же чудовища, что движок рисует на доске:
+    // призрак, вампир, зомби — проба puzzle_undead_key_glyphs_test.dart.
+    for (final (v, monster) in [(1, 1), (2, 2), (3, 4)]) {
+      final glyph = find.descendant(of: find.byKey(Key('digit$v')), matching: find.byType(UndeadMonsterGlyph));
+      expect(glyph, findsOneWidget, reason: 'клавиша $v — чудовище, а не цифра');
+      expect(tester.widget<UndeadMonsterGlyph>(glyph).monster, monster);
+      expect(find.descendant(of: find.byKey(Key('digit$v')), matching: find.text('$v')), findsNothing);
+    }
     expect(find.byKey(const Key('digit4')), findsNothing, reason: 'чудовищ трое');
   });
 
