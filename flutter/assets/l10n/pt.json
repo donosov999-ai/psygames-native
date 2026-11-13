@@ -795,6 +795,8 @@
 "hint_autocheck":"verificação automática após inserir",
 "hint_center_arrow":"Responda pela seta CENTRAL — as laterais atrapalham",
 "hint_simon_color_rule":"🔵 → ⬅️ esquerda  ·  🔴 → ➡️ direita  (pela cor, não pela posição)",
+"hint_targets_field":"Campo: 2 de 3 formas da mesma cor",
+"hint_targets_joker":"Coringa: cor do círculo anterior = cor do quadrado",
 "hint_top_to_bottom":"De cima para baixo, da esquerda para a direita",
 "historyBetter":"{n} melhor",
 "historyEmptyCta":"Escolher exercício",

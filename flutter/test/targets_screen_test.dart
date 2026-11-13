@@ -269,4 +269,50 @@ void main() {
     expect(shown, Color(int.parse(first!.circle.substring(1), radix: 16) | 0xFF000000),
         reason: 'показан круг не прошлого раунда');
   });
+  for (final (mode, key) in [(TargetsMode.field, 'hint_targets_field'), (TargetsMode.joker, 'hint_targets_joker')]) {
+    testWidgets('🔴 правило режима ${mode.name} видно на настройке и не пропадает в партии', (tester) async {
+      // Отзыв 4ae9b5d4 («confusing»): на экране три фигуры и кнопка, а когда жать — не сказано.
+      // Общая строка «реакция на цветные объекты» правила не называет; в вебе оно стояло под полем.
+      await tester.pumpWidget(MaterialApp(home: TargetsScreen(state: state, mode: mode, rnd: Random(5))));
+      await tester.pumpAndSettle();
+      expect(L.has(key), isTrue, reason: 'ключ «$key» не доехал до словаря натива');
+      expect(find.byKey(const Key('targets-rule-setup')), findsOneWidget);
+      expect(find.text(L.t(key)), findsOneWidget, reason: 'на настройке нет правила режима');
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      expect(await waitField(tester), isNotNull);
+      expect(find.byKey(const Key('targets-rule-play')), findsOneWidget);
+      expect(find.text(L.t(key)), findsOneWidget, reason: 'в партии правила режима нет на экране');
+    });
+  }
+
+  testWidgets('правило режима переключается вместе с режимом на настройке', (tester) async {
+    await tester.pumpWidget(MaterialApp(home: TargetsScreen(state: state, rnd: Random(5))));
+    await tester.pumpAndSettle();
+    expect(find.text(L.t('hint_targets_field')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('targets-mode-joker')));
+    await tester.pumpAndSettle();
+    expect(find.text(L.t('hint_targets_joker')), findsOneWidget);
+    expect(find.text(L.t('hint_targets_field')), findsNothing);
+  });
+  for (final lang in ['ru', 'en', 'de', 'hi']) {
+    testWidgets('правило режима не ломает раскладку: $lang, 320 px, шрифт ×1,5', (tester) async {
+      await L.load(lang);
+      tester.view.physicalSize = const Size(320, 568) * 3;
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(
+        builder: (c, child) => MediaQuery(
+            data: MediaQuery.of(c).copyWith(textScaler: const TextScaler.linear(1.5)), child: child!),
+        home: TargetsScreen(state: state, mode: TargetsMode.joker, rnd: Random(5)),
+      ));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: 'настройка: переполнение');
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+      expect(await waitField(tester), isNotNull);
+      expect(tester.takeException(), isNull, reason: 'партия: переполнение');
+      expect(find.byKey(const Key('targets-press')), findsOneWidget, reason: 'кнопка «Мишень!» уехала с экрана');
+    });
+  }
 }

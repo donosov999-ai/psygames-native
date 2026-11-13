@@ -795,6 +795,8 @@
 "hint_autocheck":"تحقق تلقائي بعد الإدخال",
 "hint_center_arrow":"أجب حسب السهم الأوسط — الجانبية تشتّت",
 "hint_simon_color_rule":"🔵 → ⬅️ يسار  ·  🔴 → ➡️ يمين  (حسب اللون لا الموضع)",
+"hint_targets_field":"الميدان: 2 من 3 أشكال بلون واحد",
+"hint_targets_joker":"الجوكر: لون الدائرة السابقة = لون المربع",
 "hint_top_to_bottom":"من الأعلى إلى الأسفل، ومن اليسار إلى اليمين",
 "historyBetter":"أفضل بمقدار {n}",
 "historyEmptyCta":"اختر تمرينًا",

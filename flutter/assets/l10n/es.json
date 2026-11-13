@@ -795,6 +795,8 @@
 "hint_autocheck":"verificación automática tras introducir",
 "hint_center_arrow":"Responde según la flecha CENTRAL: las de los lados despistan",
 "hint_simon_color_rule":"🔵 → ⬅️ izquierda  ·  🔴 → ➡️ derecha  (por color, no por posición)",
+"hint_targets_field":"Campo: 2 de 3 figuras del mismo color",
+"hint_targets_joker":"Comodín: color del círculo anterior = color del cuadrado",
 "hint_top_to_bottom":"De arriba abajo, de izquierda a derecha",
 "historyBetter":"{n} mejor",
 "historyEmptyCta":"Elegir ejercicio",

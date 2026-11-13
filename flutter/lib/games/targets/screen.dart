@@ -333,6 +333,11 @@ class _Field extends StatelessWidget {
               value: mode,
               onPick: onMode,
             ),
+            const SizedBox(height: 4),
+            // Правило ВЫБРАННОГО режима. Общая строка «реакция на цветные объекты» не говорит,
+            // когда жать, — «Мишени» читали как «непонятно, что делать» (отзыв 4ae9b5d4).
+            Text(_ruleOf(mode), key: const Key('targets-rule-setup'), textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall),
           ],
         );
       case TargetsPhase.done:
@@ -406,11 +411,26 @@ class _Field extends StatelessWidget {
                       )
                     : const SizedBox.shrink(),
               ),
+              // Правило не пропадает, пока идёт партия: на уровне 1 человек видит три фигуры и
+              // кнопку, и без строки «жми, когда…» нечего сличать. В вебе она стояла под полем.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(_ruleOf(mode), key: const Key('targets-rule-play'), textAlign: TextAlign.center,
+                    maxLines: 2, overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall),
+              ),
             ],
           ),
         );
     }
   }
+}
+
+/// Правило режима — те же ключи словаря, что у веба (`hint_targets_field` / `hint_targets_joker`).
+/// ⚠️ Каждый ключ — своим `L.t`: ключ внутри тернарника выгрузчик словаря не видит.
+String _ruleOf(TargetsMode mode) {
+  if (mode == TargetsMode.joker) return L.t('hint_targets_joker');
+  return L.t('hint_targets_field');
 }
 
 class TargetsShape extends StatelessWidget {
