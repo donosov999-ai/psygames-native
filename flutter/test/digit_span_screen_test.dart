@@ -269,6 +269,7 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await boot(tester, level: 1, preset: {'wu': '1'}, prefs: {AbilityWallet.key: walletJson(2)});
     expect(find.byKey(const Key('practice-run-switch')), findsNothing, reason: 'шаг зарядки пробным не бывает');
+  });
 
   bool chipOn(WidgetTester tester, String d) => tester.widget<ChoiceChip>(find.byKey(Key('ds-delivery-$d'))).selected;
 
