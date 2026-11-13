@@ -1667,6 +1667,7 @@ const t: Record<string, string> = {
   "classicLabel": "经典",
   "schulteDividedHint": "同时数条独立计数线，用颜色区分——轮流寻找",
   "schulteMoving": "移动目标",
+  "schulteGorbov": "舒尔特–戈尔博夫",
   "schulteMovingHint": "每次点对后棋盘重新洗牌——无法靠记位置",
   "schulteShare": "我在 PsyGames 用 {t}秒 完成了 {g}×{g} 舒尔特方格——来超越我！",
   "patternClassArithmetic": "等差数列",

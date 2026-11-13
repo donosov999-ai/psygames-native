@@ -1000,6 +1000,7 @@ const t: Record<string, string> = {
   "classicLabel": "クラシック",
   "schulteDividedHint": "色分けされた複数のカウンターを同時進行 — 順番に探そう",
   "schulteMoving": "逃げるターゲット",
+  "schulteGorbov": "シュルテ–ゴルボフ",
   "schulteMovingHint": "正解のたびに盤面がシャッフル — 位置を覚えても無駄",
   "schulteShare": "PsyGamesで{g}×{g}のシュルテ表を{t}秒でクリア — 超えてみて！",
   "patternClassArithmetic": "等差数列",

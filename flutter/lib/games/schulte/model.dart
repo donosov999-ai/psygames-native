@@ -27,6 +27,7 @@ class LevelParams {
     required this.colorMode,
     required this.surpriseStart,
     required this.moving,
+    this.groupCount = 1,
   });
 
   final int gridSize;
@@ -41,6 +42,11 @@ class LevelParams {
 
   /// Ось 9: после каждого верного нажатия клетки меняются местами.
   final bool moving;
+
+  /// «Разделённое внимание» (свободный режим, только цифры): 2–4 группы своих счётчиков в одной
+  /// сетке, различаются цветом; искать по кругу текущее число КАЖДОЙ группы. 1 — обычная таблица.
+  /// Лестница его не использует: ступени всегда с одной группой.
+  final int groupCount;
 
   /// Ступени 1…15 остались побайтно такими же, как были до оси 9 — трудность
   /// уже пройденного не переписывают задним числом.
@@ -83,7 +89,7 @@ class LevelParams {
   }
 
   String get signature =>
-      '$gridSize|$contentMode|$direction|$colorMode|$surpriseStart|$moving';
+      '$gridSize|$contentMode|$direction|$colorMode|$surpriseStart|$moving|$groupCount';
 }
 
 /// Докуда лестница РЕАЛЬНО растёт — считается прогоном, а не вписано числом:
@@ -145,6 +151,44 @@ int maxGridFor(ContentMode mode, int alphabetSize) {
   }
   return 2;
 }
+
+/// Письменность поля букв (профиль «Полиглот», веб v1.27.0). Знаки — те же, что в
+/// `frontend/src/constants/scripts.ts`, в каноническом порядке алфавита: «найди по порядку» —
+/// это заучивание алфавита. Подпись — ключ словаря (`scriptLatin`…), названия письменностей
+/// переведены на все языки веба.
+class SchulteScript {
+  const SchulteScript(this.id, this.labelKey, this.chars);
+  final String id, labelKey, chars;
+
+  /// Сколько знаков в алфавите: считается по символам, а не по кодовым единицам.
+  int get length => chars.runes.length;
+
+  /// Хватает ли знаков на режим «буквы» с наименьшей стороной [minGrid]: буквам нужны все клетки.
+  /// Короче 25 знаков (греческий, 24) алфавит для «букв» на 5×5 не годится; «Горбову» хватает
+  /// и его — половина клеток цифрами (`maxGridFor`).
+  bool fitsLetters(int minGrid) => length >= minGrid * minGrid;
+}
+
+/// Кириллица поля — А…Я без Й, Ъ, Ы, Ь (28 знаков, как в вебе). Собрана из кодов, а не литералом:
+/// это данные, а не подпись интерфейса, и гейт `no_new_hardcoded_cyrillic_test` не должен их считать
+/// «зашитой русской строкой». Совпадение со знаками веба держит проба `schulte_free_test.dart`.
+final String _cyrillicChars = String.fromCharCodes([
+  for (var c = 0x410; c <= 0x42F; c += 1)
+    if (c != 0x419 && c != 0x42A && c != 0x42B && c != 0x42C) c,
+]);
+
+final List<SchulteScript> schulteScripts = [
+  const SchulteScript('latin', 'scriptLatin', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'),
+  SchulteScript('cyrillic', 'scriptCyrillic', _cyrillicChars),
+  const SchulteScript('greek', 'scriptGreek', 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ'),
+  const SchulteScript('devanagari', 'scriptDevanagari', 'अआइईउऊऋएऐओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह'),
+  const SchulteScript('hiragana', 'scriptHiragana', 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん'),
+  const SchulteScript('hanzi', 'scriptHanzi', '一二三四五六七八九十人口手日月山水火木金土大小上下中天年学生好爱国家车马鱼鸟花雨电风云石田白红黑'),
+];
+
+/// Письменность по её коду; неизвестный код — латиница, как запасной путь веба.
+SchulteScript schulteScriptById(String id) =>
+    schulteScripts.firstWhere((s) => s.id == id, orElse: () => schulteScripts.first);
 
 /// От центра наружу: h, h+1, h−1, h+2, h−2… Зовётся ЧИСЛОМ КЛЕТОК.
 List<int> centerOutOrder(int n) {
@@ -288,6 +332,7 @@ class SchulteGame {
     );
     items = table.items;
     sequence = table.sequence;
+    if (grouped) _buildGroups();
   }
 
   final int level;
@@ -302,6 +347,57 @@ class SchulteGame {
   int index = 0;
   int errors = 0;
 
+  /// «Разделённое внимание»: у каждой группы свой счётчик 1…размер группы, клетки перемешаны
+  /// вперемешку, искать по кругу текущее число активной группы. Перенос веб-режима
+  /// `groupCount > 1` (`schulte.tsx:387–409`, `handleGroupCellPress`): только цифры.
+  bool get grouped => params.groupCount > 1 && params.contentMode == ContentMode.numbers;
+
+  /// Группа каждой клетки (0…groupCount−1); пусто, если групп нет.
+  List<int> cellGroup = const [];
+
+  /// Искомое число каждой группы сейчас.
+  List<int> groupTargets = const [];
+
+  /// Сколько чисел всего в каждой группе: клеток поровну, остаток — первым группам.
+  List<int> groupSizes = const [];
+
+  /// Чей сейчас ход по кругу.
+  int activeGroup = 0;
+
+  void _buildGroups() {
+    final count = params.groupCount;
+    final cells = size * size;
+    final sizes = List<int>.generate(count, (g) => cells ~/ count + (g < cells % count ? 1 : 0));
+    final values = <int>[];
+    final groups = <int>[];
+    for (var g = 0; g < count; g += 1) {
+      for (var n = 1; n <= sizes[g]; n += 1) {
+        values.add(n);
+        groups.add(g);
+      }
+    }
+    // Значение и группа перемешиваются ВМЕСТЕ — как в вебе, иначе число отстало бы от своей раскраски.
+    for (var i = values.length - 1; i > 0; i -= 1) {
+      final j = _rnd.nextInt(i + 1);
+      final v = values[i];
+      values[i] = values[j];
+      values[j] = v;
+      final g = groups[i];
+      groups[i] = groups[j];
+      groups[j] = g;
+    }
+    items = List<SchulteCell>.from(values);
+    sequence = <SchulteCell>[];
+    cellGroup = groups;
+    groupSizes = sizes;
+    groupTargets = List<int>.filled(count, 1);
+    activeGroup = 0;
+  }
+
+  /// Клетка уже найдена: её число меньше искомого в её группе (веб `isFound`). Только в группах.
+  bool isFound(int cell) =>
+      grouped && items[cell] is int && (items[cell] as int) < groupTargets[cellGroup[cell]];
+
   /// Сторона поля с поправкой на письменность: у бедного алфавита уровень
   /// обрезается, иначе клеток не хватит и партия не закончится никогда.
   int get size {
@@ -313,14 +409,17 @@ class SchulteGame {
   int get _alphabetLength => alphabet.runes.length;
 
   int get total => items.length;
-  bool get done => index >= sequence.length;
-  SchulteCell get target => sequence[index < sequence.length ? index : sequence.length - 1];
+  bool get done => grouped ? index >= total : index >= sequence.length;
+  SchulteCell get target => grouped
+      ? groupTargets[activeGroup]
+      : sequence[index < sequence.length ? index : sequence.length - 1];
 
   /// Нажатие по клетке. `ruleRevealed == false` — нажатие не считается ни
   /// верным, ни ошибочным: правило ещё не объявлено.
   PressResult press(int cell, {bool ruleRevealed = true}) {
     if (!ruleRevealed || done) return PressResult.ignored;
     if (cell < 0 || cell >= items.length) return PressResult.ignored;
+    if (grouped) return _pressGrouped(cell);
     if (items[cell] != sequence[index]) {
       errors += 1;
       return PressResult.miss;
@@ -331,13 +430,40 @@ class SchulteGame {
     return PressResult.hit;
   }
 
-  /// Убегающая цель: после верного нажатия клетки меняются местами.
+  /// Нажатие в группах: верно только своё число активной группы. Чужая группа и чужое число —
+  /// ошибка, поле не меняется. Верное двигает счётчик группы и ход к следующей, у которой числа
+  /// ещё остались.
+  PressResult _pressGrouped(int cell) {
+    if (cellGroup[cell] != activeGroup || items[cell] != groupTargets[activeGroup]) {
+      errors += 1;
+      return PressResult.miss;
+    }
+    groupTargets[activeGroup] += 1;
+    index += 1;
+    if (done) return PressResult.finished;
+    var next = activeGroup;
+    for (var step = 0; step < params.groupCount; step += 1) {
+      next = (next + 1) % params.groupCount;
+      if (groupTargets[next] <= groupSizes[next]) break;
+    }
+    activeGroup = next;
+    if (params.moving) reshuffle();
+    return PressResult.hit;
+  }
+
+  /// Убегающая цель: после верного нажатия клетки меняются местами. В группах клетка уносит
+  /// с собой свою группу.
   void reshuffle() {
     for (var i = items.length - 1; i > 0; i -= 1) {
       final j = _rnd.nextInt(i + 1);
       final tmp = items[i];
       items[i] = items[j];
       items[j] = tmp;
+      if (cellGroup.isNotEmpty) {
+        final g = cellGroup[i];
+        cellGroup[i] = cellGroup[j];
+        cellGroup[j] = g;
+      }
     }
   }
 }

@@ -1801,6 +1801,7 @@ const t: Record<string, string> = {
   "classicLabel": "Classica",
   "schulteDividedHint": "Più contatori indipendenti insieme, distinti per colore — cercali a rotazione",
   "schulteMoving": "Bersaglio in fuga",
+  "schulteGorbov": "Schulte–Gorbov",
   "schulteMovingHint": "Dopo ogni clic corretto la griglia si rimescola — impossibile memorizzare le posizioni",
   "schulteShare": "Ho completato una tavola di Schulte {g}×{g} in {t}s su PsyGames — battimi!",
   "patternClassArithmetic": "Progressione aritmetica",

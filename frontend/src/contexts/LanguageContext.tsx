@@ -3920,6 +3920,8 @@ const translations: Translations = {
   classicLabel: { ru: 'Классика', en: 'Classic' },
   schulteDividedHint: { ru: 'Несколько своих счётчиков одновременно, различаются цветом — ищи по кругу', en: 'Several independent counters at once, color-coded — find them round-robin' },
   schulteMoving: { ru: 'Убегающая цель', en: 'Moving target' },
+  // Имя метода: красно-чёрная таблица Шульте–Горбова, числа и буквы вперемешку (1-А-2-Б).
+  schulteGorbov: { ru: 'Шульте–Горбов', en: 'Schulte–Gorbov' },
   schulteMovingHint: { ru: 'После каждого верного клика сетка перемешивается заново — нельзя запомнить позиции', en: 'The whole grid reshuffles after every correct click — no relying on spatial memory' },
   schulteShare: { ru: 'Прошёл таблицу Шульте {g}×{g} за {t}с в PsyGames — обгони!', en: 'I cleared a {g}×{g} Schulte table in {t}s on PsyGames — beat that!' },
 

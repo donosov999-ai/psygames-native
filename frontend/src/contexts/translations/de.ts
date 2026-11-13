@@ -1667,6 +1667,7 @@ const t: Record<string, string> = {
   "classicLabel": "Klassik",
   "schulteDividedHint": "Mehrere eigene Zähler gleichzeitig, farblich getrennt — such sie reihum",
   "schulteMoving": "Flüchtiges Ziel",
+  "schulteGorbov": "Schulte–Gorbow",
   "schulteMovingHint": "Nach jedem richtigen Klick mischt sich das Gitter neu — Positionen merken zwecklos",
   "schulteShare": "Ich habe eine {g}×{g}-Schulte-Tabelle in {t}s auf PsyGames geschafft — überbiete das!",
   "patternClassArithmetic": "Arithmetische Folge",
