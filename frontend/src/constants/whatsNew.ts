@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.66',
+    date: '2026-11-13',
+    en: [
+      'Every game with levels: one shared level result — stars, a short win animation, and the next level starts by itself (retry after a miss); swipe a finger across numbers and letters in Counter, Number Bonds, Fillwords and Anagrams; Attention Conflict: BART, Iowa, Simon, ANT and 5 more games open from their set; Schulte: Free mode is back with Schulte–Gorbov, letters, reverse and centre-out order, divided attention; Quick Count shows dots longer on early levels; Digit Span shows the whole number at once with a gentler climb; Colors and Shapes: drag cards into boxes; level map before you start; Practice Run works again; About this game in pause',
+    ],
+    ru: [
+      'Все игры с уровнями: общий итог уровня — звёзды, короткая анимация победы, следующий уровень начинается сам (после промаха — повтор); протяжка пальцем по числам и буквам в «Считалке», «Числовых парах», «Филвордах» и «Анаграммах»; «Конфликт внимания»: BART, Iowa, Simon, ANT и ещё 5 игр открываются из своего набора; Шульте: вернулся режим «Свободно» — Шульте–Горбов, буквы, обратный порядок и от центра, разделённое внимание; «Быстрый счёт» дольше показывает точки на первых уровнях; «Запомни цифры» показывает число целиком и усложняется плавнее; «Цвета и формы» — карточки перетаскиваются в коробки; карта уровней до старта; снова работает «Пробный заход»; «Об игре» в паузе',
+    ],
+  },
+  {
     version: '2.56.65',
     date: '2026-11-13',
     en: [
