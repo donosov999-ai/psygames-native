@@ -17,6 +17,7 @@ import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/preset_cap.dart';
+import '../../shell/practice_run.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/voice.dart';
@@ -89,6 +90,9 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
   /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
   late final AppHaptics _haptics = AppHaptics(widget.state);
   late double Function() _rng;
+  /// «Пробный заход» (веб `practice_run`): партия, которая не записывается никуда. Решение — на старте.
+  late final PracticeRun _practice = PracticeRun(widget.state);
+
   final Map<String, LevelLadder> _ladders = {};
   LevelLadder? _ladder;
   VoiceLayer? _voice;
@@ -229,8 +233,10 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
         ? drawDirection(_rng)
         : (isPreset ? _presetDir : (p.reverse ? Direction.backward : Direction.forward));
     _playDelivery = effectiveDelivery(_delivery, _block);
+    // Пробный заход решается ДО первого стимула (в шаге зарядки его не бывает) и в рекорд не идёт.
+    final practice = _practice.decide(allowed: !isPreset);
     // Рекорд — только личная партия первого уровня экраном (веб `countsForRecord` + подача).
-    _counts = !isPreset && effLevel == 1 && _playDelivery == Delivery.screen;
+    _counts = !isPreset && effLevel == 1 && _playDelivery == Delivery.screen && !practice;
     // ⚠️ Шаг — потолок желания: стартовая длина шага не выше освоенного + 1 (веб `capPresetByLevel`).
     final startLen = isPreset
         ? capPresetByLevel(want: _presetLen, atLevel: p.startLen, atTop: p.startLen >= 9)
@@ -347,6 +353,12 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
     final ladder = _ladder!;
     final seconds = ((gameNow() - (_startedAt ?? gameNow())) / 1000).round();
     setState(() => _phase = DsPhase.done);
+    // ⚠️ ПРОБНЫЙ ЗАХОД РАЗБИРАЕТСЯ ПЕРВЫМ (веб `settlePracticeRun`): уровень не трогаем ни вверх, ни вниз,
+    // отчёта, звёзд и рекорда не остаётся нигде.
+    if (await _practice.settle()) {
+      if (mounted) setState(() {});
+      return;
+    }
     // Метки и details — как пишет веб-экран (`saveSession` в digit-span.tsx).
     final labels = sessionLabels(
         isPreset: s.isPreset, diff: GamePreset.str('diff', 'medium'), direction: s.direction, finalLength: s.seqLen);
@@ -421,6 +433,7 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
       ],
       field: (context, h) => switch (_phase) {
         DsPhase.ready => _Ready(
+            practice: _practice,
             ds: _ds,
             level: ladder.level,
             params: p,
@@ -468,12 +481,15 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
           : (_phase == DsPhase.done || _phase == DsPhase.revealed)
               ? Padding(
                   padding: const EdgeInsets.all(12),
-                  child: FilledButton.icon(
-                    key: const Key('ds-again'),
-                    onPressed: () => setState(_reset),
-                    icon: const Icon(Icons.arrow_forward),
-                    label: Text(_phase == DsPhase.done && s!.passed ? L.t('nextLabel') : L.t('retry')),
-                  ),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    PracticeRunSpent(controller: _practice),
+                    FilledButton.icon(
+                      key: const Key('ds-again'),
+                      onPressed: () => setState(_reset),
+                      icon: const Icon(Icons.arrow_forward),
+                      label: Text(_phase == DsPhase.done && s!.passed ? L.t('nextLabel') : L.t('retry')),
+                    ),
+                  ]),
                 )
               : null,
       pauseActions: [
@@ -486,6 +502,7 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
 /// Экран настроек: что за уровень, способ подачи; в шаге зарядки — темп, направление, длина.
 class _Ready extends StatelessWidget {
   const _Ready({
+    required this.practice,
     required this.ds,
     required this.level,
     required this.params,
@@ -503,6 +520,7 @@ class _Ready extends StatelessWidget {
     required this.onStart,
   });
 
+  final PracticeRun practice;
   final DsStrings ds;
   final int level;
   final LevelParams params;
@@ -586,6 +604,8 @@ class _Ready extends StatelessWidget {
                         ],
                       ),
                     ),
+                  // Пробный заход — только личная игра: шаг зарядки и так не двигает уровень.
+                  if (!preset) PracticeRunSwitch(controller: practice),
                   // Темп, направление и стартовая длина — рычаги ТОЛЬКО шага зарядки: в личной игре их
                   // задаёт уровень (веб показывает выбор и там, но партия его не читает).
                   if (preset) ...[

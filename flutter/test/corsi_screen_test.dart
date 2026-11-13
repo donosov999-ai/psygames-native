@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/corsi/model.dart';
 import 'package:psygames_flutter/games/corsi/screen.dart';
+import 'package:psygames_flutter/shell/ability_wallet.dart';
 import 'package:psygames_flutter/shell/app_haptics.dart';
 import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
@@ -112,6 +113,61 @@ void main() {
     final again = await watch(tester);
     expect(again.length, 3, reason: 'после первого промаха — новый ряд той же длины');
     await tester.pump(const Duration(seconds: 6));
+  });
+
+  /// Партия «первый ряд верно → следующий дважды мимо»: длина взята, уровень пройден.
+  Future<void> playPassedRound(WidgetTester tester) async {
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    final seq = await watch(tester);
+    for (final b in seq) {
+      await tester.tap(find.byKey(Key('corsi-block-$b')));
+      await tester.pump();
+    }
+    await tester.pump(const Duration(milliseconds: 800));
+    for (var i = 0; i < 2; i++) {
+      final row = await watch(tester);
+      final wrong = List.generate(9, (k) => k).firstWhere((k) => k != row.first);
+      await tester.tap(find.byKey(Key('corsi-block-$wrong')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 800));
+    }
+    await tester.pump(const Duration(seconds: 6));
+  }
+
+  Future<void> withWallet(WidgetTester tester, int n) async {
+    SharedPreferences.setMockInitialValues({
+      'psygames_active_profile': 'nzt48',
+      if (n > 0) AbilityWallet.key: jsonEncode({'nzt48': {'practice_run': n}}),
+    });
+    state = await SharedState.open();
+    await boot(tester);
+  }
+
+  testWidgets('🔴 пробный заход: уровень пройден, но не засчитан и не записан; списана одна штука', (tester) async {
+    await withWallet(tester, 2);
+    expect(find.byKey(const Key('practice-run-switch')), findsOneWidget, reason: 'переключатель на экране настройки');
+    await tester.tap(find.byKey(const Key('practice-run-switch')));
+    await tester.pump();
+    await playPassedRound(tester);
+    expect(find.byKey(const Key('practice-run-spent')), findsOneWidget, reason: 'на итоге — «никуда не записана»');
+    expect(find.byKey(const Key('corsi-result')), findsOneWidget, reason: 'партия дошла до итога');
+    expect(state.get('psygames_corsi_level_nzt48'), anyOf(isNull, '1'), reason: 'уровень не поднят');
+    expect(state.get(corsiBestSpanKey), isNull, reason: 'рекорд размаха не записан');
+    expect(AbilityWallet(state).count('practice_run'), 1);
+  });
+
+  testWidgets('без пробного захода та же партия двигает уровень, штуки целы', (tester) async {
+    await withWallet(tester, 2);
+    await playPassedRound(tester);
+    expect(find.byKey(const Key('practice-run-spent')), findsNothing);
+    expect(state.get('psygames_corsi_level_nzt48'), '2', reason: 'уровень взят');
+    expect(AbilityWallet(state).count('practice_run'), 2);
+  });
+
+  testWidgets('нет ни одной штуки — строки нет', (tester) async {
+    await withWallet(tester, 0);
+    expect(find.byKey(const Key('practice-run-switch')), findsNothing);
   });
 
   testWidgets('🔴 пока идёт показ, блоки не нажимаются', (tester) async {
