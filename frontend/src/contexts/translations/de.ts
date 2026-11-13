@@ -2495,7 +2495,7 @@ const t: Record<string, string> = {
   "replaySound": "Nochmal anhören",
   "hint_center_arrow": "Antworte nach dem MITTLEREN Pfeil – die äußeren lenken ab",
   "choiceRtHint": "Erscheint ein Pfeil, drücke die Taste derselben Seite",
-  "counterHint": "Tippe Zahlen an, bis die gesuchte Summe erreicht ist",
+  "counterHint": "Tippe oder wische über die Zahlen, bis die gesuchte Summe erreicht ist",
   "picturePairsHint": "Decke immer zwei Karten auf und merke dir, was wo liegt",
   "schulteHint": "Tippe die Zahlen der Reihe nach an – oben steht die gesuchte",
   "sdmtHint": "Nutze die Legende oben: Jedes Zeichen hat seine Ziffer",

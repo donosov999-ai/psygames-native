@@ -638,7 +638,7 @@
 "cosName_title_unstoppable":"势不可挡",
 "counter":"计数器：心算",
 "counterDesc":"凑出 X+Y=Z",
-"counterHint":"点击数字，凑出上面要求的和",
+"counterHint":"点按或滑过数字，凑出上面要求的和",
 "counterIntroDesc":"点击网格中的数字，直到它们的和等于目标值。找出相加等于目标值的数字。训练心算和快速分析选项的能力。",
 "countingGroup":"心算",
 "countingGroupDesc":"心里的数字：数、估、快",

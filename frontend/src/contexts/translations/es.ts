@@ -2495,7 +2495,7 @@ const t: Record<string, string> = {
   "replaySound": "Escuchar otra vez",
   "hint_center_arrow": "Responde según la flecha CENTRAL: las de los lados despistan",
   "choiceRtHint": "Cuando aparezca una flecha, pulsa el botón del mismo lado",
-  "counterHint": "Toca números hasta llegar a la suma indicada",
+  "counterHint": "Toca o desliza por los números hasta llegar a la suma indicada",
   "picturePairsHint": "Voltea dos cartas a la vez y recuerda dónde está cada una",
   "schulteHint": "Toca los números en orden: arriba se indica cuál buscar",
   "sdmtHint": "Usa la clave de arriba: cada símbolo tiene su cifra",

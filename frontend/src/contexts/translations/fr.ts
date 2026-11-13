@@ -2490,7 +2490,7 @@ const t: Record<string, string> = {
   "replaySound": "Réécouter",
   "hint_center_arrow": "Réponds selon la flèche CENTRALE : celles des côtés trompent",
   "choiceRtHint": "Quand une flèche apparaît, appuie sur le bouton du même côté",
-  "counterHint": "Touche des nombres jusqu’à atteindre la somme demandée",
+  "counterHint": "Touche ou glisse sur les nombres jusqu’à atteindre la somme demandée",
   "picturePairsHint": "Retourne deux cartes à la fois et retiens où est quoi",
   "schulteHint": "Touche les nombres dans l’ordre : celui à trouver est indiqué en haut",
   "sdmtHint": "Utilise la légende du haut : chaque symbole a son chiffre",

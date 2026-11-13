@@ -15,6 +15,7 @@ import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/swipe_select.dart';
 import '../counting_common/generator_shadow.dart';
 import 'model.dart';
 
@@ -142,6 +143,16 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
     if (_picked.length >= bondsMinPicked && _sum == _puzzle!.target) _accept();
   }
 
+  /// Протяжка по фишкам (общий жест каркаса, `shell/swipe_select.dart`): берёт фишку, не
+  /// переключая её; возврат на предыдущую снимает последнюю. Автоприём — тот же, что у тапа.
+  void _swipePick(int index) {
+    if (_phase == _Phase.playing && !_picked.contains(index)) _toggle(index);
+  }
+
+  void _swipeUnpick(int index) {
+    if (_phase == _Phase.playing && _picked.contains(index)) _toggle(index);
+  }
+
   void _accept() {
     _tick?.cancel();
     setState(() {
@@ -236,6 +247,8 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
         right: _right,
         height: h,
         onTap: _toggle,
+        onSwipePick: _swipePick,
+        onSwipeUnpick: _swipeUnpick,
       ),
       auxRow: AuxBar(children: [
         AuxAction(
@@ -300,6 +313,8 @@ class _Field extends StatelessWidget {
     required this.right,
     required this.height,
     required this.onTap,
+    required this.onSwipePick,
+    required this.onSwipeUnpick,
   });
 
   final BondsPuzzle puzzle;
@@ -308,6 +323,8 @@ class _Field extends StatelessWidget {
   final bool? right;
   final double height;
   final void Function(int) onTap;
+  final void Function(int) onSwipePick;
+  final void Function(int) onSwipeUnpick;
 
   @override
   Widget build(BuildContext context) {
@@ -338,14 +355,20 @@ class _Field extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
-            Wrap(
+            SwipeSelect(
+              isSelected: picked.contains,
+              onSelect: onSwipePick,
+              onUnselect: onSwipeUnpick,
+              child: Wrap(
               key: const Key('фишки'),
               spacing: 10,
               runSpacing: 10,
               alignment: WrapAlignment.center,
               children: [
                 for (var i = 0; i < puzzle.chips.length; i += 1)
-                  SizedBox(
+                  SwipeTarget(
+                    index: i,
+                    child: SizedBox(
                     width: size,
                     height: size,
                     child: Material(
@@ -373,7 +396,9 @@ class _Field extends StatelessWidget {
                       ),
                     ),
                   ),
+                  ),
               ],
+              ),
             ),
           ],
         );

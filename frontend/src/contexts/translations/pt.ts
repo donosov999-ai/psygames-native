@@ -2495,7 +2495,7 @@ const t: Record<string, string> = {
   "replaySound": "Ouvir de novo",
   "hint_center_arrow": "Responda pela seta CENTRAL — as laterais atrapalham",
   "choiceRtHint": "Quando aparecer uma seta, toque no botão do mesmo lado",
-  "counterHint": "Toque nos números até chegar à soma indicada",
+  "counterHint": "Toque ou deslize pelos números até chegar à soma indicada",
   "picturePairsHint": "Vire duas cartas por vez e memorize onde está cada uma",
   "schulteHint": "Toque nos números em ordem — acima aparece qual procurar",
   "sdmtHint": "Use a chave acima: cada símbolo tem o seu número",
