@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,6 +6,7 @@ import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -72,9 +72,9 @@ class _CounterScreenState extends State<CounterScreen> {
   bool _ready = false;
   _Phase _phase = _Phase.playing;
   int _leftMs = 0;
-  Timer? _tick;
-  Timer? _next;
-  Timer? _clear;
+  GameTimer? _tick;
+  GameTimer? _next;
+  GameTimer? _clear;
 
   /// Тень генератора уровней (звено 4, задача 4e584381): раздача с новой партией, исход до лестницы.
   late final LadderShadow _shadow =
@@ -143,7 +143,7 @@ class _CounterScreenState extends State<CounterScreen> {
     _target = deal.target;
     _leftMs = _cfg.roundLimitMs;
     // Окно раунда: не собрал сумму до нуля — раунд провален, как в вебе.
-    _tick = Timer.periodic(const Duration(milliseconds: _tickMs), (_) {
+    _tick = gameInterval(const Duration(milliseconds: _tickMs), () {
       if (!mounted) return;
       setState(() => _leftMs = math.max(0, _leftMs - _tickMs));
       if (_leftMs <= 0) _onTimeout();
@@ -186,7 +186,7 @@ class _CounterScreenState extends State<CounterScreen> {
       _phase = _Phase.success;
     });
     _next?.cancel();
-    _next = Timer(_successDelay, _advance);
+    _next = gameTimeout(_successDelay, _advance);
   }
 
   /// Перебор: ошибка сразу, а выбор гаснет через 300 мс — нажатие, попавшее в
@@ -195,7 +195,7 @@ class _CounterScreenState extends State<CounterScreen> {
     _haptics.miss();
     setState(() => _errors += 1);
     _clear?.cancel();
-    _clear = Timer(_resetDelay, () {
+    _clear = gameTimeout(_resetDelay, () {
       if (!mounted) return;
       setState(_picked.clear);
     });
@@ -210,7 +210,7 @@ class _CounterScreenState extends State<CounterScreen> {
       _phase = _Phase.timeout;
     });
     _next?.cancel();
-    _next = Timer(_timeoutDelay, _advance);
+    _next = gameTimeout(_timeoutDelay, _advance);
   }
 
   Future<void> _advance() async {
@@ -284,8 +284,8 @@ class _CounterScreenState extends State<CounterScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return GameShell(
-      title: L.t('counter'),
-      onLesson: () => openDemoLesson(context, title: L.t('counter'), trials: _demoTrials()),
+      title: L.t('suiteSum'),
+      onLesson: () => openDemoLesson(context, title: L.t('suiteSum'), trials: _demoTrials()),
       hud: [
         HudItem(
           label: L.t('level'),

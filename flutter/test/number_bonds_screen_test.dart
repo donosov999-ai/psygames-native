@@ -69,7 +69,8 @@ void main() {
   testWidgets('🔴 раунд проходится нажатиями: решение принимается САМО, без кнопки', (tester) async {
     await open(tester);
     final cfg = levelParams(1);
-    expect(find.text(L.t('numberBonds')), findsOneWidget);
+    // Название игры одно на все режимы набора «Собери сумму» (замечание координатора 13.11).
+    expect(find.text(L.t('suiteSum')), findsOneWidget);
 
     for (var i = 1; i <= cfg.trials; i += 1) {
       expect(find.text('$i/${cfg.trials}'), findsOneWidget, reason: 'задача $i');

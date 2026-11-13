@@ -150,4 +150,33 @@ void main() {
     await pumpFrom(tester, () => SumMixedScreen(state: state), result);
     expect(find.byKey(const Key('suite-mode-action')), findsNothing);
   });
+
+  testWidgets('🔴 пока открыт лист «Режим», часы раунда стоят (как в паузе) — раунд не уходит в «время вышло»', (tester) async {
+    // Замер координатора на эмуляторе 13.11: открыл лист в «На скорость» — раунд ушёл в ошибку по времени.
+    await boot(open: both);
+    final result = <Object?>[];
+    await pumpFrom(tester, screens['/games/counter']!, result);
+    int seconds() {
+      final row = find.ancestor(of: find.byIcon(Icons.timer_outlined), matching: find.byType(Row)).first;
+      final t = tester.widget<Text>(find.descendant(of: row, matching: find.byType(Text)).first).data!;
+      return int.parse(RegExp(r'\d+').firstMatch(t)!.group(0)!);
+    }
+
+    int errors() {
+      final row = find.ancestor(of: find.byIcon(Icons.error_outline), matching: find.byType(Row)).first;
+      return int.parse(tester.widget<Text>(find.descendant(of: row, matching: find.byType(Text)).first).data!);
+    }
+
+    final before = seconds();
+    await tester.tap(find.byKey(const Key('suite-mode-action')));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 20)); // дольше окна раунда (15 с на L1)
+    await tester.tap(find.byKey(const Key('suite-mode-/games/counter'))); // тот же режим — лист закрывается
+    await tester.pumpAndSettle();
+    expect(errors(), 0, reason: 'под открытым листом раунд ушёл в «время вышло»');
+    expect(seconds(), before, reason: 'часы раунда шли под листом');
+    // после закрытия листа часы идут снова
+    await tester.pump(const Duration(seconds: 3));
+    expect(seconds(), lessThan(before), reason: 'после закрытия листа часы не пошли');
+  });
 }

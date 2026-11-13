@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'aux_action.dart';
+import 'game_clock.dart';
 import 'game_preset.dart';
 import 'hub_screen.dart' show HubCardTap, HubScreen;
 import 'l10n.dart';
@@ -224,7 +225,12 @@ class _SuiteModeActionState extends State<SuiteModeAction> {
   }
 
   Future<void> _pick(List<SuiteMode> open) async {
-    final picked = await showModalBottomSheet<SuiteMode>(
+    // 🔴 Пока лист открыт, партия стоит, как в паузе: у игр без экрана настройки часы раунда шли
+    // под листом, и раунд уходил в «время вышло» (замер координатора на эмуляторе 13.11).
+    final release = holdGame();
+    final SuiteMode? picked;
+    try {
+      picked = await showModalBottomSheet<SuiteMode>(
       context: context,
       showDragHandle: true,
       builder: (sheet) => SafeArea(
@@ -247,6 +253,9 @@ class _SuiteModeActionState extends State<SuiteModeAction> {
         ),
       ),
     );
+    } finally {
+      release();
+    }
     if (picked == null || picked.route == _here || !mounted) return;
     Navigator.of(context).pop(HubCardTap(picked.route, replace: true));
   }
