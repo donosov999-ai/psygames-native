@@ -12,6 +12,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -185,7 +186,18 @@ class _MonsterMissingScreenState extends State<MonsterMissingScreen> {
         HudItem(label: L.t('round'), value: '${math.min(_trial + 1, missingTrials)}/$missingTrials', icon: Icons.repeat),
         HudItem(label: L.t('hud_correct'), value: '$_correct', icon: Icons.check_circle_outline),
       ],
-      field: (context, h) => LayoutBuilder(builder: (context, c) {
+      // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующую ступень.
+      field: (context, h) => _phase == _Phase.result
+          ? SizedBox(
+              height: h,
+              child: LevelResult(
+                passed: _won,
+                level: _levelNo,
+                score: '${L.t('hud_correct')}: $_correct/$missingTrials',
+                onNext: () => setState(_newLevel),
+              ),
+            )
+          : LayoutBuilder(builder: (context, c) {
         final text = Theme.of(context).textTheme;
         final study = _phase == _Phase.study;
         final table = study ? round.hand : round.shown;
@@ -225,15 +237,11 @@ class _MonsterMissingScreenState extends State<MonsterMissingScreen> {
             ),
         ]);
       }),
-      toolbar: Padding(
+      toolbar: _phase == _Phase.result
+          ? null
+          : Padding(
         padding: const EdgeInsets.all(12),
         child: switch (_phase) {
-          _Phase.result => FilledButton.icon(
-              key: const ValueKey('mm-next'),
-              onPressed: () => setState(_newLevel),
-              icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-              label: Text('${_won ? L.t('nextLabel') : L.t('retry')} · $_correct/$missingTrials'),
-            ),
           _Phase.feedback => Text(
               _lastOk == true ? '✓' : '✗',
               key: const ValueKey('mm-verdict'),

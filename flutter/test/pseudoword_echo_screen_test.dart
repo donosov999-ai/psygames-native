@@ -84,7 +84,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 700));
     }
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.byKey(const Key('echo-score')), findsOneWidget);
+    expect(find.byKey(const Key('level-result-score')), findsOneWidget);
     expect(voice.said.length, p.trials, reason: 'каждое слово прозвучало один раз');
     expect(noise.log.where((l) => l.startsWith('start')), isEmpty, reason: 'на первом уровне тишина');
     expect(sent, hasLength(1));

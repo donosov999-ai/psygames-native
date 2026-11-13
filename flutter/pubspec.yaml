@@ -60,6 +60,8 @@ dependencies:
   flutter_soloud: 5.2.2
   lottie: 3.8.1
   liquid_glass_easy: 5.1.0
+  flutter_scene: ^0.24.3
+  vector_math: ^2.4.4
   # 🔴 Забрать прогресс ПРЕЖНЕЙ версии из контейнера приложения (lib/shell/legacy_import.dart).
   # Tauri-сборка держала его в localStorage WKWebView, а это обычный sqlite внутри
   # нашего же контейнера. Без чтения этих файлов человек после обновления видит нули.
@@ -154,6 +156,8 @@ flutter:
     - assets/game_sfx_pilot/
     - assets/animation_pilot/
     - assets/levels/
+    - assets/number_run/
+    - assets/number_run/env/
     - assets/digits/candy/
     - assets/digits/elegant/
     - assets/digits/neon/
@@ -163,6 +167,8 @@ flutter:
     - assets/game_suites.json
     # Каталог «Игры» — выгрузка games.ts (frontend/src/__tests__/flutter-catalog-asset-fresh.test.ts).
     - assets/catalog.json
+    # «Об игре» в паузе каркаса (shell/game_about.dart): описание и польза 59 игр — tools/export-game-about.mjs
+    - assets/game_about.json
     # Правила нижней полосы — выгрузка tabBar.ts (frontend/src/__tests__/flutter-tabs-asset-fresh.test.ts).
     - assets/tabs.json
     - assets/web_theme.json
@@ -203,6 +209,10 @@ flutter:
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/
+    # Isolated Aurora catalogue artwork. Classic and the source icon registry stay intact.
+    - assets/hub_art/index.json
+    - assets/hub_art/light/
+    - assets/hub_art/dark/
     - assets/aurora_hubs/
     - assets/aurora_sections/
     # Превью игр фоном плиток вкладки «Игры» — копия веба (`flutter-catalog-asset-fresh.test.ts`), не править руками.

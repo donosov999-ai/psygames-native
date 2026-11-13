@@ -32,6 +32,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
@@ -320,6 +321,7 @@ export default function NumberBondsGame() {
     return (
       <>
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+        <GameSuiteSwitch />
         <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
           <Ionicons name="git-merge" size={48} color={ON_GRAD.color} />
           <Text style={styles.configTitle}>{t('numberBonds')}</Text>

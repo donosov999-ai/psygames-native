@@ -33,6 +33,7 @@ import LeaderboardModal from '@/src/components/LeaderboardModal';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -415,6 +416,7 @@ export default function CounterGame() {
       <>
       <ScrollView style={styles.configScroll} showsVerticalScrollIndicator={false}>
         <View style={styles.configContainer}>
+          <GameSuiteSwitch />
           <LinearGradient
             colors={GRADIENT as [string, string]}
             start={{ x: 0, y: 0 }}

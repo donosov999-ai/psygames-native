@@ -12,6 +12,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
@@ -231,7 +232,21 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
         RspanPhase.recall => _Recall(
             tiles: _choices == null ? null : _RecallTiles(words: _choices!, controller: _input),
           ),
-        RspanPhase.done => _Done(game: g!, levelNow: _ladder.level),
+        // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход к старту следующего круга;
+        // разбор круга (верно, ошибки, ожидаемые слова, заметка об уровне) — в подробностях.
+        RspanPhase.done => SizedBox(
+            height: h,
+            child: LevelResult(
+              passed: g!.passed,
+              level: g.level,
+              details: _Done(game: g, levelNow: _ladder.level),
+              // Сразу в следующий круг; на «Начать» — только если ждёт карточка нового правила уровня.
+              onNext: () {
+                setState(_reset);
+                if (!LevelRules.cardDue(widget.state, 'reading_span', _ladder.level)) _start();
+              },
+            ),
+          ),
         RspanPhase.revealed => RspanSolution(seq: g?.seq ?? const [], language: _lang),
       },
       auxRow: AuxBar(children: [
@@ -248,13 +263,14 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
         RspanPhase.recall => _choices == null
             ? _RecallBar(controller: _input, onSubmit: _check)
             : _TapRecallBar(controller: _input, onSubmit: _check),
-        RspanPhase.done || RspanPhase.revealed => Padding(
+        // Раскрытое решение — не итог уровня: решение остаётся на поле, под ним «Ещё раз».
+        RspanPhase.revealed => Padding(
             padding: const EdgeInsets.all(12),
             child: FilledButton.icon(
               key: const Key('rspan-again'),
               onPressed: () => setState(_reset),
               icon: const Icon(Icons.arrow_forward),
-              label: Text(_phase == RspanPhase.done && g!.passed ? L.t('nextLabel') : L.t('retry')),
+              label: Text(L.t('retry')),
             ),
           ),
         _ => null,

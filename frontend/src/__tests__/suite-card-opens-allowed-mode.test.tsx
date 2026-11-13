@@ -51,6 +51,7 @@ const METRICS = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top:
 
 import AttentionConflictGame from '@/app/games/attention-conflict';
 import SpanGame from '@/app/games/span';
+import CountingHub from '@/app/games/counting-hub';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -70,9 +71,12 @@ function вОкружении(узел: any) {
  * зазеленела на развилке, которой в глаза не смотрела. Гейт, знающий один экран
  * из двух, врёт ровно в половине случаев.
  */
-const РАЗВИЛКИ: { id: string; экран: any }[] = [
+const РАЗВИЛКИ: { id: string; экран: any; толькоНаборы?: boolean }[] = [
   { id: '/games/attention-conflict', экран: AttentionConflictGame },
   { id: '/games/span', экран: SpanGame },
+  // «Собери сумму» (13.11.2026) — набор в общей развилке «Счёт», а не на двух особых экранах.
+  // Общая развилка несёт десятки карточек головоломок с `?mode=`; их открытость проверяют свои пробы.
+  { id: '/games/counting-hub', экран: CountingHub, толькоНаборы: true },
 ];
 
 function нарисоватьХаб(профиль: any, экран: any) {
@@ -137,6 +141,7 @@ describe('карточка набора и профиль', () => {
           mockПереходы.length = 0;
           TestRenderer.act(() => { строка.props.onPress(); });
           for (const куда of mockПереходы) {
+            if (развилка.толькоНаборы && !маршрутыНаборов.has(куда)) continue;
             if (!можно.has(куда)) беды.push(`${p.id} @ ${развилка.id}: карточка ведёт в закрытый ${куда}`);
           }
         }

@@ -43,6 +43,14 @@ const Set<String> auroraReadyRoutes = {
   '/games/number-run',
   '/games/pattern',
   '/games/quick-count',
+  // «Мнемотехники» (волна 3, OWNERSHIP_145: psygames-memory-hearing-claude-mac), 13.11.2026: поля на
+  // ролях темы и GameColors (RMET — correct/wrong вместо литералов, «Дворец» — onStrong на номере
+  // места); цвета лица в «Лицах и именах» — стимул. Кадры Аврора тёмная/светлая + Classic —
+  // ~/dev/psygames/memory-hearing-chat/frames-2026-11-13/aurora/.
+  '/games/memory-palace',
+  '/games/faces-names',
+  '/games/word-pairs',
+  '/games/rmet',
 };
 
 class AuroraGameScope extends StatelessWidget {

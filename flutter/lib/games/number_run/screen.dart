@@ -8,11 +8,13 @@ import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/js_compat.dart' show jsNum, jsRound;
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/session_report.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -20,6 +22,10 @@ import '../math_slider/model.dart' show numberLocale;
 import '../runner/road.dart';
 import 'campaign.dart';
 import 'level.dart';
+import 'nr_material.dart';
+import 'readout.dart';
+import 'road_3d.dart';
+import 'task_cards.dart';
 
 /// ЭКРАН «ЧИСЛОВОГО ЗАБЕГА» — раздел «Счёт», перенос веб-экрана `app/games/number-run.tsx`
 /// на общее ядро дороги раннеров (`../runner/road.dart`).
@@ -193,6 +199,13 @@ String? stationAhead(RoadCourse course, RoadState s) {
   return null;
 }
 
+/// Стенд приёмки (`lib/number_run_ui_preview.dart`): автопилот — куда рулить и когда жать
+/// «Применить». В приложении оба `null` и ни на что не влияют.
+@visibleForTesting
+double? Function(RoadCourse course, RoadState s)? numberRunAutopilot;
+@visibleForTesting
+bool Function(RoadCourse course, RoadState s)? numberRunAutoApply;
+
 class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProviderStateMixin {
   late final LevelLadder _ladder;
   late final Ticker _ticker;
@@ -218,6 +231,8 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
     _sessionLaunch = SessionLaunch.capture();
     _ladder = LevelLadder(gameId: 'number_run', store: SharedLevelStore(widget.state), sessionMode: 'levels');
     _ticker = createTicker(_tick);
+    // 3D-сцена грузится, пока человек на настройке: к «Старту» нет голубого экрана ожидания.
+    Road3d.prewarm().catchError((Object _) {});
     _boot();
   }
 
@@ -264,6 +279,7 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
   }
 
   void _start() {
+    if (_phase != _Phase.config || isGameHeld()) return;
     setState(() {
       _s = roadResume(_s!);
       _phase = _Phase.running;
@@ -276,9 +292,15 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
   void _tick(Duration elapsed) {
     final dt = (elapsed - _last).inMicroseconds / 1e6;
     _last = elapsed;
+    // Keep the ticker's wall timestamp fresh while the shared pause is held:
+    // resuming must not advance movement, memory or active time by the pause.
+    if (isGameHeld()) return;
     if (dt <= 0) return;
     final course = _course!;
     if (_phase == _Phase.running) {
+      final pilot = numberRunAutopilot?.call(course, _s!);
+      if (pilot != null) _s = roadSetTarget(_s!, pilot);
+      if (numberRunAutoApply?.call(course, _s!) ?? false) _s = roadApplyReserve(_s!, course);
       final next = roadAdvanceFrame(_s!, dt, course);
       setState(() => _s = next);
       if (next.status == RoadStatus.failed) {
@@ -296,13 +318,24 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
     }
   }
 
+  /// «Применить» операцию из запаса (вариант Б, Денис 11.11.2026): решение — ядра, экран только зовёт.
+  void _applyReserve() {
+    final s = _s;
+    final course = _course;
+    if (s == null || course == null || _phase != _Phase.running) return;
+    setState(() => _s = roadApplyReserve(s, course));
+  }
+
+  /// Есть ли на этой дороге «×2» в запас — тогда под дорогой слот с кнопкой.
+  bool _hasReserve(RoadCourse course) => course.rows.any((r) => r.items.any((i) => i.reserve != null));
+
   void _steer(double x) {
-    if (_phase != _Phase.running) return;
+    if (_phase != _Phase.running || isGameHeld()) return;
     setState(() => _s = roadSetTarget(_s!, x));
   }
 
   void _lane(int d) {
-    if (_phase != _Phase.running) return;
+    if (_phase != _Phase.running || isGameHeld()) return;
     setState(() => _s = roadChangeLane(_s!, d));
   }
 
@@ -388,6 +421,9 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
         child: _phase == _Phase.config ? _config(course) : _play(course, s, h),
       ),
       toolbar: _toolbar(course),
+      // Забег — во весь экран: шапки, счётчиков и тулбара нет, пауза плавает внизу (Денис 11.11.2026).
+      fieldOnly: _phase != _Phase.config,
+      fieldOnlyPauseBottom: true,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _next),
       ],
@@ -410,7 +446,9 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
         Text(L.t('numberRunRule'), key: const Key('nr-rule'), textAlign: TextAlign.center, style: text.bodyLarge),
         const SizedBox(height: 14),
         Text(
-          _mode == NumberRunMode.levels ? L.t('numberRunLevelsHint') : L.t('numberRunMarathonHint'),
+          _mode == NumberRunMode.levels
+              ? '${L.t('numberRunLevelsHint')} ${L.t('numberRunReserveHint')}'
+              : L.t('numberRunMarathonHint'),
           textAlign: TextAlign.center,
           style: text.bodyMedium,
         ),
@@ -422,12 +460,12 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
 
   /// Партия: строка задания и дорога (или финал — лестница стен).
   Widget _play(RoadCourse course, RoadState s, double h) {
-    final signH = (h * 0.12).clamp(40.0, 64.0);
     return LayoutBuilder(builder: (context, c) {
-      return Column(children: [
-        SizedBox(height: signH, width: c.maxWidth, child: _sign(course, s)),
-        Expanded(
-          child: _phase == _Phase.running
+      // ПОЛНЫЙ ЭКРАН (Денис 11.11.2026): дорога — весь экран, HUD и карточка лежат прямо на ней,
+      // «×2» — плавающий слот, пауза — плавающая внизу (каркас, fieldOnly), итог — окно поверх.
+      final road = Road3d.available
+          ? _road3d(c, course, s)
+              : _phase == _Phase.running
               ? GestureDetector(
                   key: const Key('nr-road'),
                   behavior: HitTestBehavior.opaque,
@@ -446,43 +484,77 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
                 )
               : _phase == _Phase.finale || (_phase == _Phase.result && s.status == RoadStatus.won)
                   ? FinaleView(course: course, value: s.sum, t: _finaleT, done: _phase == _Phase.result)
-                  : NumberRoadView(course: course, state: s),
+                  : NumberRoadView(course: course, state: s);
+      final result = _phase == _Phase.result ? _resultWindow() : null;
+      return Stack(children: [
+        Positioned.fill(child: road),
+        Positioned(
+          key: const Key('nr-readout-viewport'),
+          top: 8 + MediaQuery.paddingOf(context).top,
+          left: 16,
+          right: 16,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: math.max(48, h * .34)),
+            child: SingleChildScrollView(child: _sign(course, s)),
+          ),
         ),
+        if (_hasReserve(course) && result == null)
+          Positioned(
+            right: 12,
+            bottom: 86 + MediaQuery.paddingOf(context).bottom,
+            child: NumberRunReserveSlot(state: s, running: _phase == _Phase.running, onApply: _applyReserve),
+          ),
+        if (result != null)
+          Positioned.fill(
+            child: ColoredBox(
+              color: Colors.black.withValues(alpha: .28),
+              child: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(16), child: result)),
+            ),
+          ),
       ]);
     });
   }
 
-  Widget _sign(RoadCourse course, RoadState s) {
-    final scheme = Theme.of(context).colorScheme;
-    final station = _phase == _Phase.running ? stationAhead(course, s) : null;
-    final text = station ?? L.t('numberRunTask');
-    return Container(
-      key: const Key('nr-sign'),
-      margin: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: station != null ? const Color(0xFF1E3A8A) : scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      alignment: Alignment.center,
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Text(
-          text,
-          key: const Key('nr-sign-text'),
-          maxLines: 1,
-          style: TextStyle(
-            fontSize: station != null ? 22 : 15,
-            fontWeight: FontWeight.w800,
-            color: station != null ? GameColors.of(context).onStrong : scheme.onSurface,
-          ),
-        ),
+  /// 3D-дорога (перенос сцены веба). Один и тот же узел на забеге, финале и итоге: сцена не
+  /// пересобирается при смене фазы, финальная лестница стен едет в той же сцене, как в вебе.
+  Widget _road3d(BoxConstraints c, RoadCourse course, RoadState s) {
+    final running = _phase == _Phase.running;
+    final wonFinale = _phase == _Phase.finale || (_phase == _Phase.result && s.status == RoadStatus.won);
+    final flat = wonFinale
+        ? FinaleView(course: course, value: s.sum, t: _finaleT, done: _phase == _Phase.result)
+        : NumberRoadView(course: course, state: s);
+    return GestureDetector(
+      key: const Key('nr-road'),
+      behavior: HitTestBehavior.opaque,
+      onHorizontalDragStart: (d) {
+        if (!running) return;
+        _dragX = d.localPosition.dx;
+        _dragTarget = _s!.target;
+      },
+      onHorizontalDragUpdate: (d) {
+        final start = _dragX;
+        if (!running || start == null) return;
+        _steer(_dragTarget + (d.localPosition.dx - start) / (c.maxWidth * 0.3));
+      },
+      onHorizontalDragEnd: (_) => _dragX = null,
+      child: Road3d(
+        course: course,
+        state: s,
+        finaleT: _phase == _Phase.result && s.status == RoadStatus.won ? finaleDuration(course, s.sum) : _finaleT,
+        screenReadouts: true,
+        fallback: flat,
       ),
     );
   }
 
+  Widget _sign(RoadCourse course, RoadState s) {
+    return NumberRunReadoutPanel(
+      key: const Key('nr-sign'), value: NumberRunReadout.from(course, s),
+      showTask: _phase == _Phase.running,
+    );
+  }
+
   Widget? _toolbar(RoadCourse course) {
-    final text = Theme.of(context).textTheme;
     switch (_phase) {
       case _Phase.config:
         return Padding(
@@ -508,75 +580,83 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
         );
       case _Phase.running:
       case _Phase.finale:
-        // Три кнопки: левый край, середина, правый край. Это не крестовина: прыжок запускает
-        // трамплин, а не кнопка (веб, «ТРИ КНОПКИ»).
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-          child: Row(children: [
-            for (final (x, icon, key) in const [
-              (-1.0, Icons.chevron_left, 'nr-steer-left'),
-              (0.0, Icons.circle_outlined, 'nr-steer-center'),
-              (1.0, Icons.chevron_right, 'nr-steer-right'),
-            ])
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: SizedBox(
-                    height: 48,
-                    child: OutlinedButton(
-                      key: Key(key),
-                      onPressed: () => _steer(x),
-                      child: Icon(icon, size: 26),
-                    ),
-                  ),
+      case _Phase.result:
+        // Забег — во весь экран: ряда кнопок и тулбара нет (Денис 11.11.2026). Руль — свайп по дороге
+        // и стрелки клавиатуры; итог — окно поверх дороги ([_resultWindow]).
+        return null;
+    }
+  }
+
+  /// ОКНО РЕЗУЛЬТАТА (UI22, лист 03 референса Кодекса): карточка поверх дороги, «Число на финише»
+  /// крупно, порог стража или пробитые стены ярлыком. Заголовок, звёзды, кнопки и автопереход — общий
+  /// итог каркаса ([LevelResult], задача e90a53d5); игра отдаёт снимок итога. Особый вердикт (страж
+  /// пройден, «почти», забег доехал) — строкой в подробностях. «Дальше» сразу ведёт на дорогу
+  /// следующей раздачи (раньше — на экран настройки), «Настройки» — туда.
+  Widget? _resultWindow() {
+    final o = _outcome;
+    if (o == null) return null;
+    final won = o.level == null ? o.reached : o.passed;
+    final note = o.level == null
+        ? (o.reached ? L.t('numberRunDone') : null)
+        : o.passed
+            ? (o.guard != null ? L.t('numberRunGuardPassed') : null)
+            : o.reached
+                ? L.t('levelAlmost').replaceAll('{n}', '${o.level}')
+                : null;
+    const nb = '\u00a0';
+    final threshold = o.guard != null
+        ? L.t('numberRunThreshold').replaceAll('{n}', '${o.guard}')
+        : (o.reached && o.wallsTotal > 0 ? '${L.t('numberRunWalls')}$nb${o.walls}/${o.wallsTotal}' : null);
+    final stats = [
+      if (o.level == null) '${L.t('round')}$nb${o.stagesCleared}/$campaignStageCount',
+      '${L.t('errors')}$nb${o.hits + o.mistakes}',
+      '${L.t('time')}$nb${o.seconds}$nb${L.t('secShort')}',
+    ].join('  ·  ');
+    return ConstrainedBox(
+      key: const Key('nr-result'),
+      constraints: const BoxConstraints(maxWidth: 358),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        decoration: BoxDecoration(
+          color: Nr.ivory,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Nr.gold, width: 3),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .35), blurRadius: 18, offset: const Offset(0, 6))],
+        ),
+        // Карточка светлая при любой теме — итог каркаса рисуется светлой схемой забега.
+        child: Theme(
+          data: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Nr.violet)),
+          child: LevelResult(
+            passed: won,
+            level: o.level,
+            score: stats,
+            details: Column(mainAxisSize: MainAxisSize.min, children: [
+              if (note != null)
+                Text(note.toUpperCase(),
+                    key: const Key('nr-verdict'),
+                    textAlign: TextAlign.center,
+                    style: nrText(15, won ? Nr.violet : Nr.navy)),
+              Text(L.t('numberRunFinishNumber').toUpperCase(), textAlign: TextAlign.center, style: nrText(13, Nr.ink)),
+              Text(
+                '${o.number}',
+                key: const Key('nr-finish-number'),
+                textAlign: TextAlign.center,
+                style: nrText(56, o.number < 0 ? Nr.red : Nr.blue, height: 1.1).copyWith(
+                  shadows: [Shadow(color: (o.number < 0 ? Nr.red : Nr.blue).withValues(alpha: .35), blurRadius: 14)],
                 ),
               ),
-          ]),
-        );
-      case _Phase.result:
-        final o = _outcome;
-        if (o == null) return null;
-        // Подпись и число — неразрывным пробелом: «90 с» не должно рваться между строк (кадр 01.10).
-        const nb = '\u00a0';
-        final lines = <String>[
-          '${L.t('score')}$nb${o.number}',
-          if (o.reached && o.wallsTotal > 0)
-            o.guard != null
-                ? '${L.t('numberRunGuard')}$nb${o.guard}'
-                : '${L.t('numberRunWalls')}$nb${o.walls}/${o.wallsTotal}',
-          if (o.level == null) '${L.t('round')}$nb${o.stagesCleared}/$campaignStageCount',
-          '${L.t('errors')}$nb${o.hits + o.mistakes}',
-          '${L.t('time')}$nb${o.seconds}$nb${L.t('secShort')}',
-        ];
-        final won = o.level == null ? o.reached : o.passed;
-        // Вердикт — словами итога, а не подписью кнопки: «Следующий» над кнопкой «Следующий»
-        // читалось загадкой (кадр 01.10). Доехал, но стен мало — «почти»; упал — «ещё раз».
-        final verdict = o.level == null
-            ? (o.reached ? L.t('numberRunDone') : L.t('retry'))
-            : o.passed
-                ? L.t('levelDone').replaceAll('{n}', '${o.level}')
-                : o.reached
-                    ? L.t('levelAlmost').replaceAll('{n}', '${o.level}')
-                    : L.t('retry');
-        return Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(
-              verdict,
-              key: const Key('nr-verdict'),
-              style: text.titleMedium,
-            ),
-            Text(lines.join(' · '), key: const Key('nr-result'), textAlign: TextAlign.center, style: text.bodyMedium),
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              key: const Key('nr-next'),
-              onPressed: _next,
-              icon: Icon(won ? Icons.arrow_forward : Icons.refresh),
-              label: Text(o.level == null ? L.t('restart') : (won ? L.t('nextLabel') : L.t('retry'))),
-            ),
-          ]),
-        );
-    }
+              if (threshold != null)
+                KeyedSubtree(key: const Key('nr-threshold'), child: NrTab(threshold, upper: false)),
+            ]),
+            onNext: () {
+              _next();
+              _start();
+            },
+            onSettings: _next,
+          ),
+        ),
+      ),
+    );
   }
 
   /// РАЗБОР — ПРИЁМЫ НА ЭТОЙ ДОРОГЕ. Рисунок шага — ряд самой игры из этой раздачи, а если
@@ -631,6 +711,8 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
 
 /// Цвета сцены веба (`runner-scene.mjs`): вода, настил, числа, стены.
 const Color _water = Color(0xFF57C7DF);
+Color get numberRunWater => _water;
+const Color _scaleInk = Color(0xFF312E81), _scaleSurface = Color(0xFFE0E7FF);
 const Color _deckA = Color(0xFFF4F5FA), _deckB = Color(0xFFE3E8EF);
 const Color _plus = Color(0xFF443BFF), _minus = Color(0xFFFF1839), _part = Color(0xFFD97706);
 const Color _plank = Color(0xFFC3A780), _ramp = Color(0xFF22C55E), _pole = Color(0xFF456AA1);
@@ -897,17 +979,17 @@ class RoadPainter extends CustomPainter {
   void _scale(Canvas canvas, RoadRow r, double Function(double) x, double Function(double) y, double lw, double w) {
     final yy = y(r.z);
     double tx(double v) => x((v - r.min) / (r.max - r.min) * 2 - 1);
-    canvas.drawRect(Rect.fromLTRB(4, yy - 4, w - 4, yy + 4), Paint()..color = const Color(0xFFE0E7FF));
+    canvas.drawRect(Rect.fromLTRB(4, yy - 4, w - 4, yy + 4), Paint()..color = _scaleSurface);
     final every = r.ticks.length <= 6 ? 1 : 2;
     for (var i = 0; i < r.ticks.length; i++) {
       final v = r.ticks[i];
       final tick = Paint()
-        ..color = const Color(0xFF312E81)
+        ..color = _scaleInk
         ..strokeWidth = 2;
       canvas.drawLine(Offset(tx(v), yy - 9), Offset(tx(v), yy + 9), tick);
       if (i % every == 0 || i == r.ticks.length - 1) {
         final label = '${jsNum((v * 10).roundToDouble() / 10)}'.replaceFirst('-', '−');
-        _text(canvas, label, Offset(tx(v).clamp(14, w - 14), yy - 20), 12, const Color(0xFF312E81), bg: const Color(0xFFE0E7FF));
+        _text(canvas, label, Offset(tx(v).clamp(14, w - 14), yy - 20), 12, _scaleInk, bg: _scaleSurface);
       }
     }
     // Флажок верного ответа — после проезда: показать, где было надо.
@@ -944,6 +1026,13 @@ class RoadPainter extends CustomPainter {
         _badge(canvas, it.symbol ?? '', c, 30, const Color(0xFF134E4A));
         continue;
       }
+      if (it.reserve != null) {
+        // «×2» в запас — фиолетовая операция, как стена «×».
+        final rect = Rect.fromCenter(center: c, width: 52, height: 30);
+        canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(8)), Paint()..color = _wallColor('×'));
+        _text(canvas, it.reserve!, c, 17, Colors.white);
+        continue;
+      }
       final half = it.half ?? .18;
       final color = it.part
           ? _part
@@ -974,7 +1063,7 @@ class RoadPainter extends CustomPainter {
     canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(7)), Paint()..color = color);
     final full = Paint()..color = Colors.white;
     final empty = Paint()
-      ..color = const Color(0x99FFFFFF)
+      ..color = Colors.white.withValues(alpha: .6)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.9;
     for (var f = 0; f < frames; f++) {

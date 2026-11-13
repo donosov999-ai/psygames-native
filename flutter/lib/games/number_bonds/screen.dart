@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -10,11 +9,16 @@ import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/l10n.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart' show SuiteModeAction;
+import '../sum_mixed/route.dart' show sumMixedMode;
+import '../../shell/swipe_select.dart';
 import '../counting_common/generator_shadow.dart';
 import 'model.dart';
 
@@ -55,13 +59,16 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
   bool? _right;
   bool _won = false;
 
+  /// Уровень партии — для итога: после победы лестница уже на следующем.
+  int _levelPlayed = 1;
+
   /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
   bool? _boss;
   bool _ready = false;
   _Phase _phase = _Phase.playing;
   int _leftMs = 0;
-  Timer? _tick;
-  Timer? _next;
+  GameTimer? _tick;
+  GameTimer? _next;
 
   /// Тень генератора уровней (звено 4, задача 4e584381): раздача с новой партией, исход до лестницы.
   late final LadderShadow _shadow =
@@ -98,6 +105,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
     LessonUsed.reset();
     _tick?.cancel();
     _next?.cancel();
+    _levelPlayed = _ladder.level;
     _cfg = levelParams(_ladder.level);
     // ШАГ ЗАРЯДКИ — СВОЁ ЧИСЛО ЗАДАЧ (`?trials=`, по умолчанию 8), как веб (`number-bonds.tsx:115`,
     // `:187–189`). Трудность — личного уровня: тир `?diff=` веб-пресета снят решением 09.09
@@ -120,7 +128,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
     _leftMs = _cfg.windowMs;
     if (_cfg.windowMs <= 0) return;
     // Окно на задачу: просрочка засчитывается ошибкой, как в вебе.
-    _tick = Timer.periodic(const Duration(milliseconds: 100), (_) {
+    _tick = gameInterval(const Duration(milliseconds: 100), () {
       if (!mounted) return;
       setState(() => _leftMs = math.max(0, _leftMs - 100));
       if (_leftMs <= 0) _fail(late: true);
@@ -140,6 +148,16 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
     });
     // Автоприём: собранная цель засчитывается без кнопки.
     if (_picked.length >= bondsMinPicked && _sum == _puzzle!.target) _accept();
+  }
+
+  /// Протяжка по фишкам (общий жест каркаса, `shell/swipe_select.dart`): берёт фишку, не
+  /// переключая её; возврат на предыдущую снимает последнюю. Автоприём — тот же, что у тапа.
+  void _swipePick(int index) {
+    if (_phase == _Phase.playing && !_picked.contains(index)) _toggle(index);
+  }
+
+  void _swipeUnpick(int index) {
+    if (_phase == _Phase.playing && _picked.contains(index)) _toggle(index);
   }
 
   void _accept() {
@@ -164,7 +182,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
 
   void _after() {
     _next?.cancel();
-    _next = Timer(_feedbackDelay, () async {
+    _next = gameTimeout(_feedbackDelay, () async {
       if (!mounted) return;
       if (_round >= _cfg.trials) {
         final passed = _errors <= bondsErrorsAllowed;
@@ -205,7 +223,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
 
   /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
   /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
-  String get _title => L.t('numberBonds');
+  String get _title => L.t('suiteSum');
 
   /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
   /// а вот чем объём берётся — нет.
@@ -229,15 +247,34 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
         if (_cfg.windowMs > 0)
           HudItem(label: L.t('timeLeftLabel'), value: '${(_leftMs / 1000).ceil()} ${L.t('secShort')}', icon: Icons.timer_outlined),
       ],
-      field: (context, h) => _Field(
-        puzzle: p,
-        picked: _picked,
-        sum: _sum,
-        right: _right,
-        height: h,
-        onTap: _toggle,
-      ),
+      // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень, итог
+      // вехи — в подробностях.
+      field: (context, h) => _phase == _Phase.result
+          ? SizedBox(
+              height: h,
+              child: LevelResult(
+                passed: _won,
+                level: _levelPlayed,
+                score: _won
+                    ? L.f('nbResultWin', {'hits': '$_hits', 'errors': '$_errors'})
+                    : L.f('nbResultFail', {'errors': '$_errors', 'max': '$bondsErrorsAllowed'}),
+                details: BossOutcomeLine(_boss),
+                onNext: () => setState(_reset),
+              ),
+            )
+          : BondsField(
+              puzzle: p,
+              picked: _picked,
+              sum: _sum,
+              right: _right,
+              height: h,
+              onTap: _toggle,
+              onSwipePick: _swipePick,
+              onSwipeUnpick: _swipeUnpick,
+            ),
       auxRow: AuxBar(children: [
+        // Набор «Собери сумму»: режим — листом (экрана настройки у партии нет).
+        SuiteModeAction(route: '/games/number-bonds', state: widget.state, extra: sumMixedMode),
         AuxAction(
           icon: Icons.backspace_outlined,
           label: L.t('clear'),
@@ -247,7 +284,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
         ),
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
-      toolbar: _toolbar(context),
+      toolbar: _phase == _Phase.result ? null : _toolbar(context),
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
@@ -255,30 +292,6 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
   }
 
   Widget _toolbar(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    if (_phase == _Phase.result) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(
-            _won
-                ? L.f('nbResultWin', {'hits': '$_hits', 'errors': '$_errors'})
-                : L.f('nbResultFail', {'errors': '$_errors', 'max': '$bondsErrorsAllowed'}),
-            key: const Key('итог'),
-            textAlign: TextAlign.center,
-            style: text.titleMedium,
-          ),
-          BossOutcomeLine(_boss),
-          const SizedBox(height: 8),
-          FilledButton.icon(
-            key: const Key('дальше'),
-            onPressed: () => setState(_reset),
-            icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-            label: Text(_won ? L.t('nextLabel') : L.t('retry')),
-          ),
-        ]),
-      );
-    }
     return Padding(
       padding: const EdgeInsets.all(12),
       child: FilledButton.icon(
@@ -291,15 +304,19 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
   }
 }
 
-/// Поле: цель, набранная сумма и фишки. Размер фишки берётся от высоты поля.
-class _Field extends StatelessWidget {
-  const _Field({
+/// Поле: цель, набранная сумма и фишки. Размер фишки берётся от высоты поля. Публичное: то же поле
+/// рисует режим «Вперемешку» набора «Собери сумму» (`games/sum_mixed`).
+class BondsField extends StatelessWidget {
+  const BondsField({
+    super.key,
     required this.puzzle,
     required this.picked,
     required this.sum,
     required this.right,
     required this.height,
     required this.onTap,
+    required this.onSwipePick,
+    required this.onSwipeUnpick,
   });
 
   final BondsPuzzle puzzle;
@@ -308,6 +325,8 @@ class _Field extends StatelessWidget {
   final bool? right;
   final double height;
   final void Function(int) onTap;
+  final void Function(int) onSwipePick;
+  final void Function(int) onSwipeUnpick;
 
   @override
   Widget build(BuildContext context) {
@@ -338,14 +357,20 @@ class _Field extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
-            Wrap(
+            SwipeSelect(
+              isSelected: picked.contains,
+              onSelect: onSwipePick,
+              onUnselect: onSwipeUnpick,
+              child: Wrap(
               key: const Key('фишки'),
               spacing: 10,
               runSpacing: 10,
               alignment: WrapAlignment.center,
               children: [
                 for (var i = 0; i < puzzle.chips.length; i += 1)
-                  SizedBox(
+                  SwipeTarget(
+                    index: i,
+                    child: SizedBox(
                     width: size,
                     height: size,
                     child: Material(
@@ -373,7 +398,9 @@ class _Field extends StatelessWidget {
                       ),
                     ),
                   ),
+                  ),
               ],
+              ),
             ),
           ],
         );

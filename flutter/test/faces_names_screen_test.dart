@@ -71,7 +71,7 @@ void main() {
 
     // Вопросы: лицо в поле, имя — в ряду под полем.
     guard = 0;
-    while (find.byKey(const ValueKey('fn-again')).evaluate().isEmpty && guard < 40) {
+    while (find.byKey(const Key('level-result')).evaluate().isEmpty && guard < 40) {
       guard += 1;
       final face = _anyKeyStarting(tester, 'face-');
       if (face != null) {
@@ -95,7 +95,7 @@ void main() {
     }
 
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('fn-again')), findsOneWidget, reason: 'круг обязан дойти до итога');
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'круг обязан дойти до итога');
     /*
      * ⚠️ ИТОГ ПРОВЕРЯЕТСЯ ПО ЧИСЛАМ, А НЕ ПО РУССКОМУ СЛОВУ. Подписи приходят из
      * словаря игры, а в пробе словарь не загружен: `L.t` отдаёт сам ключ. Ждать

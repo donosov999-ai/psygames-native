@@ -82,7 +82,7 @@ void main() {
       }
       await t.pump(const Duration(seconds: 1));
       await t.pumpAndSettle();
-      expect(find.byKey(const Key('semantic-score')), findsOneWidget);
+      expect(find.byKey(const Key('level-result-score')), findsOneWidget);
       expect(reports, hasLength(1));
       expect(reports.single['details']['mode'], 'baskets');
       expect(reports.single['details']['accuracy'], 1);
@@ -193,7 +193,7 @@ void main() {
         await t.pump(const Duration(seconds: 1));
         await t.pumpAndSettle();
       }
-      expect(find.byKey(const Key('semantic-score')), findsOneWidget);
+      expect(find.byKey(const Key('level-result-score')), findsOneWidget);
       expect(reports, hasLength(1));
       expect(reports.single['score'], 12);
       expect(reports.single['details']['target_lang'], 'en+es');
@@ -277,11 +277,12 @@ void main() {
       await t.pumpAndSettle();
       expect(reports, hasLength(1));
       expect(state.get(SharedState.levelKey('semantic_sort', 'nzt48')), '2');
-      await t.tap(find.byKey(const Key('semantic-again')));
+      // 🔴 Денис 12.11: «Дальше» после пройденного уровня сразу начинает
+      // следующий — без возврата на экран настроек.
+      await t.tap(find.byKey(const Key('level-result-next')));
       await t.pumpAndSettle();
-      await t.ensureVisible(find.byKey(const Key('semantic-start')));
-      await t.tap(find.byKey(const Key('semantic-start')));
-      await t.pumpAndSettle();
+      expect(find.byKey(const Key('semantic-start')), findsNothing);
+      expect(find.byType(SemanticBasketField), findsOneWidget);
       final current = party(t);
       expect(identical(previous, current), isFalse);
       previousField.onAnswer(0, previous.rounds[0].correctCat);
@@ -307,7 +308,7 @@ void main() {
       }
       await t.pump(const Duration(seconds: 1));
       await t.pumpAndSettle();
-      await t.tap(find.byKey(const Key('semantic-again')));
+      await t.tap(find.byKey(const Key('level-result-settings')));
       await t.pumpAndSettle();
       final picker = t.widget<LangDropdown>(
         find.byKey(const Key('semantic-lang')),
@@ -393,6 +394,30 @@ void main() {
       expect(p.completed, 1);
       expect(p.correctFirst, 0);
       expect(p.errors, 1);
+    },
+  );
+
+  testWidgets(
+    '🔴 quick swipe without holding carries the word to the basket (Денис 12.11)',
+    (t) async {
+      await t.pumpWidget(app());
+      await t.pumpAndSettle();
+      final p = party(t);
+      // Палец касается слова и сразу ведёт к корзине — без удержания.
+      final g = await t.startGesture(
+        t.getCenter(find.byKey(const Key('semantic-card-0'))),
+      );
+      await g.moveBy(const Offset(0, 12));
+      await t.pump();
+      await g.moveTo(
+        t.getCenter(find.byKey(Key('semantic-basket-${p.rounds[0].correctCat}'))),
+      );
+      await t.pump();
+      await g.up();
+      await t.pumpAndSettle();
+      expect(p.completed, 1, reason: 'a quick swipe must pick the word up');
+      expect(p.errors, 0);
+      expect(find.byKey(const Key('semantic-card-0')), findsNothing);
     },
   );
 

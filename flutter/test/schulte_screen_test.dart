@@ -79,7 +79,7 @@ void main() {
     }
 
     expect(
-      find.text(L.t('nextLabel')),
+      find.textContaining(L.t('nextLabel')),
       findsOneWidget,
       reason: 'вся таблица собрана по порядку — уровень взят',
     );
@@ -106,7 +106,7 @@ void main() {
         await tester.tap(cellWith(tester, target(tester)));
         await tester.pump();
       }
-      expect(find.text(L.t('nextLabel')), findsOneWidget);
+      expect(find.textContaining(L.t('nextLabel')), findsOneWidget);
       expect(state.get('psygames_schulte_table_warmup_level_nzt48'), '2');
       expect(
         state.get('psygames_schulte_table_level_nzt48'),
@@ -192,7 +192,7 @@ void main() {
       // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
       await expectBossAfterWin(
         tester,
-        won: find.text(L.t('nextLabel')),
+        won: find.textContaining(L.t('nextLabel')),
         hudKey: 'bossHudCounting',
         play: (level) async {
           await open(tester, level: level);
@@ -200,7 +200,7 @@ void main() {
           await tester.pump();
           for (
             var i = 0;
-            i < 200 && find.text(L.t('nextLabel')).evaluate().isEmpty;
+            i < 200 && find.textContaining(L.t('nextLabel')).evaluate().isEmpty;
             i += 1
           ) {
             await tester.tap(cellWith(tester, target(tester)));
@@ -218,11 +218,12 @@ void main() {
     // на каждом уровне и этого пути не проходят. Здесь 3-й уровень с боем, «Следующий
     // уровень» той же кнопкой, 4-й без боя — строки «Босс устоял» в его итоге быть не должно.
     Future<void> playToEnd() async {
-      await tester.tap(find.text(L.t('start')));
+      // «Следующий» общего итога (e90a53d5) сразу раздаёт новую таблицу — «Начать» есть только в первый раз.
+      if (find.text(L.t('start')).evaluate().isNotEmpty) await tester.tap(find.text(L.t('start')));
       await tester.pump();
       for (
         var i = 0;
-        i < 200 && find.text(L.t('nextLabel')).evaluate().isEmpty;
+        i < 200 && find.textContaining(L.t('nextLabel')).evaluate().isEmpty;
         i += 1
       ) {
         await tester.tap(cellWith(tester, target(tester)));
@@ -241,7 +242,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('boss-outcome')), findsOneWidget);
 
-    await tester.tap(find.text(L.t('nextLabel')));
+    await tester.tap(find.textContaining(L.t('nextLabel')));
     await tester.pump();
     await playToEnd();
     await tester.pump(const Duration(seconds: 3));
@@ -251,7 +252,7 @@ void main() {
       reason: 'бой после 4-го уровня',
     );
     expect(
-      find.text(L.t('nextLabel')),
+      find.textContaining(L.t('nextLabel')),
       findsOneWidget,
       reason: 'уровень 4 не взят',
     );

@@ -120,8 +120,8 @@ void main() {
     expect(reports.single['mode'], 'route-recall');
     expect(reports.single['errors'], 0);
     expect(await storedLevel(), 2, reason: 'пройденная ступень поднимает лестницу');
-    expect(find.text(L.t('nextLabel')), findsOneWidget);
-    await press(tester, 'nav-next');
+    expect(find.byKey(const Key('level-result-next')), findsOneWidget, reason: 'итог — общий каркаса');
+    await press(tester, 'level-result-next');
     expect(shown('nav-rules'), isTrue, reason: 'следующая партия начинается с правил');
   });
 

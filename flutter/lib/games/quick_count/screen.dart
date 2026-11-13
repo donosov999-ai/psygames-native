@@ -13,6 +13,7 @@ import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -66,6 +67,8 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
   bool get _lureShown => _decoys && _flashNo != _ownAt;
   int? _picked;
   bool _won = false;
+  /// Сыгранный уровень — для общего итога: после победы лестница уже на следующем.
+  int _levelPlayed = 1;
 
   /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
   bool? _boss;
@@ -190,6 +193,7 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
     final accuracy = _correct / trialsPerRound * 100;
     final won = accuracy >= passAccuracyPercent;
     // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «тапни только зелёный».
+    final played = _ladder.level;
     bool? boss;
     if (won) {
       boss = await BossRound.winThenBoss(context, _ladder,
@@ -201,6 +205,7 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
     setState(() {
       _won = won;
       _boss = boss;
+      _levelPlayed = played;
       _phase = _Phase.result;
     });
   }
@@ -254,7 +259,25 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
         HudItem(label: L.t('hud_correct'), value: '$_correct', icon: Icons.check_circle_outline),
         HudItem(label: L.t('errors'), value: '$_wrong', icon: Icons.error_outline),
       ],
-      field: (context, h) => _Field(
+      // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход к «Начать» следующего уровня
+      // (как прежняя кнопка — новый уровень начинается спокойным моментом, где встаёт карточка правила);
+      // итог боя с боссом — в подробностях.
+      field: (context, h) => _phase == _Phase.result
+          ? SizedBox(
+              height: h,
+              child: LevelResult(
+                passed: _won,
+                level: _levelPlayed,
+                score: _line,
+                details: BossOutcomeLine(_boss),
+                // Сразу в следующую пробу; на «Начать» — только если ждёт карточка нового правила уровня.
+                onNext: () {
+                  setState(_reset);
+                  if (!LevelRules.cardDue(widget.state, 'quick_count', _ladder.level)) _startTrial();
+                },
+              ),
+            )
+          : _Field(
         phase: _phase,
         n: _flashCounts.isEmpty ? _n : _flashCounts[_flashNo],
         lure: _lureShown,
@@ -276,6 +299,8 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
   }
 
   Widget _toolbar(BuildContext context) {
+    // На итоге счёт и кнопки рисует общий [LevelResult] в поле.
+    if (_phase == _Phase.result) return const SizedBox.shrink();
     final text = Theme.of(context).textTheme;
     final screenW = MediaQuery.sizeOf(context).width;
     final window = answerWindow(_params, _n, _shift);
@@ -330,14 +355,6 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
                   ),
               ],
             ),
-          ),
-        if (_phase == _Phase.result) BossOutcomeLine(_boss),
-        if (_phase == _Phase.result)
-          FilledButton.icon(
-            key: const Key('дальше'),
-            onPressed: () => setState(_reset),
-            icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-            label: Text(_won ? L.t('nextLabel') : L.t('retry')),
           ),
         if (_picked != null && _phase != _Phase.result && _phase != _Phase.answer)
           Text(L.f('qcWas', {'n': '$_n'}), key: const Key('было'), style: text.bodySmall),

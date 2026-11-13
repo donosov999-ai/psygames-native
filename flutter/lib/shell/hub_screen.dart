@@ -4,10 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import 'catalog.dart';
+import 'chrome_art.dart';
+import 'hub_art.dart';
+import 'native_tabs.dart';
+import 'tab_chrome.dart';
 import 'level_ladder.dart';
 import 'shared_level_store.dart';
 import 'l10n.dart';
 import 'shared_state.dart';
+import 'suite_switch.dart';
 import 'web_theme.dart';
 
 /// РАЗВИЛКА (хаб) — ОБЩИЙ ЭКРАН НА ВСЕ РАЗДЕЛЫ.
@@ -36,6 +41,7 @@ class HubScreen extends StatefulWidget {
     required this.gradient,
     this.header,
     this.isNative,
+    this.onCardTap,
   });
 
   final SharedState state;
@@ -60,6 +66,9 @@ class HubScreen extends StatefulWidget {
   /// открывает её в любом случае оболочка (см. [HubCardTap]).
   final bool Function(String route)? isNative;
 
+  /// Optional legacy spatial-host receiver; normal hubs return [HubCardTap].
+  final ValueChanged<String>? onCardTap;
+
   @override
   State<HubScreen> createState() => _HubScreenState();
 }
@@ -76,13 +85,13 @@ class HubCard {
   });
 
   factory HubCard.fromJson(Map<String, dynamic> j) => HubCard(
-        route: j['route'] as String,
-        icon: j['icon'] as String? ?? 'apps',
-        nameKey: j['nameKey'] as String? ?? '',
-        descKey: j['descKey'] as String? ?? '',
-        type: j['type'] as String?,
-        levelKey: j['levelKey'] as String?,
-      );
+    route: j['route'] as String,
+    icon: j['icon'] as String? ?? 'apps',
+    nameKey: j['nameKey'] as String? ?? '',
+    descKey: j['descKey'] as String? ?? '',
+    type: j['type'] as String?,
+    levelKey: j['levelKey'] as String?,
+  );
 
   final String route;
   final String icon;
@@ -219,11 +228,15 @@ IconData hubIcon(String name) => hubIcons[name] ?? Icons.extension_outlined;
 /// С 01.10.2026 иконка есть у всех 114 строк (режимы — `MODE_ICONS`, по адресу целиком);
 /// нет иконки (новая строка, битая выгрузка) — прежний значок: пустого места быть не может.
 String? hubIconFile(Map<String, dynamic> index, HubCard c) =>
-    ((index['byNameKey'] as Map?)?[c.nameKey] ?? (index['byRoute'] as Map?)?[c.route]) as String?;
+    ((index['byNameKey'] as Map?)?[c.nameKey] ??
+            (index['byRoute'] as Map?)?[c.route])
+        as String?;
 
 class _HubScreenState extends State<HubScreen> {
   List<HubCard>? _cards;
   Map<String, dynamic> _icons = const {};
+  Map<String, dynamic> _hubArt = const {};
+  List<GameSuite> _suites = const [];
   String _title = '';
   String _desc = '';
   String _footnote = '';
@@ -282,13 +295,21 @@ class _HubScreenState extends State<HubScreen> {
     try {
       final o = jsonDecode(raw) as Map<String, dynamic>;
       if (o['profile'] != widget.state.activeProfile) return cards;
-      final list = (o['hubs'] as Map<String, dynamic>?)?[widget.hubRoute] as List?;
+      final list =
+          (o['hubs'] as Map<String, dynamic>?)?[widget.hubRoute] as List?;
       if (list == null) return cards;
       final byRoute = <String, HubCard>{
-        for (final l in ((bundle['hubs'] as Map<String, dynamic>?) ?? const {}).values)
-          for (final e in l as List) HubCard.fromJson(e as Map<String, dynamic>).route: HubCard.fromJson(e),
-        for (final e in ((bundle['extra'] as Map<String, dynamic>?) ?? const {}).values)
-          HubCard.fromJson(e as Map<String, dynamic>).route: HubCard.fromJson(e),
+        for (final l
+            in ((bundle['hubs'] as Map<String, dynamic>?) ?? const {}).values)
+          for (final e in l as List)
+            HubCard.fromJson(e as Map<String, dynamic>).route: HubCard.fromJson(
+              e,
+            ),
+        for (final e
+            in ((bundle['extra'] as Map<String, dynamic>?) ?? const {}).values)
+          HubCard.fromJson(e as Map<String, dynamic>).route: HubCard.fromJson(
+            e,
+          ),
         for (final c in cards) c.route: c,
       };
       return [for (final r in list.cast<String>()) ?byRoute[r]];
@@ -298,9 +319,11 @@ class _HubScreenState extends State<HubScreen> {
   }
 
   List<HubCard> _cardsFor(Map<String, dynamic> bundle) {
-    final factory_ = ((bundle['hubs'] as Map<String, dynamic>)[widget.hubRoute] as List? ?? [])
-        .map((e) => HubCard.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final factory_ =
+        ((bundle['hubs'] as Map<String, dynamic>)[widget.hubRoute] as List? ??
+                [])
+            .map((e) => HubCard.fromJson(e as Map<String, dynamic>))
+            .toList();
 
     List<dynamic>? items;
     // 1. Состав, сохранённый на устройстве, — он и есть живая правда.
@@ -308,10 +331,15 @@ class _HubScreenState extends State<HubScreen> {
     if (saved != null && saved.isNotEmpty) {
       try {
         final o = jsonDecode(saved) as Map<String, dynamic>;
-        final byProfile = (o['профили'] as Map<String, dynamic>?)?[widget.state.activeProfile];
-        items = ((byProfile as Map<String, dynamic>?)?['хабы']
-                as Map<String, dynamic>?)?[widget.hubRoute] as List?;
-        items ??= (o['хабы'] as Map<String, dynamic>?)?[widget.hubRoute] as List?;
+        final byProfile =
+            (o['профили']
+                as Map<String, dynamic>?)?[widget.state.activeProfile];
+        items =
+            ((byProfile as Map<String, dynamic>?)?['хабы']
+                    as Map<String, dynamic>?)?[widget.hubRoute]
+                as List?;
+        items ??=
+            (o['хабы'] as Map<String, dynamic>?)?[widget.hubRoute] as List?;
       } catch (_) {
         // Испорченный состав — не повод показать пустую развилку: идём дальше.
       }
@@ -319,7 +347,8 @@ class _HubScreenState extends State<HubScreen> {
     // 2. Раскладки, выгруженные из заводского файла состава (`layouts`).
     if (items == null) {
       final layouts = bundle['layouts'] as Map<String, dynamic>?;
-      final mine = layouts?[widget.state.activeProfile] as Map<String, dynamic>?;
+      final mine =
+          layouts?[widget.state.activeProfile] as Map<String, dynamic>?;
       items = mine?[widget.hubRoute] as List?;
     }
     if (items == null) return factory_;
@@ -359,13 +388,15 @@ class _HubScreenState extends State<HubScreen> {
       final route = m['маршрут'] ?? m['route'];
       final nameKey = m['имя'] ?? m['nameKey'];
       if (route is! String || nameKey is! String) continue;
-      out.add(HubCard(
-        route: route,
-        icon: (m['значок'] ?? m['icon'] ?? 'extension-puzzle') as String,
-        nameKey: nameKey,
-        descKey: (m['описание'] ?? m['descKey'] ?? nameKey) as String,
-        type: null,
-      ));
+      out.add(
+        HubCard(
+          route: route,
+          icon: (m['значок'] ?? m['icon'] ?? 'extension-puzzle') as String,
+          nameKey: nameKey,
+          descKey: (m['описание'] ?? m['descKey'] ?? nameKey) as String,
+          type: null,
+        ),
+      );
     }
     return out.isEmpty ? factory_ : out;
   }
@@ -374,16 +405,29 @@ class _HubScreenState extends State<HubScreen> {
     // ⚠️ БАЙТАМИ, А НЕ `loadString`: с 51 200 байт он декодирует в `compute()`,
     // и testWidgets висит десять минут. 30.09.2026 файл весил 47 979 — запас 3 КБ.
     final data = await rootBundle.load('assets/hubs.json');
-    final raw = utf8.decode(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
+    final raw = utf8.decode(
+      data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+    );
     final j = jsonDecode(raw) as Map<String, dynamic>;
     final cards = _visibleFor(_cardsFor(j), j);
-    final meta = (j['meta'] as Map<String, dynamic>)[widget.hubRoute] as Map<String, dynamic>?;
+    final meta =
+        (j['meta'] as Map<String, dynamic>)[widget.hubRoute]
+            as Map<String, dynamic>?;
     var icons = const <String, dynamic>{};
     try {
       final b = await rootBundle.load('assets/game_icons/index.json');
-      icons = jsonDecode(utf8.decode(b.buffer.asUint8List(b.offsetInBytes, b.lengthInBytes))) as Map<String, dynamic>;
+      icons = jsonDecode(
+        utf8.decode(b.buffer.asUint8List(b.offsetInBytes, b.lengthInBytes)),
+      ) as Map<String, dynamic>;
     } catch (_) {
       // Нет карты — строки остаются со значками, развилка работает как прежде.
+    }
+
+    var artwork = const <String, dynamic>{};
+    try {
+      artwork = await HubArt.load();
+    } catch (_) {
+      // Optional presentation layer: existing icons and launch remain usable.
     }
 
     // Уровень каждой игры — из ОБЩЕЙ памяти, той же, что у веб-половины: на
@@ -395,10 +439,16 @@ class _HubScreenState extends State<HubScreen> {
       // с суффиксом режима. Человеку на девятом уровне развилка показывала
       // «ур. 1» — замер 23.09.2026 пробой развилок «Поиска» и «Счёта».
       final id = c.levelKey ?? c.route.split('/').last.replaceAll('-', '_');
-      final ladder = LevelLadder(gameId: id, store: SharedLevelStore(widget.state));
+      final ladder = LevelLadder(
+        gameId: id,
+        store: SharedLevelStore(widget.state),
+      );
       await ladder.load();
       _levels[c.route] = ladder.level;
     }
+    // Наборы игр: карточка набора называет свои режимы, иначе за «Решения» не видно ни PRL, ни
+    // Iowa, ни BART (отчёт 13.11: BART в «Конфликте внимания» не нашли).
+    final suites = await GameSuites.load();
     Catalog? catalog;
     try {
       catalog = await Catalog.load();
@@ -417,12 +467,52 @@ class _HubScreenState extends State<HubScreen> {
     setState(() {
       _cards = cards;
       _catalog = catalog;
+      _suites = suites;
       _icons = icons;
+      _hubArt = artwork;
       _title = tr('titleKey', meta?['title'] as String?);
       _desc = tr('descKey', meta?['desc'] as String?);
       _footnote = tr('footnoteKey', meta?['footnote'] as String?);
       _pick = tr('pickKey', j['pick'] as String? ?? _pick);
     });
+  }
+
+  /// Подпись карточки. У карточки набора ([GameSuites]) вторая строка — ЕГО РЕЖИМЫ («Правило
+  /// меняется · Четыре колоды · Надувай шар»): карточка одна на набор, и без списка не видно, что
+  /// внутри есть ещё игры. Режимы — только открытые профилю; меньше двух — как у обычной карточки.
+  Widget _subtitle(HubCard c, ColorScheme scheme) {
+    final text = [
+      if ((c.type ?? '').isNotEmpty) c.type!,
+      if (c.desc.isNotEmpty) c.desc,
+    ].join(' · ');
+    final suite = GameSuites.of(c.route, _suites);
+    final modes = suite == null
+        ? const <SuiteMode>[]
+        : GameSuites.openModes(widget.state, suite);
+    if (modes.length < 2) {
+      // ⚠️ ДВЕ СТРОКИ, А НЕ СКОЛЬКО ВЫЙДЕТ. На снимке описания растягивали карточку на четыре
+      // строки, и в экран помещалось три с половиной карточки из восьми — то есть развилка
+      // перестала показывать выбор.
+      return Text(text, maxLines: 2, overflow: TextOverflow.ellipsis);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (text.isNotEmpty)
+          Text(text, maxLines: 1, overflow: TextOverflow.ellipsis),
+        Text(
+          modes.map((m) => L.t(m.labelKey)).join(' · '),
+          key: ValueKey('hub-modes-${c.route}'),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: scheme.primary,
+          ),
+        ),
+      ],
+    );
   }
 
   CatalogEntry? _entry(HubCard c) {
@@ -448,12 +538,383 @@ class _HubScreenState extends State<HubScreen> {
     return c.name.toLowerCase().contains(_query.trim().toLowerCase());
   }
 
+  void _openCard(HubCard c) {
+    if (widget.onCardTap != null) {
+      widget.onCardTap!(c.route);
+    } else {
+      Navigator.of(context).pop(HubCardTap(c.route));
+    }
+  }
+
+  /// Поиск и фильтр — ОДНОЙ строкой, как в рефе Кодекса (поле слева, фильтр справа).
+  Widget _search(List<String> skills) {
+    final field = TextField(
+      key: const ValueKey('hub-search'),
+      style: WebTheme.fieldText(context),
+      textInputAction: TextInputAction.search,
+      decoration: WebTheme.field(context, hint: L.t('catalogSearch')),
+      onChanged: (v) => setState(() => _query = v),
+    );
+    if (skills.length < 2) return field;
+    final filter = DropdownButtonFormField<String?>(
+      key: const ValueKey('hub-filter'),
+      initialValue: _skill,
+      isExpanded: true,
+      decoration: WebTheme.field(context, hint: L.t('catalogFilter')),
+      items: [
+        DropdownMenuItem<String?>(
+          value: null,
+          child: Text(L.t('allGames'), overflow: TextOverflow.ellipsis),
+        ),
+        for (final k in skills)
+          DropdownMenuItem<String?>(
+            value: k,
+            child: Text(skillTitle(k), overflow: TextOverflow.ellipsis),
+          ),
+      ],
+      onChanged: (v) => setState(() => _skill = v),
+    );
+    final wide = MediaQuery.textScalerOf(context).scale(12) / 12 <= 1.15;
+    if (!wide) {
+      return Column(children: [field, const SizedBox(height: 8), filter]);
+    }
+    return Row(
+      children: [
+        Expanded(flex: 3, child: field),
+        const SizedBox(width: 8),
+        Expanded(flex: 2, child: filter),
+      ],
+    );
+  }
+
+  void _details(HubCard c) => showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (ctx) => SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(ctx).height * .7,
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(c.name, style: Theme.of(ctx).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              Text('${L.t('unitLevelShort')} ${_levels[c.route] ?? 1}'),
+              _subtitle(c, Theme.of(ctx).colorScheme),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                icon: const Icon(Icons.play_arrow),
+                label: Text(L.t('start')),
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  _openCard(c);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+
+  /// 🔴 КАРТОЧКА ИГРЫ В РАЗВИЛКЕ — КРУПНАЯ КАРТИНКА, БЕЗ РАМКИ (Денис 13.11.2026:
+  /// «у него большие были — уменьшили и вогнали в рамку», «делай без рамки, стилизацию
+  /// не просил — по выводу иконок каталога»). Картинка Кодекса во всю верхнюю часть
+  /// плитки, под ней название и уровень. Мягкая светлая плитка — цвета из схемы темы.
+  Widget _gridCard(HubCard c) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final file = hubIconFile(_icons, c);
+    final artwork = HubArt.resolve(_hubArt, c.route, theme.brightness);
+    final suite = GameSuites.of(c.route, _suites);
+    final modes = suite == null
+        ? const <SuiteMode>[]
+        : GameSuites.openModes(widget.state, suite);
+    final level = '${L.t('unitLevelShort')} ${_levels[c.route] ?? 1}';
+    Widget fallback() => file == null
+        ? Icon(hubIcon(c.icon), size: 40)
+        : Image.asset('assets/game_icons/$file', fit: BoxFit.contain);
+    return Semantics(
+      label: '${c.name}, $level',
+      button: true,
+      child: Material(
+        color: scheme.surfaceContainerLow,
+        elevation: 1.5,
+        shadowColor: scheme.shadow.withValues(alpha: .25),
+        borderRadius: BorderRadius.circular(18),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          key: ValueKey('hub-card-${c.route}'),
+          onTap: () => _openCard(c),
+          onLongPress: () => _details(c),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (artwork != null)
+                      Image.asset(
+                        artwork,
+                        key: ValueKey('hub-icon-${c.route}'),
+                        fit: BoxFit.cover,
+                        excludeFromSemantics: true,
+                        errorBuilder: (_, _, _) => fallback(),
+                      )
+                    else
+                      KeyedSubtree(
+                        key: ValueKey('hub-icon-${c.route}'),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: fallback(),
+                        ),
+                      ),
+                    if (modes.length >= 2)
+                      PositionedDirectional(
+                        top: 6,
+                        end: 6,
+                        child: Tooltip(
+                          message: modes
+                              .map((m) => L.t(m.labelKey))
+                              .join(' · '),
+                          child: DecoratedBox(
+                            key: ValueKey('hub-modes-${c.route}'),
+                            decoration: BoxDecoration(
+                              color: scheme.secondaryContainer,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.layers_outlined,
+                                    size: 12,
+                                    color: scheme.onSecondaryContainer,
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    '${modes.length}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: scheme.onSecondaryContainer,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(6, 5, 2, 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            c.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              height: 1.15,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          Text(
+                            level,
+                            key: ValueKey('hub-level-${c.route}'),
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox.square(
+                      dimension: 28,
+                      child: IconButton(
+                        key: ValueKey('hub-info-${c.route}'),
+                        tooltip: L.t('btn_rules'),
+                        padding: EdgeInsets.zero,
+                        iconSize: 16,
+                        icon: Icon(
+                          Icons.info_outline,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                        onPressed: () => _details(c),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _classicArt(HubCard c, ColorScheme scheme) {
+    final art = HubArt.resolve(_hubArt, c.route, Theme.of(context).brightness);
+    final file = hubIconFile(_icons, c);
+    Widget icon() => file != null
+        ? Image.asset(
+            'assets/game_icons/$file',
+            fit: BoxFit.cover,
+            excludeFromSemantics: true,
+          )
+        : ColoredBox(
+            color: scheme.secondaryContainer,
+            child: Icon(hubIcon(c.icon), color: scheme.onSecondaryContainer),
+          );
+    return ClipRRect(
+      // Скруглённый квадрат, как в каталоге: круг срезал бы углы картинки.
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox.square(
+        key: ValueKey('hub-icon-${c.route}'),
+        dimension: 64,
+        child: art == null
+            ? icon()
+            : Image.asset(
+                art,
+                fit: BoxFit.cover,
+                excludeFromSemantics: true,
+                errorBuilder: (_, _, _) => icon(),
+              ),
+      ),
+    );
+  }
+
+  Widget _aurora(List<HubCard>? cards, List<String> skills) => Scaffold(
+    bottomNavigationBar: NativeTabs.tabs.isEmpty
+        ? null
+        : NativeTabBar(
+            active: '/games',
+            allowReselect: true,
+            accent: WebTheme.accent(widget.state),
+            onTap: (route) =>
+                Navigator.of(context).pop(HubCardTap(route, tab: true)),
+          ),
+    body: SafeArea(
+      bottom: false,
+      child: Column(
+        children: [
+          AuroraTabHeader(
+            route: widget.hubRoute,
+            title: _title,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              tooltip: L.t('back'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+          Expanded(
+            child: cards == null
+                ? const Center(child: CircularProgressIndicator())
+                : LayoutBuilder(
+                    builder: (context, box) => Align(
+                      alignment: Alignment.topCenter,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 700),
+                        child: ListView(
+                          key: const ValueKey('hub-grid-scroll'),
+                          padding: const EdgeInsets.fromLTRB(12, 10, 12, 24),
+                          children: [
+                            if (_catalog != null) ...[
+                              _search(skills),
+                              const SizedBox(height: 12),
+                            ],
+                            if (widget.header != null) ...[
+                              widget.header!,
+                              const SizedBox(height: 12),
+                            ],
+                            if (cards.isEmpty)
+                              Padding(
+                                key: const ValueKey('hub-nothing'),
+                                padding: const EdgeInsets.all(24),
+                                child: Text(
+                                  L.t('catalogNothing'),
+                                  textAlign: TextAlign.center,
+                                ),
+                              )
+                            else
+                              LayoutBuilder(
+                                builder: (context, grid) {
+                                  final scale =
+                                      MediaQuery.textScalerOf(context)
+                                          .scale(12) /
+                                      12;
+                                  final columns = scale >= 1.7
+                                      ? 1
+                                      : grid.maxWidth < 330 || scale > 1.15
+                                      ? 2
+                                      : 3;
+                                  final side =
+                                      (grid.maxWidth - (columns - 1) * 10) /
+                                      columns;
+                                  return Wrap(
+                                    key: ValueKey('hub-grid-$columns'),
+                                    spacing: 10,
+                                    runSpacing: 10,
+                                    children: [
+                                      for (final card in cards)
+                                        SizedBox(
+                                          width: side,
+                                          height: columns == 1
+                                              ? side * .75
+                                              : side * 1.22,
+                                          child: _gridCard(card),
+                                        ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            if (_footnote.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 16),
+                                child: Text(
+                                  _footnote,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final all = _cards;
     final cards = all?.where(_shows).toList();
     final skills = all == null ? const <String>[] : _skills(all);
+    if (ChromeArt.aurora(context)) return _aurora(cards, skills);
     return Scaffold(
       appBar: AppBar(
         title: Text(_title.isEmpty ? 'Развилка' : _title),
@@ -489,12 +950,20 @@ class _HubScreenState extends State<HubScreen> {
                     children: [
                       Icon(widget.icon, size: 40, color: Colors.white),
                       const SizedBox(height: 8),
-                      Text(_title,
-                          style: const TextStyle(
-                              fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),
+                      Text(
+                        _title,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
                       if (_desc.isNotEmpty) ...[
                         const SizedBox(height: 4),
-                        Text(_desc, style: const TextStyle(color: Color(0xE6FFFFFF))),
+                        Text(
+                          _desc,
+                          style: const TextStyle(color: Color(0xE6FFFFFF)),
+                        ),
                       ],
                     ],
                   ),
@@ -514,7 +983,10 @@ class _HubScreenState extends State<HubScreen> {
                     // Рисунок — поле поиска веба (`HomeCatalogSearch.tsx`), как во вкладке «Игры».
                     style: WebTheme.fieldText(context),
                     textInputAction: TextInputAction.search,
-                    decoration: WebTheme.field(context, hint: L.t('catalogSearch')),
+                    decoration: WebTheme.field(
+                      context,
+                      hint: L.t('catalogSearch'),
+                    ),
                     onChanged: (v) => setState(() => _query = v),
                   ),
                   if (skills.length >= 2) ...[
@@ -522,19 +994,28 @@ class _HubScreenState extends State<HubScreen> {
                     Semantics(
                       label: L.t('catalogFilter'),
                       child: DropdownButtonFormField<String?>(
-                      key: const ValueKey('hub-filter'),
-                      initialValue: _skill,
-                      isExpanded: true,
-                      decoration: WebTheme.field(context),
-                      dropdownColor: WebTheme.of(context).surface,
-                      style: WebTheme.fieldText(context),
-                      iconEnabledColor: WebTheme.of(context).textSecondary,
-                      items: [
-                        DropdownMenuItem<String?>(value: null, child: Text(L.t('allGames'))),
-                        for (final k in skills)
-                          DropdownMenuItem<String?>(value: k, child: Text(skillTitle(k), overflow: TextOverflow.ellipsis)),
-                      ],
-                      onChanged: (v) => setState(() => _skill = v),
+                        key: const ValueKey('hub-filter'),
+                        initialValue: _skill,
+                        isExpanded: true,
+                        decoration: WebTheme.field(context),
+                        dropdownColor: WebTheme.of(context).surface,
+                        style: WebTheme.fieldText(context),
+                        iconEnabledColor: WebTheme.of(context).textSecondary,
+                        items: [
+                          DropdownMenuItem<String?>(
+                            value: null,
+                            child: Text(L.t('allGames')),
+                          ),
+                          for (final k in skills)
+                            DropdownMenuItem<String?>(
+                              value: k,
+                              child: Text(
+                                skillTitle(k),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
+                        onChanged: (v) => setState(() => _skill = v),
                       ),
                     ),
                   ],
@@ -546,51 +1027,37 @@ class _HubScreenState extends State<HubScreen> {
                   Padding(
                     key: const ValueKey('hub-nothing'),
                     padding: const EdgeInsets.symmetric(vertical: 24),
-                    child: Text(L.t('catalogNothing'), textAlign: TextAlign.center),
+                    child: Text(
+                      L.t('catalogNothing'),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 for (final c in cards)
                   Card(
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
                       key: ValueKey('hub-card-${c.route}'),
-                      leading: switch (hubIconFile(_icons, c)) {
-                        final file? => ClipRRect(
-                            // Скруглённый квадрат, как в каталоге: круг срезал бы углы поля игры.
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.asset(
-                              'assets/game_icons/$file',
-                              key: ValueKey('hub-icon-${c.route}'),
-                              width: 40,
-                              height: 40,
-                              fit: BoxFit.cover,
-                              excludeFromSemantics: true,
-                            ),
-                          ),
-                        _ => CircleAvatar(
-                            backgroundColor: scheme.secondaryContainer,
-                            child: Icon(hubIcon(c.icon), color: scheme.onSecondaryContainer),
-                          ),
-                      },
-                      title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w700)),
-                      subtitle: Text(
-                        [
-                          if ((c.type ?? '').isNotEmpty) c.type!,
-                          if (c.desc.isNotEmpty) c.desc,
-                        ].join(' · '),
-                        // ⚠️ ДВЕ СТРОКИ, А НЕ СКОЛЬКО ВЫЙДЕТ. На снимке описания
-                        // растягивали карточку на четыре строки, и в экран
-                        // помещалось три с половиной карточки из восьми — то есть
-                        // развилка перестала показывать выбор.
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      // Картинка Кодекса и в «Классике» (Денис 13.11: «да, 2 делай») —
+                      // крупнее прежнего значка, описание строки остаётся. Нет картинки —
+                      // прежний значок каталога.
+                      leading: _classicArt(c, scheme),
+                      title: Text(
+                        c.name,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
+                      subtitle: _subtitle(c, scheme),
                       trailing: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           // Уровень — то самое, за чем человек и возвращается.
-                          Text('${L.t('unitLevelShort')} ${_levels[c.route] ?? 1}',
-                              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+                          Text(
+                            '${L.t('unitLevelShort')} ${_levels[c.route] ?? 1}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
                           if (widget.isNative?.call(c.route) ?? false)
                             Icon(Icons.bolt, size: 14, color: scheme.primary),
                         ],
@@ -602,13 +1069,19 @@ class _HubScreenState extends State<HubScreen> {
                        * Иначе хабу пришлось бы знать и карту нативных экранов, и
                        * веб-адреса — то есть быть второй оболочкой.
                        */
-                      onTap: () => Navigator.of(context).pop(HubCardTap(c.route)),
+                      onTap: () =>
+                          Navigator.of(context).pop(HubCardTap(c.route)),
                     ),
                   ),
                 if (_footnote.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Text(_footnote,
-                      style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+                  Text(
+                    _footnote,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -618,8 +1091,11 @@ class _HubScreenState extends State<HubScreen> {
 
 /// Что вернул хаб оболочке: человек выбрал вот этот маршрут.
 class HubCardTap {
-  const HubCardTap(this.route, {this.replace = false});
+  const HubCardTap(this.route, {this.replace = false, this.tab = false});
   final String route;
+
+  /// A tab selection closes the nested hub; it must not reopen on game return.
+  final bool tab;
 
   /// Переход ЗАМЕНОЙ экрана, а не выбором (плашка набора, смена режима — `router.replace` веба, PR #204):
   /// закрыв новый экран, человек возвращается туда, откуда открыл ПРЕЖНИЙ, — в развилку, а не в прежнюю игру

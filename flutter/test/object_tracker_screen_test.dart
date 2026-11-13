@@ -80,7 +80,7 @@ void main() {
     }
     await tester.tap(find.byKey(const Key('готово')));
     await tester.pump();
-    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'все цели названы — уровень взят');
+    expect(find.textContaining(L.t('nextLabel')), findsOneWidget, reason: 'все цели названы — уровень взят');
   });
 
   testWidgets('🔴 щадящий режим двигает мир нажатием, а не кадрами', (tester) async {

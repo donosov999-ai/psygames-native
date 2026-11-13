@@ -12,6 +12,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -193,6 +194,19 @@ class _KidsFindScreenState extends State<KidsFindScreen> {
           HudItem(label: L.t('time'), value: _left!.toStringAsFixed(1), icon: Icons.timer_outlined),
       ],
       field: (context, h) => LayoutBuilder(builder: (context, c) {
+        // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход — новая ступень (после победы
+        // лестница уже на следующей), после провала — та же.
+        if (_phase == _Phase.result) {
+          return SizedBox(
+            height: h,
+            child: LevelResult(
+              passed: _won,
+              level: _levelNo,
+              score: '${L.t('errors')} $_errors',
+              onNext: () => setState(_newLevel),
+            ),
+          );
+        }
         final side = math.min(c.maxWidth, c.maxHeight) - 16;
         final cell = side / b.side;
         return Center(
@@ -233,17 +247,6 @@ class _KidsFindScreenState extends State<KidsFindScreen> {
           ),
         );
       }),
-      toolbar: _phase != _Phase.result
-          ? null
-          : Padding(
-              padding: const EdgeInsets.all(12),
-              child: FilledButton.icon(
-                key: const ValueKey('kf-next'),
-                onPressed: () => setState(_newLevel),
-                icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-                label: Text('${_won ? L.t('nextLabel') : L.t('retry')} · ${L.t('errors')} $_errors'),
-              ),
-            ),
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_newLevel)),
       ],

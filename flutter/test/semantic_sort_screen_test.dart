@@ -106,7 +106,7 @@ void main() {
     for (var i = 0; i < vocab.length; i += 1) {
       await answer(tester, right: true);
     }
-    expect(find.byKey(const Key('semantic-score')), findsOneWidget);
+    expect(find.byKey(const Key('level-result-score')), findsOneWidget);
     expect(
       state.get(SharedState.levelKey('semantic_sort', 'nzt48')),
       '2',

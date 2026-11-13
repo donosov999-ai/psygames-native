@@ -28,6 +28,15 @@ sealed class PuzzleOp {
   const PuzzleOp();
 }
 
+
+/// Цвет палитры движка по индексу (`TathamEngine.colours`, RGB 0–255); нет такого — `null`.
+/// Один перевод на всё: доска ([PuzzlePainter]) и клавиши «Нежити» (`undead_glyph.dart`).
+Color? engineColour(List<List<int>> palette, int i) {
+  if (i < 0 || i >= palette.length || palette[i].length < 3) return null;
+  final c = palette[i];
+  return Color.fromARGB(255, c[0], c[1], c[2]);
+}
+
 class OpRect extends PuzzleOp {
   const OpRect(this.x, this.y, this.w, this.h, this.colour);
   final int x, y, w, h, colour;
@@ -129,11 +138,7 @@ class PuzzlePainter extends CustomPainter {
   final ({int w, int h}) engineSize;
   final Color background;
 
-  Color _colour(int i) {
-    if (i < 0 || i >= palette.length) return background;
-    final c = palette[i];
-    return Color.fromARGB(255, c[0], c[1], c[2]);
-  }
+  Color _colour(int i) => engineColour(palette, i) ?? background;
 
   @override
   void paint(Canvas canvas, Size size) {

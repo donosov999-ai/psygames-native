@@ -124,6 +124,8 @@ const translations: Translations = {
   cloudPilotAgree: { ru: "Согласен, перейти ко входу", en: "I agree, continue to sign in" },
   cloudPilotEmail: { ru: "Электронная почта", en: "Email address" },
   cloudPilotSend: { ru: "Отправить ссылку для входа", en: "Send sign-in link" },
+  feedbackSendingProgress: { ru: "Отправляем… {n} с", en: "Sending… {n}s" },
+  feedbackSendingSlow: { ru: "Снимок экрана и запись уходят на сервер — обычно до 10 секунд. Не закрывайте окно.", en: "Uploading the screenshot and recording — usually up to 10 seconds. Please keep this open." },
   cloudPilotLinkSent: { ru: "Запрос принят. Откройте ссылку из письма на этом устройстве. Прогресс ещё не загружается.", en: "Request accepted. Open the email link on this device. Progress is not being uploaded yet." },
   cloudPilotHistory: { ru: "Выберите, какую историю использовать", en: "Choose which history to use" },
   cloudPilotHistoryHint: { ru: "Можно включить сохранение местной истории или сначала просмотреть облачную копию. При конфликте потребуется ваш выбор; баллы не складываются.", en: "You can enable backup of local history or preview a cloud copy first. Conflicts require your choice; balances are never added together." },
@@ -250,7 +252,7 @@ const translations: Translations = {
   // урезан, он подобран. Вываливать человеку все 60 сразу нельзя — он уйдёт и
   // не вернётся, поэтому 9-10 в профиле это норма, а не ограничение.
   profileName_free: { ru: 'Стандарт', en: 'Standard' },
-  profileDesc_free: { ru: '12 тренажёров · подобранный набор для старта', en: '12 trainers · a curated set to start with' },
+  profileDesc_free: { ru: '13 тренажёров · подобранный набор для старта', en: '13 trainers · a curated set to start with' },
   profileName_drivers: { ru: 'Реакция', en: 'Reaction' },
   profileDesc_drivers: { ru: 'Решения за секунды · для тех у кого цена ошибки = жизнь', en: 'Split-second decisions · when the cost of error is life' },
   profileName_seniors: { ru: '50+ Активный ум', en: '50+ Active Mind' },
@@ -1984,6 +1986,15 @@ const translations: Translations = {
   suiteModeGrid:      { ru: 'Матрица',                   en: 'Matrix' },
   suiteModeCorsi:     { ru: 'Блоки Корси',               en: 'Corsi blocks' },
   suiteModeBackward:  { ru: 'Наоборот',                  en: 'Backward' },
+  // Набор «Собери сумму» — решение Дениса 13.11.2026: «Считалка: счёт» и «Числовые пары: счёт» — одна игра, режимы внутри.
+  suiteSum:           { ru: 'Собери сумму',              en: 'Make the sum' },
+  suiteSumDesc:       { ru: 'Набрать цель из чисел на поле: на скорость по сетке, составом числа из фишек или вперемешку', en: 'Build the target from the numbers on the board: a timed grid, a number composition from chips, or both mixed' },
+  suiteModeSpeed:     { ru: 'На скорость',               en: 'Speed' },
+  suiteModeComposition: { ru: 'Состав числа',            en: 'Composition' },
+  suiteModeMixed:     { ru: 'Вперемешку',                en: 'Mixed up' },
+  sumRuleSpeedSub:    { ru: 'Тапай или веди пальцем: набери сумму, пока не вышло время', en: 'Tap or swipe the numbers: reach the target before time runs out' },
+  sumRuleCompSub:     { ru: 'Собери цель из фишек и нажми «Проверить»', en: 'Build the target from the chips, then press Check' },
+  sumMixedRuleChanges: { ru: 'Правило раунда может смениться', en: 'The rule may change each round' },
   suiteStreamDesc:    { ru: 'Поток проб без пауз: держать редкую цель и держать правило, которое меняется', en: 'A stream with no breaks: hold a rare target, hold a rule that keeps changing' },
   suiteModeEmotion:   { ru: 'Эмоциональный',             en: 'Emotional' },
   suiteModeFlanker:   { ru: 'Бока',                      en: 'Flankers' },
@@ -2002,6 +2013,7 @@ const translations: Translations = {
   suiteModeSimon:     { ru: 'Позиция',                   en: 'Position' },
   suiteModeChoice:    { ru: 'Выбор',                     en: 'Choice' },
   suiteModeAnt:       { ru: 'Подсказка',                 en: 'Cue' },
+  suiteGameLabel:     { ru: 'Игра',                      en: 'Game' },
   suiteModeVigilance: { ru: 'Редкая цель',               en: 'Rare target' },
   suiteModeSwitch:    { ru: 'Смена правил',              en: 'Rule switch' },
   /**
@@ -2041,7 +2053,7 @@ const translations: Translations = {
    */
   hint_center_arrow: { ru: 'Отвечай по ЦЕНТРАЛЬНОЙ стрелке — боковые сбивают', en: 'Answer by the CENTRE arrow — the side ones mislead' },
   choiceRtHint:     { ru: 'Появилась стрелка — жми кнопку той же стороны',      en: 'When an arrow appears, press the button on the same side' },
-  counterHint:      { ru: 'Тапай числа, пока не наберётся нужная сумма',        en: 'Tap numbers until they add up to the target' },
+  counterHint:      { ru: 'Тапай или веди пальцем по числам, пока не наберётся нужная сумма', en: 'Tap or swipe across the numbers until they add up to the target' },
   picturePairsHint: { ru: 'Открывай по две карточки и запоминай, где что',      en: 'Flip two cards at a time and remember what is where' },
   schulteHint:      { ru: 'Тапай числа по порядку — какое искать, написано сверху', en: 'Tap the numbers in order — the one to find is shown above' },
   sdmtHint:         { ru: 'Смотри на ключ сверху: под каждым знаком своя цифра', en: 'Use the key above: every symbol has its own digit' },
@@ -2217,6 +2229,8 @@ const translations: Translations = {
   label_validated_paradigms: { ru: '47 валидированных парадигм', en: '47 validated paradigms' },
   btn_hint: { ru: 'Подсказка', en: 'Hint' },
   btn_undo: { ru: 'Отменить', en: 'Undo' },
+  dropModeDrag: { ru: 'Перетаскивать', en: 'Drag' },   // выбор способа ответа в паузе «Цветов и форм» (shell/drop_baskets.dart)
+  dropModeTap: { ru: 'Нажимать', en: 'Tap' },
   label_on: { ru: 'Вкл', en: 'On' },
   label_off: { ru: 'Выкл', en: 'Off' },
   sudokuLineHighlight:    { ru: 'Подсветка строки и столбца', en: 'Row and column highlight' },
@@ -3097,6 +3111,19 @@ const translations: Translations = {
   numberRunGuard: { ru: 'страж', en: 'guardian' },
   numberRunMemorize: { ru: 'Запомни знаки по порядку', en: 'Remember the symbols in order' },
   numberRunRecall: { ru: 'Выбери знаки в том же порядке', en: 'Pick the symbols in the same order' },
+  numberRunMemorizeShort: { ru: 'Запомни', en: 'Remember' },
+  numberRunRecallShort: { ru: 'Повтори', en: 'Repeat' },
+  numberRunReserve: { ru: 'Операция в запасе', en: 'Stored operation' },
+  numberRunReserveReady: { ru: 'В запасе', en: 'Stored' },
+  numberRunReserveUsed: { ru: 'Израсходовано', en: 'Used' },
+  numberRunReserveTake: { ru: 'Возьми «×2» в запас', en: 'Take ×2 into storage' },
+  numberRunCollected: { ru: 'Собрано', en: 'Collected' },
+  numberRunOverflow: { ru: 'Перебор', en: 'Too much' },
+  numberRunYourNumber: { ru: 'Твоё число', en: 'Your number' },
+  numberRunFinishNumber: { ru: 'Число на финише', en: 'Number at the finish' },
+  numberRunThreshold: { ru: 'Порог {n}', en: 'Threshold {n}' },
+  numberRunGuardPassed: { ru: 'Страж пройден', en: 'Guardian defeated' },
+  numberRunReserveHint: { ru: 'С 19-го уровня — операция в запасе: возьми «×2» и примени её, когда выгоднее.', en: 'From level 19 — a stored operation: take ×2 and apply it when it pays off most.' },
   numberRunDone: { ru: 'Забег пройден', en: 'Run completed' },
   numberRunWebOnly: {
     ru: 'Забег работает в веб-слое приложения; в этой сборке графика недоступна.',
@@ -3908,6 +3935,8 @@ const translations: Translations = {
   classicLabel: { ru: 'Классика', en: 'Classic' },
   schulteDividedHint: { ru: 'Несколько своих счётчиков одновременно, различаются цветом — ищи по кругу', en: 'Several independent counters at once, color-coded — find them round-robin' },
   schulteMoving: { ru: 'Убегающая цель', en: 'Moving target' },
+  // Имя метода: красно-чёрная таблица Шульте–Горбова, числа и буквы вперемешку (1-А-2-Б).
+  schulteGorbov: { ru: 'Шульте–Горбов', en: 'Schulte–Gorbov' },
   schulteMovingHint: { ru: 'После каждого верного клика сетка перемешивается заново — нельзя запомнить позиции', en: 'The whole grid reshuffles after every correct click — no relying on spatial memory' },
   schulteShare: { ru: 'Прошёл таблицу Шульте {g}×{g} за {t}с в PsyGames — обгони!', en: 'I cleared a {g}×{g} Schulte table in {t}s on PsyGames — beat that!' },
 

@@ -22,6 +22,13 @@ on:
         description: 'Версия — ПУСТО значит из frontend/app.json (одна линия на все сборки)'
         required: false
         default: ''
+      skip_tests:
+        # 13.11.2026: пробы пилота шли 71 мин и вместе со сборкой выбивали лимит задания —
+        # два прогона 2.56.65 подряд оборвались на «Сборке .ipa». Код, уже прошедший CI в PR
+        # (main / ветка выпуска с зелёным PR), второй раз гонять незачем.
+        description: 'Пропустить пробы пилота (только для кода, уже зелёного в CI PR)'
+        type: boolean
+        default: false
       notes:
         # Уходит в «Что тестировать» у сборки КАК ЕСТЬ — его читает каждый тестировщик на
         # телефоне. Коммит и прогон в поле не пишутся (01.10.2026): только в журнал прогона.
@@ -37,7 +44,7 @@ jobs:
   testflight:
     name: Сборка и заливка
     runs-on: macos-latest
-    timeout-minutes: 90
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
 
@@ -107,10 +114,16 @@ jobs:
           PUZZLES_SRC="$HOME/puzzles" tool/build_tatham_ios.sh arm64
           ls -l build/tatham-ios-arm64/libtatham.a
 
+      # pub get — ВСЕГДА: «Сборка .ipa» зовёт `flutter test --no-pub` и без него падает
+      # (13.11.2026, первый прогон со skip_tests).
+      - name: Зависимости Flutter
+        working-directory: flutter
+        run: flutter pub get
+
       - name: Пробы пилота
+        if: ${{ !inputs.skip_tests }}
         working-directory: flutter
         run: |
-          flutter pub get
           flutter analyze
           flutter test --reporter compact
 

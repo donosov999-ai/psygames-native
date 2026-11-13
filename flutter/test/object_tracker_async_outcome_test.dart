@@ -150,7 +150,7 @@ void main() {
           await tester.tap(find.byKey(Key('шарик$selected')));
           await tester.pumpAndSettle();
           final after = ballLabel(tester, selected);
-          expect(find.byKey(const Key('дальше')), findsNothing);
+          expect(find.byKey(const Key('level-result-next')), findsNothing);
           gate.complete();
           await tester.pumpAndSettle();
           expect(
@@ -170,7 +170,7 @@ void main() {
           );
           final round = generateObjectTrackerRound('object-tracker-1', 1);
           expect(
-            tester.widget<Text>(find.byKey(const Key('строка'))).data,
+            tester.widget<Text>(find.byKey(const Key('level-result-score'))).data,
             L.f(passed ? 'trkResultWin' : 'trkResultFail', {
               'hits': passed ? '${round.targetCount}' : '0',
               'total': '${round.targetCount}',
@@ -178,10 +178,10 @@ void main() {
             }),
           );
           expect(
-            find.text(L.t(passed ? 'nextLabel' : 'retry')),
+            passed ? find.textContaining(L.t('nextLabel')) : find.text(L.t('retry')),
             findsOneWidget,
           );
-          await tester.tap(find.byKey(const Key('дальше')));
+          await tester.tap(find.byKey(const Key('level-result-next')));
           await tester.pumpAndSettle();
           await selectRound(tester, passed: passed);
           await tester.tap(submit);
@@ -229,14 +229,14 @@ void main() {
             reason:
                 'late old completion must not replace the restarted preview',
           );
-          expect(find.byKey(const Key('дальше')), findsNothing);
+          expect(find.byKey(const Key('level-result-next')), findsNothing);
           await selectRound(tester, passed: !passed);
           await tester.tap(find.byKey(const Key('готово')));
           await tester.pumpAndSettle();
           expect(reports, hasLength(2));
           expect(outcomes, [passed, !passed]);
           expect(
-            find.text(L.t(passed ? 'retry' : 'nextLabel')),
+            passed ? find.text(L.t('retry')) : find.textContaining(L.t('nextLabel')),
             findsOneWidget,
           );
           await tester.pumpWidget(const SizedBox.shrink());

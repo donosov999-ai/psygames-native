@@ -28,6 +28,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../object_tracker/model.dart' as tracker;
@@ -69,6 +70,10 @@ class _SearchRunnerScreenState extends State<SearchRunnerScreen> with SingleTick
   Duration _last = Duration.zero;
   _Phase _phase = _Phase.ready;
   bool _won = false;
+
+  /// Исход партии уже записан лестницей (и бой с боссом позади) — можно показать итог.
+  /// До того итог с автопереходом начал бы новую партию поверх боя.
+  bool _settled = false;
   bool? _boss;
   int _found = 0;
   int _games = 0;
@@ -105,6 +110,7 @@ class _SearchRunnerScreenState extends State<SearchRunnerScreen> with SingleTick
     _s = roadInitial(_lv!.course);
     _phase = _Phase.ready;
     _won = false;
+    _settled = false;
     _boss = null;
     _found = 0;
     _world = null;
@@ -163,6 +169,7 @@ class _SearchRunnerScreenState extends State<SearchRunnerScreen> with SingleTick
     if (!mounted) return;
     setState(() {
       _won = passed;
+      _settled = true;
       _boss = boss;
     });
   }
@@ -197,33 +204,35 @@ class _SearchRunnerScreenState extends State<SearchRunnerScreen> with SingleTick
         HudItem(label: L.t('label_found'), value: '$foundNow/${lv.scored.length}', icon: Icons.search),
         HudItem(label: L.t('goalLabel'), value: '${lv.needed}', icon: Icons.flag_circle_outlined),
       ],
-      field: (context, h) => KeyboardListener(
-        focusNode: _focus,
-        autofocus: true,
-        onKeyEvent: (e) {
-          if (e is! KeyDownEvent) return;
-          if (e.logicalKey == LogicalKeyboardKey.arrowLeft) _lane(-1);
-          if (e.logicalKey == LogicalKeyboardKey.arrowRight) _lane(1);
-        },
-        child: LayoutBuilder(builder: (context, c) {
-          final signH = (h * 0.28).clamp(96.0, 180.0);
-          return Column(children: [
-            SizedBox(height: signH, width: c.maxWidth, child: _sign(lv, s, signH)),
-            Expanded(
-              child: GestureDetector(
-                key: const Key('runner-road'),
-                behavior: HitTestBehavior.opaque,
-                onTapUp: (d) => _lane(d.localPosition.dx < c.maxWidth / 2 ? -1 : 1),
-                onHorizontalDragEnd: (d) {
-                  final v = d.primaryVelocity ?? 0;
-                  if (v.abs() > 150) _lane(v < 0 ? -1 : 1);
-                },
-                child: _RoadView(level: lv, state: s, answered: answered),
-              ),
-            ),
-          ]);
-        }),
-      ),
+      field: (context, h) => _phase == _Phase.result && _settled
+          ? SizedBox(height: h, child: _result(lv))
+          : KeyboardListener(
+            focusNode: _focus,
+            autofocus: true,
+            onKeyEvent: (e) {
+              if (e is! KeyDownEvent) return;
+              if (e.logicalKey == LogicalKeyboardKey.arrowLeft) _lane(-1);
+              if (e.logicalKey == LogicalKeyboardKey.arrowRight) _lane(1);
+            },
+            child: LayoutBuilder(builder: (context, c) {
+              final signH = (h * 0.28).clamp(96.0, 180.0);
+              return Column(children: [
+                SizedBox(height: signH, width: c.maxWidth, child: _sign(lv, s, signH)),
+                Expanded(
+                  child: GestureDetector(
+                    key: const Key('runner-road'),
+                    behavior: HitTestBehavior.opaque,
+                    onTapUp: (d) => _lane(d.localPosition.dx < c.maxWidth / 2 ? -1 : 1),
+                    onHorizontalDragEnd: (d) {
+                      final v = d.primaryVelocity ?? 0;
+                      if (v.abs() > 150) _lane(v < 0 ? -1 : 1);
+                    },
+                    child: _RoadView(level: lv, state: s, answered: answered),
+                  ),
+                ),
+              ]);
+            }),
+          ),
       toolbar: _toolbar(lv),
       pauseActions: [
         PauseAction(
@@ -239,7 +248,6 @@ class _SearchRunnerScreenState extends State<SearchRunnerScreen> with SingleTick
   }
 
   Widget? _toolbar(SearchLevel lv) {
-    final text = Theme.of(context).textTheme;
     if (_phase == _Phase.ready) {
       return Padding(
         padding: const EdgeInsets.all(12),
@@ -251,28 +259,22 @@ class _SearchRunnerScreenState extends State<SearchRunnerScreen> with SingleTick
         ),
       );
     }
-    if (_phase != _Phase.result) return null;
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text(
-          '${_won ? L.t('nextLabel') : L.t('retry')} · ${L.t('label_found')} $_found/${lv.scored.length}'
-          ' · ${L.t('goalLabel')} ${lv.needed}',
-          key: const Key('runner-result'),
-          textAlign: TextAlign.center,
-          style: text.titleMedium,
-        ),
-        BossOutcomeLine(_boss),
-        const SizedBox(height: 8),
-        FilledButton.icon(
-          key: const Key('runner-next'),
-          onPressed: () => setState(_newLevel),
-          icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-          label: Text(_won ? L.t('nextLabel') : L.t('retry')),
-        ),
-      ]),
-    );
+    // Итог партии — на поле ([_result]).
+    return null;
   }
+
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
+  /// «Дальше» — новая трасса и сразу заезд (раньше кнопка вела на «Начать»).
+  Widget _result(SearchLevel lv) => LevelResult(
+        passed: _won,
+        level: lv.level,
+        score: '${L.t('label_found')} $_found/${lv.scored.length} · ${L.t('goalLabel')} ${lv.needed}',
+        details: BossOutcomeLine(_boss),
+        onNext: () {
+          setState(_newLevel);
+          _start();
+        },
+      );
 
   /// Вывеска над дорогой: вопрос ближайшей станции. Слова не нужны — знаки, образец, фигуры.
   Widget _sign(SearchLevel lv, RoadState s, double h) {

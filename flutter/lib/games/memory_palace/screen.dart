@@ -29,9 +29,11 @@ import 'package:flutter/services.dart' show rootBundle;
 import '../../shell/aux_action.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/resume_store.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -353,30 +355,30 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> with WidgetsBin
       case MemoryPalacePhase.route:
         return _Pad(
           height: h,
-          child: Column(children: [
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             Text(c.s(L.locale, 'routeBody'), textAlign: TextAlign.center),
             const SizedBox(height: 8),
-            Expanded(child: _lociScene(context, s, c, 'route')),
+            Flexible(child: _lociScene(context, s, c, 'route')),
           ]),
         );
       case MemoryPalacePhase.place:
         return _Pad(
           height: h,
-          child: Column(children: [
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             // 🔴 ЛЕНТА И СЦЕНА — ОДНОВРЕМЕННО. Именно их разлучение и вызвало
             // жалобу «бегаешь между двумя страницами целую игру».
             SizedBox(height: PalaceLayout.itemTile, child: _itemStrip(context, s, c)),
             const SizedBox(height: 8),
-            Expanded(child: _lociScene(context, s, c, 'place')),
+            Flexible(child: _lociScene(context, s, c, 'place')),
           ]),
         );
       case MemoryPalacePhase.study:
         return _Pad(
           height: h,
-          child: Column(children: [
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             Text(c.s(L.locale, 'studyBody'), textAlign: TextAlign.center),
             const SizedBox(height: 8),
-            Expanded(child: _lociScene(context, s, c, 'study')),
+            Flexible(child: _lociScene(context, s, c, 'study')),
           ]),
         );
       case MemoryPalacePhase.recallForward:
@@ -384,7 +386,7 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> with WidgetsBin
         final locus = s.currentRecallLocus;
         return _Pad(
           height: h,
-          child: Column(children: [
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             Text(
               c.s(L.locale, s.phase == MemoryPalacePhase.recallForward ? 'recallForward' : 'recallReverse'),
               style: TextStyle(color: scheme.onSurfaceVariant),
@@ -393,7 +395,7 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> with WidgetsBin
             Text(locus?.title(L.locale) ?? '',
                 style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
             const SizedBox(height: 10),
-            Expanded(child: _candidates(context, s, c)),
+            Flexible(child: _candidates(context, s, c)),
           ]),
         );
       case MemoryPalacePhase.transition:
@@ -407,26 +409,34 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> with WidgetsBin
           ]),
         );
       case MemoryPalacePhase.result:
+        // Итог — общий каркаса ([LevelResult], задача e90a53d5): «дальше» сразу начинает новый круг
+        // (раньше кнопка уводила на экран правил), точность опроса в обе стороны — в подробностях.
         final m = s.result!;
         return _Pad(
           height: h,
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(m.passed ? Icons.emoji_events_outlined : Icons.replay_outlined,
-                size: 44, color: m.passed ? scheme.primary : scheme.onSurfaceVariant),
-            const SizedBox(height: 8),
-            Text(m.passed ? L.f('levelDone', {'n': '${m.level}'}) : L.t('retry'),
-                style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
-            const SizedBox(height: 8),
-            Text('${c.s(L.locale, 'recallForward')}: ${(m.forwardLocationAccuracy * m.lociCount).round()}/${m.lociCount}'),
-            Text('${c.s(L.locale, 'recallReverse')}: ${(m.reverseLocationAccuracy * m.lociCount).round()}/${m.lociCount}'),
-            Text('${L.t('score')}: ${m.score}', style: const TextStyle(fontWeight: FontWeight.w700)),
-          ]),
+          child: LevelResult(
+            passed: m.passed,
+            level: m.level,
+            score: '${L.t('score')}: ${m.score}',
+            details: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text('${c.s(L.locale, 'recallForward')}: ${(m.forwardLocationAccuracy * m.lociCount).round()}/${m.lociCount}',
+                  textAlign: TextAlign.center),
+              Text('${c.s(L.locale, 'recallReverse')}: ${(m.reverseLocationAccuracy * m.lociCount).round()}/${m.lociCount}',
+                  textAlign: TextAlign.center),
+            ]),
+            onNext: _restart,
+          ),
         );
       default:
         return const SizedBox.shrink();
     }
   }
 
+  /// 🔴 ПОЛЕ ФАЗЫ — ПО ЦЕНТРУ, А НЕ ПРИЖАТО К ВЕРХУ (отзыв 9d1113ed, 10.10.2026:
+  /// «зачем всё вверху, а не по центру? плохо видно»). Колонка фазы центрируется,
+  /// сцена мест и кандидаты опроса стоят во `Flexible`, а не в `Expanded`: помещаются —
+  /// группа «подпись + лента + места» встаёт по центру поля ВМЕСТЕ (лента не отрывается
+  /// от мест — жалоба afa77c5a), не помещаются — занимают остаток и прокручиваются.
   /// Сцена мест. Ширина плитки — доля строки, как в вебе: пиксели на узком
   /// экране дают две колонки вместо трёх, и сетка снова растёт вверх.
   Widget _lociScene(BuildContext context, MemoryPalaceSession s, MemoryPalaceContent c, String phase) {
@@ -548,13 +558,6 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> with WidgetsBin
           icon: const Icon(Icons.arrow_forward),
           label: Text(c.s(L.locale, 'recallReverse')),
         ));
-      case MemoryPalacePhase.result:
-        return bar(FilledButton.icon(
-          key: const ValueKey('mp-again'),
-          onPressed: () => setState(_newRound),
-          icon: const Icon(Icons.arrow_forward),
-          label: Text(s.result!.passed ? L.t('nextLabel') : L.t('retry')),
-        ));
       default:
         return null;
     }
@@ -569,6 +572,7 @@ class _Pad extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
+        key: const ValueKey('mp-field'),
         height: height.isFinite ? height : null,
         child: Padding(padding: const EdgeInsets.all(12), child: child),
       );
@@ -624,7 +628,7 @@ class PalaceLocusTile extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(6)),
                 child: Text('${locus.order}',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white)),
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: GameColors.of(context).onStrong)),
               ),
             const SizedBox(height: 2),
             Flexible(

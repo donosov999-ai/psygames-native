@@ -11,8 +11,10 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -42,6 +44,14 @@ class _RmetScreenState extends State<RmetScreen> {
   RmetSession? _session;
   bool _booting = true;
   int _shownAt = 0;
+
+  /// 🔴 ПЕРЕХОД САМ ЧЕРЕЗ 800 мс ПОСЛЕ ОТВЕТА — как в вебе (`rmet.tsx`, `fbTimerRef`).
+  /// При переносе на Flutter его потеряли: экран держал разбор, пока не нажмут
+  /// «Следующий», — отзыв eb9607bb 10.10.2026 «пауза держит переход дальше».
+  /// Таймер на игровых часах: под меню паузы и разбором он стоит, а не догорает.
+  /// «Следующий» остаётся — нажатие раньше переходит сразу и снимает таймер.
+  static const advanceAfter = Duration(milliseconds: 800);
+  GameTimer? _advance;
 
   int get _now => DateTime.now().millisecondsSinceEpoch;
 
@@ -74,6 +84,8 @@ class _RmetScreenState extends State<RmetScreen> {
   void _start() {
     final c = _content;
     if (c == null) return;
+    _advance?.cancel();
+    _advance = null;
     setState(() {
       _session = RmetSession.start(c, _locale, widget.trials);
       _shownAt = _now;
@@ -84,11 +96,24 @@ class _RmetScreenState extends State<RmetScreen> {
     final s = _session;
     if (s == null || s.feedback != null) return;
     setState(() => s.answer(choice, _now - _shownAt));
+    _advance?.cancel();
+    _advance = gameTimeout(advanceAfter, () {
+      _advance = null;
+      if (mounted) _next();
+    });
+  }
+
+  @override
+  void dispose() {
+    _advance?.cancel();
+    super.dispose();
   }
 
   Future<void> _next() async {
+    _advance?.cancel();
+    _advance = null;
     final s = _session;
-    if (s == null) return;
+    if (s == null || s.feedback == null) return;
     setState(() {
       s.next();
       _shownAt = _now;
@@ -195,11 +220,11 @@ class _RmetScreenState extends State<RmetScreen> {
                 key: ValueKey('rmet-lesson-option-$word'),
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: card.picked == word ? const Color(0x3322C55E) : scheme.surfaceContainerHighest,
+                  color: card.picked == word ? GameColors.of(context).correct.withValues(alpha: 0.2) : scheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: card.picked == word
-                        ? const Color(0xFF22C55E)
+                        ? GameColors.of(context).correct
                         : neighborWord == word
                             ? scheme.primary
                             : scheme.outlineVariant,
@@ -308,7 +333,7 @@ class _RmetScreenState extends State<RmetScreen> {
             Text(
               s.feedback!.chosen,
               key: const ValueKey('rmet-chosen'),
-              style: TextStyle(fontSize: 16, color: scheme.error, decoration: TextDecoration.lineThrough),
+              style: TextStyle(fontSize: 16, color: GameColors.of(context).wrong, decoration: TextDecoration.lineThrough),
             ),
           Text(
             s.current.correctFor(s.locale),
@@ -316,7 +341,7 @@ class _RmetScreenState extends State<RmetScreen> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: s.feedback!.correct ? scheme.primary : scheme.error,
+              color: s.feedback!.correct ? GameColors.of(context).correct : GameColors.of(context).wrong,
             ),
           ),
         ],

@@ -141,7 +141,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: mmFeedbackMs + 20));
     }
     await settleReport(tester);
-    expect(find.byKey(const Key('mm-again')), findsOneWidget);
+    expect(find.byKey(const Key('level-result-next')), findsOneWidget, reason: 'итог — общий каркаса');
     expect(hud('round', '$mmTotalRounds/$mmTotalRounds'), isTrue);
     expect(hud('level', '2'), isTrue, reason: 'без ошибок — уровень растёт');
     final s = sent.single;
@@ -304,7 +304,7 @@ void main() {
     expect('${sent.single['difficulty']} / ${sent.single['mode']}', '${grid}x$grid / 10r');
     expect(state.get('psygames_memory_matrix_level_nzt48'), '1', reason: 'шаг зарядки личный уровень не двигает');
     // Шаг зачёта не имеет: итог — «Готово!», а не «Промах» при нуле ошибок (сверка 02.10).
-    expect(caption(tester), L.t('done'));
+    expect(tester.widget<Text>(find.byKey(const Key('level-result-title'))).data, L.t('done'));
     expect(
         find.byWidgetPredicate((w) => w is Semantics && (w.properties.label ?? '').startsWith('${L.t('level')}: ')),
         findsNothing,

@@ -8,6 +8,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../languages/bilingual.dart';
@@ -498,33 +499,19 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
     );
   }
 
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
   Widget _result(BuildContext context, double h) {
     final mean = _rtCount > 0 ? (_rtSum / _rtCount).round() : null;
     return SizedBox(
       height: h,
-      child: Center(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(
-            _passed ? L.t('levelDone').replaceAll('{n}', '$_levelPlayed') : L.t('sameLevelRetry'),
-            style: Theme.of(context).textTheme.titleLarge,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text('${L.t('hud_correct')}: $_correct / ${_trials.length} · ${L.t('hud_errors')}: $_errors',
-              key: const Key('ld-score')),
-          Text(mean == null ? '${L.t('meanReaction')}: —' : '${L.t('meanReaction')}: $mean ${L.t('msShort')}'),
-          const SizedBox(height: 20),
-          FilledButton(
-            key: const Key('ld-again'),
-            onPressed: _start,
-            child: Text(_passed ? L.t('nextNow') : L.t('retry')),
-          ),
-          TextButton(
-            key: const Key('ld-stop'),
-            onPressed: () => setState(() => _phase = LdPhase.config),
-            child: Text(L.t('skip')),
-          ),
-        ]),
+      child: LevelResult(
+        passed: _passed,
+        level: _levelPlayed,
+        score: '${L.t('hud_correct')}: $_correct / ${_trials.length} · ${L.t('hud_errors')}: $_errors',
+        details: Text(mean == null ? '${L.t('meanReaction')}: —' : '${L.t('meanReaction')}: $mean ${L.t('msShort')}',
+            textAlign: TextAlign.center),
+        onNext: _start,
+        onSettings: () => setState(() => _phase = LdPhase.config),
       ),
     );
   }

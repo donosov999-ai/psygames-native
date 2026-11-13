@@ -15,8 +15,10 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/preset_cap.dart';
+import '../../shell/practice_run.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/voice.dart';
@@ -64,6 +66,11 @@ class DsStrings {
 /// префикс `psygames_`, мост возит его в обе половины.
 const dsPersonalBestKey = 'psygames_leaderboard_personal_best_digit_span';
 
+/// Явный выбор способа подачи — на профиль. Пока человек не выбирал сам, играем «весь ряд сразу»
+/// (решение Дениса 13.11.2026; раньше выбор нигде не хранился и каждый запуск начинался с показа
+/// по одной цифре).
+String dsDeliveryKey(String profile) => '${SharedState.prefix}digit_span_delivery_$profile';
+
 /// Цвет градиента веб-экрана (`#11998e`).
 const _accent = Color(0xFF11998E);
 
@@ -89,6 +96,9 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
   /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
   late final AppHaptics _haptics = AppHaptics(widget.state);
   late double Function() _rng;
+  /// «Пробный заход» (веб `practice_run`): партия, которая не записывается никуда. Решение — на старте.
+  late final PracticeRun _practice = PracticeRun(widget.state);
+
   final Map<String, LevelLadder> _ladders = {};
   LevelLadder? _ladder;
   VoiceLayer? _voice;
@@ -164,7 +174,11 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
     final voice = widget.voice ?? await AudioHost.voice(widget.state);
     final ds = widget.strings ?? await DsStrings.load();
     // Как веб `useGamePreset().str/num`: параметры адреса шага; вне шага — значения по умолчанию.
-    _delivery = Delivery.values.asNameMap()[GamePreset.str('delivery', 'screen')] ?? Delivery.screen;
+    _delivery = initialDelivery(
+      isWarmup: GamePreset.isWarmup,
+      param: GamePreset.str('delivery', ''),
+      stored: widget.state.get(dsDeliveryKey(widget.state.activeProfile)),
+    );
     _pace = Pace.values.asNameMap()[GamePreset.str('pace', 'normal')] ?? Pace.normal;
     _presetDir = Direction.values.asNameMap()[GamePreset.str('mode', 'forward')] ?? Direction.forward;
     _presetLen = GamePreset.num('startLen', 4);
@@ -193,6 +207,7 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
 
   Future<void> _chooseDelivery(Delivery d) async {
     _delivery = d;
+    if (!GamePreset.isWarmup) unawaited(widget.state.set(dsDeliveryKey(widget.state.activeProfile), d.name));
     await _useLadder();
     if (mounted) setState(_reset);
   }
@@ -229,8 +244,10 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
         ? drawDirection(_rng)
         : (isPreset ? _presetDir : (p.reverse ? Direction.backward : Direction.forward));
     _playDelivery = effectiveDelivery(_delivery, _block);
+    // Пробный заход решается ДО первого стимула (в шаге зарядки его не бывает) и в рекорд не идёт.
+    final practice = _practice.decide(allowed: !isPreset);
     // Рекорд — только личная партия первого уровня экраном (веб `countsForRecord` + подача).
-    _counts = !isPreset && effLevel == 1 && _playDelivery == Delivery.screen;
+    _counts = !isPreset && effLevel == 1 && _playDelivery == Delivery.screen && !practice;
     // ⚠️ Шаг — потолок желания: стартовая длина шага не выше освоенного + 1 (веб `capPresetByLevel`).
     final startLen = isPreset
         ? capPresetByLevel(want: _presetLen, atLevel: p.startLen, atTop: p.startLen >= 9)
@@ -347,6 +364,12 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
     final ladder = _ladder!;
     final seconds = ((gameNow() - (_startedAt ?? gameNow())) / 1000).round();
     setState(() => _phase = DsPhase.done);
+    // ⚠️ ПРОБНЫЙ ЗАХОД РАЗБИРАЕТСЯ ПЕРВЫМ (веб `settlePracticeRun`): уровень не трогаем ни вверх, ни вниз,
+    // отчёта, звёзд и рекорда не остаётся нигде.
+    if (await _practice.settle()) {
+      if (mounted) setState(() {});
+      return;
+    }
     // Метки и details — как пишет веб-экран (`saveSession` в digit-span.tsx).
     final labels = sessionLabels(
         isPreset: s.isPreset, diff: GamePreset.str('diff', 'medium'), direction: s.direction, finalLength: s.seqLen);
@@ -421,6 +444,7 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
       ],
       field: (context, h) => switch (_phase) {
         DsPhase.ready => _Ready(
+            practice: _practice,
             ds: _ds,
             level: ladder.level,
             params: p,
@@ -444,6 +468,7 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
             text: _showIdx == -3 ? s!.sequence.join(' ') : (_showIdx >= 0 ? '${s!.sequence[_showIdx]}' : ' '),
             listening: _ds.t('listening'),
           ),
+        DsPhase.done || DsPhase.revealed => _result(s!, h),
         _ => _Answer(
             height: h,
             session: s!,
@@ -465,20 +490,47 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
       // Низ — ОТВЕТ: ряд клавиш стоит всю партию и гаснет вне ввода (веб `bottom="answer"`).
       toolbar: playing
           ? _Keypad(on: _canType, onDigit: _press, onErase: _erase)
-          : (_phase == DsPhase.done || _phase == DsPhase.revealed)
-              ? Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: FilledButton.icon(
-                    key: const Key('ds-again'),
-                    onPressed: () => setState(_reset),
-                    icon: const Icon(Icons.arrow_forward),
-                    label: Text(_phase == DsPhase.done && s!.passed ? L.t('nextLabel') : L.t('retry')),
-                  ),
-                )
-              : null,
+          : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
+    );
+  }
+
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): «дальше» — сразу новая партия (после победы
+  /// лестница уже на следующем уровне), «Настройки» — экран подачи и старта. Под счётом — поле ответа с
+  /// последним рядом («Было: …»). Подсмотренный ряд в лестницу не идёт: «ещё раз» без автоперехода, чтобы
+  /// ряд можно было разглядеть.
+  Widget _result(DigitSpanSession s, double h) {
+    final revealed = _phase == DsPhase.revealed;
+    return SizedBox(
+      height: h,
+      child: LevelResult(
+        passed: !revealed && s.passed,
+        // Пробный заход уровень не двигает — итог без «Уровень N пройден» и «Ур. N+1».
+        level: GamePreset.isPreset || _practice.used ? null : s.level,
+        auto: !revealed,
+        score: revealed ? null : '${L.t('hud_span')}: ${s.maxSpan} · ${L.t('errors')}: ${s.errors}',
+        details: Column(mainAxisSize: MainAxisSize.min, children: [
+          PracticeRunSpent(controller: _practice),
+          SizedBox(
+          height: h * 0.4,
+          child: _Answer(
+            height: h * 0.4,
+            session: s,
+            phase: _phase,
+            feedback: _feedback,
+            prompt: _typePrompt(s.direction),
+            reveal: null,
+          ),
+        ),
+        ]),
+        onNext: () {
+          setState(_reset);
+          unawaited(_start());
+        },
+        onSettings: () => setState(_reset),
+      ),
     );
   }
 }
@@ -486,6 +538,7 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
 /// Экран настроек: что за уровень, способ подачи; в шаге зарядки — темп, направление, длина.
 class _Ready extends StatelessWidget {
   const _Ready({
+    required this.practice,
     required this.ds,
     required this.level,
     required this.params,
@@ -503,6 +556,7 @@ class _Ready extends StatelessWidget {
     required this.onStart,
   });
 
+  final PracticeRun practice;
   final DsStrings ds;
   final int level;
   final LevelParams params;
@@ -586,6 +640,8 @@ class _Ready extends StatelessWidget {
                         ],
                       ),
                     ),
+                  // Пробный заход — только личная игра: шаг зарядки и так не двигает уровень.
+                  if (!preset) PracticeRunSwitch(controller: practice),
                   // Темп, направление и стартовая длина — рычаги ТОЛЬКО шага зарядки: в личной игре их
                   // задаёт уровень (веб показывает выбор и там, но партия его не читает).
                   if (preset) ...[
@@ -718,7 +774,9 @@ class _Answer extends StatelessWidget {
     final status = switch ((phase, feedback)) {
       (DsPhase.revealed, _) => (text: '${L.t('label_was')}: ${s.expected.join()}', color: scheme.primary),
       (_, null) => (text: '${s.entered.length}/${s.seqLen} — ${L.t('hint_autocheck')}', color: scheme.onSurfaceVariant),
-      (_, true) => (text: L.t('msg_correct_level_up'), color: roles.correct),
+      // «+1 уровень» (на деле — +1 цифра) говорим только когда длина взяла шаг; первый из двух верных
+      // рядов подряд — просто «Верно»: длина та же, нужен ещё один.
+      (_, true) => (text: s.streak == 0 ? L.t('msg_correct_level_up') : L.t('hud_correct'), color: roles.correct),
       (_, false) => (text: '${L.t('label_was')}: ${s.expected.join()}', color: roles.wrong),
     };
     return SingleChildScrollView(
@@ -766,8 +824,9 @@ class _Answer extends StatelessWidget {
   }
 }
 
-/// Ряд клавиш как на телефоне: 1-2-3 / 4-5-6 / 7-8-9 / ·-0-«Стереть». Клавиша 64×52 — веб замерял
-/// ширину 360 pt (3·64 + 2·10 = 212 ≤ 228). «Готово» нет: ответ проверяется сам на последней цифре.
+/// Ряд клавиш как на телефоне: 1-2-3 / 4-5-6 / 7-8-9 / ·-0-«Стереть». Клавиша растёт с шириной
+/// экрана: от 64×52 до 104×60 (отзыв 0ff51b76, iPhone 430 pt: ряд из трёх клавиш занимал 52 % ширины,
+/// «клава мелкая»). Веб замерял ширину 360 pt (3·64 + 2·10 = 212 ≤ 228); на 360 pt клавиша теперь 104. «Готово» нет: ответ проверяется сам на последней цифре.
 class _Keypad extends StatelessWidget {
   const _Keypad({required this.on, required this.onDigit, required this.onErase});
 
@@ -775,11 +834,17 @@ class _Keypad extends StatelessWidget {
   final ValueChanged<int> onDigit;
   final VoidCallback onErase;
 
-  Widget _key(BuildContext context, String id, Widget child, VoidCallback onTap, String a11y) => Padding(
+  /// Размер клавиши по ширине места: три клавиши с отступами и полями в ряд, не меньше прежних 64×52.
+  static Size keySize(double width) {
+    final w = ((width - 16) / 3 - 10).clamp(64.0, 104.0);
+    return Size(w, w >= 96 ? 60 : 52);
+  }
+
+  Widget _key(BuildContext context, String id, Widget child, VoidCallback onTap, String a11y, Size size) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 5),
         child: SizedBox(
-          width: 64,
-          height: 52,
+          width: size.width,
+          height: size.height,
           child: Semantics(
             label: a11y,
             button: true,
@@ -794,9 +859,16 @@ class _Keypad extends StatelessWidget {
       );
 
   @override
-  Widget build(BuildContext context) {
-    Widget digit(int d) => _key(context, 'ds-key-$d', Text('$d', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
-        () => onDigit(d), '$d');
+  Widget build(BuildContext context) => LayoutBuilder(builder: (context, c) => _pad(context, keySize(c.maxWidth)));
+
+  Widget _pad(BuildContext context, Size size) {
+    Widget digit(int d) => _key(
+        context,
+        'ds-key-$d',
+        Text('$d', style: TextStyle(fontSize: size.height >= 60 ? 26 : 22, fontWeight: FontWeight.w700)),
+        () => onDigit(d),
+        '$d',
+        size);
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 4, 8, 10),
       child: Column(
@@ -812,9 +884,9 @@ class _Keypad extends StatelessWidget {
               child: Row(mainAxisSize: MainAxisSize.min, children: [for (final d in row) digit(d)]),
             ),
           Row(mainAxisSize: MainAxisSize.min, children: [
-            const SizedBox(width: 74),
+            SizedBox(width: size.width + 10),
             digit(0),
-            _key(context, 'ds-key-erase', const Icon(Icons.backspace_outlined, size: 20), onErase, L.t('a11yErase')),
+            _key(context, 'ds-key-erase', const Icon(Icons.backspace_outlined, size: 20), onErase, L.t('a11yErase'), size),
           ]),
         ],
       ),

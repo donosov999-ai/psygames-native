@@ -23,6 +23,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 
@@ -271,6 +272,7 @@ class _CptScreenState extends State<CptScreen> {
       onLesson: _game == null
           ? null
           : () => openDemoLesson(context, title: L.t('cpt'), trials: _demoTrials()),
+      suiteSwitch: _phase == CptPhase.ready ? SuiteSwitch(route: '/games/cpt', state: widget.state) : null,
       field: (context, h) => _Field(
         game: g,
         phase: _phase,

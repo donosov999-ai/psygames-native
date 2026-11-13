@@ -164,7 +164,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: lspanAfterWinMs + 50));
     await tester.pump();
 
-    expect(find.byKey(const Key('lspan-passed')), findsOneWidget);
+    expect(find.text(L.t('levelDone').replaceAll('{n}', '1')), findsOneWidget, reason: 'итог — общий каркаса');
     expect(hud(tester, L.t('level'), '2'), isTrue, reason: 'ни одной ошибки — уровень растёт');
     final s = sent.single;
     expect(s['game_type'], 'listening_span');
@@ -191,7 +191,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: lspanAfterMissMs + 50));
     }
     await tester.pump();
-    expect(find.byKey(const Key('lspan-failed')), findsOneWidget);
+    expect(find.text(L.t('sameLevelRetry')), findsOneWidget, reason: 'итог — общий каркаса');
     expect(sent.single['errors'], 2);
     expect(hud(tester, L.t('level'), '1'), isTrue, reason: 'две ошибки за партию — уровень тот же');
   });
@@ -292,7 +292,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: lspanAfterWinMs + 50));
     }
     await tester.pump();
-    expect(find.byKey(const Key('lspan-passed')), findsOneWidget);
+    expect(find.text(L.t('levelDone').replaceAll('{n}', '12')), findsOneWidget, reason: 'итог — общий каркаса');
     expect(backend.langs.toSet(), {'de-DE'}, reason: 'язык — из шага');
     expect(sent.single['details'], {'level': 12, 'span': 8, 'errors': 0, 'target_lang': 'de'});
     expect(hud(tester, L.t('level'), '12'), isTrue, reason: 'шаг зарядки личный уровень не двигает');

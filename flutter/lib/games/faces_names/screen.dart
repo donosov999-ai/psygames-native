@@ -24,6 +24,7 @@ import '../../shell/lesson_player.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -379,26 +380,31 @@ class _FacesNamesScreenState extends State<FacesNamesScreen> {
             ],
           ],
         );
+      // Итог — общий каркаса ([LevelResult], задача e90a53d5): «дальше» — сразу новый круг (после победы
+      // лестница уже на следующем уровне), «Настройки» — экран правил с «Начать». Счёт по частям — под итогом.
       case FacesNamesPhase.result:
         final m = s.result!;
-        return _Centered(
-          height: height,
-          children: [
-            Icon(m.passed ? Icons.emoji_events_outlined : Icons.replay_outlined,
-                size: 48, color: m.passed ? scheme.primary : scheme.onSurfaceVariant),
-            const SizedBox(height: 10),
-            Text(
-              m.passed ? L.f('levelDone', {'n': '${m.level}'}) : L.t('retry'),
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
+        return SizedBox(
+          height: height.isFinite ? height : null,
+          child: LevelResult(
+            passed: m.passed,
+            level: m.level,
+            score: '${L.t('score')}: ${m.score}',
+            details: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('${lib.s(L.locale, 'recognition')}: ${m.faceRecognitionCorrect}/${m.faceRecognitionTotal}'),
+                Text('${lib.s(L.locale, 'nameRecall')}: ${m.nameRecallCorrect}/${m.nameRecallTotal}'),
+                if (m.factRecallTotal > 0)
+                  Text('${lib.s(L.locale, 'factRecall')}: ${m.factRecallCorrect}/${m.factRecallTotal}'),
+              ],
             ),
-            const SizedBox(height: 10),
-            Text('${lib.s(L.locale, 'recognition')}: ${m.faceRecognitionCorrect}/${m.faceRecognitionTotal}'),
-            Text('${lib.s(L.locale, 'nameRecall')}: ${m.nameRecallCorrect}/${m.nameRecallTotal}'),
-            if (m.factRecallTotal > 0)
-              Text('${lib.s(L.locale, 'factRecall')}: ${m.factRecallCorrect}/${m.factRecallTotal}'),
-            Text('${L.t('score')}: ${m.score}', style: const TextStyle(fontWeight: FontWeight.w700)),
-          ],
+            onNext: () => setState(() {
+              _newRound();
+              _session?.start(_now);
+            }),
+            onSettings: () => setState(_newRound),
+          ),
         );
       default:
         return const SizedBox.shrink();
@@ -468,15 +474,6 @@ class _FacesNamesScreenState extends State<FacesNamesScreen> {
               child: Text(lib.factText(L.locale, id)),
             ),
         ]);
-      case FacesNamesPhase.result:
-        return _Bar(children: [
-          FilledButton.icon(
-            key: const ValueKey('fn-again'),
-            onPressed: () => setState(_newRound),
-            icon: const Icon(Icons.arrow_forward),
-            label: Text(s.result!.passed ? L.t('nextLabel') : L.t('retry')),
-          ),
-        ]);
       default:
         return null;
     }
@@ -493,6 +490,9 @@ class _Centered extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
+        // На всю ширину: каркас красит фон поля по его размеру, и сжатая до текста колонка
+        // в «Авроре» стояла узкой полосой на фоне рамки (кадр 13.11.2026).
+        width: double.infinity,
         height: height.isFinite ? height : null,
         child: SingleChildScrollView(
           child: ConstrainedBox(

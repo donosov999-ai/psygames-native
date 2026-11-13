@@ -100,8 +100,39 @@ void main() {
       await tester.pump();
     }
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('mp-again')), findsOneWidget, reason: 'круг обязан дойти до итога');
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'круг обязан дойти до итога — общего каркаса');
     expect(find.textContaining('score'), findsOneWidget);
+  });
+
+  /// Зазор над первым и под последним видимым элементом фазы — внутри поля `mp-field`.
+  ({double top, double bottom}) gaps(WidgetTester tester, Finder first, Finder last) {
+    final field = tester.getRect(find.byKey(const ValueKey('mp-field')));
+    return (
+      top: tester.getRect(first).top - field.top,
+      bottom: field.bottom - tester.getRect(last).bottom,
+    );
+  }
+
+  testWidgets('🔴 раскладка и изучение — по центру поля, а не прижаты к верху (отзыв 9d1113ed)',
+      (tester) async {
+    // Отзыв 10.10.2026: «зачем всё вверху, а не по центру? плохо видно». Телефон 390×844,
+    // уровень 1: пять мест помещаются — значит пустота делится поровну сверху и снизу.
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await boot(tester);
+    await tester.tap(find.byKey(const ValueKey('mp-start')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('mp-to-place')));
+    await tester.pump();
+
+    final items = keysStarting(tester, 'item-');
+    final loci = keysStarting(tester, 'locus-')..sort((a, b) => a.value.compareTo(b.value));
+    final place = gaps(tester, find.byKey(items.first), find.byKey(loci.last));
+    expect(place.top, greaterThan(60), reason: 'раскладка не прижата к верху поля');
+    expect((place.top - place.bottom).abs(), lessThanOrEqualTo(16),
+        reason: 'пустота поровну сверху и снизу: сверху ${place.top}, снизу ${place.bottom}');
+    expect(tester.getRect(find.byKey(loci.first)).top - tester.getRect(find.byKey(items.first)).bottom,
+        lessThan(40), reason: 'лента не оторвана от мест (жалоба afa77c5a)');
   });
 
   testWidgets('🔴 лента предметов и сцена мест видны ОДНОВРЕМЕННО', (tester) async {

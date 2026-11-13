@@ -19,8 +19,10 @@ import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/setup_scroll.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 
@@ -34,6 +36,15 @@ const int inhibitionGngGapSpreadMs = 300;
 /// Партия начинается сама: касания в нативный слой панель симулятора не доставляет.
 ///   flutter run --dart-define=AUTOSTART=true
 const bool inhibitionAutostart = bool.fromEnvironment('AUTOSTART');
+
+/// Парадигма из адреса — как веб (`params.mode`: `go_no_go` | `stop_signal` | `mixed`, иное — как было).
+/// Без параметра — [fallback]. Шаг зарядки и ссылка из набора «Торможение» задают режим этим же именем.
+SubMode inhibitionModeFor(SubMode fallback) => switch (GamePreset.str('mode')) {
+      'go_no_go' => SubMode.goNoGo,
+      'stop_signal' => SubMode.stopSignal,
+      'mixed' => SubMode.mixed,
+      _ => fallback,
+    };
 
 class InhibitionScreen extends StatefulWidget {
   const InhibitionScreen({super.key, required this.state, this.mode = SubMode.goNoGo, this.clock, this.rnd});
@@ -60,10 +71,12 @@ class _InhibitionScreenState extends State<InhibitionScreen> {
   Timer? _stopTimer;
   bool _passed = false;
   bool? _boss; // итог боя на вехе; null — боя не было
+  late SubMode _mode;
 
   @override
   void initState() {
     super.initState();
+    _mode = inhibitionModeFor(widget.mode);
     _ladder = LevelLadder(gameId: 'inhibition', store: SharedLevelStore(widget.state), maxLevel: inhibitionMaxLevel);
     _boot();
   }
@@ -91,10 +104,19 @@ class _InhibitionScreenState extends State<InhibitionScreen> {
     return _ladder.level > g.level ? _ladder.level : null;
   }
 
+  /// Выбор парадигмы — только до начала партии (веб `setSubMode`): режим меняет ПРАВИЛО игры.
+  void _pickMode(SubMode m) {
+    if (_phase != InhibitionPhase.ready || m == _mode) return;
+    setState(() {
+      _mode = m;
+      _reset();
+    });
+  }
+
   void _reset() {
     _timer?.cancel();
     _stopTimer?.cancel();
-    _game = InhibitionGame(level: _ladder.level, mode: widget.mode, rnd: widget.rnd, nowMs: widget.clock);
+    _game = InhibitionGame(level: _ladder.level, mode: _mode, rnd: widget.rnd, nowMs: widget.clock);
     _phase = InhibitionPhase.ready;
     _flash = null;
     _passed = false;
@@ -185,9 +207,9 @@ class _InhibitionScreenState extends State<InhibitionScreen> {
       boss = await BossRound.winThenBoss(context, _ladder,
           type: BossType.gonogo,
           color: const Color(0xFF11998E),
-          win: () => _ladder.win(score: g.score, timeSeconds: seconds, errors: errors, mode: widget.mode.name));
+          win: () => _ladder.win(score: g.score, timeSeconds: seconds, errors: errors, mode: _mode.name));
     } else {
-      await _ladder.fail(score: g.score, timeSeconds: seconds, errors: errors, mode: widget.mode.name);
+      await _ladder.fail(score: g.score, timeSeconds: seconds, errors: errors, mode: _mode.name);
     }
     if (!mounted) return;
     setState(() {
@@ -201,7 +223,7 @@ class _InhibitionScreenState extends State<InhibitionScreen> {
   /// либо «жми и держись», либо стоп-сигнал, либо их смесь, и показывать ему
   /// чужой стимул значит объяснять не ту задачу.
   List<DemoTrial> _demoTrials() {
-    final mode = widget.mode;
+    final mode = _mode;
     final rule = switch (mode) {
       SubMode.goNoGo => L.t('inhibitionGngHint'),
       SubMode.stopSignal => L.t('inhibitionSsHint'),
@@ -254,9 +276,11 @@ class _InhibitionScreenState extends State<InhibitionScreen> {
         HudItem(label: L.t('hud_held'), value: '${g.correctRejections}', icon: Icons.pan_tool_outlined),
       ],
       onLesson: () => openDemoLesson(context, title: L.t('inhibition'), trials: _demoTrials()),
+      suiteSwitch: _phase == InhibitionPhase.ready ? SuiteSwitch(route: '/games/inhibition', state: widget.state) : null,
       field: (context, h) => _Field(
         game: g,
-        mode: widget.mode,
+        mode: _mode,
+        onMode: _pickMode,
         phase: _phase,
         flash: _flash,
         passed: _passed,
@@ -279,6 +303,7 @@ class _Field extends StatelessWidget {
   const _Field({
     required this.game,
     required this.mode,
+    required this.onMode,
     required this.phase,
     required this.flash,
     required this.passed,
@@ -292,6 +317,7 @@ class _Field extends StatelessWidget {
 
   final InhibitionGame game;
   final SubMode mode;
+  final ValueChanged<SubMode> onMode;
   final InhibitionPhase phase;
   final InhibitionOutcome? flash;
   final bool passed;
@@ -312,23 +338,29 @@ class _Field extends StatelessWidget {
         SubMode.mixed => L.t('inhibitionMixedHint'),
       };
 
-  String get _modeName => switch (mode) {
-        SubMode.goNoGo => L.t('goNoGo'),
-        SubMode.stopSignal => L.t('stopSignal'),
-        SubMode.mixed => L.t('mixedMode'),
-      };
-
   @override
   Widget build(BuildContext context) {
     switch (phase) {
       case InhibitionPhase.ready:
         final p = game.params;
-        return _Centered(
+        return SetupScroll(
           height: height,
+          onStart: onStart,
           children: [
             Text('${L.t('level')} ${game.level}', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
-            Text(_modeName, key: const Key('inhibition-mode'), style: Theme.of(context).textTheme.labelLarge),
+            // Парадигма — выбором, как в вебе (`setSubMode`): без него «Торможение» всегда шло как Go/No-Go,
+            // а «Стоп-сигнал» и «Микс» были недостижимы (задача 3667c6d2).
+            SetupChoice<SubMode>(
+              label: L.t('inhibitionModeLabel'),
+              options: [
+                (SubMode.goNoGo, L.t('goNoGo'), 'inhibition-mode-go_no_go'),
+                (SubMode.stopSignal, L.t('stopSignal'), 'inhibition-mode-stop_signal'),
+                (SubMode.mixed, L.t('mixedMode'), 'inhibition-mode-mixed'),
+              ],
+              value: mode,
+              onPick: onMode,
+            ),
             const SizedBox(height: 8),
             Text(_hint, textAlign: TextAlign.center),
             const SizedBox(height: 8),
@@ -347,8 +379,6 @@ class _Field extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onStart, child: Text(L.t('start'))),
           ],
         );
       case InhibitionPhase.done:

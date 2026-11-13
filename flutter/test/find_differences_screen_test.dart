@@ -68,7 +68,8 @@ void main() {
       }
       await tester.pump(const Duration(milliseconds: 800));
     }
-    expect(find.textContaining(L.t('nextLabel')), findsWidgets, reason: 'все три раунда закрыты — уровень взят');
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'партия дошла до итога');
+    expect(find.descendant(of: find.byKey(const Key('level-result-next')), matching: find.textContaining(L.t('nextLabel'))), findsOneWidget, reason: 'все три раунда закрыты — уровень взят');
   });
 
   testWidgets('🔴 нажатие по НЕизменённому объекту не засчитывается', (tester) async {
@@ -122,7 +123,7 @@ void main() {
       await tester.pump(Duration(seconds: p.roundTimeSec + 1));
       await tester.pump(const Duration(milliseconds: 800));
     }
-    expect(find.textContaining(L.t('retry')), findsWidgets, reason: 'ни один раунд не закрыт — не взят');
+    expect(find.text(L.t('sameLevelRetry')), findsOneWidget, reason: 'ни один раунд не закрыт — не взят');
   });
 
   testWidgets('🔴 РАСКЛАДКА: обе сцены на экране, объекты внутри них — 360×640 и 390×844', (tester) async {
@@ -151,7 +152,7 @@ void main() {
 
   testWidgets('🔴 веха: победа на 3-м уровне открывает бой «сложи подсвеченные», на 2-м — нет', (tester) async {
     // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
-    await expectBossAfterWin(tester, won: find.textContaining(L.t('nextLabel')), hudKey: 'bossHudCounting', play: (level) async {
+    await expectBossAfterWin(tester, won: find.descendant(of: find.byKey(const Key('level-result-next')), matching: find.textContaining(L.t('nextLabel'))), hudKey: 'bossHudCounting', play: (level) async {
       await open(tester, level: level, seed: 'босс$level');
       final p = levelParams(level);
       final s = sceneOnScreen(tester);
@@ -216,7 +217,7 @@ void main() {
     final rounds = p.rounds + fdDrawExtraRounds(49, rnd);
     expect(rounds, 5);
     for (var round = 1; round <= rounds; round += 1) {
-      expect(find.byKey(const Key('итог')), findsNothing, reason: 'до конца $round-го раунда итога нет');
+      expect(find.byKey(const Key('level-result')), findsNothing, reason: 'до конца $round-го раунда итога нет');
       expect(find.text('$round/$rounds'), findsOneWidget, reason: 'идёт раунд $round из $rounds');
       final scene = generateScene(s.width, s.height, p.objectCount, p.spriteAlphabet, rnd);
       final alt = withDifference(scene, p.diffCount, p.spriteAlphabet, rnd, subtlety: p.subtlety);
@@ -248,7 +249,7 @@ void main() {
     await tester.pump(Duration(seconds: p.roundTimeSec + 1));
     await tester.pump(const Duration(milliseconds: 800));
     await tester.pump();
-    expect(find.byKey(const Key('итог')), findsOneWidget, reason: 'время последнего раунда вышло — итог');
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'время последнего раунда вышло — итог');
     expect(state.get('${SharedState.prefix}find_differences_level_nzt48'), '49', reason: '4 из 5 — уровень не взят');
   });
 

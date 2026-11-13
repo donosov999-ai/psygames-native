@@ -11,6 +11,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/session_report.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -274,7 +275,7 @@ class _SolitaireChessScreenState extends State<SolitaireChessScreen> {
       field: (context, h) => switch (_phase) {
         _Phase.config => _config(),
         _Phase.playing => run == null ? const SizedBox.shrink() : _play(run, h),
-        _Phase.done => _result(),
+        _Phase.done => SizedBox(height: h, child: _result()),
       },
       auxRow: playing ? _aux(run) : null,
       pauseActions: [
@@ -438,51 +439,22 @@ class _SolitaireChessScreenState extends State<SolitaireChessScreen> {
     );
   }
 
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
+  /// Партия «ни взята, ни провалена» — тот же уровень ещё раз, как и было «Начать заново».
   Widget _result() {
     final r = _last;
     if (r == null) return const SizedBox.shrink();
-    final up = r.passed && !GamePreset.isPreset;
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            '${L.t('hud_correct')}: ${r.solved}/${r.total}',
-            key: const Key('sol-solved'),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-          ),
-          Text(
-            L.f('solClean', {'n': '${r.clean}'}),
-            key: const Key('sol-clean'),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 20),
-          FilledButton(
-            key: const Key('sol-next'),
-            onPressed: _start,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(52),
-            ),
-            child: Text(
-              up
-                  ? '${L.t('nextLabel')} · ${L.t('label_level_short')} ${_ladder.level}'
-                  : L.t('restart'),
-            ),
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton(
-            key: const Key('sol-menu'),
-            onPressed: () => setState(() => _phase = _Phase.config),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(48),
-            ),
-            child: Text(L.t('mode')),
-          ),
-        ],
+    return LevelResult(
+      passed: r.passed,
+      level: _runLevel,
+      score: '${L.t('hud_correct')}: ${r.solved}/${r.total}',
+      details: Text(
+        L.f('solClean', {'n': '${r.clean}'}),
+        key: const Key('sol-clean'),
+        textAlign: TextAlign.center,
       ),
+      onNext: _start,
+      onSettings: () => setState(() => _phase = _Phase.config),
     );
   }
 }

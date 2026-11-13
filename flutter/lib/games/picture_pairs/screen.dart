@@ -14,6 +14,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/resume_store.dart';
 import '../../shell/session_report.dart';
@@ -688,7 +689,9 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
               }),
               onStart: _start,
             )
-          : _Field(
+          : _phase == Phase.won
+              ? SizedBox(height: h, child: _result(context, g, duel))
+              : _Field(
               game: g,
               theme: theme,
               phase: _phase,
@@ -711,67 +714,14 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
           onPressed: _phase == Phase.play && !_locked ? _reveal : null,
         ),
       ]),
-      toolbar: _phase == Phase.won || _phase == Phase.revealed
+      // Раскрытое решение — не итог уровня: расклад лицом вверх остаётся на поле, под ним «Ещё раз».
+      toolbar: _phase == Phase.revealed
           ? Padding(
               padding: const EdgeInsets.all(12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Дуэль — счёт сторон; одиночная партия — сравнение с идеальной памятью на том
-                  // же раскладе (MindLab, cd9685ec).
-                  if (_phase == Phase.won && duel != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        // Каждый ключ — отдельным L.t('…'): embed-l10n и гейт словаря видят только такие.
-                        switch (duel.outcome) {
-                          > 0 => L.t('pairsDuelWin'),
-                          < 0 => L.t('pairsDuelLose'),
-                          _ => L.t('pairsDuelDraw'),
-                        }
-                            .replaceAll('{you}', '${duel.playerGroups}')
-                            .replaceAll('{bot}', '${duel.botGroups}'),
-                        key: const Key('pp-duel-result'),
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    )
-                  else if (_phase == Phase.won) ...[
-                    if (_kidsStars != null)
-                      Semantics(
-                        label: L.t('pairsKidsStars').replaceAll('{n}', '${_kidsStars!}'),
-                        excludeSemantics: true,
-                        child: Text(
-                          '${'★' * _kidsStars!}${'☆' * (3 - _kidsStars!)}',
-                          key: const Key('pp-kids-stars'),
-                          style: const TextStyle(fontSize: 32, color: Color(0xFFF59E0B)),
-                        ),
-                      ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        L.t('pairsIdealMoves').replaceAll('{n}', '${g.idealMoves}'),
-                        key: const Key('pp-ideal'),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    if (_kidsUp)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Text(
-                          L.t('pairsKidsUp').replaceAll('{p}', '${pairsKidsSteps[_kidsStep].pairs}'),
-                          key: const Key('pp-kids-up'),
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ),
-                  ],
-                  FilledButton.icon(
-                    onPressed: _restart,
-                    icon: const Icon(Icons.arrow_forward),
-                    label: Text(_phase == Phase.won ? L.t('nextLabel') : L.t('retry')),
-                  ),
-                ],
+              child: FilledButton.icon(
+                onPressed: _restart,
+                icon: const Icon(Icons.arrow_forward),
+                label: Text(L.t('retry')),
               ),
             )
           : null,
@@ -780,6 +730,64 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
       ],
     );
   }
+
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5). Свои строки партии — счёт дуэли, звёзды
+  /// «Малышей», сравнение с идеальной памятью — в подробностях. «Дальше» ведёт, как и раньше, на экран
+  /// старта новой раздачи: правило следующего уровня и ступень «Малышей» объявляются там, ДО показа карт.
+  Widget _result(BuildContext context, PairsGame g, PairsDuel? duel) => LevelResult(
+        passed: true,
+        level: _mode == PairsMode.levels ? g.level : null,
+        details: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Дуэль — счёт сторон; одиночная партия — сравнение с идеальной памятью на том
+            // же раскладе (MindLab, cd9685ec).
+            if (duel != null)
+              Text(
+                // Каждый ключ — отдельным L.t('…'): embed-l10n и гейт словаря видят только такие.
+                switch (duel.outcome) {
+                  > 0 => L.t('pairsDuelWin'),
+                  < 0 => L.t('pairsDuelLose'),
+                  _ => L.t('pairsDuelDraw'),
+                }
+                    .replaceAll('{you}', '${duel.playerGroups}')
+                    .replaceAll('{bot}', '${duel.botGroups}'),
+                key: const Key('pp-duel-result'),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              )
+            else ...[
+              if (_kidsStars != null)
+                Semantics(
+                  label: L.t('pairsKidsStars').replaceAll('{n}', '${_kidsStars!}'),
+                  excludeSemantics: true,
+                  child: Text(
+                    '${'★' * _kidsStars!}${'☆' * (3 - _kidsStars!)}',
+                    key: const Key('pp-kids-stars'),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 32, color: Color(0xFFF59E0B)),
+                  ),
+                ),
+              Text(
+                L.t('pairsIdealMoves').replaceAll('{n}', '${g.idealMoves}'),
+                key: const Key('pp-ideal'),
+                textAlign: TextAlign.center,
+              ),
+              if (_kidsUp)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    L.t('pairsKidsUp').replaceAll('{p}', '${pairsKidsSteps[_kidsStep].pairs}'),
+                    key: const Key('pp-kids-up'),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+            ],
+          ],
+        ),
+        onNext: _restart,
+      );
 }
 
 /// Экран перед партией: выбор «уровни / свободно», затем уровень с его правилом или

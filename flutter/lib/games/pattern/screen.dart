@@ -12,6 +12,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../counting_common/generator_shadow.dart';
@@ -60,6 +61,8 @@ class _PatternScreenState extends State<PatternScreen> {
   bool? _right;
   _Phase _phase = _Phase.playing;
   bool _won = false;
+  /// Сыгранный уровень — для общего итога: после победы лестница уже на следующем.
+  int _levelPlayed = 1;
   bool _ready = false;
   Timer? _timer;
 
@@ -147,6 +150,7 @@ class _PatternScreenState extends State<PatternScreen> {
         final passed = _hits / _trials >= passHitRate;
         _shadow.outcome(passed: passed, assisted: _hintUsed, errors: _errors, hints: _hintUsed ? 1 : 0);
         final details = _details();
+        final played = _ladder.level;
         if (passed) {
           await _ladder.win(details: details);
         } else {
@@ -155,6 +159,7 @@ class _PatternScreenState extends State<PatternScreen> {
         if (!mounted) return;
         setState(() {
           _won = passed;
+          _levelPlayed = played;
           _phase = _Phase.result;
         });
         return;
@@ -198,12 +203,23 @@ class _PatternScreenState extends State<PatternScreen> {
         HudItem(label: L.t('hud_correct'), value: '$_hits', icon: Icons.check_circle_outline),
         HudItem(label: L.t('errors'), value: '$_errors', icon: Icons.error_outline),
       ],
-      field: (context, h) => _Field(
-        seq: seq,
-        height: h,
-        right: _right,
-        hintStage: _hintStage,
-      ),
+      // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
+      field: (context, h) => _phase == _Phase.result
+          ? SizedBox(
+              height: h,
+              child: LevelResult(
+                passed: _won,
+                level: _levelPlayed,
+                score: _resultLine,
+                onNext: () => setState(_reset),
+              ),
+            )
+          : _Field(
+              seq: seq,
+              height: h,
+              right: _right,
+              hintStage: _hintStage,
+            ),
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.lightbulb_outline,
@@ -227,31 +243,17 @@ class _PatternScreenState extends State<PatternScreen> {
     );
   }
 
+  /// Счёт партии строкой — для общего итога.
+  String get _resultLine {
+    final percent = (_hits / _trials * 100).round();
+    return _won
+        ? L.f('patResultWin', {'p': '$percent', 'stars': '$_stars'})
+        : L.f('qcResultFail', {'p': '$percent', 'need': '${(passHitRate * 100).round()}'});
+  }
+
   Widget _toolbar(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    if (_phase == _Phase.result) {
-      final percent = (_hits / _trials * 100).round();
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(
-            _won
-                ? L.f('patResultWin', {'p': '$percent', 'stars': '$_stars'})
-                : L.f('qcResultFail', {'p': '$percent', 'need': '${(passHitRate * 100).round()}'}),
-            key: const Key('итог'),
-            textAlign: TextAlign.center,
-            style: text.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          FilledButton.icon(
-            key: const Key('дальше'),
-            onPressed: () => setState(_reset),
-            icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-            label: Text(_won ? L.t('nextLabel') : L.t('retry')),
-          ),
-        ]),
-      );
-    }
+    // На итоге счёт и кнопки рисует общий [LevelResult] в поле.
+    if (_phase == _Phase.result) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Wrap(

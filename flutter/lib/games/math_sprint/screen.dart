@@ -13,6 +13,7 @@ import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -56,6 +57,9 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
   int _bestStreak = 0;
   double _left = 0;
   bool _won = false;
+
+  /// Уровень партии — для итога: после победы лестница уже на следующем.
+  int _levelPlayed = 1;
 
   /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
   bool? _boss;
@@ -117,6 +121,7 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
   }
 
   void _start() {
+    _levelPlayed = _ladder.level;
     _shadow.deal(_ladder.level);
     setState(() => _phase = _Phase.playing);
     _elapsedMs = 0;
@@ -213,11 +218,29 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
         HudItem(label: L.t('errors'), value: '$_errors', icon: Icons.error_outline),
         if (_streak >= 3) HudItem(label: L.t('hud_streak'), value: '$_streak', icon: Icons.local_fire_department_outlined),
       ],
-      field: (context, h) => _Field(problem: _problem!, typed: _typed, height: h),
+      // Итог — общий каркаса ([LevelResult], задача e90a53d5): «дальше» сразу начинает новую партию
+      // (раньше кнопка уводила на экран «Начать»); итог вехи — в подробностях.
+      field: (context, h) => _phase == _Phase.result
+          ? SizedBox(
+              height: h,
+              child: LevelResult(
+                passed: _won,
+                level: _levelPlayed,
+                score: _won
+                    ? L.f('sprintResultWin', {'correct': '$_correct', 'score': '$_score', 'streak': '$_bestStreak'})
+                    : L.f('sprintResultFail', {'correct': '$_correct', 'need': '$sprintCorrectToPass'}),
+                details: BossOutcomeLine(_boss),
+                onNext: () {
+                  setState(_reset);
+                  _start();
+                },
+              ),
+            )
+          : _Field(problem: _problem!, typed: _typed, height: h),
       auxRow: AuxBar(children: [
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
-      toolbar: _toolbar(context),
+      toolbar: _phase == _Phase.result ? null : _toolbar(context),
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
@@ -226,29 +249,6 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
 
   Widget _toolbar(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    if (_phase == _Phase.result) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(
-            _won
-                ? L.f('sprintResultWin', {'correct': '$_correct', 'score': '$_score', 'streak': '$_bestStreak'})
-                : L.f('sprintResultFail', {'correct': '$_correct', 'need': '$sprintCorrectToPass'}),
-            key: const Key('итог'),
-            textAlign: TextAlign.center,
-            style: text.titleMedium,
-          ),
-          BossOutcomeLine(_boss),
-          const SizedBox(height: 8),
-          FilledButton.icon(
-            key: const Key('дальше'),
-            onPressed: () => setState(_reset),
-            icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-            label: Text(_won ? L.t('nextLabel') : L.t('retry')),
-          ),
-        ]),
-      );
-    }
     if (_phase == _Phase.ready) {
       return Padding(
         padding: const EdgeInsets.all(12),

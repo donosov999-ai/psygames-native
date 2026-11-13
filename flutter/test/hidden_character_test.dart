@@ -111,8 +111,8 @@ void main() {
       await tester.pump();
       await tester.tap(find.byKey(const ValueKey('hc-confirm')));
       await settle(tester);
-      expect(find.byKey(const ValueKey('hc-next')), findsOneWidget);
-      expect(find.textContaining('★★★'), findsOneWidget);
+      expect(find.byKey(const Key('level-result-next')), findsOneWidget);
+      expect(tester.widget<Text>(find.byKey(const ValueKey('hc-stars'))).data, '★★★');
       expect(reports.length, 1);
       expect(reports.single['game_type'], 'hidden_character');
       final d = reports.single['details'] as Map<String, dynamic>;

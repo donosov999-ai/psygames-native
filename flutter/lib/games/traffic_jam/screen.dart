@@ -12,6 +12,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -213,39 +214,39 @@ class _TrafficJamScreenState extends State<TrafficJamScreen> {
         // Ходы ПРОТИВ МИНИМУМА: без этого числа человек не знает, хорошо ли решил.
         HudItem(label: L.t('trafficJamMoves'), value: '$_moves/${_level!.minMoves}', icon: Icons.swap_horiz),
       ],
-      field: (context, h) => LayoutBuilder(
-        builder: (context, c) {
-          final side = math.max(160.0, math.min(c.maxWidth - 32, h - 16));
-          return Center(
-            child: _TrafficBoard(
-              key: const ValueKey('tj-board'),
-              board: board,
-              side: side,
-              onMove: _won ? null : _move,
+      field: (context, h) => _won
+          ? SizedBox(height: h, child: _result())
+          : LayoutBuilder(
+              builder: (context, c) {
+                final side = math.max(160.0, math.min(c.maxWidth - 32, h - 16));
+                return Center(
+                  child: _TrafficBoard(
+                    key: const ValueKey('tj-board'),
+                    board: board,
+                    side: side,
+                    onMove: _won ? null : _move,
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
       auxRow: AuxBar(children: [
         AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _history.isEmpty || _won ? null : _undo),
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
       ]),
-      toolbar: _won
-          ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: FilledButton.icon(
-                key: const ValueKey('tj-next'),
-                onPressed: _next,
-                icon: const Icon(Icons.arrow_forward),
-                label: Text('${'★' * _stars} · ${L.t('nextLabel')}'),
-              ),
-            )
-          : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
       ],
     );
   }
+
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующую доску.
+  /// Проигрыша нет — итог только у решённой доски. Свои звёзды игры (ходы против минимума) — в счёте.
+  Widget _result() => LevelResult(
+        passed: true,
+        level: _levelNo,
+        score: '${'★' * _stars} · ${L.t('trafficJamMoves')}: $_moves/${_level!.minMoves}',
+        onNext: _next,
+      );
 }
 
 /// Цвета машин: красная — своя, остальные различимы между собой и с ней.

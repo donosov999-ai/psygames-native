@@ -91,11 +91,27 @@ void main() {
       await tester.pump(const Duration(milliseconds: 1200));
       await tester.pump(const Duration(milliseconds: 450));
     }
-    expect(find.byKey(const Key('ct-score')), findsOneWidget);
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'итог — общий каркаса');
     expect(sent, hasLength(1));
     expect(sent.single['mode'], 'tone');
     expect(sent.single['score'], p.trials * 100);
     expect(state.get(SharedState.levelKey('chinese_tones', 'nzt48')), '2');
+  });
+
+  testWidgets('🔴 на первых уровнях в партии одна строка «как играть» — слышишь слог, называешь тон', (tester) async {
+    await boot(tester);
+    await tester.tap(find.byKey(const Key('ct-start')));
+    await tester.pump(const Duration(milliseconds: 450));
+    expect(find.byKey(const Key('ct-howto')), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('ct-howto'))).data, L.t('chineseTonesDesc'));
+  });
+
+  testWidgets('строка «как играть» уходит с 4-го уровня', (tester) async {
+    await state.set(SharedState.levelKey('chinese_tones', 'nzt48'), '4');
+    await boot(tester);
+    await tester.tap(find.byKey(const Key('ct-start')));
+    await tester.pump(const Duration(milliseconds: 450));
+    expect(find.byKey(const Key('ct-howto')), findsNothing);
   });
 
   testWidgets('🔴 кнопки тона — нарисованная линия, а не знак ˊ ˋ (их нет в Roboto — пустые квадраты)', (tester) async {
