@@ -602,6 +602,8 @@ class _SchulteScreenState extends State<SchulteScreen> {
               setState(_reset);
               _start();
             },
+            // «Настройки» — экран настройки: «Уровни / Свободно», размер и модификации.
+            onSettings: GamePreset.isPreset ? null : () => setState(_reset),
           ),
         );
       },

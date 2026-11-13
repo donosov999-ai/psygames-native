@@ -273,8 +273,9 @@ void main() {
     await tester.pump();
     expect(state.get(levelKey), isNull, reason: 'четыре ошибки в «Свободно» — не провал уровня');
     expect(reports.single['errors'], 4);
-    // Назад к уровням: экран настройки ступени с правилом, и партия по ступени идёт по лестнице.
-    await tester.tap(find.text(L.t('retry')));
+    // Назад к уровням: «Настройки» общего итога (e90a53d5) — экран настройки ступени с правилом, и партия по
+    // ступени идёт по лестнице.
+    await tester.tap(find.byKey(const Key('level-result-settings')));
     await tester.pump();
     await pick(tester, 'schulte-mode-levels');
     expect(find.byKey(const Key('schulte-rule')), findsOneWidget);
