@@ -187,6 +187,33 @@ void main() {
     expect(find.byKey(const Key('feedback')), findsOneWidget, reason: 'сумма набрана одним движением, а отклика «верно» нет');
   });
 
+  /// Показатель «Ошибки» в шапке — читается рядом со значком, голая цифра на экране не годится.
+  int counterErrors(WidgetTester tester) {
+    final row = find.ancestor(of: find.byIcon(Icons.error_outline), matching: find.byType(Row)).first;
+    return int.parse(tester.widget<Text>(find.descendant(of: row, matching: find.byType(Text))).data!);
+  }
+
+  testWidgets('🔴 «Считалка»: перебор посреди протяжки — ОДНА ошибка, а не по ошибке на каждую плитку после него', (tester) async {
+    // Замер координатора на эмуляторе 13.11: протяжка 5→3 при цели 8 дала «ошибки 0 → 3». Палец идёт
+    // дальше по плиткам, пока выбор гаснет (300 мс), и каждая новая плитка заново «перебирала».
+    List<int>? row;
+    for (var n = 0; n < 200 && row == null; n++) {
+      await openCounter(tester, 'перебор$n');
+      final cells = counterCells(tester);
+      final target = counterTarget(tester);
+      for (final i in [0, 3, 6]) {
+        if (cells[i] + cells[i + 1] > target && cells[i] < target && cells[i] + cells[i + 1] + cells[i + 2] != target) {
+          row = [i, i + 1, i + 2];
+          break;
+        }
+      }
+    }
+    expect(row, isNotNull, reason: 'за 200 партий не нашлось ряда с перебором на второй плитке');
+    expect(counterErrors(tester), 0);
+    await sweep(tester, [for (final i in row!) tester.getCenter(find.byKey(Key('cell$i')))]);
+    expect(counterErrors(tester), 1, reason: 'один перебор — одна ошибка, сколько бы плиток палец ни прошёл дальше');
+  });
+
   testWidgets('«Считалка»: протяжка вперёд-назад — выбрана одна плитка', (tester) async {
     List<int>? pair;
     for (var n = 0; n < 60 && pair == null; n++) {
