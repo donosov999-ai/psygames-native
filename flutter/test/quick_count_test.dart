@@ -27,14 +27,32 @@ void main() {
     expect(trialsPerRound, ref['trialsPerRound']);
   });
 
-  test('🔴 60 уровней дают те же числа: сколько точек, как долго показ, какая задержка', () {
+  // 🔴 ПОКАЗ ТОЧЕК — СВОЁ ПРАВИЛО, НЕ ВЕБ-ЭТАЛОН (задача 62888e28, 13.11.2026). Эталон снят с веба, где
+  // показ был `max(300, 900 − 40·L)`: 700 мс на L5 при 5–8 точках — игрок не успевал (5 ошибок из 7).
+  // Сверка с эталоном остаётся для точек и задержки; скорость меряется ниже своими свойствами.
+  test('🔴 показ точек: не меньше 1200 мс на L1–L5, дальше плавно вниз, 300 мс на L41', () {
+    for (var l = 1; l <= 5; l += 1) {
+      expect(levelParams(l).exposureMs, greaterThanOrEqualTo(1200), reason: 'L$l: начало лестницы мягкое');
+    }
+    expect(levelParams(1).exposureMs, 1300);
+    expect(levelParams(5).exposureMs, 1200);
+    expect(levelParams(quickCountLevels).exposureMs, 300, reason: 'пол различимости — на конце лестницы');
+    for (var l = 1; l < quickCountLevels; l += 1) {
+      expect(levelParams(l + 1).exposureMs, lessThan(levelParams(l).exposureMs),
+          reason: 'L$l→L${l + 1}: показ укорачивается на каждом уровне, плато нет');
+    }
+    for (var l = quickCountLevels; l <= 200; l += 1) {
+      expect(levelParams(l).exposureMs, 300, reason: 'L$l: ниже пола не уходит');
+    }
+  });
+
+  test('🔴 60 уровней дают те же числа: сколько точек, какая задержка (показ — своё правило, см. выше)', () {
     for (final raw in ref['ladder'] as List) {
       final e = raw as Map<String, dynamic>;
       final p = levelParams(e['level'] as int);
       final at = 'L${e['level']}';
       expect(p.minN, e['minN'], reason: '$at нижняя граница');
       expect(p.maxN, e['maxN'], reason: '$at верхняя граница');
-      expect(p.exposureMs, e['exposureMs'], reason: '$at показ');
       expect(p.holdMs, e['holdMs'], reason: '$at задержка');
       expect(p.minN <= p.maxN, isTrue, reason: '$at границы не перевёрнуты');
       expect(p.maxN - p.minN >= 2, isTrue, reason: '$at между границами хотя бы три ответа');

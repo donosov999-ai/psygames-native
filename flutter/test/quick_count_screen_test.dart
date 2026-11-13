@@ -76,6 +76,22 @@ void main() {
     return n;
   }
 
+  testWidgets('🔴 точки на L1 и L5 держатся на экране больше секунды (задача 62888e28)', (tester) async {
+    for (final level in [1, 5]) {
+      await open(tester, level: level);
+      final p = levelParams(level);
+      await tester.tap(find.byKey(const Key('начать')));
+      await tester.pump();
+      expect(dotsOnScreen(tester), greaterThan(0), reason: 'L$level: точки показаны');
+      // 1100 мс спустя, как раньше не бывало (700 мс на L5), точки ещё на экране.
+      await tester.pump(const Duration(milliseconds: 1100));
+      expect(dotsOnScreen(tester), greaterThan(0), reason: 'L$level: через 1,1 с точки ещё видны');
+      // По истечении показа они пропадают, и появляются кнопки ответа.
+      await tester.pump(Duration(milliseconds: p.exposureMs - 1100 + 10));
+      expect(dotsOnScreen(tester), 0, reason: 'L$level: показ ${p.exposureMs} мс истёк, точек нет');
+    }
+  });
+
   testWidgets('🔴 партия из двенадцати проб играется нажатиями и берёт уровень', (tester) async {
     final p = levelParams(1);
     await open(tester);
