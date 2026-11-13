@@ -9,22 +9,16 @@ import 'package:flutter_test/flutter_test.dart';
 /// `shell/level_result.dart` ([LevelResult]): игра отдаёт исход, счёт и старт партии, а кнопки, звёзды и
 /// автопереход рисует каркас.
 ///
-/// ХРАПОВИК: [remaining] — игры, ещё не переведённые на общий итог. Список только сокращается: новая игра
+/// ХРАПОВИК: [remaining] — игры, ещё не переведённые на общий итог (13.11: 55 → 0). Список только сокращается: новая игра
 /// со своим «Следующий» — красный; переведённая игра, оставшаяся в списке, — тоже красный (вычеркни её).
-const remaining = <String>{
-  'cats', 'chess_blind', 'chinese_tones', 'cloze', 'corsi', 'counter', 'dictation', 'digit_span', //
-  'dots_connect', 'faces_names', 'find_differences', 'find_move', 'hidden_character', 'kids_find',
-  'knights_queens', 'lexical_decision', 'listening_span', 'mahjong', 'math_slider', 'math_sprint',
-  'memory_matrix', 'memory_palace', 'mental_rotation', 'monster_traits', 'navigator', 'number_bonds',
-  'number_run', 'object_tracker', 'one_line', 'ospan', 'pattern', 'phonemic_fluency', 'picture_pairs',
-  'pseudoword_echo', 'quick_count', 'reading_span', 'rhythm_pitch', 'rmet', 'roll_and_bank', 'scholars_mate',
-  'schulte', 'sdmt', 'search_runner', 'semantic_sort', 'set_game', 'solitaire_chess', 'spatial_lab',
-  'spatial_span', 'story_recall', 'submarines', 'traffic_jam', 'trail_making', 'visual_search', 'word_pairs',
-};
+const remaining = <String>{};
 
 /// «Следующий» не как кнопка итога, а подпись в самой партии — законно.
 const _ownMeaning = <String, String>{
-  // «Следующий: 5» — какую точку соединять, подсказка хода.
+  // «Следующий: 5» — какую точку соединять, подсказка хода во время партии (не итог).
+  'trail_making': 'подсказка хода «Следующий: N»',
+  // RMET — замерный тест без уровней: «Следующий» ведёт к следующей фотографии внутри прохода.
+  'rmet': 'следующая фотография внутри одного прохода теста',
 };
 
 final _pattern = RegExp(r"L\.t\('(nextLabel|nextNow)'\)");

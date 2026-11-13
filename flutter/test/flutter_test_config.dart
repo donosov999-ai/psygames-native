@@ -13,5 +13,7 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // Итог уровня сам начинает следующую партию через 1,5–2,5 с; пробы игр смотрят на итог дольше и
   // этого не ждут. Автопереход проверяет своя проба (`level_result_test.dart`), включая его обратно.
   LevelResult.autoAdvance = false;
+  // Анимацию победы (Lottie и Flame) пробы игр не грузят; её проверяет `level_result_test.dart`.
+  LevelResult.effects = false;
   await testMain();
 }

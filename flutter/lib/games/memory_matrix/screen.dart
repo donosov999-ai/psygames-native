@@ -11,6 +11,7 @@ import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
@@ -331,6 +332,8 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
               }),
               onStart: _start,
             )
+          : _phase == MmPhase.done
+          ? SizedBox(height: h, child: _result(g, h))
           : Column(
               children: [
                 SizedBox(
@@ -376,14 +379,15 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
         ),
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
-      toolbar: _phase == MmPhase.done || _phase == MmPhase.revealed
+      // Показанное решение — не итог уровня: партия без зачёта, только «Ещё раз».
+      toolbar: _phase == MmPhase.revealed
           ? Padding(
               padding: const EdgeInsets.all(12),
               child: FilledButton.icon(
                 key: const Key('mm-again'),
                 onPressed: () => setState(_reset),
                 icon: const Icon(Icons.arrow_forward),
-                label: Text(_phase == MmPhase.done && g.passed ? L.t('nextLabel') : L.t('retry')),
+                label: Text(L.t('retry')),
               ),
             )
           : null,
@@ -392,6 +396,22 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
       ],
     );
   }
+
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): «дальше» сразу начинает новую партию
+  /// (раньше кнопка уводила на экран старта), «Настройки» — экран старта с выбором режима. Разбор
+  /// последнего раунда (пропущенные и лишние клетки) — в подробностях. Шаг зарядки зачёта не имеет:
+  /// итог — «Готово!» без номера уровня, а не «Промах» при нуле ошибок (сверка веб → натив 02.10).
+  Widget _result(MatrixLevel g, double h) => LevelResult(
+        passed: g.preset || g.passed,
+        level: g.preset ? null : g.level,
+        score: '${L.t('hud_correct')}: ${g.hits} · ${L.t('hud_errors')}: ${g.errors}',
+        details: MatrixGridView(gridSize: g.gridSize, side: min(h * 0.4, 240), stateOf: (i) => _cellState(g, i)),
+        onNext: () {
+          setState(_reset);
+          _start();
+        },
+        onSettings: () => setState(_reset),
+      );
 
   /// Состояние клетки — одно слово, как у веб-`FlashCell`.
   MmCellState _cellState(MatrixLevel g, int i) {

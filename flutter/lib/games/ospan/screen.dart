@@ -9,6 +9,7 @@ import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -47,6 +48,8 @@ class _OspanScreenState extends State<OspanScreen> {
   int _mathErrors = 0;
   int _recallErrors = 0;
   bool _won = false;
+  /// Сыгранный уровень — для общего итога: после победы лестница уже на следующем.
+  int _levelPlayed = 1;
   bool _ready = false;
   bool _submitted = false;
   int _attempt = 0;
@@ -149,6 +152,7 @@ class _OspanScreenState extends State<OspanScreen> {
     }
     errors += math.max(0, typed.length - _letters.length);   // лишние буквы — тоже промах
     final passed = ospanPassed(errors);
+    final played = _ladder.level;
     _shadow.outcome(passed: passed, errors: errors + _mathErrors);
     if (passed) {
       await _ladder.win();
@@ -159,6 +163,7 @@ class _OspanScreenState extends State<OspanScreen> {
     setState(() {
       _recallErrors = errors;
       _won = passed;
+      _levelPlayed = played;
       _phase = _Phase.result;
     });
   }
@@ -189,16 +194,33 @@ class _OspanScreenState extends State<OspanScreen> {
         HudItem(label: L.t('hud_correct'), value: '$_mathHits', icon: Icons.check_circle_outline),
         HudItem(label: L.t('hud_errors'), value: '$_mathErrors', icon: Icons.error_outline),
       ],
-      field: (context, h) => _Field(
-        phase: _phase,
-        eq: _eq,
-        letter: _letters.isEmpty ? '' : _letters.last,
-        letters: _letters,
-        recallErrors: _recallErrors,
-        won: _won,
-        input: _input,
-        height: h,
-      ),
+      field: (context, h) {
+        final field = _Field(
+          phase: _phase,
+          eq: _eq,
+          letter: _letters.isEmpty ? '' : _letters.last,
+          letters: _letters,
+          recallErrors: _recallErrors,
+          won: _won,
+          input: _input,
+          height: h,
+        );
+        if (_phase != _Phase.result) return field;
+        // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень, а разбор
+        // «какие буквы были и что набрано» остаётся в подробностях.
+        return SizedBox(
+          height: h,
+          child: LevelResult(
+            passed: _won,
+            level: _levelPlayed,
+            score: _won
+                ? L.f('ospanResultWin', {'n': '${_letters.length}'})
+                : L.f('ospanResultFail', {'n': '$_recallErrors'}),
+            details: field,
+            onNext: () => setState(_reset),
+          ),
+        );
+      },
       auxRow: AuxBar(children: [
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
@@ -273,26 +295,8 @@ class _OspanScreenState extends State<OspanScreen> {
           ]),
         );
       case _Phase.result:
-        return Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(
-              _won
-                  ? L.f('ospanResultWin', {'n': '${_letters.length}'})
-                  : L.f('ospanResultFail', {'n': '$_recallErrors'}),
-              key: const Key('итог'),
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              key: const Key('дальше'),
-              onPressed: () => setState(_reset),
-              icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-              label: Text(_won ? L.t('nextLabel') : L.t('retry')),
-            ),
-          ]),
-        );
+        // Итог со счётом и кнопками рисует общий [LevelResult] в поле.
+        return const SizedBox.shrink();
     }
   }
 }

@@ -156,7 +156,7 @@ void main() {
         }
       }
       await tester.pump(const Duration(milliseconds: 500));
-      expect(find.byKey(const ValueKey('sub-next')), findsOneWidget, reason: 'партия не закончилась');
+      expect(find.byKey(const Key('level-result-next')), findsOneWidget, reason: 'партия не закончилась');
       expect(find.textContaining(L.t('nextLabel')), findsOneWidget);
       final d = reports.single['details'] as Map<String, dynamic>;
       expect(reports.single['game_type'], 'submarines');

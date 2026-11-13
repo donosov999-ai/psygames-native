@@ -215,7 +215,7 @@ void main() {
     final notes = <String>[];
     for (var round = 0; round < 3; round++) {
       if (round > 0) {
-        await tester.tap(find.byKey(const Key('rspan-again')));
+        await tester.tap(find.byKey(const Key('level-result-next')));
         await tester.pump();
       }
       await tester.tap(find.byKey(const Key('rspan-start')));

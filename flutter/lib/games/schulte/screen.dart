@@ -13,6 +13,7 @@ import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/session_report.dart';
@@ -546,20 +547,60 @@ class _SchulteScreenState extends State<SchulteScreen> {
           icon: Icons.timer_outlined,
         ),
       ],
-      field: (context, h) => _Field(
-        game: g,
-        phase: _phase,
-        ruleRevealed: _ruleRevealed,
-        won: _won,
-        height: h,
-        onStart: _start,
-        onTap: _tap,
-        // Серия блоков — дверь уровней; в «Свободно» её нет (веб: она в блоке уровней).
-        door: GamePreset.isPreset || _isFree
-            ? null
-            : SchulteSeriesDoor(state: widget.state, ladderSize: g.params.gridSize),
-        setup: GamePreset.isPreset ? null : (h) => _setupPanel(h, g),
-      ),
+      field: (context, h) {
+        if (_phase != _Phase.done) {
+          return _Field(
+            game: g,
+            phase: _phase,
+            ruleRevealed: _ruleRevealed,
+            won: _won,
+            height: h,
+            onStart: _start,
+            onTap: _tap,
+            // Серия блоков — дверь уровней; в «Свободно» её нет (веб: она в блоке уровней).
+            door: GamePreset.isPreset || _isFree
+                ? null
+                : SchulteSeriesDoor(state: widget.state, ladderSize: g.params.gridSize),
+            setup: GamePreset.isPreset ? null : (h) => _setupPanel(h, g),
+          );
+        }
+        // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень. Таблица,
+        // как её оставила партия (сколько собрано до лимита), и итог боя с боссом — в подробностях.
+        final board = (h * 0.3).clamp(0.0, 220.0);
+        return SizedBox(
+          height: h,
+          child: LevelResult(
+            passed: _won,
+            // «Свободно» — без лестницы: итог «Готово!» и новая таблица, без «Ур. N+1».
+            level: _isFree || GamePreset.isPreset ? null : g.level,
+            score: _won
+                ? L.f('schulteResultWin', {'t': _time, 'errors': '${g.errors}'})
+                : _timedOut
+                    ? L.f('schulteResultTimeUp', {'limit': _secText(_limitSec!)})
+                    : L.f('schulteResultFail', {'errors': '${g.errors}', 'max': '$_levelErrorsAllowed'}),
+            details: Column(mainAxisSize: MainAxisSize.min, children: [
+              BossOutcomeLine(_boss),
+              // Нажатия по вставшей таблице не считаются и не уводят с итога (тап по итогу — «дальше»).
+              GestureDetector(
+                onTap: () {},
+                child: SizedBox(
+                  height: board,
+                  child: _Field(
+                    game: g,
+                    phase: _phase,
+                    ruleRevealed: _ruleRevealed,
+                    won: _won,
+                    height: board,
+                    onStart: _start,
+                    onTap: _tap,
+                  ),
+                ),
+              ),
+            ]),
+            onNext: () => setState(_reset),
+          ),
+        );
+      },
       auxRow: AuxBar(children: [
         AuxAction(
           // Тот же обработчик, что «Заново» в паузе — под «Авророй» только в паузе.
@@ -574,28 +615,6 @@ class _SchulteScreenState extends State<SchulteScreen> {
           onPressed: null,
         ),
       ]),
-      toolbar: _phase == _Phase.done
-          ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(
-                  _won
-                      ? L.f('schulteResultWin', {'t': _time, 'errors': '${g.errors}'})
-                      : _timedOut
-                          ? L.f('schulteResultTimeUp', {'limit': _secText(_limitSec!)})
-                          : L.f('schulteResultFail', {'errors': '${g.errors}', 'max': '$_levelErrorsAllowed'}),
-                  textAlign: TextAlign.center,
-                ),
-                BossOutcomeLine(_boss),
-                const SizedBox(height: 8),
-                FilledButton.icon(
-                  onPressed: () => setState(_reset),
-                  icon: const Icon(Icons.arrow_forward),
-                  label: Text(_isFree ? L.t('retry') : (_won ? L.t('nextLabel') : L.t('retry'))),
-                ),
-              ]),
-            )
-          : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],

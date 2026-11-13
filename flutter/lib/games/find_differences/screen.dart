@@ -15,6 +15,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -68,6 +69,9 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
   int _elapsedMs = 0;
   bool _won = false;
 
+  /// Сыгранный уровень — для итога: после победы лестница уже на следующем.
+  int _levelPlayed = 1;
+
   /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
   bool? _boss;
   bool _ready = false;
@@ -107,6 +111,7 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
     LessonUsed.reset();
     _tick?.cancel();
     _next?.cancel();
+    _levelPlayed = _ladder.level;
     _params = levelParams(_ladder.level);
     // Шаг зарядки задаёт число отличий сам (`?diffCount=`, профиль «Дети» шлёт 2–3) — но не выше
     // освоенного больше чем на одно: веб `find-differences.tsx:401`, `capPresetByLevel`. Без этого
@@ -244,6 +249,20 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
           HudItem(label: L.t('time'), value: '${_left_.ceil()}', icon: Icons.timer_outlined),
       ],
       field: (context, h) => LayoutBuilder(builder: (context, c) {
+        // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход — сразу новая партия (после
+        // победы лестница уже на следующем уровне).
+        if (_phase == _Phase.result) {
+          return SizedBox(
+            height: h,
+            child: LevelResult(
+              passed: _won,
+              level: _levelPlayed,
+              score: '${L.t('round')} $_roundsWon/$_rounds',
+              details: BossOutcomeLine(_boss),
+              onNext: () => setState(_reset),
+            ),
+          );
+        }
         final s = sceneSize(c.maxWidth, h);
         // Размер сцены нужен раздаче: пересобираем, если каркас дал другое поле.
         if (s.width != _scene.width || s.height != _scene.height) {
@@ -283,27 +302,6 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
       auxRow: AuxBar(children: [
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
-      toolbar: _phase == _Phase.result
-          ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(
-                  '${_won ? L.t('nextLabel') : L.t('retry')} · ${L.t('round')} $_roundsWon/$_rounds',
-                  key: const Key('итог'),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                BossOutcomeLine(_boss),
-                const SizedBox(height: 8),
-                FilledButton.icon(
-                  key: const Key('дальше'),
-                  onPressed: () => setState(_reset),
-                  icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-                  label: Text(_won ? L.t('nextLabel') : L.t('retry')),
-                ),
-              ]),
-            )
-          : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],

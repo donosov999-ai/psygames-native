@@ -123,8 +123,8 @@ void main() {
         await tapItem(tester, b.target);
         await tester.pump(const Duration(milliseconds: 500));
       }
-      expect(find.byKey(const ValueKey('kf-next')), findsOneWidget, reason: 'ступень не закончилась');
-      expect(find.textContaining(L.t('nextLabel')), findsOneWidget);
+      expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'ступень не закончилась');
+      expect(find.descendant(of: find.byKey(const Key('level-result-next')), matching: find.textContaining(L.t('nextLabel'))), findsOneWidget);
       final d = reports.single['details'] as Map<String, dynamic>;
       expect(reports.single['game_type'], 'kids_find');
       expect(d['axis'], 'shape');
@@ -141,12 +141,12 @@ void main() {
           final wrong = b.target == 0 ? 1 : 0;
           await tapItem(tester, wrong);
           await tester.pump(const Duration(milliseconds: 400));
-          expect(find.byKey(const ValueKey('kf-next')), findsNothing, reason: 'доска кончилась на промахе');
+          expect(find.byKey(const Key('level-result')), findsNothing, reason: 'доска кончилась на промахе');
         }
         await tapItem(tester, b.target);
         await tester.pump(const Duration(milliseconds: 500));
       }
-      expect(find.textContaining(L.t('retry')), findsWidgets, reason: 'две ошибки — ступень взята');
+      expect(find.text(L.t('sameLevelRetry')), findsOneWidget, reason: 'две ошибки — ступень взята');
       expect(reports.single['errors'], 2);
     });
 

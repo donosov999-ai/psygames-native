@@ -11,6 +11,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/session_report.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -711,14 +712,18 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
     );
   }
 
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход к следующему подходу. Свои звёзды
+  /// подхода (по медиане), медиана и «решено» — в подробностях; «Режим» — кнопкой «Настройки».
+  /// В потоке и в шаге зарядки ступень ведёт не «пройдено», поэтому номера уровня в итоге нет.
   Widget _result() {
     final r = _last;
     if (r == null) return const SizedBox.shrink();
     final stars = r.solved > 0 ? runStars(r.medianMs, _runLevel, r.hints) : 1;
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    return LevelResult(
+      passed: _passed,
+      level: _flow || GamePreset.isPreset ? null : _runLevel,
+      details: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
@@ -740,30 +745,10 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
             key: const Key('sm-solved'),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 20),
-          FilledButton(
-            key: const Key('sm-next'),
-            onPressed: _start,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(52),
-            ),
-            child: Text(
-              _passed && !_flow && !GamePreset.isPreset
-                  ? '${L.t('nextLabel')} · ${L.t('label_level_short')} ${_ladder.level}'
-                  : L.t('restart'),
-            ),
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton(
-            key: const Key('sm-menu'),
-            onPressed: () => setState(() => _phase = _Phase.config),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(48),
-            ),
-            child: Text(L.t('mode')),
-          ),
         ],
       ),
+      onNext: _start,
+      onSettings: () => setState(() => _phase = _Phase.config),
     );
   }
 }

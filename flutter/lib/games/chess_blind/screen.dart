@@ -11,6 +11,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../chess_common/board.dart';
@@ -854,6 +855,8 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
     );
   }
 
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующую ступень. Свои звёзды
+  /// партии (по ошибкам этого раза) остаются под счётом; в пресете ступень задана снаружи — без номера.
   Widget _result() {
     final g = _game;
     if (g == null) return const SizedBox.shrink();
@@ -862,49 +865,18 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
         : g.errors <= 1
         ? 2
         : 1;
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            '★' * stars + '☆' * (3 - stars),
-            key: const Key('cb-stars'),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 36, color: Color(0xFFE0A800)),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "${L.t('hud_correct')}: ${g.right}/${g.total}",
-            key: const Key('cb-result'),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 20),
-          FilledButton(
-            key: const Key('cb-next'),
-            onPressed: _start,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(52),
-            ),
-            child: Text(
-              g.passed && !GamePreset.isPreset
-                  ? '${L.t('nextLabel')} · ${L.t('label_level_short')} ${_ladder.level}'
-                  : L.t('restart'),
-            ),
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton(
-            key: const Key('cb-menu'),
-            onPressed: () => setState(() => _stage = _Stage.config),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(48),
-            ),
-            child: Text(L.t('mode')),
-          ),
-        ],
+    return LevelResult(
+      passed: g.passed,
+      level: GamePreset.isPreset ? null : g.level,
+      score: "${L.t('hud_correct')}: ${g.right}/${g.total}",
+      details: Text(
+        '★' * stars + '☆' * (3 - stars),
+        key: const Key('cb-stars'),
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 28, color: Color(0xFFE0A800)),
       ),
+      onNext: _start,
+      onSettings: () => setState(() => _stage = _Stage.config),
     );
   }
 }

@@ -23,6 +23,7 @@ import 'game_preset.dart';
 import 'game_shell.dart';
 import 'l10n.dart';
 import 'level_ladder.dart';
+import 'reward_effects.dart';
 import 'ui_kit/game_result.dart';
 
 class LevelResult extends StatefulWidget {
@@ -65,6 +66,10 @@ class LevelResult extends StatefulWidget {
   /// Пробы игр смотрят на итог дольше задержки и не ждут, что партия начнётся сама: общая настройка проб
   /// (`test/flutter_test_config.dart`) выключает автопереход, проба каркаса включает обратно.
   static bool autoAdvance = true;
+
+  /// Анимация победы (Lottie-звезда и Flame-искры, ~1,2 с — раньше автоперехода). При «Уменьшить
+  /// движение» её нет: звезда стоит, искр нет. Пробы игр её не грузят (`flutter_test_config.dart`).
+  static bool effects = true;
 
   @override
   State<LevelResult> createState() => _LevelResultState();
@@ -122,7 +127,10 @@ class _LevelResultState extends State<LevelResult> with SingleTickerProviderStat
       : FutureBuilder<Map<int, int>>(
           future: _stars,
           builder: (_, s) {
-            final n = (s.data?[widget.level] ?? 0).clamp(0, 3);
+            // Звёзды ЭТОЙ партии — у лестницы сразу (запись в хранилище ещё может идти); нет их — лучшее
+            // из хранилища.
+            final last = LevelLadder.current?.lastStars;
+            final n = (last != null && last.level == widget.level ? last.stars : s.data?[widget.level] ?? 0).clamp(0, 3);
             return Text(
               '★' * n + '☆' * (3 - n),
               key: const Key('level-result-stars'),
@@ -131,6 +139,24 @@ class _LevelResultState extends State<LevelResult> with SingleTickerProviderStat
             );
           },
         );
+
+  /// Значок исхода: победа — звезда с искрами (решение Дениса 13.11, пилот `reward_effects.dart`
+  /// у всех игр), провал — значок «ещё раз».
+  Widget _badge(double size, Color won, Color lost) {
+    if (!widget.passed) return Icon(Icons.replay_circle_filled_rounded, size: size, color: lost);
+    if (!LevelResult.effects) return Icon(Icons.emoji_events_rounded, size: size, color: won);
+    return SizedBox(
+      width: size * 2.2,
+      height: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          RewardStar(key: const Key('level-result-star'), enabled: true, size: size),
+          const Positioned.fill(child: VictorySparks(key: Key('level-result-sparks'), enabled: true)),
+        ],
+      ),
+    );
+  }
 
   Widget _progress(Color color) => _auto
       ? AnimatedBuilder(
@@ -172,11 +198,7 @@ class _LevelResultState extends State<LevelResult> with SingleTickerProviderStat
       hero: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            widget.passed ? Icons.emoji_events_rounded : Icons.replay_circle_filled_rounded,
-            size: 110,
-            color: widget.passed ? roles.reward : roles.muted,
-          ),
+          _badge(110, roles.reward, roles.muted),
           _starsRow(roles.reward),
         ],
       ),
@@ -222,11 +244,7 @@ class _LevelResultState extends State<LevelResult> with SingleTickerProviderStat
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(
-              widget.passed ? Icons.emoji_events_rounded : Icons.replay_circle_filled_rounded,
-              size: 64,
-              color: widget.passed ? roles.reward : roles.muted,
-            ),
+            Center(child: _badge(64, roles.reward, roles.muted)),
             _starsRow(roles.reward),
             const SizedBox(height: 8),
             Text(

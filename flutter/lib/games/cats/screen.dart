@@ -25,6 +25,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/game_colors.dart';
@@ -247,6 +248,20 @@ class _CatsScreenState extends State<CatsScreen> {
       ],
       field: (context, height) {
         if (board == null) return const Center(child: CircularProgressIndicator());
+        // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующую доску. Доска
+        // партии остаётся под счётом — видно, где стояли кошки и где были ошибки.
+        if (_won || _lost) {
+          return SizedBox(
+            height: height,
+            child: LevelResult(
+              passed: _won,
+              level: _endLevel ?? _ladder.level,
+              score: '${L.t('label_found')}: ${_cats.length}/$n · ${L.t('errors')}: $_errors',
+              details: CatsBoardView(board: board, marks: _marks, height: height * 0.45, onTap: (_, _) {}),
+              onNext: _deal,
+            ),
+          );
+        }
         return CatsBoardView(
           board: board,
           marks: _marks,
@@ -272,15 +287,7 @@ class _CatsScreenState extends State<CatsScreen> {
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _deal),
       ]),
       toolbar: (_won || _lost)
-          ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: FilledButton.icon(
-                key: const Key('next'),
-                onPressed: _deal,
-                icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-                label: Text(_won ? L.t('nextLabel') : L.t('retry')),
-              ),
-            )
+          ? null
           // 🔴 КАК СТАВИТЬ КОШКУ — НА ЭКРАНЕ, А НЕ ТОЛЬКО ЗА «?» (отзыв 9449db7a, 19.10: «как ставить
           // котов?», на кадре — одни ✕). Кошка ставится долгим нажатием, а короткое — пометка; без
           // строки под полем это угадывается только из окна правил, которое само не открывается.

@@ -15,6 +15,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/practice_run.dart';
@@ -467,6 +468,7 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
             text: _showIdx == -3 ? s!.sequence.join(' ') : (_showIdx >= 0 ? '${s!.sequence[_showIdx]}' : ' '),
             listening: _ds.t('listening'),
           ),
+        DsPhase.done || DsPhase.revealed => _result(s!, h),
         _ => _Answer(
             height: h,
             session: s!,
@@ -488,23 +490,47 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
       // Низ — ОТВЕТ: ряд клавиш стоит всю партию и гаснет вне ввода (веб `bottom="answer"`).
       toolbar: playing
           ? _Keypad(on: _canType, onDigit: _press, onErase: _erase)
-          : (_phase == DsPhase.done || _phase == DsPhase.revealed)
-              ? Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    PracticeRunSpent(controller: _practice),
-                    FilledButton.icon(
-                      key: const Key('ds-again'),
-                      onPressed: () => setState(_reset),
-                      icon: const Icon(Icons.arrow_forward),
-                      label: Text(_phase == DsPhase.done && s!.passed ? L.t('nextLabel') : L.t('retry')),
-                    ),
-                  ]),
-                )
-              : null,
+          : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
+    );
+  }
+
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): «дальше» — сразу новая партия (после победы
+  /// лестница уже на следующем уровне), «Настройки» — экран подачи и старта. Под счётом — поле ответа с
+  /// последним рядом («Было: …»). Подсмотренный ряд в лестницу не идёт: «ещё раз» без автоперехода, чтобы
+  /// ряд можно было разглядеть.
+  Widget _result(DigitSpanSession s, double h) {
+    final revealed = _phase == DsPhase.revealed;
+    return SizedBox(
+      height: h,
+      child: LevelResult(
+        passed: !revealed && s.passed,
+        // Пробный заход уровень не двигает — итог без «Уровень N пройден» и «Ур. N+1».
+        level: GamePreset.isPreset || _practice.used ? null : s.level,
+        auto: !revealed,
+        score: revealed ? null : '${L.t('hud_span')}: ${s.maxSpan} · ${L.t('errors')}: ${s.errors}',
+        details: Column(mainAxisSize: MainAxisSize.min, children: [
+          PracticeRunSpent(controller: _practice),
+          SizedBox(
+          height: h * 0.4,
+          child: _Answer(
+            height: h * 0.4,
+            session: s,
+            phase: _phase,
+            feedback: _feedback,
+            prompt: _typePrompt(s.direction),
+            reveal: null,
+          ),
+        ),
+        ]),
+        onNext: () {
+          setState(_reset);
+          unawaited(_start());
+        },
+        onSettings: () => setState(_reset),
+      ),
     );
   }
 }

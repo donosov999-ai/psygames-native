@@ -100,8 +100,8 @@ void main() {
       await tester.pump();
     }
 
-    expect(find.byKey(const Key('итог')), findsOneWidget);
-    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'точность ≥ 90% — уровень взят');
+    expect(find.byKey(const Key('level-result-score')), findsOneWidget, reason: 'итог — общий каркаса');
+    expect(find.text(L.t('levelDone').replaceAll('{n}', '1')), findsOneWidget, reason: 'точность ≥ 90% — уровень взят');
   });
 
   testWidgets('🔴 куда бы ни попал палец, оценка прилипает к шагу шкалы', (tester) async {

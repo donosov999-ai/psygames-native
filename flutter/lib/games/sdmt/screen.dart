@@ -14,6 +14,7 @@ import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -70,6 +71,9 @@ class _SdmtScreenState extends State<SdmtScreen> {
   double _left = 0;
   int _elapsedMs = 0;
   bool _won = false;
+
+  /// Сыгранный уровень — для итога (после победы лестница уже на следующем).
+  int _levelPlayed = 1;
 
   /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
   bool? _boss;
@@ -184,6 +188,7 @@ class _SdmtScreenState extends State<SdmtScreen> {
     final passed =
         _hits >= _params.targetHits && accuracy >= sdmtAccuracyToPass;
     final details = _details(accuracy);
+    _levelPlayed = _ladder.level;
     // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «сложи подсвеченные».
     bool? boss;
     if (passed) {
@@ -263,13 +268,15 @@ class _SdmtScreenState extends State<SdmtScreen> {
         ),
         HudItem(label: L.t('hud_errors'), value: '$_errors', icon: Icons.error_outline),
       ],
-      field: (context, h) => _Field(
-        keymap: _keymap,
-        stim: _stim,
-        layout: layout,
-        playing: _phase == _Phase.playing,
-        height: h,
-      ),
+      field: (context, h) => _phase == _Phase.result
+          ? SizedBox(height: h, child: _result())
+          : _Field(
+              keymap: _keymap,
+              stim: _stim,
+              layout: layout,
+              playing: _phase == _Phase.playing,
+              height: h,
+            ),
       auxRow: AuxBar(
         children: [
           AuxAction(
@@ -289,6 +296,25 @@ class _SdmtScreenState extends State<SdmtScreen> {
           onPressed: () => setState(_reset),
         ),
       ],
+    );
+  }
+
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
+  /// «Дальше» — новая раздача и сразу партия (раньше кнопка вела на «Начать»).
+  Widget _result() {
+    final total = _hits + _errors;
+    final accuracy = total > 0 ? (_hits / total * 100).round() : 0;
+    return LevelResult(
+      passed: _won,
+      level: _levelPlayed,
+      score: _won
+          ? '$_hitsText · $accuracy%'
+          : '$_hitsText · $accuracy% < ${(sdmtAccuracyToPass * 100).round()}%',
+      details: BossOutcomeLine(_boss),
+      onNext: () {
+        setState(_reset);
+        _start();
+      },
     );
   }
 
@@ -316,34 +342,8 @@ class _SdmtScreenState extends State<SdmtScreen> {
         ),
       );
     }
-    if (_phase == _Phase.result) {
-      final total = _hits + _errors;
-      final accuracy = total > 0 ? (_hits / total * 100).round() : 0;
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              _won
-                  ? '${L.t('nextLabel')} · $_hitsText · $accuracy%'
-                  : '${L.t('retry')} · $_hitsText · $accuracy% < ${(sdmtAccuracyToPass * 100).round()}%',
-              key: const Key('итог'),
-              textAlign: TextAlign.center,
-              style: text.titleMedium,
-            ),
-            BossOutcomeLine(_boss),
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              key: const Key('дальше'),
-              onPressed: () => setState(_reset),
-              icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-              label: Text(_won ? L.t('nextLabel') : L.t('retry')),
-            ),
-          ],
-        ),
-      );
-    }
+    // Итог партии — на поле ([_result]), полоса под ним пустая.
+    if (_phase == _Phase.result) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       // ⚠️ CENTER ОБЯЗАТЕЛЕН. Каркас отдаёт полосе ЖЁСТКУЮ ширину, и SizedBox внутри

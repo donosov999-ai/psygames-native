@@ -1,8 +1,10 @@
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/level_result.dart';
+import 'package:psygames_flutter/shell/reward_effects.dart';
 
 /// 🔴 АВТОПЕРЕХОД ИТОГА УРОВНЯ (задача e90a53d5). Денис 13.11: «должна же во всех играх автопереход быть».
 /// Пройдено — следующая партия сама через 1,5 с, провал — «Ещё раз» сам через 2,5 с, тап — сразу;
@@ -14,17 +16,21 @@ void main() {
   });
   setUp(() {
     LevelResult.autoAdvance = true;
+    LevelResult.effects = true;
     GamePreset.clear();
   });
   tearDown(() {
     LevelResult.autoAdvance = false;
+    LevelResult.effects = false;
     GamePreset.clear();
   });
 
-  Future<List<String>> pump(WidgetTester t, {required bool passed, bool settings = true}) async {
+  Future<List<String>> pump(WidgetTester t, {required bool passed, bool settings = true, bool still = false}) async {
     final log = <String>[];
     await t.pumpWidget(
       MaterialApp(
+        builder: (context, child) =>
+            MediaQuery(data: MediaQuery.of(context).copyWith(disableAnimations: still), child: child!),
         home: Scaffold(
           body: LevelResult(
             passed: passed,
@@ -82,5 +88,23 @@ void main() {
     expect(find.byKey(const Key('level-result-countdown')), findsNothing);
     await t.pump(const Duration(seconds: 4));
     expect(log, isEmpty);
+  });
+
+  testWidgets('🔴 анимация победы: звезда и искры у общего итога, у провала — нет', (t) async {
+    await pump(t, passed: true);
+    expect(find.byKey(const Key('level-result-star')), findsOneWidget);
+    expect(find.byType(VictorySparks), findsOneWidget);
+    await t.pump(const Duration(milliseconds: 1200));
+    await pump(t, passed: false);
+    await t.pump();
+    expect(find.byType(VictorySparks), findsNothing);
+  });
+
+  testWidgets('«Уменьшить движение» — без анимации: звезда стоит, искр нет, автопереход тот же', (t) async {
+    final log = await pump(t, passed: true, still: true);
+    expect(find.byKey(const ValueKey('reward-lottie')), findsNothing);
+    expect(find.byWidgetPredicate((w) => w is GameWidget), findsNothing, reason: 'искр нет');
+    await t.pump(const Duration(milliseconds: 1600));
+    expect(log, ['next']);
   });
 }

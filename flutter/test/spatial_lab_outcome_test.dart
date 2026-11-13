@@ -40,7 +40,7 @@ Future<Command> _solve(WidgetTester tester, int level) async {
   }
   await tester.pump();
   expect(find.text(L.t('spatialLabSolved')), findsOneWidget);
-  expect(find.byKey(const Key('дальше')), findsOneWidget);
+  expect(find.byKey(const Key('level-result-next')), findsOneWidget);
   return commands.last;
 }
 
@@ -52,7 +52,7 @@ Future<void> _reviewAndResolve(
   await tester.tap(find.byTooltip(L.t('btn_undo')));
   await tester.pump();
   expect(find.text(L.t('spatialLabSolved')), findsNothing);
-  expect(find.byKey(const Key('дальше')), findsNothing);
+  expect(find.byKey(const Key('level-result-next')), findsNothing);
   await tester.tap(find.byTooltip(L.t('spatialLabRedo')));
   await tester.pump();
   expect(find.text(L.t('spatialLabSolved')), findsOneWidget);
@@ -228,10 +228,10 @@ void main() {
             free: free,
           );
 
-          await tester.tap(find.byKey(const Key('дальше')));
+          await tester.tap(find.byKey(const Key('level-result-next')));
           await tester.pump();
           expect(find.text(L.t('spatialLabSolved')), findsNothing);
-          expect(find.byKey(const Key('дальше')), findsNothing);
+          expect(find.byKey(const Key('level-result-next')), findsNothing);
           final nextLevel = free ? 0 : 2;
           await _solve(tester, nextLevel);
           expectResults(
@@ -268,7 +268,7 @@ void main() {
     await _reviewAndResolve(tester, last, 0);
     await tester.pump();
     expectResults(1, 7, transit: false, free: true);
-    await tester.tap(find.byKey(const Key('дальше')));
+    await tester.tap(find.byKey(const Key('level-result-next')));
     await tester.pump();
     await _solve(tester, 0);
     expectResults(2, 7, transit: false, free: true);
@@ -302,7 +302,7 @@ void main() {
       expect(outcomes, isEmpty);
       expect(state.get(_levelKey), '2');
 
-      await tester.tap(find.byKey(const Key('дальше')));
+      await tester.tap(find.byKey(const Key('level-result-next')));
       await tester.pump();
       await _solve(tester, 2);
       expect(reports, hasLength(2));

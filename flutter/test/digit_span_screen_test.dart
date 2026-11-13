@@ -194,7 +194,7 @@ void main() {
     expect(second6.length, 6, reason: 'после ошибки длина та же');
     await answer(tester, second6, wrong: true);
     await settle(tester);
-    expect(find.byKey(const Key('ds-again')), findsOneWidget);
+    expect(find.byKey(const Key('level-result-next')), findsOneWidget);
     expect(hud('level', '2'), isTrue, reason: 'хотя бы один верный ряд — уровень взят');
     final s = sent.single;
     expect('${s['game_type']} ${s['difficulty']} / ${s['mode']}', 'digit_span forward / start6');
@@ -246,7 +246,7 @@ void main() {
     await tester.pump();
     expect(find.text(L.t('abilityPracticeOn')), findsOneWidget);
     await playPassedRound(tester);
-    expect(find.byKey(const Key('ds-again')), findsOneWidget, reason: 'партия дошла до конца');
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'партия дошла до конца');
     expect(find.byKey(const Key('practice-run-spent')), findsOneWidget, reason: 'на итоге — «никуда не записана»');
     expect(sent, isEmpty, reason: 'отчёта о партии нет');
     expect(state.get('psygames_digit_span_level_nzt48'), '1', reason: 'уровень не поднят, хотя ряд пройден');

@@ -10,6 +10,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -186,6 +187,46 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
 
   void _next() => setState(_deal);
 
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход — новая раздача (после победы
+  /// лестница уже на следующей ступени). Под счётом — свои звёзды партии (за выбор вопросов), записка
+  /// «верно / не тот» и поле с открытым спрятавшимся.
+  Widget _result(HiddenRound r, double h) => SizedBox(
+        height: h,
+        child: LevelResult(
+          passed: r.won!,
+          level: _levelNo,
+          score: '${L.t('hcQuestions')}: ${r.asked.length}',
+          details: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (r.won!)
+                Text('★' * _stars, key: const ValueKey('hc-stars'), textAlign: TextAlign.center),
+              Text(
+                _note,
+                key: const ValueKey('hc-note'),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              SizedBox(
+                height: h * 0.45,
+                child: LayoutBuilder(
+                  builder: (context, c) => _Grid(
+                    round: r,
+                    alive: r.remaining,
+                    maxW: c.maxWidth,
+                    maxH: c.maxHeight,
+                    chosen: _chosen,
+                    picked: _picked,
+                    reveal: true,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          onNext: _next,
+        ),
+      );
+
   static final _compact = OutlinedButton.styleFrom(
     visualDensity: VisualDensity.compact,
     minimumSize: const Size(0, 36),
@@ -274,7 +315,9 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
         HudItem(label: L.t('hcQuestions'), value: '${r.asked.length}', icon: Icons.help_outline),
         HudItem(label: L.t('hcLeft'), value: '${r.remaining.length}', icon: Icons.people_outline),
       ],
-      field: (context, h) => Column(
+      field: (context, h) => _over
+          ? _result(r, h)
+          : Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
@@ -304,15 +347,9 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
       auxRow: AuxBar(children: [
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_deal)),
       ]),
-      toolbar: Padding(
+      toolbar: _over ? null : Padding(
         padding: const EdgeInsets.all(10),
-        child: _over
-            ? FilledButton.icon(
-                key: const ValueKey('hc-next'),
-                onPressed: _next,
-                icon: Icon(r.won! ? Icons.arrow_forward : Icons.refresh),
-                label: Text(r.won! ? '${'★' * _stars} · ${L.t('nextLabel')}' : L.t('hcAgain')),
-              )
+        child:
             /*
              * 🔴 ВОПРОСЫ И «ЭТО ОН!» — ОДНИМ РЯДОМ С ПЕРЕНОСОМ, КНОПКИ КОМПАКТНЫЕ.
              * Замер 30.09.2026 (проба mindlab_small_screens): на 320×568 шесть вопросов
@@ -321,7 +358,7 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
              * «ряд + строка» и плотность compact возвращают полю место; высота кнопки не
              * ниже 36 — палец попадает.
              */
-            : Wrap(
+            Wrap(
                 alignment: WrapAlignment.center,
                 spacing: 6,
                 runSpacing: 4,
