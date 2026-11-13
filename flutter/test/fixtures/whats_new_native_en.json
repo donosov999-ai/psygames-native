@@ -7,6 +7,15 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.71.0",
+   "date": "2026-11-13",
+   "items": [
+    "Hubs in three columns with large artwork; Classic rows show the artwork too",
+    "Make the Sum: Counter and Number Bonds are one game with Speed, Composition and Mixed modes",
+    "The round timer pauses while the mode sheet is open"
+   ]
+  },
+  {
    "version": "v2.70.0",
    "date": "2026-11-13",
    "items": [
