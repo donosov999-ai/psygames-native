@@ -1588,6 +1588,10 @@ class _HybridAppState extends State<HybridApp> {
      * не должен, иначе он станет второй оболочкой.
      */
     if (!mounted || result is! HubCardTap) return !goingOn;
+    if (result.tab && NativeTabs.tabs.any((t) => t.route == result.route)) {
+      await _selectTab(result.route);
+      return false;
+    }
     final next = result.route;
     // Адрес карточки — как его пишет веб (`?mode=Light%20Up`); ключ карты ищем тем же
     // разбором, что и у перехвата страницы.

@@ -1,0 +1,542 @@
+{
+  "version": 1,
+  "status": "local-review-candidate-not-published",
+  "byRoute": {
+    "/games/digit-span": {
+      "light": "assets/hub_art/light/digit-span.webp",
+      "dark": "assets/hub_art/dark/digit-span.webp"
+    },
+    "/games/memory-matrix": {
+      "light": "assets/hub_art/light/memory-matrix.webp",
+      "dark": "assets/hub_art/dark/memory-matrix.webp"
+    },
+    "/games/listening-span": {
+      "light": "assets/hub_art/light/listening-span.webp",
+      "dark": "assets/hub_art/dark/listening-span.webp"
+    },
+    "/games/reading-span": {
+      "light": "assets/hub_art/light/reading-span.webp",
+      "dark": "assets/hub_art/dark/reading-span.webp"
+    },
+    "/games/n-back": {
+      "light": "assets/hub_art/light/n-back.webp",
+      "dark": "assets/hub_art/dark/n-back.webp"
+    },
+    "/games/picture-pairs": {
+      "light": "assets/hub_art/light/picture-pairs.webp",
+      "dark": "assets/hub_art/dark/picture-pairs.webp"
+    },
+    "/games/ospan": {
+      "light": "assets/hub_art/light/ospan.webp",
+      "dark": "assets/hub_art/dark/ospan.webp"
+    },
+    "/games/mnemonics": {
+      "light": "assets/hub_art/light/mnemonics-order.webp",
+      "dark": "assets/hub_art/dark/mnemonics-order.webp"
+    },
+    "/games/memory-palace": {
+      "light": "assets/hub_art/light/memory-palace.webp",
+      "dark": "assets/hub_art/dark/memory-palace.webp"
+    },
+    "/games/faces-names": {
+      "light": "assets/hub_art/light/faces-names.webp",
+      "dark": "assets/hub_art/dark/faces-names.webp"
+    },
+    "/games/word-pairs": {
+      "light": "assets/hub_art/light/word-pairs.webp",
+      "dark": "assets/hub_art/dark/word-pairs.webp"
+    },
+    "/games/rmet": {
+      "light": "assets/hub_art/light/rmet.webp",
+      "dark": "assets/hub_art/dark/rmet.webp"
+    },
+    "/games/scholars-mate": {
+      "light": "assets/hub_art/light/scholars-mate.webp",
+      "dark": "assets/hub_art/dark/scholars-mate.webp"
+    },
+    "/games/chess-blind": {
+      "light": "assets/hub_art/light/chess-blind.webp",
+      "dark": "assets/hub_art/dark/chess-blind.webp"
+    },
+    "/games/find-move": {
+      "light": "assets/hub_art/light/find-move.webp",
+      "dark": "assets/hub_art/dark/find-move.webp"
+    },
+    "/games/solitaire-chess": {
+      "light": "assets/hub_art/light/solitaire-chess.webp",
+      "dark": "assets/hub_art/dark/solitaire-chess.webp"
+    },
+    "/games/knights-queens": {
+      "light": "assets/hub_art/light/knights-queens.webp",
+      "dark": "assets/hub_art/dark/knights-queens.webp"
+    },
+    "/games/puzzles?mode=Signpost": {
+      "light": "assets/hub_art/light/signpost.webp",
+      "dark": "assets/hub_art/dark/signpost.webp"
+    },
+    "/games/puzzles?mode=Pegs": {
+      "light": "assets/hub_art/light/pegs.webp",
+      "dark": "assets/hub_art/dark/pegs.webp"
+    },
+    "/games/puzzles?mode=Inertia": {
+      "light": "assets/hub_art/light/inertia.webp",
+      "dark": "assets/hub_art/dark/inertia.webp"
+    },
+    "/games/stroop": {
+      "light": "assets/hub_art/light/stroop.webp",
+      "dark": "assets/hub_art/dark/stroop.webp"
+    },
+    "/games/flanker": {
+      "light": "assets/hub_art/light/flanker.webp",
+      "dark": "assets/hub_art/dark/flanker.webp"
+    },
+    "/games/cpt": {
+      "light": "assets/hub_art/light/cpt.webp",
+      "dark": "assets/hub_art/dark/cpt.webp"
+    },
+    "/games/targets": {
+      "light": "assets/hub_art/light/targets.webp",
+      "dark": "assets/hub_art/dark/targets.webp"
+    },
+    "/games/wcst": {
+      "light": "assets/hub_art/light/wcst.webp",
+      "dark": "assets/hub_art/dark/wcst.webp"
+    },
+    "/games/inhibition": {
+      "light": "assets/hub_art/light/inhibition.webp",
+      "dark": "assets/hub_art/dark/inhibition.webp"
+    },
+    "/games/posner": {
+      "light": "assets/hub_art/light/posner.webp",
+      "dark": "assets/hub_art/dark/posner.webp"
+    },
+    "/games/prl": {
+      "light": "assets/hub_art/light/prl.webp",
+      "dark": "assets/hub_art/dark/prl.webp"
+    },
+    "/games/roll-and-bank": {
+      "light": "assets/hub_art/light/roll-and-bank.webp",
+      "dark": "assets/hub_art/dark/roll-and-bank.webp"
+    },
+    "/games/visual-search": {
+      "light": "assets/hub_art/light/visual-search.webp",
+      "dark": "assets/hub_art/dark/visual-search.webp"
+    },
+    "/games/find-differences": {
+      "light": "assets/hub_art/light/find-differences.webp",
+      "dark": "assets/hub_art/dark/find-differences.webp"
+    },
+    "/games/mahjong": {
+      "light": "assets/hub_art/light/mahjong.webp",
+      "dark": "assets/hub_art/dark/mahjong.webp"
+    },
+    "/games/schulte": {
+      "light": "assets/hub_art/light/schulte.webp",
+      "dark": "assets/hub_art/dark/schulte.webp"
+    },
+    "/games/object-tracker": {
+      "light": "assets/hub_art/light/object-tracker.webp",
+      "dark": "assets/hub_art/dark/object-tracker.webp"
+    },
+    "/games/sdmt": {
+      "light": "assets/hub_art/light/sdmt.webp",
+      "dark": "assets/hub_art/dark/sdmt.webp"
+    },
+    "/games/set-game": {
+      "light": "assets/hub_art/light/set-game.webp",
+      "dark": "assets/hub_art/dark/set-game.webp"
+    },
+    "/games/proofreading": {
+      "light": "assets/hub_art/light/proofreading.webp",
+      "dark": "assets/hub_art/dark/proofreading.webp"
+    },
+    "/games/hidden-character": {
+      "light": "assets/hub_art/light/hidden-character.webp",
+      "dark": "assets/hub_art/dark/hidden-character.webp"
+    },
+    "/games/puzzles?mode=Map": {
+      "light": "assets/hub_art/light/map.webp",
+      "dark": "assets/hub_art/dark/map.webp"
+    },
+    "/games/puzzles?mode=Dominosa": {
+      "light": "assets/hub_art/light/dominosa.webp",
+      "dark": "assets/hub_art/dark/dominosa.webp"
+    },
+    "/games/monster-traits": {
+      "light": "assets/hub_art/light/monster-traits.webp",
+      "dark": "assets/hub_art/dark/monster-traits.webp"
+    },
+    "/games/monster-traits?mode=missing": {
+      "light": "assets/hub_art/light/monster-missing.webp",
+      "dark": "assets/hub_art/dark/monster-missing.webp"
+    },
+    "/games/search-runner": {
+      "light": "assets/hub_art/light/search-runner.webp",
+      "dark": "assets/hub_art/dark/search-runner.webp"
+    },
+    "/games/kids-find": {
+      "light": "assets/hub_art/light/kids-find.webp",
+      "dark": "assets/hub_art/dark/kids-find.webp"
+    },
+    "/games/submarines": {
+      "light": "assets/hub_art/light/submarines.webp",
+      "dark": "assets/hub_art/dark/submarines.webp"
+    },
+    "/games/sudoku": {
+      "light": "assets/hub_art/light/sudoku.webp",
+      "dark": "assets/hub_art/dark/sudoku.webp"
+    },
+    "/games/sudoku-samurai": {
+      "light": "assets/hub_art/light/samurai.webp",
+      "dark": "assets/hub_art/dark/samurai.webp"
+    },
+    "/games/sudoku-fractal": {
+      "light": "assets/hub_art/light/fractal-sudoku.webp",
+      "dark": "assets/hub_art/dark/fractal-sudoku.webp"
+    },
+    "/games/sudoku?mode=towers": {
+      "light": "assets/hub_art/light/skyscrapers.webp",
+      "dark": "assets/hub_art/dark/skyscrapers.webp"
+    },
+    "/games/sudoku?mode=unequal": {
+      "light": "assets/hub_art/light/inequalities.webp",
+      "dark": "assets/hub_art/dark/inequalities.webp"
+    },
+    "/games/sudoku?mode=killer": {
+      "light": "assets/hub_art/light/killer-sudoku.webp",
+      "dark": "assets/hub_art/dark/killer-sudoku.webp"
+    },
+    "/games/sudoku?mode=free": {
+      "light": "assets/hub_art/light/free-sudoku.webp",
+      "dark": "assets/hub_art/dark/free-sudoku.webp"
+    },
+    "/games/sudoku?mode=junior": {
+      "light": "assets/hub_art/light/junior-sudoku.webp",
+      "dark": "assets/hub_art/dark/junior-sudoku.webp"
+    },
+    "/games/cats": {
+      "light": "assets/hub_art/light/cats-regions.webp",
+      "dark": "assets/hub_art/dark/cats-regions.webp"
+    },
+    "/games/puzzles?mode=Unruly": {
+      "light": "assets/hub_art/light/odd-even.webp",
+      "dark": "assets/hub_art/dark/odd-even.webp"
+    },
+    "/games/puzzles?mode=Singles": {
+      "light": "assets/hub_art/light/extra-numbers.webp",
+      "dark": "assets/hub_art/dark/extra-numbers.webp"
+    },
+    "/games/puzzles?mode=Undead": {
+      "light": "assets/hub_art/light/undead.webp",
+      "dark": "assets/hub_art/dark/undead.webp"
+    },
+    "/games/puzzles?mode=Keen": {
+      "light": "assets/hub_art/light/keen.webp",
+      "dark": "assets/hub_art/dark/keen.webp"
+    },
+    "/games/puzzles?mode=Solo": {
+      "light": "assets/hub_art/light/tatham-solo.webp",
+      "dark": "assets/hub_art/dark/tatham-solo.webp"
+    },
+    "/games/puzzles?mode=Towers": {
+      "light": "assets/hub_art/light/tatham-towers.webp",
+      "dark": "assets/hub_art/dark/tatham-towers.webp"
+    },
+    "/games/puzzles?mode=Unequal": {
+      "light": "assets/hub_art/light/tatham-unequal.webp",
+      "dark": "assets/hub_art/dark/tatham-unequal.webp"
+    },
+    "/games/puzzles?mode=Filling": {
+      "light": "assets/hub_art/light/filling.webp",
+      "dark": "assets/hub_art/dark/filling.webp"
+    },
+    "/games/mental-rotation": {
+      "light": "assets/hub_art/light/mental-rotation.webp",
+      "dark": "assets/hub_art/dark/mental-rotation.webp"
+    },
+    "/games/spatial-lab?mode=twiddle": {
+      "light": "assets/hub_art/light/twiddle.webp",
+      "dark": "assets/hub_art/dark/twiddle.webp"
+    },
+    "/games/spatial-lab?mode=net": {
+      "light": "assets/hub_art/light/network-pipes.webp",
+      "dark": "assets/hub_art/dark/network-pipes.webp"
+    },
+    "/games/puzzles?mode=Slide": {
+      "light": "assets/hub_art/light/klotski.webp",
+      "dark": "assets/hub_art/dark/klotski.webp"
+    },
+    "/games/puzzles?mode=Sokoban": {
+      "light": "assets/hub_art/light/sokoban.webp",
+      "dark": "assets/hub_art/dark/sokoban.webp"
+    },
+    "/games/dots-connect": {
+      "light": "assets/hub_art/light/connect-dots.webp",
+      "dark": "assets/hub_art/dark/connect-dots.webp"
+    },
+    "/games/one-line": {
+      "light": "assets/hub_art/light/one-line.webp",
+      "dark": "assets/hub_art/dark/one-line.webp"
+    },
+    "/games/trail-making": {
+      "light": "assets/hub_art/light/trail-making.webp",
+      "dark": "assets/hub_art/dark/trail-making.webp"
+    },
+    "/games/navigator": {
+      "light": "assets/hub_art/light/navigator.webp",
+      "dark": "assets/hub_art/dark/navigator.webp"
+    },
+    "/games/puzzles?mode=Galaxies": {
+      "light": "assets/hub_art/light/galaxies.webp",
+      "dark": "assets/hub_art/dark/galaxies.webp"
+    },
+    "/games/puzzles?mode=Loopy": {
+      "light": "assets/hub_art/light/loopy.webp",
+      "dark": "assets/hub_art/dark/loopy.webp"
+    },
+    "/games/puzzles?mode=Pearl": {
+      "light": "assets/hub_art/light/pearl.webp",
+      "dark": "assets/hub_art/dark/pearl.webp"
+    },
+    "/games/puzzles?mode=Slant": {
+      "light": "assets/hub_art/light/slant.webp",
+      "dark": "assets/hub_art/dark/slant.webp"
+    },
+    "/games/puzzles?mode=Bridges": {
+      "light": "assets/hub_art/light/bridges.webp",
+      "dark": "assets/hub_art/dark/bridges.webp"
+    },
+    "/games/puzzles?mode=Train%20Tracks": {
+      "light": "assets/hub_art/light/train-tracks.webp",
+      "dark": "assets/hub_art/dark/train-tracks.webp"
+    },
+    "/games/puzzles?mode=Untangle": {
+      "light": "assets/hub_art/light/untangle.webp",
+      "dark": "assets/hub_art/dark/untangle.webp"
+    },
+    "/games/puzzles?mode=Net": {
+      "light": "assets/hub_art/light/net-rotation.webp",
+      "dark": "assets/hub_art/dark/net-rotation.webp"
+    },
+    "/games/puzzles?mode=Netslide": {
+      "light": "assets/hub_art/light/netslide.webp",
+      "dark": "assets/hub_art/dark/netslide.webp"
+    },
+    "/games/puzzles?mode=Twiddle": {
+      "light": "assets/hub_art/light/twiddle-tatham.webp",
+      "dark": "assets/hub_art/dark/twiddle-tatham.webp"
+    },
+    "/games/puzzles?mode=Sixteen": {
+      "light": "assets/hub_art/light/sixteen.webp",
+      "dark": "assets/hub_art/dark/sixteen.webp"
+    },
+    "/games/puzzles?mode=Fifteen": {
+      "light": "assets/hub_art/light/fifteen.webp",
+      "dark": "assets/hub_art/dark/fifteen.webp"
+    },
+    "/games/puzzles?mode=Flip": {
+      "light": "assets/hub_art/light/flip.webp",
+      "dark": "assets/hub_art/dark/flip.webp"
+    },
+    "/games/puzzles?mode=Cube": {
+      "light": "assets/hub_art/light/cube-roll.webp",
+      "dark": "assets/hub_art/dark/cube-roll.webp"
+    },
+    "/games/puzzles?mode=Black%20Box": {
+      "light": "assets/hub_art/light/black-box.webp",
+      "dark": "assets/hub_art/dark/black-box.webp"
+    },
+    "/games/traffic-jam": {
+      "light": "assets/hub_art/light/traffic-exit.webp",
+      "dark": "assets/hub_art/dark/traffic-exit.webp"
+    },
+    "/games/goods-sort": {
+      "light": "assets/hub_art/light/goods-sort.webp",
+      "dark": "assets/hub_art/dark/goods-sort.webp"
+    },
+    "/games/water-sort": {
+      "light": "assets/hub_art/light/water-sort.webp",
+      "dark": "assets/hub_art/dark/water-sort.webp"
+    },
+    "/games/ball-sort": {
+      "light": "assets/hub_art/light/balls-sort.webp",
+      "dark": "assets/hub_art/dark/balls-sort.webp"
+    },
+    "/games/nut-sort": {
+      "light": "assets/hub_art/light/nuts-sort.webp",
+      "dark": "assets/hub_art/dark/nuts-sort.webp"
+    },
+    "/games/cake-sort": {
+      "light": "assets/hub_art/light/cake-sort.webp",
+      "dark": "assets/hub_art/dark/cake-sort.webp"
+    },
+    "/games/pizza-sort": {
+      "light": "assets/hub_art/light/pizza-sort.webp",
+      "dark": "assets/hub_art/dark/pizza-sort.webp"
+    },
+    "/games/hanoi": {
+      "light": "assets/hub_art/light/hanoi.webp",
+      "dark": "assets/hub_art/dark/hanoi.webp"
+    },
+    "/games/tower-london": {
+      "light": "assets/hub_art/light/london-tower.webp",
+      "dark": "assets/hub_art/dark/london-tower.webp"
+    },
+    "/games/puzzles?mode=Flood": {
+      "light": "assets/hub_art/light/flood-fill.webp",
+      "dark": "assets/hub_art/dark/flood-fill.webp"
+    },
+    "/games/puzzles?mode=Same%20Game": {
+      "light": "assets/hub_art/light/same-game.webp",
+      "dark": "assets/hub_art/dark/same-game.webp"
+    },
+    "/games/animal-queue": {
+      "light": "assets/hub_art/light/animal-queue.webp",
+      "dark": "assets/hub_art/dark/animal-queue.webp"
+    },
+    "/games/kids-sort": {
+      "light": "assets/hub_art/light/colors-shapes.webp",
+      "dark": "assets/hub_art/dark/colors-shapes.webp"
+    },
+    "/games/breathing": {
+      "light": "assets/hub_art/light/breathing.webp",
+      "dark": "assets/hub_art/dark/breathing.webp"
+    },
+    "/games/pause": {
+      "light": "assets/hub_art/light/eyes-breathing.webp",
+      "dark": "assets/hub_art/dark/eyes-breathing.webp"
+    },
+    "/games/eye-gym": {
+      "light": "assets/hub_art/light/eye-gym.webp",
+      "dark": "assets/hub_art/dark/eye-gym.webp"
+    },
+    "/warmup-night": {
+      "light": "assets/hub_art/light/night-practice.webp",
+      "dark": "assets/hub_art/dark/night-practice.webp"
+    },
+    "/games/counter": {
+      "light": "assets/hub_art/light/counter.webp",
+      "dark": "assets/hub_art/dark/counter.webp"
+    },
+    "/games/math-slider": {
+      "light": "assets/hub_art/light/number-line.webp",
+      "dark": "assets/hub_art/dark/number-line.webp"
+    },
+    "/games/number-run": {
+      "light": "assets/hub_art/light/number-runner.webp",
+      "dark": "assets/hub_art/dark/number-runner.webp"
+    },
+    "/games/math-sprint": {
+      "light": "assets/hub_art/light/math-sprint.webp",
+      "dark": "assets/hub_art/dark/math-sprint.webp"
+    },
+    "/games/number-bonds": {
+      "light": "assets/hub_art/light/number-bonds.webp",
+      "dark": "assets/hub_art/dark/number-bonds.webp"
+    },
+    "/games/pattern": {
+      "light": "assets/hub_art/light/patterns.webp",
+      "dark": "assets/hub_art/dark/patterns.webp"
+    },
+    "/games/quick-count": {
+      "light": "assets/hub_art/light/quick-count.webp",
+      "dark": "assets/hub_art/dark/quick-count.webp"
+    },
+    "/games/puzzles?mode=Mines": {
+      "light": "assets/hub_art/light/mines.webp",
+      "dark": "assets/hub_art/dark/mines.webp"
+    },
+    "/games/puzzles?mode=Mosaic": {
+      "light": "assets/hub_art/light/mosaic.webp",
+      "dark": "assets/hub_art/dark/mosaic.webp"
+    },
+    "/games/puzzles?mode=Pattern": {
+      "light": "assets/hub_art/light/nonogram.webp",
+      "dark": "assets/hub_art/dark/nonogram.webp"
+    },
+    "/games/puzzles?mode=Range": {
+      "light": "assets/hub_art/light/range.webp",
+      "dark": "assets/hub_art/dark/range.webp"
+    },
+    "/games/puzzles?mode=Light%20Up": {
+      "light": "assets/hub_art/light/light-up.webp",
+      "dark": "assets/hub_art/dark/light-up.webp"
+    },
+    "/games/puzzles?mode=Tents": {
+      "light": "assets/hub_art/light/tents.webp",
+      "dark": "assets/hub_art/dark/tents.webp"
+    },
+    "/games/puzzles?mode=Magnets": {
+      "light": "assets/hub_art/light/magnets.webp",
+      "dark": "assets/hub_art/dark/magnets.webp"
+    },
+    "/games/puzzles?mode=Rectangles": {
+      "light": "assets/hub_art/light/rectangles.webp",
+      "dark": "assets/hub_art/dark/rectangles.webp"
+    },
+    "/games/puzzles?mode=Palisade": {
+      "light": "assets/hub_art/light/palisade.webp",
+      "dark": "assets/hub_art/dark/palisade.webp"
+    },
+    "/games/puzzles?mode=Guess": {
+      "light": "assets/hub_art/light/code-breaker.webp",
+      "dark": "assets/hub_art/dark/code-breaker.webp"
+    },
+    "/games/vocab-srs": {
+      "light": "assets/hub_art/light/vocab-srs.webp",
+      "dark": "assets/hub_art/dark/vocab-srs.webp"
+    },
+    "/games/semantic-sort": {
+      "light": "assets/hub_art/light/semantic-sort.webp",
+      "dark": "assets/hub_art/dark/semantic-sort.webp"
+    },
+    "/games/cloze": {
+      "light": "assets/hub_art/light/cloze.webp",
+      "dark": "assets/hub_art/dark/cloze.webp"
+    },
+    "/games/lexical-decision": {
+      "light": "assets/hub_art/light/lexical-decision.webp",
+      "dark": "assets/hub_art/dark/lexical-decision.webp"
+    },
+    "/games/anagrams": {
+      "light": "assets/hub_art/light/anagrams.webp",
+      "dark": "assets/hub_art/dark/anagrams.webp"
+    },
+    "/games/phonemic-fluency": {
+      "light": "assets/hub_art/light/phonemic-fluency.webp",
+      "dark": "assets/hub_art/dark/phonemic-fluency.webp"
+    },
+    "/games/story-recall": {
+      "light": "assets/hub_art/light/story-recall.webp",
+      "dark": "assets/hub_art/dark/story-recall.webp"
+    },
+    "/games/phoneme-pairs": {
+      "light": "assets/hub_art/light/phoneme-pairs.webp",
+      "dark": "assets/hub_art/dark/phoneme-pairs.webp"
+    },
+    "/games/chinese-tones": {
+      "light": "assets/hub_art/light/chinese-tones.webp",
+      "dark": "assets/hub_art/dark/chinese-tones.webp"
+    },
+    "/games/pseudoword-echo": {
+      "light": "assets/hub_art/light/pseudoword-echo.webp",
+      "dark": "assets/hub_art/dark/pseudoword-echo.webp"
+    },
+    "/games/dictation": {
+      "light": "assets/hub_art/light/dictation.webp",
+      "dark": "assets/hub_art/dark/dictation.webp"
+    },
+    "/games/rhythm-pitch": {
+      "light": "assets/hub_art/light/rhythm-pitch.webp",
+      "dark": "assets/hub_art/dark/rhythm-pitch.webp"
+    },
+    "/games/words-hub": {
+      "light": "assets/hub_art/light/words-hub.webp",
+      "dark": "assets/hub_art/dark/words-hub.webp"
+    },
+    "/games/hearing-hub": {
+      "light": "assets/hub_art/light/hearing-hub.webp",
+      "dark": "assets/hub_art/dark/hearing-hub.webp"
+    }
+  }
+}
