@@ -58,6 +58,9 @@ void main() {
       SharedPreferences.setMockInitialValues({
         'psygames_active_profile': 'nzt48',
         'psygames_${e.value}_level_nzt48': '$level',
+        // «Запомни цифры» с 13.11.2026 по умолчанию играют «весь ряд сразу» — у него своя лестница. Проба
+        // ставит уровень на экранную, поэтому «по одной цифре» здесь — явный выбор игрока.
+        if (e.value == 'digit_span') 'psygames_digit_span_delivery_nzt48': 'screen',
       });
       final state = await SharedState.open();
       final build = HybridApp.native[e.key];

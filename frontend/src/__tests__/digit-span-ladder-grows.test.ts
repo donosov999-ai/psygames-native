@@ -35,9 +35,13 @@ describe('digit-span: лестница различает соседние ур�
     expect(levelParams(60).gapMs).toBe(top.gapMs);
   });
 
-  it('прежняя лестница не тронута: длина, ускорение и обратный ввод на местах', () => {
-    expect(levelParams(1).startLen).toBe(4);
-    expect(levelParams(6).startLen).toBe(9);
+  it('лестница после 13.11.2026: +1 к старту раз в два уровня до 9; ускорение, обратный ввод и задержка на местах', () => {
+    // Денис 13.11.2026: «сложность слишком быстрая» — было 3 + уровень (девять цифр уже на L6).
+    expect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((L) => levelParams(L).startLen)).toEqual([4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9]);
+    // пара уровней с одной длиной различается мягким стартовым темпом (L6 и выше — прежний темп)
+    expect(levelParams(1).showMs).toBeGreaterThan(levelParams(2).showMs);
+    expect(levelParams(1).gapMs).toBe(1350);   // и digit-span-modes.test.ts держит эту паузу в L1_GAP
+    expect(`${levelParams(6).showMs}/${levelParams(6).gapMs}`).toBe('700/1100');
     expect(levelParams(10).reverse).toBe(false);
     expect(levelParams(11).reverse).toBe(true);
     // и ниже плато задержки нет: игрокам в прежней полосе сложность не меняли
