@@ -10,7 +10,12 @@
    "version": "v2.56.66",
    "date": "2026-11-13",
    "items": [
-    "Every game with levels: one shared level result — stars, a short win animation, and the next level starts by itself (retry after a miss); swipe a finger across numbers and letters in Counter, Number Bonds, Fillwords and Anagrams; Attention Conflict: BART, Iowa, Simon, ANT and 5 more games open from their set; Schulte: Free mode is back with Schulte–Gorbov, letters, reverse and centre-out order, divided attention; Quick Count shows dots longer on early levels; Digit Span shows the whole number at once with a gentler climb; Colors and Shapes: drag cards into boxes; level map before you start; Practice Run works again; About this game in pause"
+    "Shared level result: stars, a win animation, the next level starts by itself",
+    "Swipe across tiles in Counter, Number Bonds, Fillwords and Anagrams",
+    "Attention Conflict: BART, Iowa, Simon, ANT and 5 more games in their sets",
+    "Schulte: Free mode is back — Gorbov, letters, reverse order",
+    "Digit Span shows the whole number; Quick Count is slower on early levels",
+    "Colors and Shapes: drag cards; level map before you start"
    ]
   },
   {
