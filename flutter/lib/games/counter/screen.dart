@@ -15,6 +15,7 @@ import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/suite_switch.dart' show SuiteModeAction;
+import '../sum_mixed/route.dart' show sumMixedMode;
 import '../../shell/swipe_select.dart';
 import '../counting_common/generator_shadow.dart';
 import 'model.dart';
@@ -319,13 +320,17 @@ class _CounterScreenState extends State<CounterScreen> {
       ],
       field: (context, h) => _phase == _Phase.result
           ? SizedBox(height: h, child: _result())
-          : _Field(
+          : CounterField(
               numbers: _numbers,
               picked: _picked,
               gridSize: _cfg.gridSize,
               target: _target,
               sum: _sum,
-              phase: _phase,
+              feedback: _phase == _Phase.success
+                  ? CounterFeedback.success
+                  : _phase == _Phase.timeout
+                      ? CounterFeedback.timeout
+                      : CounterFeedback.none,
               height: h,
               onTap: _tap,
               onSwipePick: _swipePick,
@@ -334,7 +339,7 @@ class _CounterScreenState extends State<CounterScreen> {
       auxRow: AuxBar(
         children: [
           // Набор «Собери сумму»: режим — листом (экрана настройки у партии нет).
-          SuiteModeAction(route: '/games/counter', state: widget.state),
+          SuiteModeAction(route: '/games/counter', state: widget.state, extra: sumMixedMode),
           AuxAction(
             icon: Icons.backspace_outlined,
             label: L.t('a11yErase'),
@@ -389,16 +394,21 @@ class _CounterScreenState extends State<CounterScreen> {
   }
 }
 
+/// Отклик на ход, который рисует поле: ничего / верно / время вышло.
+enum CounterFeedback { none, success, timeout }
+
 /// Поле: цель, набранная сумма и сетка. Размер клетки считает `counterCellSize`
-/// от высоты, которую отдал каркас, — та же формула, что в вебе.
-class _Field extends StatelessWidget {
-  const _Field({
+/// от высоты, которую отдал каркас, — та же формула, что в вебе. Публичное: то же поле рисует
+/// режим «Вперемешку» набора «Собери сумму» (`games/sum_mixed`) — второй копии вёрстки нет.
+class CounterField extends StatelessWidget {
+  const CounterField({
+    super.key,
     required this.numbers,
     required this.picked,
     required this.gridSize,
     required this.target,
     required this.sum,
-    required this.phase,
+    required this.feedback,
     required this.height,
     required this.onTap,
     required this.onSwipePick,
@@ -410,7 +420,7 @@ class _Field extends StatelessWidget {
   final int gridSize;
   final int target;
   final int sum;
-  final _Phase phase;
+  final CounterFeedback feedback;
   final double height;
   final void Function(int) onTap;
   final void Function(int) onSwipePick;
@@ -463,7 +473,7 @@ class _Field extends StatelessWidget {
                       '${L.t('label_your_sum')} $sum',
                       key: const Key('sum'),
                       style: text.bodyMedium?.copyWith(
-                        color: phase == _Phase.success
+                        color: feedback == CounterFeedback.success
                             ? scheme.primary
                             : scheme.onSurfaceVariant,
                       ),
@@ -509,15 +519,15 @@ class _Field extends StatelessWidget {
             ),
             SizedBox(
               height: footH,
-              child: phase == _Phase.success || phase == _Phase.timeout
+              child: feedback != CounterFeedback.none
                   ? Center(
                       child: Text(
-                        phase == _Phase.success
+                        feedback == CounterFeedback.success
                             ? L.t('label_correct_excl')
                             : L.t('timeIsUp'),
                         key: const Key('feedback'),
                         style: text.titleSmall?.copyWith(
-                          color: phase == _Phase.success
+                          color: feedback == CounterFeedback.success
                               ? scheme.primary
                               : scheme.error,
                         ),

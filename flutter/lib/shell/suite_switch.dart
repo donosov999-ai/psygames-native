@@ -182,11 +182,18 @@ class _SuiteSwitchState extends State<SuiteSwitch> {
 /// как режимы «Анаграмм» (`anagrams/mode_switch.dart`). Переход тот же — закрыть экран с
 /// [HubCardTap] (замена маршрута). Не набор, шаг зарядки или открыт один режим — значка нет.
 class SuiteModeAction extends StatefulWidget {
-  const SuiteModeAction({super.key, required this.route, required this.state});
+  const SuiteModeAction({super.key, required this.route, required this.state, this.extra, this.current});
 
-  /// Маршрут этого экрана.
+  /// Маршрут этого экрана; для режима вне реестра ([extra]) — маршрут набора, по которому он ищется.
   final String route;
   final SharedState state;
+
+  /// Режим, которого нет в реестре игр («Вперемешку» набора «Собери сумму»): в листе стоит последним
+  /// и только там, где профилю открыты ВСЕ режимы набора — он собран из них.
+  final SuiteMode? extra;
+
+  /// Какой режим выбран сейчас, если экран — режим вне реестра ([extra]); иначе — [route].
+  final String? current;
 
   @override
   State<SuiteModeAction> createState() => _SuiteModeActionState();
@@ -195,13 +202,24 @@ class SuiteModeAction extends StatefulWidget {
 class _SuiteModeActionState extends State<SuiteModeAction> {
   List<SuiteMode>? _open;
 
+  String get _here => widget.current ?? widget.route;
+
   @override
   void initState() {
     super.initState();
     GameSuites.load().then((all) {
       if (!mounted) return;
       final suite = GameSuites.of(widget.route, all);
-      setState(() => _open = suite == null ? const [] : GameSuites.openModes(widget.state, suite));
+      if (suite == null) {
+        setState(() => _open = const []);
+        return;
+      }
+      final open = GameSuites.openModes(widget.state, suite);
+      final extra = widget.extra;
+      setState(() => _open = [
+            ...open,
+            if (extra != null && open.length == suite.modes.length) extra,
+          ]);
     });
   }
 
@@ -221,15 +239,15 @@ class _SuiteModeActionState extends State<SuiteModeAction> {
               ListTile(
                 key: Key('suite-mode-${m.route}'),
                 title: Text(L.t(m.labelKey)),
-                selected: m.route == widget.route,
-                trailing: m.route == widget.route ? const Icon(Icons.check) : null,
+                selected: m.route == _here,
+                trailing: m.route == _here ? const Icon(Icons.check) : null,
                 onTap: () => Navigator.of(sheet).pop(m),
               ),
           ],
         ),
       ),
     );
-    if (picked == null || picked.route == widget.route || !mounted) return;
+    if (picked == null || picked.route == _here || !mounted) return;
     Navigator.of(context).pop(HubCardTap(picked.route, replace: true));
   }
 

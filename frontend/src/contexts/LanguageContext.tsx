@@ -252,7 +252,7 @@ const translations: Translations = {
   // урезан, он подобран. Вываливать человеку все 60 сразу нельзя — он уйдёт и
   // не вернётся, поэтому 9-10 в профиле это норма, а не ограничение.
   profileName_free: { ru: 'Стандарт', en: 'Standard' },
-  profileDesc_free: { ru: '12 тренажёров · подобранный набор для старта', en: '12 trainers · a curated set to start with' },
+  profileDesc_free: { ru: '13 тренажёров · подобранный набор для старта', en: '13 trainers · a curated set to start with' },
   profileName_drivers: { ru: 'Реакция', en: 'Reaction' },
   profileDesc_drivers: { ru: 'Решения за секунды · для тех у кого цена ошибки = жизнь', en: 'Split-second decisions · when the cost of error is life' },
   profileName_seniors: { ru: '50+ Активный ум', en: '50+ Active Mind' },
@@ -1988,9 +1988,13 @@ const translations: Translations = {
   suiteModeBackward:  { ru: 'Наоборот',                  en: 'Backward' },
   // Набор «Собери сумму» — решение Дениса 13.11.2026: «Считалка: счёт» и «Числовые пары: счёт» — одна игра, режимы внутри.
   suiteSum:           { ru: 'Собери сумму',              en: 'Make the sum' },
-  suiteSumDesc:       { ru: 'Набрать цель из чисел на поле: на скорость по сетке или составом числа из фишек', en: 'Build the target from the numbers on the board: a timed grid, or a number composition from chips' },
+  suiteSumDesc:       { ru: 'Набрать цель из чисел на поле: на скорость по сетке, составом числа из фишек или вперемешку', en: 'Build the target from the numbers on the board: a timed grid, a number composition from chips, or both mixed' },
   suiteModeSpeed:     { ru: 'На скорость',               en: 'Speed' },
   suiteModeComposition: { ru: 'Состав числа',            en: 'Composition' },
+  suiteModeMixed:     { ru: 'Вперемешку',                en: 'Mixed up' },
+  sumRuleSpeedSub:    { ru: 'Тапай или веди пальцем: набери сумму, пока не вышло время', en: 'Tap or swipe the numbers: reach the target before time runs out' },
+  sumRuleCompSub:     { ru: 'Собери цель из фишек и нажми «Проверить»', en: 'Build the target from the chips, then press Check' },
+  sumMixedRuleChanges: { ru: 'Правило раунда может смениться', en: 'The rule may change each round' },
   suiteStreamDesc:    { ru: 'Поток проб без пауз: держать редкую цель и держать правило, которое меняется', en: 'A stream with no breaks: hold a rare target, hold a rule that keeps changing' },
   suiteModeEmotion:   { ru: 'Эмоциональный',             en: 'Emotional' },
   suiteModeFlanker:   { ru: 'Бока',                      en: 'Flankers' },
