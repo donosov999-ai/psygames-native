@@ -13,20 +13,6 @@ import 'package:flutter_test/flutter_test.dart';
 /// Долг записан поимённо, с владельцем экрана. Новый экран набора без плашек проба не пропустит, а
 /// строку долга, у которой плашки уже стоят, обязывает снять — храповик, как у часов партии.
 const _debt = <String, String>{
-  '/games/stroop': 'psygames-attention-claude-mac',
-  '/games/stroop-emotional': 'psygames-attention-claude-mac',
-  '/games/flanker': 'psygames-attention-claude-mac',
-  '/games/simon': 'psygames-attention-claude-mac',
-  '/games/choice-rt': 'psygames-attention-claude-mac',
-  '/games/ant': 'psygames-attention-claude-mac',
-  '/games/cpt': 'psygames-attention-claude-mac',
-  '/games/switching-task': 'psygames-attention-claude-mac',
-  '/games/inhibition': 'psygames-attention-claude-mac',
-  '/games/go-no-go': 'psygames-attention-claude-mac',
-  '/games/stop-signal': 'psygames-attention-claude-mac',
-  '/games/prl': 'psygames-attention-claude-mac',
-  '/games/iowa': 'psygames-attention-claude-mac',
-  '/games/bart': 'psygames-attention-claude-mac',
   '/games/spatial-span': 'psygames-spatial-claude-mac',
 };
 

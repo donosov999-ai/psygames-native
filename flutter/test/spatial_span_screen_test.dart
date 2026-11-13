@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/spatial_span/model.dart';
 import 'package:psygames_flutter/games/spatial_span/screen.dart';
+import 'package:psygames_flutter/shell/ability_wallet.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -115,6 +117,53 @@ void main() {
     // Непройденная ступень: «охват / планка ступени» дробью.
     // Ни одного верного ряда: охват 0 при планке первой ступени 2.
     expect(find.text('${L.t('hud_span')}: 0 / 2'), findsOneWidget);
+  });
+
+  /// Партия «первый ряд верно задом наперёд → следующий дважды мимо»: охват взят, уровень пройден.
+  Future<void> playPassedRound(WidgetTester tester) async {
+    await tester.tap(find.byKey(const Key('показать-ряд')));
+    await tester.pump();
+    final first = await watchFlashes(tester, 16);
+    for (final c in first.reversed) {
+      await tester.tap(find.byKey(Key('клетка$c')));
+      await tester.pump();
+    }
+    await tester.pump(const Duration(milliseconds: 700));
+    for (var i = 0; i < 2; i++) {
+      final row = await watchFlashes(tester, 16);
+      await tester.tap(find.byKey(Key('клетка${row.first}')));   // прямой порядок — заведомо мимо
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 800));
+    }
+  }
+
+  Future<void> reboot(WidgetTester tester, Map<String, Object> prefs) async {
+    SharedPreferences.setMockInitialValues({'psygames_active_profile': 'nzt48', ...prefs});
+    state = await SharedState.open();
+    await boot(tester, random: Random(42));
+  }
+
+  final wallet = jsonEncode({'nzt48': {'practice_run': 2}});
+
+  testWidgets('🔴 пробный заход: уровень пройден, но не засчитан; списана одна штука; подпись «никуда не записана»',
+      (tester) async {
+    await reboot(tester, {AbilityWallet.key: wallet});
+    expect(find.byKey(const Key('practice-run-switch')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('practice-run-switch')));
+    await tester.pump();
+    await playPassedRound(tester);
+    expect(find.byKey(const Key('ещё-раз')), findsOneWidget, reason: 'партия кончилась');
+    expect(find.byKey(const Key('practice-run-spent')), findsOneWidget);
+    expect(state.get('psygames_spatial_span_level_nzt48'), anyOf(isNull, '1'), reason: 'уровень не поднят');
+    expect(AbilityWallet(state).count('practice_run'), 1);
+  });
+
+  testWidgets('без пробного захода та же партия двигает уровень, штуки целы', (tester) async {
+    await reboot(tester, {AbilityWallet.key: wallet});
+    await playPassedRound(tester);
+    expect(find.byKey(const Key('practice-run-spent')), findsNothing);
+    expect(state.get('psygames_spatial_span_level_nzt48'), '2', reason: 'уровень взят');
+    expect(AbilityWallet(state).count('practice_run'), 2);
   });
 
   testWidgets('🔴 доска берёт сторону у поля: на 360×640 сетка целиком в кадре', (tester) async {

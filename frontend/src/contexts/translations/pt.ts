@@ -609,6 +609,7 @@ const t: Record<string, string> = {
   "suiteModeSimon": "Posição",
   "suiteModeChoice": "Escolha",
   "suiteModeAnt": "Dica",
+  "suiteGameLabel": "Jogo",
   "suiteModeVigilance": "Alvo raro",
   "suiteModeSwitch": "Troca de regra",
   "attentionConflictFootnote": "Um só tema: manter a regra enquanto tudo empurra para outra resposta. A interferência muda de forma — um traço que contradiz, um movimento pronto que é preciso frear, um hábito que sai caro — e cada paradigma guarda sua própria medida.",

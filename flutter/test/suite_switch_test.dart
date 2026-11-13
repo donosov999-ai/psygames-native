@@ -75,7 +75,7 @@ void main() {
   testWidgets('🔴 «Матрица»: плашки набора, текущая выбрана; «Корси» уводит в Корси заменой маршрута', (tester) async {
     final s = await state(positions: all);
     final result = await open(tester, () => MemoryMatrixScreen(state: s));
-    expect(find.text(L.t('suitePositions')), findsOneWidget, reason: 'подпись набора над плашками');
+    expect(find.text(L.t('suiteGameLabel')), findsOneWidget, reason: 'подпись «Игра» над плашками набора');
     for (final (route, key) in [
       ('/games/memory-matrix', 'suiteModeGrid'),
       ('/games/corsi', 'suiteModeCorsi'),

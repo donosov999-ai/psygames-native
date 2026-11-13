@@ -609,6 +609,7 @@ const t: Record<string, string> = {
   "suiteModeSimon": "位置",
   "suiteModeChoice": "选择",
   "suiteModeAnt": "提示",
+  "suiteGameLabel": "游戏",
   "suiteModeVigilance": "罕见目标",
   "suiteModeSwitch": "规则切换",
   "attentionConflictFootnote": "只有一个主题：在一切都推着你换答案时，仍守住规则。干扰形态各异——相互矛盾的特征、已经起手却必须收住的动作、划不来的习惯——每种范式各记各的分。",

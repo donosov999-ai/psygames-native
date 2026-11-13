@@ -146,6 +146,9 @@ for (const [file, fields] of [
   ['assets/home_inputs.json', ['textKeys']],
   // «Питомец» на Dart (`pet_model.dart`): стадии и вид заботы — `L.t('petStage$n')`, `L.t('petLook_$r')`.
   ['assets/pet.json', ['textKeys']],
+  // «Об игре» в каркасе (`shell/game_about.dart`, задача 3a365b5d): описание и польза каждой игры —
+  // `L.t(about.description)`, `L.t(benefit.key)`; таблицу выгружает `tools/export-game-about.mjs`.
+  ['assets/game_about.json', ['description', 'key']],
 ]) {
   let data;
   // 🔴 НЕТ ФАЙЛА — пропустить можно; ЕСТЬ, НО НЕ ЧИТАЕТСЯ — СТОП. Замер 01.10.2026: после

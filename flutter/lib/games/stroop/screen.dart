@@ -12,6 +12,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 
@@ -218,6 +219,7 @@ class _StroopScreenState extends State<StroopScreen> {
       onLesson: _game == null
           ? null
           : () => openDemoLesson(context, title: L.t('stroop'), trials: _demoTrials()),
+      suiteSwitch: _phase == StroopPhase.ready ? SuiteSwitch(route: '/games/stroop', state: widget.state) : null,
       field: (context, h) => _Field(
         game: g, phase: _phase, flash: _flash, passed: _passed, boss: _boss,
         height: h, onStart: _start, onAgain: () => setState(_reset), onMode: _pickMode,

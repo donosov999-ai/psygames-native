@@ -1664,6 +1664,7 @@ const t: Record<string, string> = {
   "suiteModeSimon": "位置",
   "suiteModeChoice": "選択",
   "suiteModeAnt": "手がかり",
+  "suiteGameLabel": "ゲーム",
   "suiteModeVigilance": "まれな標的",
   "suiteModeSwitch": "規則の切替",
   "spanPickModality": "提示の仕方を選ぶ",

@@ -612,6 +612,7 @@ const t: Record<string, string> = {
   "suiteModeSimon": "स्थिति",
   "suiteModeChoice": "विकल्प",
   "suiteModeAnt": "संकेत",
+  "suiteGameLabel": "खेल",
   "suiteModeVigilance": "दुर्लभ लक्ष्य",
   "suiteModeSwitch": "नियम बदलाव",
   "attentionConflictFootnote": "विषय एक ही है: जब सब कुछ दूसरा जवाब देने को धकेले, तब नियम पर टिके रहना। बाधा कई रूपों में आती है — टकराता हुआ लक्षण, शुरू हो चुकी हरकत को रोकना, महँगी पड़ने वाली आदत — और हर पद्धति अपना माप अलग रखती है।",

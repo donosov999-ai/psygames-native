@@ -167,6 +167,8 @@ flutter:
     - assets/game_suites.json
     # Каталог «Игры» — выгрузка games.ts (frontend/src/__tests__/flutter-catalog-asset-fresh.test.ts).
     - assets/catalog.json
+    # «Об игре» в паузе каркаса (shell/game_about.dart): описание и польза 59 игр — tools/export-game-about.mjs
+    - assets/game_about.json
     # Правила нижней полосы — выгрузка tabBar.ts (frontend/src/__tests__/flutter-tabs-asset-fresh.test.ts).
     - assets/tabs.json
     - assets/web_theme.json

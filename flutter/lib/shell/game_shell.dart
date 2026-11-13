@@ -7,6 +7,7 @@ import 'design_template.dart';
 import 'game_clock.dart';
 import 'game_colors.dart';
 import 'feedback_fab.dart';
+import 'game_about.dart';
 import 'game_pet.dart';
 import 'game_rules.dart';
 import 'l10n.dart';
@@ -35,6 +36,7 @@ class GameShell extends StatelessWidget {
     required this.field,
     this.hud = const [],
     this.auxRow,
+    this.suiteSwitch,
     this.toolbar,
     this.onBack,
     this.onRules,
@@ -64,6 +66,12 @@ class GameShell extends StatelessWidget {
 
   /// Ряд служебных значков ПОД полем (AuxBar).
   final Widget? auxRow;
+
+  /// Плашки «Режим» набора игр ([SuiteSwitch]) — НАД полем, только пока игра на экране настройки
+  /// (экран отдаёт `null` в партии). Место одно на все игры наборов: шапку и HUD не трогают, поле
+  /// получает оставшуюся высоту числом. Без слота игра набора из развилки не открывалась (BART,
+  /// Iowa, Simon… — замер 02.10, отчёт 13.11).
+  final Widget? suiteSwitch;
 
   /// Липкий низ: клавиатура цифр, варианты ответа.
   final Widget? toolbar;
@@ -165,9 +173,22 @@ class GameShell extends StatelessWidget {
         if (hud.isNotEmpty) 'hud': {for (final h in hud) h.label: h.value},
       };
 
+  /// Поле игры; при плашках набора — под ними, с остатком высоты.
+  Widget _fieldArea() {
+    Widget game() => LayoutBuilder(builder: (context, c) => field(context, c.maxHeight));
+    final plates = suiteSwitch;
+    if (plates == null) return game();
+    return Column(children: [
+      Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 0), child: plates),
+      Expanded(child: game()),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     feedbackState = _feedbackState();
+    // «Об игре» в паузе берёт таблицу из ассета — загрузить заранее, к нажатию паузы она готова.
+    GameAboutData.ensureLoaded().ignore();
     if (fieldOnly && fieldOnlyPauseBottom) {
       // Поле до краёв экрана (раннер: дорога под строкой статуса и полоской «домой»), пауза — в
       // безопасной зоне. Отступы для своих надписей игра берёт из MediaQuery.paddingOf.
@@ -219,6 +240,7 @@ class GameShell extends StatelessWidget {
           onBack: () => _leave(context),
           onRules: onRules ?? _rulesByRoute(context),
           onLesson: onLesson,
+          onLevelMap: _levelMapEntry(context),
           onFeedback: GameExit.feedback,
           levelRuleTitle: hasRule ? L.t(LevelRules.textKey(spot.gameId, ruleKey, 'title')) : null,
           onLevelRule: hasRule ? () => showLevelRule(context, spot.gameId, ruleKey) : null,
@@ -251,6 +273,7 @@ class GameShell extends StatelessWidget {
                */
               onRules: onRules ?? _rulesByRoute(context),
               onLesson: onLesson,
+              onLevelMap: _levelMapEntry(context),
               onPause: () => _pause(context),
               // Отзыв из игры — значком в шапке, а не только пунктом паузы (задача e780e5b0):
               // нативная игра закрывает плавающую веб-кнопку, и 2.56.11 не давал написать вовсе.
@@ -264,11 +287,9 @@ class GameShell extends StatelessWidget {
               // Без него проверить это снаружи нечем — `Wrap` и `Stack` о
               // переполнении молчат и просто рисуют поверх нижних полос.
               key: const Key('game-field'),
-              child: LayoutBuilder(
-                // 🔴 Высота поля отдаётся игре числом. Игра НЕ считает доску от окна:
-                // окно не знает про шапку, счётчики, ряд значков и липкий низ.
-                builder: (context, c) => field(context, c.maxHeight),
-              ),
+              // 🔴 Высота поля отдаётся игре числом. Игра НЕ считает доску от окна:
+              // окно не знает про шапку, счётчики, ряд значков и липкий низ.
+              child: _fieldArea(),
             ),
             ?auxRow,
             if (toolbar != null)
@@ -401,7 +422,7 @@ class GameShell extends StatelessWidget {
         key: const Key('game-field'),
         child: ColoredBox(
           color: auroraTransparentField ? Colors.transparent : Theme.of(context).scaffoldBackgroundColor,
-          child: LayoutBuilder(builder: (context, c) => field(context, c.maxHeight)),
+          child: _fieldArea(),
         ),
       ),
       if (toolbar != null)
@@ -442,26 +463,52 @@ class GameShell extends StatelessWidget {
       label: L.t('levelMap'),
       icon: Icons.map_outlined,
       group: 'levels',
-      onPressed: () async {
-        final stars = await ladder.stars();
-        if (!context.mounted) return;
-        final open = ladder.lastLevel == null && ladder.maxLevel >= 999;
-        final picked = await showLevelMap(
-          context,
-          current: ladder.level,
-          best: ladder.best,
-          last: ladder.lastLevel ?? (open ? ladder.best + 3 : ladder.maxLevel),
-          stars: stars,
-          open: open,
-          sectors: ladder.sectors,
-        );
-        if (picked == null || !context.mounted) return;
-        final play = playLevel;
-        if (play != null) return play(picked);
-        await ladder.pick(picked);
-        restart?.call();
-      },
+      onPressed: () => _openLevelMap(context, ladder, restart),
     );
+  }
+
+  /// Открыть карту и раздать выбранный уровень — общий путь пункта паузы и входа в шапке.
+  Future<void> _openLevelMap(BuildContext context, LevelLadder ladder, VoidCallback? restart) async {
+    final stars = await ladder.stars();
+    if (!context.mounted) return;
+    final open = ladder.lastLevel == null && ladder.maxLevel >= 999;
+    final picked = await showLevelMap(
+      context,
+      current: ladder.level,
+      best: ladder.best,
+      last: ladder.lastLevel ?? (open ? ladder.best + 3 : ladder.maxLevel),
+      stars: stars,
+      open: open,
+      sectors: ladder.sectors,
+    );
+    if (picked == null || !context.mounted) return;
+    final play = playLevel;
+    if (play != null) return play(picked);
+    await ladder.pick(picked);
+    restart?.call();
+  }
+
+  /*
+   * 🔴 «КАРТА УРОВНЕЙ» НА ЭКРАНЕ НАСТРОЙКИ ДО СТАРТА — ОДНОЙ ТОЧКОЙ КАРКАСА (задача 15686620, 13.11.2026).
+   * В вебе `LevelProgressMap` стоял прямо в настройках; во Flutter карта была только в паузе партии, а
+   * до старта пауза человеку не нужна. Каркас не знает, на какой фазе экран («Начать» или партия), и не
+   * должен знать: вход в шапке (меню справки «Авроры», кнопка классики) доступен всегда, а пока карта
+   * открыта, часы партии стоят ([holdGame]); закрыл без выбора — игра цела. Условия те же, что у пункта
+   * паузы: у игры есть лестница, достигнуто выше 1, есть чем раздать выбранный уровень, не зарядка.
+   */
+  VoidCallback? _levelMapEntry(BuildContext context) {
+    final ladder = LevelLadder.current;
+    if (ladder == null || !levelMap || GamePreset.isPreset || GamePreset.isWarmup) return null;
+    final restart = RestartScope.of(context);
+    if (_levelMapAction(context, ladder, restart) == null) return null;
+    return () async {
+      final release = holdGame();
+      try {
+        await _openLevelMap(context, ladder, restart);
+      } finally {
+        release();
+      }
+    };
   }
 
   List<PauseAction> _levelActions(BuildContext context, VoidCallback? restart) {
@@ -520,6 +567,7 @@ class GameShell extends StatelessWidget {
         child: _PauseScreen(
           title: title,
           ruleKey: GameRules.fullKeyFor(GameRules.currentRoute),
+          about: GameAboutData.of(LevelLadder.current?.gameId),
           hud: hud,
           actions: actions,
           onLeave: () => _leave(context),
@@ -552,6 +600,7 @@ class _PauseScreen extends StatelessWidget {
   const _PauseScreen({
     required this.title,
     this.ruleKey,
+    this.about,
     required this.hud,
     required this.actions,
     required this.onLeave,
@@ -560,6 +609,9 @@ class _PauseScreen extends StatelessWidget {
 
   final String title;
   final String? ruleKey;
+
+  /// «Об игре» (описание и польза) — общий блок каркаса, задача 3a365b5d; нет данных — нет блока.
+  final GameAboutData? about;
 
   final List<HudItem> hud;
   final List<PauseAction> actions;
@@ -662,6 +714,11 @@ class _PauseScreen extends StatelessWidget {
                               child: Text(L.t(ruleKey!), style: const TextStyle(fontSize: 16, height: 1.35)),
                             ),
                           ),
+                        ),
+                      if (about != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: GameAbout.of(about!, keyPrefix: 'pause-game-about'),
                         ),
                       for (final a in actions)
                         button(a.label, a.icon, () {
@@ -872,6 +929,11 @@ extension on _PauseScreen {
                 Padding(
                   padding: const EdgeInsets.only(top: gap),
                   child: _AuroraPauseRules(text: L.t(ruleKey!), dark: dark),
+                ),
+              if (about != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: gap),
+                  child: GameAbout.of(about!, aurora: dark, keyPrefix: 'pause-game-about'),
                 ),
               const SizedBox(height: gap),
               // «Заново» слева, «Продолжить» справа — одним рядом (требование Дениса 30.10).
@@ -1108,6 +1170,7 @@ class _Header extends StatelessWidget {
     this.onBack,
     this.onRules,
     this.onLesson,
+    this.onLevelMap,
     this.onPause,
     this.onLevelRule,
     this.levelRuleTitle,
@@ -1117,6 +1180,7 @@ class _Header extends StatelessWidget {
   final VoidCallback? onBack;
   final VoidCallback? onRules;
   final VoidCallback? onLesson;
+  final VoidCallback? onLevelMap;
   final VoidCallback? onPause;
   final VoidCallback? onLevelRule;
   final String? levelRuleTitle;
@@ -1167,6 +1231,13 @@ class _Header extends StatelessWidget {
               ),
             if (onRules != null)
               IconButton(onPressed: onRules, icon: const Icon(Icons.help_outline), tooltip: L.t('btn_rules')),
+            if (onLevelMap != null)
+              IconButton(
+                key: const Key('game-level-map'),
+                onPressed: onLevelMap,
+                icon: const Icon(Icons.map_outlined),
+                tooltip: L.t('levelMap'),
+              ),
             if (onFeedback != null)
               _feedbackButton(context),
             if (onBack != null)
@@ -1261,6 +1332,7 @@ class _AuroraHeader extends StatelessWidget {
     required this.onBack,
     this.onRules,
     this.onLesson,
+    this.onLevelMap,
     this.onLevelRule,
     this.levelRuleTitle,
     this.onFeedback,
@@ -1269,6 +1341,7 @@ class _AuroraHeader extends StatelessWidget {
   final VoidCallback onBack;
   final VoidCallback? onRules;
   final VoidCallback? onLesson;
+  final VoidCallback? onLevelMap;
   final VoidCallback? onLevelRule;
   final String? levelRuleTitle;
   final VoidCallback? onFeedback;
@@ -1354,11 +1427,13 @@ class _AuroraHeader extends StatelessWidget {
         // 30.10, header-help-dropdown-v1): открытие меню само ничего не включает, учебной попытку
         // делает только «Разбор», как и раньше. Есть одно из двух — один значок, как было.
         if (onLesson != null && onRules != null)
-          _AuroraHelpMenu(onLesson: onLesson!, onRules: onRules!, size: size)
+          _AuroraHelpMenu(onLesson: onLesson!, onRules: onRules!, onLevelMap: onLevelMap, size: size)
         else ...[
           if (onLesson != null)
             ring(context, key: const Key('game-lesson'), icon: Icons.school_outlined, tooltip: L.t('teachButton'), onTap: onLesson!, size: size),
           if (onRules != null) ring(context, icon: Icons.help_outline, tooltip: L.t('btn_rules'), onTap: onRules!, size: size),
+          if (onLevelMap != null)
+            ring(context, key: const Key('game-level-map'), icon: Icons.map_outlined, tooltip: L.t('levelMap'), onTap: onLevelMap!, size: size),
         ],
         // Отзыв — КРАСНЫМ жуком bugFX, как везде (канон §bugFX): золотое кольцо с контурным жуком
         // не читалось как «сообщить о проблеме». Зона нажатия — не меньше 44 px, даже если кольцо
@@ -1398,9 +1473,12 @@ class _AuroraHeader extends StatelessWidget {
 /// «Обучение и справка» шапки «Авроры» (реф header-help-dropdown-v1): шапочка в золотом кольце
 /// с ▾; меню — стеклянная панель с заголовком и раздельными пунктами «Разбор» и «Правила».
 class _AuroraHelpMenu extends StatelessWidget {
-  const _AuroraHelpMenu({required this.onLesson, required this.onRules, required this.size});
+  const _AuroraHelpMenu({required this.onLesson, required this.onRules, this.onLevelMap, required this.size});
   final VoidCallback onLesson;
   final VoidCallback onRules;
+
+  /// «Карта уровней» — третий пункт: у игры с лестницей вход на карту есть и до старта (задача 15686620).
+  final VoidCallback? onLevelMap;
   final double size;
 
   @override
@@ -1424,7 +1502,9 @@ class _AuroraHelpMenu extends StatelessWidget {
         );
     return PopupMenuButton<VoidCallback>(
       key: const Key('game-help-menu'),
-      tooltip: '${L.t('teachButton')} · ${L.t('btn_rules')}',
+      tooltip: onLevelMap == null
+          ? '${L.t('teachButton')} · ${L.t('btn_rules')}'
+          : '${L.t('teachButton')} · ${L.t('btn_rules')} · ${L.t('levelMap')}',
       color: p.glass,
       elevation: 8,
       shadowColor: p.gold.withValues(alpha: 0.5),
@@ -1434,6 +1514,7 @@ class _AuroraHelpMenu extends StatelessWidget {
       itemBuilder: (_) => [
         item('game-lesson', Icons.school_outlined, L.t('teachButton'), onLesson),
         item('game-rules', Icons.help_outline, L.t('btn_rules'), onRules),
+        if (onLevelMap != null) item('game-level-map', Icons.map_outlined, L.t('levelMap'), onLevelMap!),
       ],
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
