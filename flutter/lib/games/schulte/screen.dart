@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
@@ -20,7 +22,9 @@ import '../../shell/session_report.dart';
 import '../../shell/setup_scroll.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import 'free_result.dart';
 import 'model.dart';
+import 'record_book.dart';
 import 'series_screen.dart';
 
 /// «Таблица Шульте» на общем каркасе — первая перенесённая тап-игра раздела.
@@ -37,6 +41,10 @@ class SchulteScreen extends StatefulWidget {
   const SchulteScreen({super.key, required this.state});
 
   final SharedState state;
+
+  /// Отправка результата. Подменяется в пробах: настоящего листа «Поделиться» в них нет.
+  @visibleForTesting
+  static Future<void> Function(ShareParams params) shareSink = (p) => SharePlus.instance.share(p);
 
   @override
   State<SchulteScreen> createState() => _SchulteScreenState();
@@ -78,6 +86,17 @@ class SchulteFreeConfig {
   }
 
   int get maxSize => maxGridFor(content, schulteScriptById(script).length);
+
+  /// Идёт ли партия в личный рекорд и график — то же условие, что у веба (`countsForRecord`,
+  /// `schulte_table_5x5`): классика 5×5, цифры вперёд, без цвета, групп и убегающей цели. Время
+  /// между режимами несравнимо, поэтому остальным рекорд не показывают.
+  bool get countsForRecord =>
+      size == 5 &&
+      content == ContentMode.numbers &&
+      direction == Direction.forward &&
+      !color &&
+      groups <= 1 &&
+      !moving;
 
   LevelParams toParams() => LevelParams(
         gridSize: size,
@@ -121,6 +140,10 @@ class _SchulteScreenState extends State<SchulteScreen> {
   late final SchulteFreeConfig _cfg;
 
   bool get _isFree => _free && !GamePreset.isPreset;
+
+  /// Рекорд и график последней свободной партии; `null` — партия не зачётная или ещё пишется.
+  SchulteRecordResult? _record;
+  late final SchulteRecordBook _book = SchulteRecordBook(widget.state);
   _Phase _phase = _Phase.ready;
 
   /// Ось 9: до объявления правило скрыто, а нажатия не считаются.
@@ -202,6 +225,7 @@ class _SchulteScreenState extends State<SchulteScreen> {
     // Таблица шага — не таблица уровня: лимит времени уровня к ней не относится (у веба его нет).
     _limitSec = preset != null ? null : schulteTimeLimitSec(_ladder.level);
     _timedOut = false;
+    _record = null;
     _phase = _Phase.ready;
     _ruleRevealed = !_game!.params.surpriseStart;
     _won = false;
@@ -308,6 +332,8 @@ class _SchulteScreenState extends State<SchulteScreen> {
       _elapsed = Duration(milliseconds: ms);
     });
     final seconds = ms / 1000;
+    // Рекорд и график — только зачётной классике; читаем прежнее ДО записи этой партии.
+    if (_cfg.countsForRecord) unawaited(_recordFree(seconds));
     SessionReport.send(
       launch: _sessionLaunch,
       gameType: 'schulte_table',
@@ -326,6 +352,32 @@ class _SchulteScreenState extends State<SchulteScreen> {
         if (g.grouped) 'group_count': _cfg.groups,
       },
     );
+  }
+
+  Future<void> _recordFree(double seconds) async {
+    final result = await _book.record(seconds);
+    if (!mounted || _phase != _Phase.done) return;
+    setState(() => _record = result);
+  }
+
+  /// «Поделиться»: текст веба с размером и временем; нет листа «Поделиться» — в буфер, как у
+  /// резервной копии в настройках. Время — до десятых, как у веба (`toFixed(1)`).
+  Future<void> _share() async {
+    final g = _game;
+    if (g == null) return;
+    final text = L.f('schulteShare', {'g': '${g.size}', 't': (_elapsed.inMilliseconds / 1000).toStringAsFixed(1)});
+    final box = context.findRenderObject() as RenderBox?;
+    try {
+      await SchulteScreen.shareSink(ShareParams(
+        text: text,
+        sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+      ));
+    } catch (_) {
+      await Clipboard.setData(ClipboardData(text: text));
+      if (mounted) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(content: Text(L.t('shareCopied'))));
+      }
+    }
   }
 
   /// Уложился ли человек в лимит уровня. Мерят часы партии, а не последний тик.
@@ -578,8 +630,14 @@ class _SchulteScreenState extends State<SchulteScreen> {
                 : _timedOut
                     ? L.f('schulteResultTimeUp', {'limit': _secText(_limitSec!)})
                     : L.f('schulteResultFail', {'errors': '${g.errors}', 'max': '$_levelErrorsAllowed'}),
+            // Автопереход там, где итог читают (рекорд, график), не нужен: он стёр бы экран за 1,5 с.
+            auto: !(_isFree && _cfg.countsForRecord),
             details: Column(mainAxisSize: MainAxisSize.min, children: [
               BossOutcomeLine(_boss),
+              if (_isFree && _record != null) ...[
+                SchulteFreeResultCard(result: _record!),
+                const SizedBox(height: 8),
+              ],
               // Нажатия по вставшей таблице не считаются и не уводят с итога (тап по итогу — «дальше»).
               GestureDetector(
                 onTap: () {},
@@ -620,6 +678,9 @@ class _SchulteScreenState extends State<SchulteScreen> {
           label: L.f('schulteGridSize', {'n': '${g.size}'}),
           onPressed: null,
         ),
+        // Свободная партия кончилась — её можно отправить (веб: кнопка «Поделиться» на итоге).
+        if (_isFree && _phase == _Phase.done)
+          AuxAction(icon: Icons.ios_share, label: L.t('shareResult'), onPressed: _share),
       ]),
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
