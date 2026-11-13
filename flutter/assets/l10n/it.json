@@ -569,6 +569,8 @@
 "dotsConnect":"Unisci i punti",
 "dotsConnectDesc":"Unisci i punti uguali con percorsi che non si incrociano e riempi tutta la griglia",
 "dotsConnectIntroDesc":"Trascina il dito da un punto al suo compagno dello stesso colore: il percorso segue il dito. I percorsi di coppie diverse non si incrociano e alla fine nessuna casella deve restare vuota. Allena la pianificazione spaziale.",
+"dropModeDrag":"Trascina",
+"dropModeTap":"Tocca",
 "duration":"Durata",
 "easy":"Facile",
 "equip":"Indossa",

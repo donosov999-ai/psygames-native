@@ -3840,5 +3840,7 @@ const t: Record<string, string> = {
   "pauseExperiencedOnly": "Nur für bereits erlernte Technik",
   "pauseWarningsTitle": "Bevor du beginnst",
   "pausePracticeComplete": "Übung abgeschlossen",
+  "dropModeDrag": "Ziehen",
+  "dropModeTap": "Tippen",
 };
 export default t;

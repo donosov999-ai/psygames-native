@@ -569,6 +569,8 @@
 "dotsConnect":"连点成线",
 "dotsConnectDesc":"用互不交叉的路径连接相同的点，并填满整个网格",
 "dotsConnectIntroDesc":"用手指从一个点拖到同色的另一个点，路径会跟着手指走。不同颜色的路径不能交叉，最后不能留下空格。训练空间规划能力。",
+"dropModeDrag":"拖动",
+"dropModeTap":"点按",
 "duration":"时长",
 "easy":"简单",
 "equip":"装备",

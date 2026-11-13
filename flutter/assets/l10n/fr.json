@@ -569,6 +569,8 @@
 "dotsConnect":"Relier les points",
 "dotsConnectDesc":"Reliez les points identiques par des chemins sans croisement et remplissez toute la grille",
 "dotsConnectIntroDesc":"Glissez le doigt d’un point à son partenaire de la même couleur : le chemin suit votre doigt. Les chemins de paires différentes ne se croisent jamais, et à la fin aucune case ne doit rester vide. Entraîne la planification spatiale.",
+"dropModeDrag":"Glisser",
+"dropModeTap":"Toucher",
 "duration":"Durée",
 "easy":"Facile",
 "equip":"Équiper",

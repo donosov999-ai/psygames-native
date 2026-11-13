@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
+import '../../shell/drop_baskets.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -19,7 +20,9 @@ import 'model.dart';
 /// 30.09.2026: «добавляем, потом доработаем»).
 ///
 /// Вверху карточка, внизу две коробки-образца: красный круг и синий квадрат.
-/// Нажатие на коробку кладёт карточку туда; после каждого ответа — ✓ или ✗.
+/// Карточку перетаскивают в коробку (режим по умолчанию) или нажимают на коробку — тогда карточка
+/// ложится туда сама; режим выбирается в паузе и запоминается ([KidsInputMode], общий компонент
+/// `shell/drop_baskets.dart`, задача 2d300f4e). После каждого ответа — ✓ или ✗.
 /// Сначала верно «по цвету», потом правило молча меняется на «по форме», с пятой
 /// ступени — и обратно: догадаться о смене ребёнок может только по ✗.
 ///
@@ -28,6 +31,12 @@ import 'model.dart';
 /// сменам правила, которых не замечал. Теперь ступень растёт, если в каждой фазе не больше
 /// ошибок, чем позволяет критерий пробы ([KidsSortSession.passed]); иначе — провал, и
 /// третий подряд опускает ступень.
+/// Ключ памяти способа ответа: у каждого профиля свой — ребёнку удобнее перетаскивать, взрослому нажимать.
+String kidsInputKey(SharedState state) => '${SharedState.prefix}kids_sort_input_${state.activeProfile}';
+
+/// Перетаскивание — режим по умолчанию; выбор человека (`tap`) запоминается.
+bool kidsDragMode(SharedState state) => state.get(kidsInputKey(state)) != 'tap';
+
 class KidsSortScreen extends StatefulWidget {
   const KidsSortScreen({super.key, required this.state, this.seed});
 
@@ -52,7 +61,13 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
   Timer? _flash;
   bool _finishing = false;
 
+  /// Способ ответа: перетаскивать карточку (по умолчанию) или нажимать на коробку.
+  late bool _drag = kidsDragMode(widget.state);
+
   bool get _done => _session != null && _phase == _session!.phases.length && _index >= _session!.nCards;
+
+  /// Идентификатор карточки на столе: фаза и номер — разные карточки не путаются при перетаскивании.
+  int get _cardId => _phase * 1000 + _index;
 
   KidsCard? get _card {
     final s = _session;
@@ -130,6 +145,12 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
 
   void _restart() => setState(_deal);
 
+  void _setDrag(bool drag) {
+    if (drag == _drag) return;
+    setState(() => _drag = drag);
+    widget.state.set(kidsInputKey(widget.state), drag ? 'drag' : 'tap');
+  }
+
   /*
    * РАЗБОР — три шага словами на образцах, без чужой партии: как класть по
    * цвету, что правило может смениться без предупреждения и как это заметить
@@ -191,7 +212,17 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
           icon: Icons.style_outlined,
         ),
       ],
-      field: (context, h) => Column(
+      field: (context, h) => DropBasketsScope<int, int>(
+        // Ответ принимается, пока на столе есть карточка; карточка одна, поэтому тап по коробке
+        // кладёт её сразу (implicitItem), а перетащить можно ту же самую.
+        enabled: card != null,
+        resetKey: s,
+        implicitItem: card == null ? null : _cardId,
+        canDrop: (id) => card != null && id == _cardId,
+        isLive: (id) => card != null && id == _cardId,
+        isCorrect: (id, box) => card != null && s.phases[_phase - 1].check(card, box),
+        onAnswer: (id, box) => _answer(box),
+        child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
@@ -209,7 +240,15 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
                   ),
           ),
           if (card != null)
-            _CardFace(key: const ValueKey('ks-card'), card: card, size: min(140, h * 0.3))
+            _drag
+                ? DropCard<int>(
+                    key: const ValueKey('ks-card'),
+                    item: _cardId,
+                    label: L.t('kidsSort'),
+                    feedbackWidth: min(140, h * 0.3),
+                    builder: (context, selected) => _CardFace(card: card, size: min(140, h * 0.3), selected: selected),
+                  )
+                : _CardFace(key: const ValueKey('ks-card'), card: card, size: min(140, h * 0.3))
           else
             Padding(
               padding: const EdgeInsets.all(16),
@@ -227,15 +266,19 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
               for (var box = 0; box < kidsTargets.length; box += 1)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: InkWell(
+                  child: DropBasket<int, int>(
                     key: ValueKey('ks-box-$box'),
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: card == null ? null : () => _answer(box),
-                    child: Container(
+                    target: box,
+                    label: '',
+                    borderRadius: 16,
+                    builder: (context, highlighted) => Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: scheme.outline, width: 2),
+                        border: Border.all(
+                          color: highlighted ? scheme.primary : scheme.outline,
+                          width: highlighted ? 3 : 2,
+                        ),
                       ),
                       child: _CardFace(card: kidsTargets[box], size: min(96, h * 0.2)),
                     ),
@@ -244,6 +287,7 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
             ],
           ),
         ],
+      ),
       ),
       auxRow: AuxBar(children: [
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
@@ -261,6 +305,17 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
           : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
+        // «Режим: Перетаскивать · Нажимать» — выбор из двух, каркас кладёт их рядом сегментами.
+        PauseAction(
+          label: L.t('dropModeDrag'),
+          icon: _drag ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+          onPressed: () => _setDrag(true),
+        ),
+        PauseAction(
+          label: L.t('dropModeTap'),
+          icon: _drag ? Icons.radio_button_unchecked : Icons.radio_button_checked,
+          onPressed: () => _setDrag(false),
+        ),
       ],
     );
   }
@@ -268,10 +323,13 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
 
 /// Карточка: фигура своего цвета; маленькая — вдвое меньше большой.
 class _CardFace extends StatelessWidget {
-  const _CardFace({super.key, required this.card, required this.size});
+  const _CardFace({super.key, required this.card, required this.size, this.selected = false});
 
   final KidsCard card;
   final double size;
+
+  /// Карточка выбрана (взята пальцем или нажата): рамка, как у слов в «Сортировке слов».
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
@@ -284,6 +342,7 @@ class _CardFace extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
+        border: selected ? Border.all(color: Theme.of(context).colorScheme.primary, width: 3) : null,
       ),
       child: Container(
         width: figure,

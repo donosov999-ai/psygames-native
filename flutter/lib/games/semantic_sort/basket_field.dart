@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/drop_baskets.dart';
 import 'basket_model.dart';
 
 const _labelStyle = TextStyle(
@@ -32,7 +33,9 @@ double _textHeight(
 }
 
 /// Only the playfield. Header, HUD, pause and service toolbar belong to GameShell.
-class SemanticBasketField extends StatefulWidget {
+/// Drag-to-basket behaviour (grab, highlight, return, tap fallback) is the shared
+/// `shell/drop_baskets.dart`; this file draws the wicker baskets and paper cards.
+class SemanticBasketField extends StatelessWidget {
   const SemanticBasketField({
     super.key,
     required this.party,
@@ -49,50 +52,21 @@ class SemanticBasketField extends StatefulWidget {
   final bool enabled;
 
   @override
-  State<SemanticBasketField> createState() => _SemanticBasketFieldState();
-}
-
-class _SemanticBasketFieldState extends State<SemanticBasketField> {
-  int? _selected;
-  int? _dragging;
-  int? _wrong;
-  int _wrongSerial = 0;
-
-  @override
-  void didUpdateWidget(SemanticBasketField oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.party != widget.party ||
-        (_selected != null &&
-            (!widget.party.visibleIds.contains(_selected) ||
-                widget.party.placed(_selected!)))) {
-      _selected = null;
-      _dragging = null;
-      _wrong = null;
-    }
-  }
-
-  void _answer(int id, String cat) {
-    if (!widget.enabled || widget.party.placed(id)) return;
-    final wrong = widget.party.rounds[id].correctCat != cat;
-    widget.onAnswer(id, cat);
-    if (!mounted) return;
-    setState(() {
-      _selected = wrong ? id : null;
-      _dragging = null;
-      _wrong = wrong ? id : null;
-      _wrongSerial++;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final party = widget.party;
+    final party = this.party;
     if (party.rounds.isEmpty) return const SizedBox.shrink();
-    final reduced = MediaQuery.disableAnimationsOf(context);
     final scale = MediaQuery.textScalerOf(context).scale(16) / 16;
     final cats = party.rounds.first.cats;
-    return SizedBox(
-      height: widget.height,
+    bool onField(int id) => party.visibleIds.contains(id) && !party.placed(id);
+    return DropBasketsScope<int, String>(
+      enabled: enabled,
+      resetKey: party,
+      canDrop: onField,
+      isLive: onField,
+      isCorrect: (id, cat) => party.rounds[id].correctCat == cat,
+      onAnswer: onAnswer,
+      child: SizedBox(
+      height: height,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 520),
@@ -115,7 +89,7 @@ class _SemanticBasketFieldState extends State<SemanticBasketField> {
                       .map(
                         (cat) => _textHeight(
                           context,
-                          widget.categoryName(cat),
+                          categoryName(cat),
                           _labelStyle,
                           basketWidth - labelInset * 2 - 6,
                         ),
@@ -187,7 +161,6 @@ class _SemanticBasketFieldState extends State<SemanticBasketField> {
                                             : _card(
                                                 party.visibleIds[row * 2 + col],
                                                 cardHeight,
-                                                reduced,
                                               ),
                                       ),
                                     ],
@@ -210,41 +183,12 @@ class _SemanticBasketFieldState extends State<SemanticBasketField> {
                           SizedBox(
                             width: basketWidth,
                             height: basketHeight + labelExtra,
-                            child: DragTarget<int>(
-                              onWillAcceptWithDetails: (d) =>
-                                  widget.enabled &&
-                                  party.visibleIds.contains(d.data) &&
-                                  !party.placed(d.data),
-                              onAcceptWithDetails: (d) => _answer(d.data, cat),
-                              builder: (context, candidates, rejected) => Semantics(
-                                button: true,
-                                enabled: widget.enabled && _selected != null,
-                                label: widget.categoryName(cat),
-                                child: InkWell(
-                                  key: Key('semantic-basket-$cat'),
-                                  borderRadius: BorderRadius.circular(20),
-                                  onTap: widget.enabled && _selected != null
-                                      ? () {
-                                          final selected = _selected;
-                                          if (selected != null) {
-                                            _answer(selected, cat);
-                                          }
-                                        }
-                                      : null,
-                                  child: AnimatedContainer(
-                                    duration: reduced
-                                        ? Duration.zero
-                                        : const Duration(milliseconds: 140),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      color: candidates.isEmpty
-                                          ? Colors.transparent
-                                          : Theme.of(context)
-                                                .colorScheme
-                                                .primary
-                                                .withValues(alpha: .16),
-                                    ),
-                                    child: Stack(
+                            child: DropBasket<int, String>(
+                              key: Key('semantic-basket-$cat'),
+                              target: cat,
+                              label: categoryName(cat),
+                              builder: (context, highlighted) =>
+                                    Stack(
                                       fit: StackFit.expand,
                                       children: [
                                         Positioned.fill(
@@ -282,7 +226,7 @@ class _SemanticBasketFieldState extends State<SemanticBasketField> {
                                                       vertical: 2,
                                                     ),
                                                 child: Text(
-                                                  widget.categoryName(cat),
+                                                  categoryName(cat),
                                                   textAlign: TextAlign.center,
                                                   style: _labelStyle.copyWith(
                                                     color:
@@ -326,9 +270,6 @@ class _SemanticBasketFieldState extends State<SemanticBasketField> {
                                           ),
                                       ],
                                     ),
-                                  ),
-                                ),
-                              ),
                             ),
                           ),
                       ],
@@ -340,94 +281,32 @@ class _SemanticBasketFieldState extends State<SemanticBasketField> {
           ),
         ),
       ),
+      ),
     );
   }
 
-  Widget _card(int id, double height, bool reduced) {
-    final party = widget.party;
-    final placed = party.placed(id);
+  Widget _card(int id, double height) {
     final word = party.rounds[id].word;
-    final selected = _selected == id;
     final language = party.rounds.map((r) => r.lang).toSet().length > 1
         ? party.rounds[id].lang.toUpperCase()
         : null;
-    final card = _WordCard(
-      word: word,
-      selected: selected,
-      height: height,
-      language: language,
-    );
     return SizedBox(
       height: height,
-      child: placed
+      child: party.placed(id)
           ? const SizedBox.shrink() // Keep the slot: other cards must not jump after a move.
-          : Semantics(
-              button: true,
-              selected: selected,
+          // 🔴 12.11.2026, Денис: «плохо цепляются слова». Было LongPressDraggable с
+          // задержкой 180 мс; теперь слово берётся сразу касанием (общий DropCard).
+          // Прокрутка лотка остаётся по промежуткам между карточками (при крупном шрифте).
+          : DropCard<int>(
+              key: Key('semantic-card-$id'),
+              item: id,
               label: word,
-              // 🔴 12.11.2026, Денис: «плохо цепляются слова». Было LongPressDraggable
-              // с задержкой 180 мс: быстрый свайп не брал слово, нужно было зажать и
-              // ждать. Теперь слово берётся сразу касанием. Прокрутка лотка остаётся
-              // по промежуткам между карточками (она нужна только при крупном шрифте).
-              child: Draggable<int>(
-                key: Key('semantic-card-$id'),
-                data: id,
-                maxSimultaneousDrags: widget.enabled && _dragging == null
-                    ? 1
-                    : 0,
-                onDragStarted: () => setState(() {
-                  _dragging = id;
-                  _selected = id;
-                }),
-                onDragEnd: (_) {
-                  if (mounted) setState(() => _dragging = null);
-                },
-                feedback: Material(
-                  type: MaterialType.transparency,
-                  child: SizedBox(
-                    width: 160,
-                    child: Transform.rotate(
-                      angle: reduced ? 0 : -.04,
-                      child: _WordCard(
-                        word: word,
-                        selected: true,
-                        height: height,
-                        language: language,
-                      ),
-                    ),
-                  ),
-                ),
-                childWhenDragging: Opacity(opacity: .18, child: card),
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: widget.enabled
-                      ? () => setState(() {
-                          _selected = selected ? null : id;
-                          _wrong = null;
-                        })
-                      : null,
-                  child: TweenAnimationBuilder<double>(
-                    key: ValueKey('$id-${_wrong == id ? _wrongSerial : 0}'),
-                    tween: Tween(
-                      begin: _wrong == id && !reduced ? 1 : 0,
-                      end: 0,
-                    ),
-                    duration: reduced
-                        ? Duration.zero
-                        : const Duration(milliseconds: 300),
-                    builder: (context, v, child) => Transform.translate(
-                      offset: Offset(math.sin(v * math.pi * 5) * v * 8, 0),
-                      child: child,
-                    ),
-                    child: AnimatedRotation(
-                      turns: selected && !reduced ? -.009 : 0,
-                      duration: reduced
-                          ? Duration.zero
-                          : const Duration(milliseconds: 140),
-                      child: card,
-                    ),
-                  ),
-                ),
+              feedbackWidth: 160,
+              builder: (context, selected) => _WordCard(
+                word: word,
+                selected: selected,
+                height: height,
+                language: language,
               ),
             ),
     );

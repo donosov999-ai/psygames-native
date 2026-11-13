@@ -3835,5 +3835,7 @@ const t: Record<string, string> = {
   "pauseExperiencedOnly": "이미 익힌 기법에만",
   "pauseWarningsTitle": "시작하기 전에",
   "pausePracticeComplete": "연습 완료",
+  "dropModeDrag": "끌기",
+  "dropModeTap": "누르기",
 };
 export default t;

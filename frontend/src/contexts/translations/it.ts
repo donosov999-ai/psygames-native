@@ -3835,5 +3835,7 @@ const t: Record<string, string> = {
   "pauseExperiencedOnly": "Solo per una tecnica già appresa",
   "pauseWarningsTitle": "Prima di iniziare",
   "pausePracticeComplete": "Pratica completata",
+  "dropModeDrag": "Trascina",
+  "dropModeTap": "Tocca",
 };
 export default t;
