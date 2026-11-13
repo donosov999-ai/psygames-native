@@ -164,6 +164,9 @@ class _SumMixedScreenState extends State<SumMixedScreen> {
 
   /// Протяжка (общий жест каркаса): берёт плитку, не переключая её; возврат снимает последнюю.
   void _swipePick(int index) {
+    // Пока выбор гаснет после перебора («Считалка», 300 мс), протяжка новых плиток не берёт: иначе
+    // каждая следующая плитка заново «перебирала» бы сумму — «ошибки 0 → 3» за одно движение.
+    if (_clear?.isActive ?? false) return;
     if (_phase == _Phase.playing && !_picked.contains(index)) _toggle(index);
   }
 

@@ -203,5 +203,33 @@ void main() {
       }
       fail('нет зерна с «составом» в первом раунде');
     });
+
+    testWidgets('🔴 «на скорость»-раунд: перебор посреди протяжки — ОДНА ошибка (как в «Считалке»)', (tester) async {
+      // Замер координатора на эмуляторе 13.11: «ошибки 0 → 3» за одну протяжку.
+      for (var n = 0; n < 300; n++) {
+        await open(tester, seed: 'перебор-$n');
+        if (ruleOnBanner(tester) != SumRule.speed) continue;
+        await tester.pump(const Duration(milliseconds: 1500));
+        final target = int.parse(tester.widget<Text>(find.byKey(const Key('target'))).data!);
+        final v = [for (var i = 0; i < 9; i++) numberIn(tester, find.byKey(Key('cell$i')))];
+        for (final i in [0, 3, 6]) {
+          if (v[i] + v[i + 1] > target && v[i] < target && v[i] + v[i + 1] + v[i + 2] != target) {
+            final pts = [for (final c in [i, i + 1, i + 2]) tester.getCenter(find.byKey(Key('cell$c')))];
+            final g = await tester.startGesture(pts.first);
+            for (final p in pts.skip(1)) {
+              await g.moveTo(p);
+              await tester.pump(const Duration(milliseconds: 20));
+            }
+            await g.up();
+            await tester.pump();
+            final err = find.ancestor(of: find.byIcon(Icons.error_outline), matching: find.byType(Row)).first;
+            expect(tester.widget<Text>(find.descendant(of: err, matching: find.byType(Text)).first).data, '1',
+                reason: 'один перебор — одна ошибка, сколько бы плиток палец ни прошёл дальше');
+            return;
+          }
+        }
+      }
+      fail('за 300 партий не нашлось ряда с перебором на второй плитке');
+    });
   });
 }
