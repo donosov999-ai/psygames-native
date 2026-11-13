@@ -11,6 +11,7 @@ import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 
@@ -185,6 +186,7 @@ class _SimonScreenState extends State<SimonScreen> {
       onLesson: _game == null
           ? null
           : () => openDemoLesson(context, title: L.t('simon'), trials: _demoTrials()),
+      suiteSwitch: _phase == SimonPhase.ready ? SuiteSwitch(route: '/games/simon', state: widget.state) : null,
       field: (context, h) => _Field(
         game: g,
         phase: _phase,

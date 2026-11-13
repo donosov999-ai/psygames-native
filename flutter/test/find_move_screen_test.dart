@@ -107,7 +107,7 @@ void main() {
         await wait(tester, 1000);
       }
       await wait(tester, 300);
-      expect(text(tester, 'fm-solved'), '${L.t('hud_correct')}: 5/5');
+      expect(text(tester, 'level-result-score'), '${L.t('hud_correct')}: 5/5');
       expect(
         find.textContaining('${L.t('label_level_short')} 2'),
         findsOneWidget,

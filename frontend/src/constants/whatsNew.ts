@@ -16,6 +16,36 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.65',
+    date: '2026-11-13',
+    en: [
+      'Word Sort: words pick up instantly and Next starts the next level right away (same in Cloze, Verbal Fluency, Story Recall, Vocabulary); Anagrams: drag across the letter wheel; feedback shows sending progress; Aurora look for Memory Palace, Faces and Names, Word Pairs and Reading Emotions',
+    ],
+    ru: [
+      '«Сортировка слов»: слово хватается сразу, «Дальше» сразу начинает следующий уровень (так же в «Пропусках», «Беглости речи», «Пересказе», «Словаре»); анаграммы — колесо букв ведётся пальцем; отзыв показывает ход отправки; «Аврора» в «Дворце памяти», «Лицах и именах», «Парах слов», «Прочти эмоцию»',
+    ],
+  },
+  {
+    version: '2.56.64',
+    date: '2026-11-13',
+    en: [
+      'Number Run is now 3D: a bridge road over the sea, 3D numbers, answer tiles and arches, a redesigned scoreboard and task card',
+    ],
+    ru: [
+      '«Числовой забег» стал объёмным: дорога-мост над морем, 3D-цифры, плитки и арки ответов, табло и задание по новому дизайну',
+    ],
+  },
+  {
+    version: '2.56.63',
+    date: '2026-11-12',
+    en: [
+      'Pause: the night step keeps a dark frame in Aurora, voice prompts follow the sound switch',
+    ],
+    ru: [
+      '«Пауза»: ночной шаг в «Авроре» держит тёмную рамку, голос подсказок слушается тумблера звука',
+    ],
+  },
+  {
     version: '2.56.62',
     date: '2026-11-11',
     en: [

@@ -14,6 +14,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -56,6 +57,9 @@ class _SetGameScreenState extends State<SetGameScreen> {
   bool? _right;
   int _leftMs = 0;
   bool _won = false;
+
+  /// Сыгранный уровень — для итога (после победы лестница уже на следующем).
+  int _levelPlayed = 1;
 
   /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
   bool? _boss;
@@ -155,6 +159,7 @@ class _SetGameScreenState extends State<SetGameScreen> {
       if (!mounted) return;
       if (_round >= _params.trials) {
         final passed = _errors <= setErrorsAllowed;
+        _levelPlayed = _ladder.level;
         // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «какой цифры не хватает».
         bool? boss;
         if (passed) {
@@ -241,13 +246,15 @@ class _SetGameScreenState extends State<SetGameScreen> {
         if (_params.timeLimit > 0)
           HudItem(label: L.t('time'), value: '${(_leftMs / 1000).ceil()}', icon: Icons.timer_outlined),
       ],
-      field: (context, h) => _Table(
-        board: _board,
-        picked: _picked,
-        right: _right,
-        height: h,
-        onTap: _tap,
-      ),
+      field: (context, h) => _phase == _Phase.result
+          ? SizedBox(height: h, child: _result())
+          : _Table(
+              board: _board,
+              picked: _picked,
+              right: _right,
+              height: h,
+              onTap: _tap,
+            ),
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.backspace_outlined,
@@ -261,32 +268,20 @@ class _SetGameScreenState extends State<SetGameScreen> {
         ),
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
-      toolbar: _phase == _Phase.result
-          ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(
-                  '${_won ? L.t('nextLabel') : L.t('retry')} · ${L.t('hud_correct')} $_hits · ${L.t('hud_errors')} $_errors',
-                  key: const Key('итог'),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                BossOutcomeLine(_boss),
-                const SizedBox(height: 8),
-                FilledButton.icon(
-                  key: const Key('дальше'),
-                  onPressed: () => setState(_reset),
-                  icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-                  label: Text(_won ? L.t('nextLabel') : L.t('retry')),
-                ),
-              ]),
-            )
-          : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
     );
   }
+
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
+  Widget _result() => LevelResult(
+        passed: _won,
+        level: _levelPlayed,
+        score: '${L.t('hud_correct')} $_hits · ${L.t('hud_errors')} $_errors',
+        details: BossOutcomeLine(_boss),
+        onNext: () => setState(_reset),
+      );
 }
 
 /// Стол: двенадцать карт в три колонки, размер — от высоты, которую дал каркас.

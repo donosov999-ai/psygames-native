@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,12 +6,17 @@ import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart' show SuiteModeAction;
+import '../sum_mixed/route.dart' show sumMixedMode;
+import '../../shell/swipe_select.dart';
 import '../counting_common/generator_shadow.dart';
 import 'model.dart';
 
@@ -60,14 +64,17 @@ class _CounterScreenState extends State<CounterScreen> {
   int _timeouts = 0;
   bool _won = false;
 
+  /// Сыгранный уровень — для итога: после победы лестница уже на следующем.
+  int _levelPlayed = 1;
+
   /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
   bool? _boss;
   bool _ready = false;
   _Phase _phase = _Phase.playing;
   int _leftMs = 0;
-  Timer? _tick;
-  Timer? _next;
-  Timer? _clear;
+  GameTimer? _tick;
+  GameTimer? _next;
+  GameTimer? _clear;
 
   /// Тень генератора уровней (звено 4, задача 4e584381): раздача с новой партией, исход до лестницы.
   late final LadderShadow _shadow =
@@ -110,6 +117,7 @@ class _CounterScreenState extends State<CounterScreen> {
     _tick?.cancel();
     _next?.cancel();
     _clear?.cancel();
+    _levelPlayed = _ladder.level;
     _cfg = counterLevelParams(_ladder.level);
     _shadow.deal(_ladder.level);
     _round = 1;
@@ -135,7 +143,7 @@ class _CounterScreenState extends State<CounterScreen> {
     _target = deal.target;
     _leftMs = _cfg.roundLimitMs;
     // Окно раунда: не собрал сумму до нуля — раунд провален, как в вебе.
-    _tick = Timer.periodic(const Duration(milliseconds: _tickMs), (_) {
+    _tick = gameInterval(const Duration(milliseconds: _tickMs), () {
       if (!mounted) return;
       setState(() => _leftMs = math.max(0, _leftMs - _tickMs));
       if (_leftMs <= 0) _onTimeout();
@@ -156,6 +164,20 @@ class _CounterScreenState extends State<CounterScreen> {
     }
   }
 
+  /// Протяжка по плиткам (общий жест каркаса, `shell/swipe_select.dart`): берёт плитку, не
+  /// переключая её; возврат на предыдущую снимает последнюю. Правила суммы те же, что у тапа.
+  void _swipePick(int index) {
+    // 🔴 Пока выбор гаснет после перебора (300 мс), протяжка новых плиток не берёт: палец идёт дальше
+    // и каждая следующая плитка заново «перебирала» бы сумму — «ошибки 0 → 3» за одно движение
+    // (замер координатора на эмуляторе 13.11). Тап в это окно по-прежнему работает (правило веба).
+    if (_clear?.isActive ?? false) return;
+    if (_phase == _Phase.playing && !_picked.contains(index)) _tap(index);
+  }
+
+  void _swipeUnpick(int index) {
+    if (_phase == _Phase.playing && _picked.contains(index)) _tap(index);
+  }
+
   void _hit() {
     _haptics.win();
     _tick?.cancel();
@@ -164,7 +186,7 @@ class _CounterScreenState extends State<CounterScreen> {
       _phase = _Phase.success;
     });
     _next?.cancel();
-    _next = Timer(_successDelay, _advance);
+    _next = gameTimeout(_successDelay, _advance);
   }
 
   /// Перебор: ошибка сразу, а выбор гаснет через 300 мс — нажатие, попавшее в
@@ -173,7 +195,7 @@ class _CounterScreenState extends State<CounterScreen> {
     _haptics.miss();
     setState(() => _errors += 1);
     _clear?.cancel();
-    _clear = Timer(_resetDelay, () {
+    _clear = gameTimeout(_resetDelay, () {
       if (!mounted) return;
       setState(_picked.clear);
     });
@@ -188,7 +210,7 @@ class _CounterScreenState extends State<CounterScreen> {
       _phase = _Phase.timeout;
     });
     _next?.cancel();
-    _next = Timer(_timeoutDelay, _advance);
+    _next = gameTimeout(_timeoutDelay, _advance);
   }
 
   Future<void> _advance() async {
@@ -262,8 +284,8 @@ class _CounterScreenState extends State<CounterScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return GameShell(
-      title: L.t('counter'),
-      onLesson: () => openDemoLesson(context, title: L.t('counter'), trials: _demoTrials()),
+      title: L.t('suiteSum'),
+      onLesson: () => openDemoLesson(context, title: L.t('suiteSum'), trials: _demoTrials()),
       hud: [
         HudItem(
           label: L.t('level'),
@@ -296,18 +318,28 @@ class _CounterScreenState extends State<CounterScreen> {
           icon: Icons.error_outline,
         ),
       ],
-      field: (context, h) => _Field(
-        numbers: _numbers,
-        picked: _picked,
-        gridSize: _cfg.gridSize,
-        target: _target,
-        sum: _sum,
-        phase: _phase,
-        height: h,
-        onTap: _tap,
-      ),
+      field: (context, h) => _phase == _Phase.result
+          ? SizedBox(height: h, child: _result())
+          : CounterField(
+              numbers: _numbers,
+              picked: _picked,
+              gridSize: _cfg.gridSize,
+              target: _target,
+              sum: _sum,
+              feedback: _phase == _Phase.success
+                  ? CounterFeedback.success
+                  : _phase == _Phase.timeout
+                      ? CounterFeedback.timeout
+                      : CounterFeedback.none,
+              height: h,
+              onTap: _tap,
+              onSwipePick: _swipePick,
+              onSwipeUnpick: _swipeUnpick,
+            ),
       auxRow: AuxBar(
         children: [
+          // Набор «Собери сумму»: режим — листом (экрана настройки у партии нет).
+          SuiteModeAction(route: '/games/counter', state: widget.state, extra: sumMixedMode),
           AuxAction(
             icon: Icons.backspace_outlined,
             label: L.t('a11yErase'),
@@ -324,7 +356,7 @@ class _CounterScreenState extends State<CounterScreen> {
           ),
         ],
       ),
-      toolbar: _toolbar(context),
+      toolbar: _phase == _Phase.result ? null : _toolbar(context),
       pauseActions: [
         PauseAction(
           label: L.t('restart'),
@@ -335,34 +367,19 @@ class _CounterScreenState extends State<CounterScreen> {
     );
   }
 
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход — сразу новая партия (после победы
+  /// лестница уже на следующем уровне). Просрочки показываются отдельно от переборов: это разные промахи —
+  /// «не успел искать» и «сложил лишнего», и лечатся они по-разному.
+  Widget _result() => LevelResult(
+        passed: _won,
+        level: _levelPlayed,
+        score: '$_hits/${_cfg.rounds} · ${L.t('errors')} $_errors · ${L.t('hud_missed')} $_timeouts',
+        details: BossOutcomeLine(_boss),
+        onNext: () => setState(_reset),
+      );
+
   Widget _toolbar(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    if (_phase == _Phase.result) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              // Просрочки показываются отдельно от переборов: это разные промахи —
-              // «не успел искать» и «сложил лишнего», и лечатся они по-разному.
-              '$_hits/${_cfg.rounds} · ${L.t('errors')} $_errors · ${L.t('hud_missed')} $_timeouts',
-              key: const Key('result'),
-              textAlign: TextAlign.center,
-              style: text.titleMedium,
-            ),
-            BossOutcomeLine(_boss),
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              key: const Key('next'),
-              onPressed: () => setState(_reset),
-              icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-              label: Text(_won ? L.t('nextLabel') : L.t('retry')),
-            ),
-          ],
-        ),
-      );
-    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Text(
@@ -377,18 +394,25 @@ class _CounterScreenState extends State<CounterScreen> {
   }
 }
 
+/// Отклик на ход, который рисует поле: ничего / верно / время вышло.
+enum CounterFeedback { none, success, timeout }
+
 /// Поле: цель, набранная сумма и сетка. Размер клетки считает `counterCellSize`
-/// от высоты, которую отдал каркас, — та же формула, что в вебе.
-class _Field extends StatelessWidget {
-  const _Field({
+/// от высоты, которую отдал каркас, — та же формула, что в вебе. Публичное: то же поле рисует
+/// режим «Вперемешку» набора «Собери сумму» (`games/sum_mixed`) — второй копии вёрстки нет.
+class CounterField extends StatelessWidget {
+  const CounterField({
+    super.key,
     required this.numbers,
     required this.picked,
     required this.gridSize,
     required this.target,
     required this.sum,
-    required this.phase,
+    required this.feedback,
     required this.height,
     required this.onTap,
+    required this.onSwipePick,
+    required this.onSwipeUnpick,
   });
 
   final List<int> numbers;
@@ -396,9 +420,11 @@ class _Field extends StatelessWidget {
   final int gridSize;
   final int target;
   final int sum;
-  final _Phase phase;
+  final CounterFeedback feedback;
   final double height;
   final void Function(int) onTap;
+  final void Function(int) onSwipePick;
+  final void Function(int) onSwipeUnpick;
 
   @override
   Widget build(BuildContext context) {
@@ -447,7 +473,7 @@ class _Field extends StatelessWidget {
                       '${L.t('label_your_sum')} $sum',
                       key: const Key('sum'),
                       style: text.bodyMedium?.copyWith(
-                        color: phase == _Phase.success
+                        color: feedback == CounterFeedback.success
                             ? scheme.primary
                             : scheme.onSurfaceVariant,
                       ),
@@ -465,19 +491,27 @@ class _Field extends StatelessWidget {
                 child: Center(
                   child: SizedBox(
                     width: board,
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        for (var i = 0; i < numbers.length; i += 1)
-                          _Cell(
-                            key: Key('cell$i'),
-                            value: numbers[i],
-                            size: cell,
-                            selected: picked.contains(i),
-                            onTap: () => onTap(i),
-                          ),
-                      ],
+                    child: SwipeSelect(
+                      isSelected: picked.contains,
+                      onSelect: onSwipePick,
+                      onUnselect: onSwipeUnpick,
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (var i = 0; i < numbers.length; i += 1)
+                            SwipeTarget(
+                              index: i,
+                              child: _Cell(
+                                key: Key('cell$i'),
+                                value: numbers[i],
+                                size: cell,
+                                selected: picked.contains(i),
+                                onTap: () => onTap(i),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -485,15 +519,15 @@ class _Field extends StatelessWidget {
             ),
             SizedBox(
               height: footH,
-              child: phase == _Phase.success || phase == _Phase.timeout
+              child: feedback != CounterFeedback.none
                   ? Center(
                       child: Text(
-                        phase == _Phase.success
+                        feedback == CounterFeedback.success
                             ? L.t('label_correct_excl')
                             : L.t('timeIsUp'),
                         key: const Key('feedback'),
                         style: text.titleSmall?.copyWith(
-                          color: phase == _Phase.success
+                          color: feedback == CounterFeedback.success
                               ? scheme.primary
                               : scheme.error,
                         ),
@@ -541,12 +575,18 @@ class _Cell extends StatelessWidget {
           ),
           borderRadius: BorderRadius.circular(10),
         ),
+        // 🔴 ЦИФРА — ОТ РАЗМЕРА ПЛИТКИ. Раньше текст без размера лежал в FittedBox под Align
+        // контейнера: Align ослабляет ограничения, FittedBox оставался размером с текст и вверх
+        // не растил — на плитке 90 pt цифра была ~16 pt (скрин Дениса 13.11.2026). Теперь размер
+        // задан плиткой, а FittedBox только ужимает длинные числа.
         child: FittedBox(
+          fit: BoxFit.scaleDown,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               '$value',
               style: TextStyle(
+                fontSize: size * 0.48,
                 fontWeight: FontWeight.w700,
                 color: selected ? scheme.onPrimaryContainer : scheme.onSurface,
               ),

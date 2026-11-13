@@ -217,7 +217,7 @@ void main() {
         await tester.pump();
       }
       expect(
-        find.byKey(const Key('итог-партии')),
+        find.byKey(const Key('level-result')),
         findsOneWidget,
         reason: 'после пятой пробы — итог',
       );

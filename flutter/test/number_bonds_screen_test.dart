@@ -69,7 +69,8 @@ void main() {
   testWidgets('🔴 раунд проходится нажатиями: решение принимается САМО, без кнопки', (tester) async {
     await open(tester);
     final cfg = levelParams(1);
-    expect(find.text(L.t('numberBonds')), findsOneWidget);
+    // Название игры одно на все режимы набора «Собери сумму» (замечание координатора 13.11).
+    expect(find.text(L.t('suiteSum')), findsOneWidget);
 
     for (var i = 1; i <= cfg.trials; i += 1) {
       expect(find.text('$i/${cfg.trials}'), findsOneWidget, reason: 'задача $i');
@@ -84,7 +85,7 @@ void main() {
       // Кнопку «Проверить» не трогаем — верное засчитывается само.
       await tester.pump(const Duration(milliseconds: 700));
     }
-    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'без ошибок — уровень взят');
+    expect(find.textContaining(L.t('nextLabel')), findsOneWidget, reason: 'без ошибок — уровень взят');
   });
 
   testWidgets('🔴 «Проверить» с одной фишкой — ошибка, как в вебе', (tester) async {
@@ -158,7 +159,7 @@ void main() {
 
   testWidgets('🔴 веха: победа на 3-м уровне открывает бой «сложи подсвеченные», на 2-м — нет', (tester) async {
     // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
-    await expectBossAfterWin(tester, won: find.text(L.t('nextLabel')), hudKey: 'bossHudCounting', play: (level) async {
+    await expectBossAfterWin(tester, won: find.textContaining(L.t('nextLabel')), hudKey: 'bossHudCounting', play: (level) async {
       await open(tester, level: level, seed: 'босс$level');
       final cfg = levelParams(level);
       for (var i = 1; i <= cfg.trials; i += 1) {

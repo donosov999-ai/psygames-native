@@ -48,6 +48,7 @@ class RoadItem {
     this.half,
     this.part = false,
     this.symbol,
+    this.reserve,
   });
 
   final double x, value;
@@ -57,6 +58,11 @@ class RoadItem {
   /// Знак памяти («вспомни по порядку»).
   final String? symbol;
 
+  /// ОПЕРАЦИЯ В ЗАПАС («×2»): число не меняет, ложится в единственный слот, и игрок сам решает,
+  /// когда её применить ([roadApplyReserve]). Денис 11.11.2026, вариант Б: «Применить» — в любой
+  /// момент забега, своя глава уровней (`Chapter(19, 'reserve')`).
+  final String? reserve;
+
   Map<String, Object?> toJson() => {
         'x': x,
         if (dz != null) 'dz': dz,
@@ -65,6 +71,7 @@ class RoadItem {
         'value': value,
         if (part) 'part': true,
         if (symbol != null) 'symbol': symbol,
+        if (reserve != null) 'reserve': reserve,
       };
 }
 
@@ -630,6 +637,8 @@ class RoadState {
     required this.discardedTime,
     required this.pauses,
     required this.mistakes,
+    this.reserve,
+    this.reserveUsed = 0,
   });
 
   final String mode;
@@ -640,6 +649,12 @@ class RoadState {
   List<int> collected;
   double z, x, target, sum, peak, elapsed, discardedTime;
   int nextRow, slowFrames, pauses, mistakes;
+
+  /// Слот «операция в запасе»: `null` — пусто, иначе операция («×2»), готовая к применению.
+  String? reserve;
+
+  /// Сколько операций из запаса применено за забег (состояние «израсходовано» для табло).
+  int reserveUsed;
   List<RoadEvent> events;
   Map<String, Object?>? failure;
 
@@ -670,6 +685,8 @@ class RoadState {
         discardedTime: discardedTime,
         pauses: pauses,
         mistakes: mistakes,
+        reserve: reserve,
+        reserveUsed: reserveUsed,
       );
 
   Map<String, Object?> toJson() => {
@@ -696,6 +713,8 @@ class RoadState {
         'discardedTime': discardedTime,
         'pauses': pauses,
         'mistakes': mistakes,
+        if (reserve != null) 'reserve': reserve,
+        if (reserveUsed > 0) 'reserveUsed': reserveUsed,
       };
 }
 
@@ -735,6 +754,29 @@ RoadState roadInitial(RoadCourse c) => RoadState._(
       pauses: 0,
       mistakes: 0,
     );
+
+/// Применить операцию из запаса. Только в забеге и только если слот не пуст; повторное нажатие
+/// после применения ничего не делает (слот уже пуст). Предел числа — как у стен операций.
+RoadState roadApplyReserve(RoadState s, RoadCourse c) {
+  final op = s.reserve;
+  if (s.status != RoadStatus.running || op == null) return s;
+  final before = s.sum;
+  final double after;
+  try {
+    after = applyOperation(before, op, c.mode == 'journey' ? 1e6 : 9999);
+  } catch (_) {
+    return s; // за пределом числа — как стена операций: не применяется
+  }
+  return s.copy()
+    ..sum = after
+    ..peak = math.max(s.peak, after)
+    ..reserve = null
+    ..reserveUsed = s.reserveUsed + 1
+    ..events = [
+      ...s.events,
+      RoadEvent({'type': 'reserve', 'action': 'apply', 'op': op, 'before': before, 'after': after, 't': s.elapsed, 'z': s.z}),
+    ];
+}
 
 /// Тянуть к точке дороги (−1…1). Не в забеге — ничего.
 RoadState roadSetTarget(RoadState s, double x) {
@@ -853,6 +895,24 @@ RoadState roadStep(RoadState s, double dt, RoadCourse course) {
         return d != 0 ? d.sign.toInt() : a.index - b.index;
       });
       for (final hit in hits) {
+        final op = hit.item.reserve;
+        if (op != null) {
+          // Операция в запас: слот один. Занят — предмет остаётся на дороге, ничего не меняется.
+          if (next.reserve != null) continue;
+          next.reserve = op;
+          next.collected.add(hit.index);
+          next.events.add(RoadEvent({
+            'type': 'reserve',
+            'action': 'pick',
+            'id': terrain.id,
+            'item': hit.index,
+            'op': op,
+            'lane': jsRound(hit.item.x * 2) / 2,
+            't': s.elapsed + hit.t,
+            'z': s.z + hit.t * course.speed,
+          }));
+          continue;
+        }
         // Число-часть ворот «ровно N» число не меняет: оно идёт в сумму ряда, которую ворота сверят на выходе.
         final before = next.sum;
         if (!hit.item.part) next.sum += hit.item.value;

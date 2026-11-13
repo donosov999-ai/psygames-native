@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/digit_span/model.dart';
 import 'package:psygames_flutter/games/digit_span/screen.dart';
+import 'package:psygames_flutter/shell/ability_wallet.dart';
 import 'package:psygames_flutter/shell/demo_lesson.dart';
 import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
@@ -73,6 +74,8 @@ void main() {
     gameWallMs = () => tester.binding.clock.now().millisecondsSinceEpoch;
     SharedPreferences.setMockInitialValues({
       'psygames_digit_span_level_nzt48': '$level',
+      // Проба читает ряд по цифре с экрана — это ЯВНЫЙ выбор «по одной цифре» (без него умолчание — весь ряд сразу).
+      dsDeliveryKey('nzt48'): 'screen',
       // Карточки правил уровня проба уже «видела»: они ложатся в спокойный момент и закрыли бы поле.
       for (final k in ['reverse', 'surprise_dir']) LevelRules.seenKey('digit_span', k): '1',
       ...prefs,
@@ -172,34 +175,36 @@ void main() {
     expect(text(tester, 'ds-level-what'), L.t('typeAsShown'));
     await tester.tap(find.byKey(const Key('ds-start')));
     await tester.pump();
-    for (final len in [4, 5, 6]) {
+    // Длина растёт после ДВУХ верных рядов подряд (13.11.2026; было — после каждого): 4, 4, 5, 5, затем 6.
+    for (final (len, grows) in [(4, false), (4, true), (5, false), (5, true)]) {
       final seen = await watch(tester);
       expect(seen.length, len, reason: 'ряд длины $len');
       expect(hud('lengthLabel', '$len'), isTrue);
       await answer(tester, seen);
-      expect(text(tester, 'ds-result'), L.t('msg_correct_level_up'));
+      expect(text(tester, 'ds-result'), grows ? L.t('msg_correct_level_up') : L.t('hud_correct'),
+          reason: 'подпись «+1» — только когда длина взяла шаг');
       await tester.pump(const Duration(milliseconds: dsNextRowMs + 10));
     }
-    final first7 = await watch(tester);
-    expect(first7.length, 7);
-    await answer(tester, first7, wrong: true);
-    expect(text(tester, 'ds-result'), '${L.t('label_was')}: ${first7.join()}', reason: 'ошибка показывает, каким был ряд');
+    final first6 = await watch(tester);
+    expect(first6.length, 6);
+    await answer(tester, first6, wrong: true);
+    expect(text(tester, 'ds-result'), '${L.t('label_was')}: ${first6.join()}', reason: 'ошибка показывает, каким был ряд');
     await tester.pump(const Duration(milliseconds: dsNextRowMs + 10));
-    final second7 = await watch(tester);
-    expect(second7.length, 7, reason: 'после ошибки длина та же');
-    await answer(tester, second7, wrong: true);
+    final second6 = await watch(tester);
+    expect(second6.length, 6, reason: 'после ошибки длина та же');
+    await answer(tester, second6, wrong: true);
     await settle(tester);
-    expect(find.byKey(const Key('ds-again')), findsOneWidget);
+    expect(find.byKey(const Key('level-result-next')), findsOneWidget);
     expect(hud('level', '2'), isTrue, reason: 'хотя бы один верный ряд — уровень взят');
     final s = sent.single;
-    expect('${s['game_type']} ${s['difficulty']} / ${s['mode']}', 'digit_span forward / start7');
+    expect('${s['game_type']} ${s['difficulty']} / ${s['mode']}', 'digit_span forward / start6');
     expect(s['details'], {
-      'level': 1, 'maxSpan': 6, 'correctRounds': 3, 'finalLength': 7, 'direction': 'forward', 'delivery': 'screen',
+      'level': 1, 'maxSpan': 5, 'correctRounds': 4, 'finalLength': 6, 'direction': 'forward', 'delivery': 'screen',
     });
-    expect('${s['score']} ${s['errors']}', '60 2');
+    expect('${s['score']} ${s['errors']}', '50 2');
     expect(s['time_seconds'] as int, inInclusiveRange(20, 120), reason: 'секунды партии, а не отметка времени');
-    expect(state.get(dsPersonalBestKey), '6', reason: 'рекорд L1 экраном — под ключом веб-таблицы');
-    expect(hud('personalBest', '6'), isTrue);
+    expect(state.get(dsPersonalBestKey), '5', reason: 'рекорд L1 экраном — под ключом веб-таблицы');
+    expect(hud('personalBest', '5'), isTrue);
   });
 
   testWidgets('две ошибки на первой длине — уровень не взят, лестница стоит', (tester) async {
@@ -217,6 +222,81 @@ void main() {
     expect(find.text(L.t('retry')), findsOneWidget);
     expect(sent.single['details']['correctRounds'], 0);
     expect(state.get(dsPersonalBestKey), isNull, reason: 'рекорд — только с первого уровня');
+  });
+
+  /// Партия «4, 4 верно → длина 5; 5, 5 ошибка → конец, уровень взят» — по экрану, как человек.
+  Future<void> playPassedRound(WidgetTester tester) async {
+    await tester.tap(find.byKey(const Key('ds-start')));
+    await tester.pump();
+    for (final wrong in [false, false, true, true]) {
+      final seen = await watch(tester);
+      await answer(tester, seen, wrong: wrong);
+      await tester.pump(const Duration(milliseconds: dsNextRowMs + 10));
+    }
+    await settle(tester);
+  }
+
+  String walletJson(int n) => jsonEncode({'nzt48': {'practice_run': n}});
+
+  testWidgets('🔴 пробный заход: заявлен до старта → уровень, отчёт, рекорд не тронуты, списана одна штука', (tester) async {
+    await boot(tester, level: 1, prefs: {AbilityWallet.key: walletJson(2)});
+    expect(find.byKey(const Key('practice-run-switch')), findsOneWidget, reason: 'переключатель на экране настройки');
+    expect(find.textContaining(L.f('abilityInWallet', {'n': '2'})), findsOneWidget, reason: 'остаток виден до траты');
+    await tester.tap(find.byKey(const Key('practice-run-switch')));
+    await tester.pump();
+    expect(find.text(L.t('abilityPracticeOn')), findsOneWidget);
+    await playPassedRound(tester);
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'партия дошла до конца');
+    expect(find.byKey(const Key('practice-run-spent')), findsOneWidget, reason: 'на итоге — «никуда не записана»');
+    expect(sent, isEmpty, reason: 'отчёта о партии нет');
+    expect(state.get('psygames_digit_span_level_nzt48'), '1', reason: 'уровень не поднят, хотя ряд пройден');
+    expect(state.get(dsPersonalBestKey), isNull, reason: 'рекорд не записан');
+    expect(AbilityWallet(state).count('practice_run'), 1, reason: 'списана ровно одна');
+  });
+
+  testWidgets('без пробного захода та же партия — зачётная: отчёт есть, уровень вырос, штуки целы', (tester) async {
+    await boot(tester, level: 1, prefs: {AbilityWallet.key: walletJson(2)});
+    await playPassedRound(tester);
+    expect(find.byKey(const Key('practice-run-spent')), findsNothing);
+    expect(sent, hasLength(1));
+    expect(AbilityWallet(state).count('practice_run'), 2);
+    expect(state.get('psygames_digit_span_level_nzt48'), '2', reason: 'уровень взят');
+  });
+
+  testWidgets('нет ни одной штуки — строки нет; в шаге зарядки её нет и с запасом', (tester) async {
+    await boot(tester, level: 1);
+    expect(find.byKey(const Key('practice-run-switch')), findsNothing, reason: 'нечего включать — настройки не удлиняем');
+    await tester.pumpWidget(const SizedBox());
+    await boot(tester, level: 1, preset: {'wu': '1'}, prefs: {AbilityWallet.key: walletJson(2)});
+    expect(find.byKey(const Key('practice-run-switch')), findsNothing, reason: 'шаг зарядки пробным не бывает');
+  });
+
+  bool chipOn(WidgetTester tester, String d) => tester.widget<ChoiceChip>(find.byKey(Key('ds-delivery-$d'))).selected;
+
+  testWidgets('🔴 умолчание — «весь ряд сразу»: без выбора игрока ряд целиком на экране; свой выбор запоминается (13.11)',
+      (tester) async {
+    // '' — выбора игрока нет (в boot по умолчанию стоит явное «по одной цифре» для остальных проб).
+    await boot(tester, level: 1, prefs: {dsDeliveryKey('nzt48'): ''});
+    expect(chipOn(tester, 'all'), isTrue, reason: 'выбора нет — отмечено «весь ряд сразу»');
+    expect(chipOn(tester, 'screen'), isFalse);
+    await tester.tap(find.byKey(const Key('ds-start')));
+    await tester.pump();
+    final row = text(tester, 'ds-digit');
+    expect(row.split(' ').length, LevelParams.of(1).startLen, reason: 'весь ряд сразу, а не одна цифра: «$row»');
+    await tester.pumpWidget(const SizedBox());
+
+    // Игрок выбирает «по одной цифре» сам — выбор уходит в хранилище профиля…
+    await boot(tester, level: 1, prefs: {dsDeliveryKey('nzt48'): ''});
+    await tester.tap(find.byKey(const Key('ds-delivery-screen')));
+    await settle(tester);
+    expect(state.get(dsDeliveryKey('nzt48')), 'screen', reason: 'явный выбор сохранён');
+    await tester.pumpWidget(const SizedBox());
+
+    // …и после «перезапуска» (новый экран на том же хранилище) умолчание его не затирает.
+    await boot(tester, level: 1, prefs: {dsDeliveryKey('nzt48'): 'screen'});
+    expect(chipOn(tester, 'screen'), isTrue);
+    expect(chipOn(tester, 'all'), isFalse);
+    await tester.pumpWidget(const SizedBox());
   });
 
   testWidgets('🔴 «весь ряд разом»: ряд целиком, своя лестница, рекорд не пишется', (tester) async {
@@ -261,14 +341,20 @@ void main() {
     final heard = voiceDevice.spoken.map(int.parse).toList();
     expect(heard.length, 4, reason: 'L1 — четыре цифры');
     await answer(tester, heard);
-    expect(text(tester, 'ds-result'), L.t('msg_correct_level_up'));
+    expect(text(tester, 'ds-result'), L.t('hud_correct'), reason: 'первый из двух верных подряд: длина ещё не растёт');
     // Первый уровень, но голосом: в рекорд партия не идёт — ни в шапку, ни в память.
     expect(hud('personalBest', '—'), isTrue, reason: 'голосовая партия рекорд не двигает даже на экране');
+    voiceDevice.spoken.clear();
+    await tester.pump(const Duration(milliseconds: dsNextRowMs + 10));
+    await pumpUntil(tester, () => inputOpen(tester));
+    expect(voiceDevice.spoken.length, 4, reason: 'после ОДНОГО верного ряда длина та же');
+    await answer(tester, voiceDevice.spoken.map(int.parse).toList());
+    expect(text(tester, 'ds-result'), L.t('msg_correct_level_up'), reason: 'второй верный подряд — длина растёт');
     for (var i = 0; i < 2; i++) {
       voiceDevice.spoken.clear();   // ДО перехода: первая цифра нового ряда звучит сразу
       await tester.pump(const Duration(milliseconds: dsNextRowMs + 10));
       await pumpUntil(tester, () => inputOpen(tester));
-      expect(voiceDevice.spoken.length, 5, reason: 'после верного ряда — на цифру длиннее');
+      expect(voiceDevice.spoken.length, 5, reason: 'после двух верных рядов — на цифру длиннее');
       await answer(tester, voiceDevice.spoken.map(int.parse).toList(), wrong: true);
     }
     await settle(tester);
@@ -298,7 +384,7 @@ void main() {
     final seen = await watch(tester);
     expect(find.text(L.t('typeReversed')), findsOneWidget);
     await answer(tester, seen.reversed.toList());
-    expect(text(tester, 'ds-result'), L.t('msg_correct_level_up'));
+    expect(text(tester, 'ds-result'), L.t('hud_correct'), reason: 'первый верный ряд — длина ещё не растёт');
     await tester.tap(find.byTooltip(L.t('restart')));
     await tester.pump();
   });
@@ -332,7 +418,7 @@ void main() {
     };
     expect(names.keys, contains(revealed), reason: 'объявлено одно из трёх направлений');
     await answer(tester, expectedDigits(seen, names[revealed]!));
-    expect(text(tester, 'ds-result'), L.t('msg_correct_level_up'));
+    expect(text(tester, 'ds-result'), L.t('hud_correct'), reason: 'первый верный ряд — длина ещё не растёт');
     await tester.tap(find.byTooltip(L.t('restart')));
     await tester.pump();
   });
@@ -401,7 +487,7 @@ void main() {
     await tester.pump();
     expect(text(tester, 'ds-typed'), '${seen[0]}•••');
     await answer(tester, seen.sublist(1));
-    expect(text(tester, 'ds-result'), L.t('msg_correct_level_up'));
+    expect(text(tester, 'ds-result'), L.t('hud_correct'), reason: 'первый верный ряд — длина ещё не растёт');
     await tester.tap(find.byTooltip(L.t('restart')));
     await tester.pump();
   });
@@ -466,4 +552,24 @@ void main() {
     }, where: 'digit-span L15, ввод');
     await tester.pumpWidget(const SizedBox());
   });
+
+  // Отзыв 0ff51b76 (iPhone 430 pt, 2.56.24): «клава мелкая». Ряд из трёх клавиш занимал 52 % ширины.
+  for (final w in [360.0, 430.0]) {
+    testWidgets('🔴 клавиши ответа на ${w.toInt()} pt: каждая ≥ 96 pt в ширину, ряд из трёх ≥ 75 % ширины (0ff51b76)',
+        (tester) async {
+      tester.view.physicalSize = Size(w, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await boot(tester, level: 1);
+      await tester.tap(find.byKey(const Key('ds-start')));
+      await pumpUntil(tester, () => inputOpen(tester));
+      final one = tester.getRect(find.byKey(const Key('ds-key-1')));
+      final three = tester.getRect(find.byKey(const Key('ds-key-3')));
+      expect(one.width, greaterThanOrEqualTo(96), reason: 'клавиша «1»: $one');
+      expect(one.height, greaterThanOrEqualTo(48), reason: 'высота клавиши $one');
+      expect((three.right - one.left) / w, greaterThanOrEqualTo(0.75), reason: 'ряд $one … $three на $w pt');
+      expect(three.right, lessThanOrEqualTo(w), reason: 'ряд не вылезает за экран');
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
 }

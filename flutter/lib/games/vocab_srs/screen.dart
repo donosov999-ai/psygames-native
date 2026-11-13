@@ -530,7 +530,9 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
             correct: _correct,
             wrong: _wrong,
             stats: _stats,
-            onAgain: () => setState(() => _phase = VocabPhase.config),
+            // 🔴 Денис 12.11: «Ещё раз» — сразу новая партия; настройки — отдельной кнопкой.
+            onAgain: _start,
+            onSettings: () => setState(() => _phase = VocabPhase.config),
           ),
       },
       toolbar: card == null
@@ -772,6 +774,7 @@ class _Result extends StatelessWidget {
     required this.wrong,
     required this.stats,
     required this.onAgain,
+    this.onSettings,
   });
 
   final double height;
@@ -779,6 +782,7 @@ class _Result extends StatelessWidget {
   final int wrong;
   final SrsStats? stats;
   final VoidCallback onAgain;
+  final VoidCallback? onSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -810,6 +814,7 @@ class _Result extends StatelessWidget {
               ],
               const SizedBox(height: 20),
               FilledButton(key: const Key('vocab-again'), onPressed: onAgain, child: Text(L.t('retry'))),
+              if (onSettings != null) TextButton(key: const Key('vocab-to-settings'), onPressed: onSettings, child: Text(L.t('settings'))),
             ],
           ),
         ),

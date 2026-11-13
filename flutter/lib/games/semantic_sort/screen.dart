@@ -8,6 +8,7 @@ import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../languages/bilingual.dart';
@@ -640,34 +641,19 @@ class _SemanticSortScreenState extends State<SemanticSortScreen> {
     ),
   );
 
-  Widget _result(BuildContext context, double h) {
-    final total = _rounds.length;
-    return SizedBox(
-      height: h,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              L.t('resultsTitle'),
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${L.t('hud_correct')}: $_correct / $total · ${L.t('hud_errors')}: $_errors',
-              key: const Key('semantic-score'),
-            ),
-            const SizedBox(height: 20),
-            FilledButton(
-              key: const Key('semantic-again'),
-              onPressed: () => setState(() => _phase = SemanticPhase.config),
-              child: Text(_passed ? L.t('nextLabel') : L.t('retry')),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
+  // 🔴 12.11.2026, Денис: «после прохождения уровня вместо следующего выкидывает в настройки».
+  // «Дальше» / «Ещё раз» сразу запускают партию (уровень уже взят лестницей); настройки — отдельной кнопкой.
+  Widget _result(BuildContext context, double h) => SizedBox(
+    height: h,
+    child: LevelResult(
+      passed: _passed,
+      level: _levelPlayed,
+      score: '${L.t('hud_correct')}: $_correct / ${_rounds.length} · ${L.t('hud_errors')}: $_errors',
+      onNext: _start,
+      onSettings: () => setState(() => _phase = SemanticPhase.config),
+    ),
+  );
 
   Widget _answers(BuildContext context, SemanticRound r) {
     final scheme = Theme.of(context).colorScheme;

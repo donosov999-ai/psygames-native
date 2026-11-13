@@ -8,6 +8,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../languages/json_asset.dart';
@@ -356,21 +357,16 @@ class _PhonemicFluencyScreenState extends State<PhonemicFluencyScreen> {
         ]),
       );
 
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): провала нет, подход засчитан завершением —
+  /// автопереход сразу в следующую партию (🔴 Денис 12.11: «Дальше» после уровня — партия, не настройки).
   Widget _result(BuildContext context, double h, int valid) => SizedBox(
         height: h,
-        child: Center(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(L.t('levelDone').replaceAll('{n}', '$_runPlayed'),
-                style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
-            const SizedBox(height: 8),
-            Text('${L.t('hud_words')}: $valid', key: const Key('pf-count')),
-            const SizedBox(height: 20),
-            FilledButton(
-              key: const Key('pf-again'),
-              onPressed: () => setState(() => _phase = PhonemicPhase.config),
-              child: Text(L.t('nextNow')),
-            ),
-          ]),
+        child: LevelResult(
+          passed: true,
+          level: _runPlayed,
+          score: '${L.t('hud_words')}: $valid',
+          onNext: _start,
+          onSettings: () => setState(() => _phase = PhonemicPhase.config),
         ),
       );
 }

@@ -8,6 +8,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../languages/json_asset.dart';
@@ -383,24 +384,22 @@ class _StoryRecallScreenState extends State<StoryRecallScreen> {
     );
   }
 
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
+  /// Проигрыша нет — партия всегда засчитана. Счёт двух припоминаний — своими строками в подробностях.
+  // 🔴 Денис 12.11: «Дальше» после уровня — сразу следующая партия, не настройки.
   Widget _result(BuildContext context, double h) {
     final total = storyKeys(_story!.keywordsFor(_lang)).length;
     return SizedBox(
       height: h,
-      child: Center(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(L.t('levelDone').replaceAll('{n}', '$_levelPlayed'),
-              style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
-          const SizedBox(height: 8),
-          Text('${L.t('storyImmediate')}: $_hits1 / $total', key: const Key('story-hits1')),
-          Text('${L.t('storyDelayed')}: $_hits2 / $total', key: const Key('story-hits2')),
-          const SizedBox(height: 20),
-          FilledButton(
-            key: const Key('story-again'),
-            onPressed: () => setState(() => _phase = StoryPhase.config),
-            child: Text(L.t('nextNow')),
-          ),
+      child: LevelResult(
+        passed: true,
+        level: _levelPlayed,
+        details: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text('${L.t('storyImmediate')}: $_hits1 / $total', key: const Key('story-hits1'), textAlign: TextAlign.center),
+          Text('${L.t('storyDelayed')}: $_hits2 / $total', key: const Key('story-hits2'), textAlign: TextAlign.center),
         ]),
+        onNext: _start,
+        onSettings: () => setState(() => _phase = StoryPhase.config),
       ),
     );
   }

@@ -12,6 +12,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'core.dart';
@@ -855,7 +856,6 @@ class _RhythmPitchScreenState extends State<RhythmPitchScreen> {
   Widget _done(BuildContext context) {
     final m = _last;
     if (m == null) return const SizedBox.shrink();
-    final theme = Theme.of(context);
     final sp = m.specific;
     String pct(Object? v) => v is num ? '${(v * 100).round()}%' : '—';
     final lines = <String>[
@@ -866,35 +866,26 @@ class _RhythmPitchScreenState extends State<RhythmPitchScreen> {
       ],
       '${_s.t('duration')}: ${(m.durationMs / 1000).toStringAsFixed(1)}s',
     ];
-    return _centered(
-      Column(
+    // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень. Свои звёзды
+    // партии (по точности) и разбор попадания — в подробностях.
+    return LevelResult(
+      passed: _passed,
+      level: _levelPlayed,
+      details: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            _passed ? L.t('levelDone').replaceAll('{n}', '$_levelPlayed') : L.t('sameLevelRetry'),
-            key: const Key('rp-verdict'),
-            style: theme.textTheme.titleLarge,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 6),
           if (_passed)
             Text(
               '★' * rpStars(m.accuracy) + '☆' * (3 - rpStars(m.accuracy)),
               key: const Key('rp-stars'),
+              textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 28, color: Color(0xFFF59E0B)),
             ),
-          const SizedBox(height: 8),
           for (final l in lines) Text(l, textAlign: TextAlign.center),
-          const SizedBox(height: 20),
-          FilledButton(
-            key: const Key('rp-again'),
-            onPressed: _begin,
-            style: FilledButton.styleFrom(backgroundColor: _grad0, foregroundColor: Colors.white),
-            child: Text(_passed ? L.t('nextNow') : L.t('retry')),
-          ),
-          TextButton(onPressed: () => setState(() => _phase = RpScreenPhase.config), child: Text(L.t('skip'))),
         ],
       ),
+      onNext: _begin,
+      onSettings: () => setState(() => _phase = RpScreenPhase.config),
     );
   }
 }

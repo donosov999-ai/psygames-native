@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/swipe_select.dart';
+
 /// Поле классических анаграмм: набранное слово сверху, колесо букв снизу.
 ///
 /// 🔴 ВСЁ СЧИТАЕТСЯ ОТ ВЫСОТЫ, КОТОРУЮ ДАЛ КАРКАС (`fieldHeight`), а не от окна.
@@ -101,11 +103,20 @@ class AnagramBoard extends StatelessWidget {
 
 }
 
+/// Размер плитки колеса и радиус круга, по которому они стоят.
+double ringTileSize(double side) => min(56.0, side / 3.2);
+double ringRadius(double side) => side / 2 - min(30.0, side / 8);
+
 /// КОЛЕСО БУКВ — ОДНО НА ВСЕ РЕЖИМЫ АНАГРАММ.
 ///
 /// Вынесено из поля классики, когда понадобилось второму режиму: второй экземпляр
 /// того же круга означал бы две раскладки, которые разъедутся при первой правке.
 /// Родня в вебе — `src/components/letterWheel/LetterWheel.tsx`, тоже общий.
+///
+/// 🔴 ВВОД ДВУМЯ СПОСОБАМИ: тап по плитке и ПРОТЯЖКА пальцем по буквам без отрыва — общий жест
+/// каркаса [SwipeSelect] (`shell/swipe_select.dart`), тот же, что в «Считалке» и «Числовых парах».
+/// В вебе колесо вело палец (`onResponderMove`), в нативе остались одни тапы — отзыв игрока
+/// 2b597852: «смысл круга в том, что буквы соединяют пальцем».
 class LetterRing extends StatelessWidget {
   const LetterRing({
     super.key,
@@ -126,20 +137,27 @@ class LetterRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final r = side / 2 - min(30.0, side / 8);
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Container(
-          width: side,
-          height: side,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+    final r = ringRadius(side);
+    final n = letters.length;
+    return SwipeSelect(
+      key: const Key('letter-ring'),
+      innerShare: 0.85,
+      isSelected: picked.contains,
+      onSelect: onPick,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: side,
+            height: side,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            ),
           ),
-        ),
-        for (var i = 0; i < letters.length; i++) _tile(context, i, letters.length, r, side),
-      ],
+          for (var i = 0; i < n; i++) _tile(context, i, n, r, side),
+        ],
+      ),
     );
   }
 
@@ -147,11 +165,13 @@ class LetterRing extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     // Первая буква сверху, дальше по часовой — как в веб-версии.
     final a = -pi / 2 + 2 * pi * i / n;
-    final d = min(56.0, side / 3.2);
+    final d = ringTileSize(side);
     final used = picked.contains(i);
     return Transform.translate(
       offset: Offset(r * cos(a), r * sin(a)),
-      child: Semantics(
+      child: SwipeTarget(
+        index: i,
+        child: Semantics(
         label: letters[i],
         button: true,
         enabled: !used,
@@ -180,6 +200,7 @@ class LetterRing extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }

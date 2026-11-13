@@ -6,6 +6,7 @@
   {"id":"suite_positions","titleKey":"suitePositions","descKey":"suitePositionsDesc","modes":[{"route":"/games/memory-matrix","labelKey":"suiteModeGrid"},{"route":"/games/corsi","labelKey":"suiteModeCorsi"},{"route":"/games/spatial-span","labelKey":"suiteModeBackward"}]},
   {"id":"suite_stream","titleKey":"suiteStream","descKey":"suiteStreamDesc","modes":[{"route":"/games/cpt","labelKey":"suiteModeVigilance"},{"route":"/games/switching-task","labelKey":"suiteModeSwitch"}]},
   {"id":"suite_inhibition","titleKey":"suiteInhibition","descKey":"suiteInhibitionDesc","modes":[{"route":"/games/inhibition","labelKey":"suiteModeAllInOne"},{"route":"/games/go-no-go","labelKey":"suiteModeGoNoGo"},{"route":"/games/stop-signal","labelKey":"suiteModeStopSignal"}]},
-  {"id":"suite_decisions","titleKey":"suiteDecisions","descKey":"suiteDecisionsDesc","modes":[{"route":"/games/prl","labelKey":"suiteModeReversal"},{"route":"/games/iowa","labelKey":"suiteModeDecks"},{"route":"/games/bart","labelKey":"suiteModeBalloon"}]}
+  {"id":"suite_decisions","titleKey":"suiteDecisions","descKey":"suiteDecisionsDesc","modes":[{"route":"/games/prl","labelKey":"suiteModeReversal"},{"route":"/games/iowa","labelKey":"suiteModeDecks"},{"route":"/games/bart","labelKey":"suiteModeBalloon"}]},
+  {"id":"suite_sum","titleKey":"suiteSum","descKey":"suiteSumDesc","modes":[{"route":"/games/counter","labelKey":"suiteModeSpeed"},{"route":"/games/number-bonds","labelKey":"suiteModeComposition"}]}
 ]
 }

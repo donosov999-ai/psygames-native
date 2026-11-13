@@ -25,6 +25,7 @@ import '../../shell/session_report.dart';
 import '../../shell/setup_scroll.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 
@@ -197,6 +198,7 @@ class _PrlScreenState extends State<PrlScreen> {
         // Число разворотов показывается ПОСТФАКТУМ: сам момент смены — нет.
         HudItem(label: L.t('hud_reversals'), value: '${g.blockIndex}', icon: Icons.swap_horiz),
       ],
+      suiteSwitch: _phase == PrlPhase.ready ? SuiteSwitch(route: '/games/prl', state: widget.state) : null,
       field: (context, h) => _Field(
         game: g,
         classic: _classic,

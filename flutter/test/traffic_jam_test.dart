@@ -116,8 +116,10 @@ void main() {
       await tester.drag(find.byKey(const ValueKey('tj-car-0')), const Offset(600, 0));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
-      expect(find.byKey(const ValueKey('tj-next')), findsOneWidget, reason: 'доска решена, а кнопки дальше нет');
-      expect(find.textContaining('★★★'), findsOneWidget, reason: 'решено минимумом — три звезды');
+      expect(find.byKey(const Key('level-result-next')), findsOneWidget, reason: 'доска решена, а кнопки дальше нет');
+      // Свои звёзды игры (ходы против минимума) — в строке счёта общего итога.
+      expect(tester.widget<Text>(find.byKey(const Key('level-result-score'))).data, startsWith('★★★'),
+          reason: 'решено минимумом — три звезды');
       expect(reports.length, 1, reason: 'партия пишется в момент решения, один раз');
       expect(reports.single['game_type'], 'traffic_jam');
       final d = reports.single['details'] as Map<String, dynamic>;
@@ -138,7 +140,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
       await tester.drag(find.byKey(const ValueKey('tj-car-0')), const Offset(600, 0));
       await tester.pump();
-      expect(find.byKey(const ValueKey('tj-next')), findsNothing, reason: 'красная проехала сквозь A');
+      expect(find.byKey(const Key('level-result-next')), findsNothing, reason: 'красная проехала сквозь A');
       expect(reports, isEmpty);
     });
 

@@ -344,6 +344,8 @@ void main() {
       '/games/digit-span',
       '/games/dots-connect',
       '/games/counter',
+      // «Собери сумму · Вперемешку» — режим набора, не игра реестра: адрес с ключом перехвата.
+      '/games/counter?mode=mixed',
       '/games/counting-hub',
       '/games/relaxation-hub',
       '/games/faces-names',

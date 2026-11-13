@@ -8,6 +8,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../languages/bilingual.dart';
@@ -367,21 +368,16 @@ class _ClozeScreenState extends State<ClozeScreen> {
         ),
       );
 
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
+  /// 🔴 Денис 12.11: «Дальше» после уровня — сразу следующая партия, не настройки.
   Widget _result(BuildContext context, double h) => SizedBox(
         height: h,
-        child: Center(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(_passed ? L.t('clozePass') : L.t('resultsTitle'), style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text('${L.t('hud_correct')}: $_correct / ${_rounds.length} · ${L.t('hud_errors')}: $_errors',
-                key: const Key('cloze-score')),
-            const SizedBox(height: 20),
-            FilledButton(
-              key: const Key('cloze-again'),
-              onPressed: () => setState(() => _phase = ClozePhase.config),
-              child: Text(_passed ? L.t('nextLabel') : L.t('retry')),
-            ),
-          ]),
+        child: LevelResult(
+          passed: _passed,
+          level: _levelPlayed,
+          score: '${L.t('hud_correct')}: $_correct / ${_rounds.length} · ${L.t('hud_errors')}: $_errors',
+          onNext: _start,
+          onSettings: () => setState(() => _phase = ClozePhase.config),
         ),
       );
 

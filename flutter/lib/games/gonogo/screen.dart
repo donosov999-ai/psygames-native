@@ -11,6 +11,7 @@ import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 
@@ -179,6 +180,7 @@ class _GoNoGoScreenState extends State<GoNoGoScreen> {
       onLesson: _game == null
           ? null
           : () => openDemoLesson(context, title: L.t('goNoGo'), trials: _demoTrials()),
+      suiteSwitch: _phase == GoNoGoPhase.ready ? SuiteSwitch(route: '/games/go-no-go', state: widget.state) : null,
       field: (context, h) => _Field(
         game: g,
         phase: _phase,

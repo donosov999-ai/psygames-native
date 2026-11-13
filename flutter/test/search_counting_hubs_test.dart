@@ -64,13 +64,15 @@ void main() {
     ]);
   });
 
-  testWidgets('«Счёт» показывает все семь упражнений раздела', (tester) async {
+  testWidgets('«Счёт» показывает все шесть карточек раздела (седьмое упражнение — режим набора «Собери сумму»)', (tester) async {
     final state = await SharedState.open();
     await boot(tester, CountingHubScreen(state: state, isNative: (r) => true));
     expect(find.text('Счёт'), findsWidgets, reason: 'заголовок развилки');
     await seeAll(tester, [
-      'Считалка: счёт', 'Математическая шкала', 'Числовой забег', 'Математический спринт',
-      'Числовые пары: счёт', 'Паттерны: мышление',
+      // 13.11.2026 (решение Дениса, bf1c918c): «Считалка» и «Числовые пары» — одна карточка набора
+      // «Собери сумму», режимы внутри (`suite_sum`): карточек шесть, упражнений по-прежнему семь.
+      'Собери сумму', 'Математическая шкала', 'Числовой забег', 'Математический спринт',
+      'Паттерны: мышление',
       // 07.10.2026: переезды по решению Дениса 18.09 (задача 668bcc73): OSpan уехал в «Объём памяти», «Быстрый счёт» приехал из «Поиска глазами».
       'Быстрый счёт',
     ]);
@@ -84,8 +86,9 @@ void main() {
     expect(find.text('ур. 1'), findsWidgets, reason: 'у нетронутых игр — первый');
 
     await boot(tester, CountingHubScreen(state: state, isNative: (r) => true));
-    await tester.scrollUntilVisible(find.text('Считалка: счёт'), 120, scrollable: find.byType(Scrollable).first);
-    expect(find.text('ур. 14'), findsOneWidget, reason: 'уровень «Считалки» из общей памяти');
+    // Карточка набора «Собери сумму» ведёт на первый режим («На скорость» = «Считалка»), его уровень и стоит.
+    await tester.scrollUntilVisible(find.text('Собери сумму'), 120, scrollable: find.byType(Scrollable).first);
+    expect(find.text('ур. 14'), findsOneWidget, reason: 'уровень первого режима набора («Считалки») из общей памяти');
   });
 
   testWidgets('🔴 нажатие ВОЗВРАЩАЕТ МАРШРУТ наверх, а не открывает игру само', (tester) async {

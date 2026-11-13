@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/aurora_scope.dart';
 import '../../shell/chrome_art.dart';
+import '../../shell/game_about.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/l10n.dart';
 import '../../shell/ui_kit/game_result.dart';
@@ -50,91 +51,20 @@ const pauseExtrasKeys = [
   'benefitEye3',
 ];
 
-/// «Об игре» — свёрнутой строкой, раскрывается нажатием (как веб `GameAbout`: кто пришёл
-/// играть двадцатый раз, не платит за чтение; кто впервые — раскроет).
-class PauseAbout extends StatefulWidget {
+/// «Об игре» «Дыхания» и «Гимнастики для глаз» — общий блок каркаса [GameAbout] (задача 3a365b5d)
+/// с ключами проб `pause-about-*`: у практик по одному блоку на каждую, данные — списки выше.
+class PauseAbout extends StatelessWidget {
   const PauseAbout({super.key, required this.descriptionKey, required this.benefits});
 
   final String descriptionKey;
   final List<PauseBenefit> benefits;
 
   @override
-  State<PauseAbout> createState() => _PauseAboutState();
-}
-
-class _PauseAboutState extends State<PauseAbout> {
-  bool _open = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final accent = GameColors.of(context).selected;
-    return Container(
-      key: const Key('pause-about'),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: scheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Semantics(
-            button: true,
-            expanded: _open,
-            child: InkWell(
-              key: const Key('pause-about-toggle'),
-              borderRadius: BorderRadius.circular(14),
-              onTap: () => setState(() => _open = !_open),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 48),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline, size: 20, color: accent),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(L.t('title_about_game'), style: theme.textTheme.titleSmall)),
-                      Icon(_open ? Icons.expand_less : Icons.expand_more, color: scheme.onSurfaceVariant),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          if (_open)
-            Padding(
-              key: const Key('pause-about-body'),
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    L.t(widget.descriptionKey),
-                    style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
-                  ),
-                  for (final (icon, key) in widget.benefits)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(icon, size: 18, color: accent),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(L.t(key), key: Key('pause-about-$key'), style: theme.textTheme.bodyMedium),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => GameAbout(
+    descriptionKey: descriptionKey,
+    benefits: [for (final (icon, key) in benefits) GameBenefit(key, icon: icon)],
+    keyPrefix: 'pause-about',
+  );
 }
 
 /// Тропинка: узлы 1…[last], пройденные (≤ [best]) — открыты, текущий — обведён, дальше —

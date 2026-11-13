@@ -11,6 +11,7 @@ import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 import 'words.dart';
@@ -223,6 +224,7 @@ class _EmoStroopScreenState extends State<EmoStroopScreen> {
       onLesson: (_game == null || _words == null)
           ? null
           : () => openDemoLesson(context, title: L.t('stroopEmotional'), trials: _demoTrials()),
+      suiteSwitch: _phase == EmoPhase.ready ? SuiteSwitch(route: '/games/stroop-emotional', state: widget.state) : null,
       field: (context, h) => _Field(
         game: g,
         words: w,

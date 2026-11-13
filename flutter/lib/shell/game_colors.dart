@@ -443,3 +443,32 @@ class ChromePilot {
   /// Тень подложки рамки.
   static const shadow = Color(0x60000000);
 }
+
+/*
+ * 🍬 ПАЛИТРА «КОНФЕТ» ИГРОВОГО HUD — UI-референс «Числового забега» v1.0 (06.11.2026,
+ * `~/Downloads/Number_Run_UI_Reference_RU.pdf`, `UI_Tokens.json`): табло и капсулы — navy с
+ * золотым кантом, прибавление — blue, вычитание — red, действие и преобразование (×2) — violet,
+ * память — teal, локальная сумма — amber, подтверждение — success. Денис 11.11.2026: «реф картинки
+ * кодекса». Палитра — предмет набора дизайна (лежит здесь, в единственном месте литералов), а не
+ * цвета одной игры: её могут брать и другие HUD.
+ */
+class CandyPalette {
+  const CandyPalette._();
+  static const navy = Color(0xFF18356B);
+  static const ink = Color(0xFF172B4D);
+  static const muted = Color(0xFF65718D);
+  static const ivory = Color(0xFFFFF5E8);
+  static const surface = Color(0xFFFFFAF3);
+  static const violet = Color(0xFF7A36E8);
+  static const violetPressed = Color(0xFF5E28B8);
+  static const blue = Color(0xFF1464E8);
+  static const red = Color(0xFFD82B49);
+  static const teal = Color(0xFF087C78);
+  static const amber = Color(0xFFE99A18);
+  static const success = Color(0xFF17856B);
+  static const mint = Color(0xFF39D9BC);
+  static const gold = Color(0xFFEAC47A);
+  static const sky = Color(0xFF35C7DF);
+  static const disabledSurface = Color(0xFFE5E6EC);
+  static const disabledText = Color(0xFF778197);
+}

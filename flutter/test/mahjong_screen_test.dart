@@ -83,7 +83,8 @@ void main() {
     }
 
     expect(tilesOnScreen(tester), isEmpty, reason: 'доска разобрана до конца');
-    expect(find.text(L.t('nextLabel')), findsOneWidget);
+    expect(find.byKey(const Key('level-result-next')), findsOneWidget, reason: 'итог — общий каркаса');
+    expect(find.text(L.t('levelDone').replaceAll('{n}', '1')), findsOneWidget);
   });
 
   testWidgets('🔴 занятую плитку снять нельзя — она остаётся на доске', (tester) async {

@@ -13,8 +13,10 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/swipe_select.dart';
 import 'model.dart';
 
 /// ЭКРАН «НАЙДИ ПРИЗНАК» — развилка «Поиск глазами», движок MindLab (решение Дениса
@@ -120,6 +122,16 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
     setState(() {
       if (!_selected.remove(i)) _selected.add(i);
     });
+  }
+
+  /// Протяжка по карточкам (общий жест каркаса, `shell/swipe_select.dart`): берёт карточку, не
+  /// переключая её; возврат на предыдущую снимает последнюю. Отметил — значит «с признаком».
+  void _swipePick(int i) {
+    if (!_checked && !_selected.contains(i)) _toggle(i);
+  }
+
+  void _swipeUnpick(int i) {
+    if (!_checked && _selected.contains(i)) _toggle(i);
   }
 
   /// Проверка по кнопке или по концу времени: тогда проверяется то, что успел отметить.
@@ -228,7 +240,23 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
         if (g != null)
           HudItem(label: L.t('errors'), value: '${g.missed.length + g.extras.length}', icon: Icons.error_outline),
       ],
-      field: (context, h) => Column(
+      // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующую ступень, разбор
+      // отметок (пропущенные и лишние карточки) — в подробностях.
+      field: (context, h) => g != null
+          ? SizedBox(
+              height: h,
+              child: LevelResult(
+                passed: _won,
+                level: _levelNo,
+                score: '${L.t('mtMissed')}: ${g.missed.length} · ${L.t('mtExtra')}: ${g.extras.length}',
+                details: LayoutBuilder(
+                  builder: (context, c) =>
+                      _Grid(round: round, selected: _selected, graded: g, maxW: c.maxWidth, maxH: h * 0.45),
+                ),
+                onNext: _next,
+              ),
+            )
+          : Column(
         children: [
           _Prompt(round: round),
           const SizedBox(height: 8),
@@ -241,6 +269,8 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
                 maxW: c.maxWidth,
                 maxH: c.maxHeight,
                 onTap: _checked ? null : _toggle,
+                onSwipePick: _swipePick,
+                onSwipeUnpick: _swipeUnpick,
               ),
             ),
           ),
@@ -253,24 +283,17 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
           onPressed: _checked || _selected.isEmpty ? null : () => setState(_selected.clear),
         ),
       ]),
-      toolbar: Padding(
-        padding: const EdgeInsets.all(12),
-        child: !_checked
-            ? FilledButton.icon(
+      toolbar: _checked
+          ? null
+          : Padding(
+              padding: const EdgeInsets.all(12),
+              child: FilledButton.icon(
                 key: const ValueKey('mt-check'),
                 onPressed: _selected.isEmpty ? null : _check,
                 icon: const Icon(Icons.check),
                 label: Text(L.t('check')),
-              )
-            : FilledButton.icon(
-                key: const ValueKey('mt-next'),
-                onPressed: _next,
-                icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-                label: Text(_won
-                    ? '★★★ · ${L.t('nextLabel')}'
-                    : '${L.t('mtMissed')}: ${g!.missed.length} · ${L.t('mtExtra')}: ${g.extras.length}'),
               ),
-      ),
+            ),
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_deal)),
       ],
@@ -357,6 +380,8 @@ class _Grid extends StatelessWidget {
     required this.maxW,
     required this.maxH,
     this.onTap,
+    this.onSwipePick,
+    this.onSwipeUnpick,
   });
 
   final TraitRound round;
@@ -365,6 +390,8 @@ class _Grid extends StatelessWidget {
   final double maxW;
   final double maxH;
   final void Function(int)? onTap;
+  final void Function(int)? onSwipePick;
+  final void Function(int)? onSwipeUnpick;
 
   @override
   Widget build(BuildContext context) {
@@ -375,13 +402,20 @@ class _Grid extends StatelessWidget {
     final cell = math.max(40.0, math.min((maxW - 16 - gap * (cols - 1)) / cols, (maxH - 8 - gap * (rows - 1)) / rows));
     final scheme = Theme.of(context).colorScheme;
     return Center(
-      child: Wrap(
-        spacing: gap,
-        runSpacing: gap,
-        alignment: WrapAlignment.center,
-        children: [
-          for (var i = 0; i < n; i++) _card(context, i, cell, scheme, GameColors.of(context)),
-        ],
+      child: SwipeSelect(
+        enabled: onSwipePick != null && onTap != null,
+        isSelected: selected.contains,
+        onSelect: (i) => onSwipePick?.call(i),
+        onUnselect: (i) => onSwipeUnpick?.call(i),
+        child: Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          alignment: WrapAlignment.center,
+          children: [
+            for (var i = 0; i < n; i++)
+              SwipeTarget(index: i, child: _card(context, i, cell, scheme, GameColors.of(context))),
+          ],
+        ),
       ),
     );
   }

@@ -7,6 +7,27 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.56.65",
+   "date": "2026-11-13",
+   "items": [
+    "Word Sort: words pick up instantly and Next starts the next level right away (same in Cloze, Verbal Fluency, Story Recall, Vocabulary); Anagrams: drag across the letter wheel; feedback shows sending progress; Aurora look for Memory Palace, Faces and Names, Word Pairs and Reading Emotions"
+   ]
+  },
+  {
+   "version": "v2.56.64",
+   "date": "2026-11-13",
+   "items": [
+    "Number Run is now 3D: a bridge road over the sea, 3D numbers, answer tiles and arches, a redesigned scoreboard and task card"
+   ]
+  },
+  {
+   "version": "v2.56.63",
+   "date": "2026-11-12",
+   "items": [
+    "Pause: the night step keeps a dark frame in Aurora, voice prompts follow the sound switch"
+   ]
+  },
+  {
    "version": "v2.56.62",
    "date": "2026-11-11",
    "items": [

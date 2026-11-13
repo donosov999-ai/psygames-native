@@ -161,6 +161,22 @@ export const GAME_SUITES: GameSuite[] = [
       { route: '/games/bart', labelKey: 'suiteModeBalloon' },
     ],
   },
+  /**
+   * СОБЕРИ СУММУ — решение Дениса 13.11.2026: «Считалку: счёт» и «Числовые пары: счёт» объединить
+   * в одну игру с режимами. Одна карточка в развилке «Счёт»; у каждого режима СВОЯ лестница
+   * (gameId `counter` — на скорость, `number_bonds` — состав числа), старые уровни игроков не
+   * переносятся и не теряются: маршруты и ключи прогресса прежние, набор — ярлык над ними.
+   * `PUBLIC_GAME_COUNT` не меняется: режим считается отдельной игрой.
+   */
+  {
+    id: 'suite_sum',
+    titleKey: 'suiteSum',
+    descKey: 'suiteSumDesc',
+    modes: [
+      { route: '/games/counter', labelKey: 'suiteModeSpeed' },
+      { route: '/games/number-bonds', labelKey: 'suiteModeComposition' },
+    ],
+  },
 ];
 
 /**

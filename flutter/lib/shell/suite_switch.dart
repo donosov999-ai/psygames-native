@@ -3,9 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'aux_action.dart';
+import 'game_clock.dart';
 import 'game_preset.dart';
 import 'hub_screen.dart' show HubCardTap, HubScreen;
 import 'l10n.dart';
+import 'profiles.dart';
 import 'shared_state.dart';
 
 /// Режим набора: игра (маршрут) и подпись плашки.
@@ -78,16 +81,32 @@ class GameSuites {
   /// их профилем, хуже, чем не показать переключатель (замер 02.10: у kids в «Позициях» одна «Матрица»).
   static List<SuiteMode> openModes(SharedState state, GameSuite suite) {
     final raw = state.get(HubScreen.visibleKey);
-    if (raw == null || raw.isEmpty) return const [];
-    try {
-      final o = jsonDecode(raw) as Map<String, dynamic>;
-      if (o['profile'] != state.activeProfile) return const [];
-      final open = ((o['suites'] as Map<String, dynamic>?)?[suite.id] as List?)?.cast<String>().toSet();
-      if (open == null) return const [];
-      return [for (final m in suite.modes) if (open.contains(m.route)) m];
-    } catch (_) {
-      return const [];
+    if (raw != null && raw.isNotEmpty) {
+      try {
+        final o = jsonDecode(raw) as Map<String, dynamic>;
+        if (o['profile'] == state.activeProfile) {
+          final open = ((o['suites'] as Map<String, dynamic>?)?[suite.id] as List?)?.cast<String>().toSet();
+          if (open != null) return [for (final m in suite.modes) if (open.contains(m.route)) m];
+        }
+      } catch (_) {
+        // Битая запись — считаем по профилю, как без неё.
+      }
     }
+    return _openByProfile(state, suite);
+  }
+
+  /// 🔴 ЗАПАСНОЙ ПУТЬ — ПО СПИСКУ ИГР ПРОФИЛЯ. Список веба (`visibleKey`) пишет веб-половина; без неё
+  /// (открыли игру до развилки, профиль сменили, веб не запускался) плашек не было вовсе, и девять игр
+  /// «Конфликта внимания» не открывались ни откуда (отчёт 13.11: BART не найти). Профиль известен —
+  /// берём режимы из его `allowed_games` (`null` — вся библиотека); неизвестен — ничего не показываем,
+  /// как и прежде: закрытый профилем режим хуже, чем отсутствие переключателя.
+  static List<SuiteMode> _openByProfile(SharedState state, GameSuite suite) {
+    final profile = Profiles.current.byId(state.activeProfile);
+    if (profile == null) return const [];
+    final games = profile.games;
+    if (games == null) return suite.modes;
+    final allowed = games.toSet();
+    return [for (final m in suite.modes) if (allowed.contains(m.route.split('/').last.replaceAll('-', '_'))) m];
   }
 }
 
@@ -133,7 +152,9 @@ class _SuiteSwitchState extends State<SuiteSwitch> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(L.t(suite.titleKey), style: Theme.of(context).textTheme.labelLarge),
+          // «Игра», а не название набора: на настройке рядом идёт своя строка «Режим» (Уровни / Свободно),
+          // и два выбора под одним словом путались (Денис 13.11, настройки PRL: выбора PRL · Iowa · BART не нашёл).
+          Text(L.t('suiteGameLabel'), key: const Key('suite-game-label'), style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 6),
           Wrap(
             alignment: WrapAlignment.center,
@@ -153,6 +174,101 @@ class _SuiteSwitchState extends State<SuiteSwitch> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// ПУНКТ «РЕЖИМ» В РЯДУ ЗНАЧКОВ — для игр набора БЕЗ экрана настройки («Собери сумму»: партия
+/// начинается сразу). Плашкам [SuiteSwitch] негде встать, поэтому режимы набора открываются листом,
+/// как режимы «Анаграмм» (`anagrams/mode_switch.dart`). Переход тот же — закрыть экран с
+/// [HubCardTap] (замена маршрута). Не набор, шаг зарядки или открыт один режим — значка нет.
+class SuiteModeAction extends StatefulWidget {
+  const SuiteModeAction({super.key, required this.route, required this.state, this.extra, this.current});
+
+  /// Маршрут этого экрана; для режима вне реестра ([extra]) — маршрут набора, по которому он ищется.
+  final String route;
+  final SharedState state;
+
+  /// Режим, которого нет в реестре игр («Вперемешку» набора «Собери сумму»): в листе стоит последним
+  /// и только там, где профилю открыты ВСЕ режимы набора — он собран из них.
+  final SuiteMode? extra;
+
+  /// Какой режим выбран сейчас, если экран — режим вне реестра ([extra]); иначе — [route].
+  final String? current;
+
+  @override
+  State<SuiteModeAction> createState() => _SuiteModeActionState();
+}
+
+class _SuiteModeActionState extends State<SuiteModeAction> {
+  List<SuiteMode>? _open;
+
+  String get _here => widget.current ?? widget.route;
+
+  @override
+  void initState() {
+    super.initState();
+    GameSuites.load().then((all) {
+      if (!mounted) return;
+      final suite = GameSuites.of(widget.route, all);
+      if (suite == null) {
+        setState(() => _open = const []);
+        return;
+      }
+      final open = GameSuites.openModes(widget.state, suite);
+      final extra = widget.extra;
+      setState(() => _open = [
+            ...open,
+            if (extra != null && open.length == suite.modes.length) extra,
+          ]);
+    });
+  }
+
+  Future<void> _pick(List<SuiteMode> open) async {
+    // 🔴 Пока лист открыт, партия стоит, как в паузе: у игр без экрана настройки часы раунда шли
+    // под листом, и раунд уходил в «время вышло» (замер координатора на эмуляторе 13.11).
+    final release = holdGame();
+    final SuiteMode? picked;
+    try {
+      picked = await showModalBottomSheet<SuiteMode>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheet) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Text(L.t('mode'), style: Theme.of(sheet).textTheme.titleMedium),
+            ),
+            for (final m in open)
+              ListTile(
+                key: Key('suite-mode-${m.route}'),
+                title: Text(L.t(m.labelKey)),
+                selected: m.route == _here,
+                trailing: m.route == _here ? const Icon(Icons.check) : null,
+                onTap: () => Navigator.of(sheet).pop(m),
+              ),
+          ],
+        ),
+      ),
+    );
+    } finally {
+      release();
+    }
+    if (picked == null || picked.route == _here || !mounted) return;
+    Navigator.of(context).pop(HubCardTap(picked.route, replace: true));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final open = _open;
+    if (open == null || open.length < 2 || GamePreset.isPreset) return const SizedBox.shrink();
+    return AuxAction(
+      key: const Key('suite-mode-action'),
+      icon: Icons.dashboard_outlined,
+      label: L.t('mode'),
+      onPressed: () => _pick(open),
     );
   }
 }

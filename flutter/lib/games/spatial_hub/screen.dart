@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/hybrid_app.dart';
+import '../../shell/hub_screen.dart' as shared;
+import '../../shell/chrome_art.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -155,6 +157,19 @@ class _SpatialHubScreenState extends State<SpatialHubScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (ChromeArt.aurora(context)) {
+      return shared.HubScreen(
+        state: widget.state,
+        hubRoute: '/games/spatial-hub',
+        icon: Icons.view_in_ar,
+        gradient: [
+          Theme.of(context).colorScheme.primary,
+          Theme.of(context).colorScheme.tertiary,
+        ],
+        isNative: HybridApp.native.containsKey,
+        onCardTap: widget.onOpen,
+      );
+    }
     final scheme = Theme.of(context).colorScheme;
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     /*

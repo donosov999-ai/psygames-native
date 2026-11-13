@@ -1,0 +1,1008 @@
+{
+  "source": "frontend/app/games/*.tsx <GameAbout> (tools/export-game-about.mjs)",
+  "games": {
+    "anagrams": {
+      "description": "anagramsIntroDesc",
+      "benefits": [
+        {
+          "icon": "language-outline",
+          "key": "benefitAnagram1"
+        },
+        {
+          "icon": "book-outline",
+          "key": "benefitAnagram2"
+        },
+        {
+          "icon": "bulb-outline",
+          "key": "benefitAnagram3"
+        }
+      ]
+    },
+    "ant": {
+      "description": "antIntroDesc",
+      "benefits": [
+        {
+          "icon": "eye-outline",
+          "key": "benefitAnt1"
+        },
+        {
+          "icon": "navigate-outline",
+          "key": "benefitAnt2"
+        },
+        {
+          "icon": "flash-outline",
+          "key": "benefitAnt3"
+        }
+      ]
+    },
+    "ball_sort": {
+      "description": "ballSortIntroDesc",
+      "benefits": [
+        {
+          "icon": "map-outline",
+          "key": "waterSortBenefitPlan"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "waterSortBenefitHold"
+        },
+        {
+          "icon": "hourglass-outline",
+          "key": "waterSortBenefitPatience"
+        }
+      ]
+    },
+    "bart": {
+      "description": "bartIntroDesc",
+      "benefits": [
+        {
+          "icon": "speedometer-outline",
+          "key": "benefitBart1"
+        },
+        {
+          "icon": "analytics-outline",
+          "key": "benefitBart2"
+        },
+        {
+          "icon": "shield-outline",
+          "key": "benefitBart3"
+        }
+      ]
+    },
+    "breathing": {
+      "description": "breathingIntroDesc",
+      "benefits": [
+        {
+          "icon": "heart-outline",
+          "key": "benefitBreath1"
+        },
+        {
+          "icon": "moon-outline",
+          "key": "benefitBreath2"
+        },
+        {
+          "icon": "pulse-outline",
+          "key": "benefitBreath3"
+        }
+      ]
+    },
+    "chess_blind": {
+      "description": "chessBlindIntroDesc",
+      "benefits": [
+        {
+          "icon": "eye-off-outline",
+          "key": "benefitChessBlind1"
+        },
+        {
+          "icon": "grid-outline",
+          "key": "benefitChessBlind2"
+        },
+        {
+          "icon": "bulb-outline",
+          "key": "benefitChessBlind3"
+        }
+      ]
+    },
+    "choice_rt": {
+      "description": "choiceRtIntroDesc",
+      "benefits": [
+        {
+          "icon": "flash-outline",
+          "key": "benefitChoiceRt1"
+        },
+        {
+          "icon": "locate-outline",
+          "key": "benefitChoiceRt2"
+        },
+        {
+          "icon": "hand-right-outline",
+          "key": "benefitChoiceRt3"
+        }
+      ]
+    },
+    "cloze": {
+      "description": "clozeIntroDesc",
+      "benefits": [
+        {
+          "icon": "text-outline",
+          "key": "benefitCloze1"
+        },
+        {
+          "icon": "construct-outline",
+          "key": "benefitCloze2"
+        },
+        {
+          "icon": "chatbubbles-outline",
+          "key": "benefitCloze3"
+        }
+      ]
+    },
+    "corsi": {
+      "description": "corsiIntroDesc",
+      "benefits": [
+        {
+          "icon": "grid-outline",
+          "key": "benefitCorsi1"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "benefitCorsi2"
+        },
+        {
+          "icon": "apps-outline",
+          "key": "benefitCorsi3"
+        }
+      ]
+    },
+    "counter": {
+      "description": "counterIntroDesc",
+      "benefits": [
+        {
+          "icon": "cart-outline",
+          "key": "benefitCounter1"
+        },
+        {
+          "icon": "wallet-outline",
+          "key": "benefitCounter2"
+        },
+        {
+          "icon": "flash-outline",
+          "key": "benefitCounter3"
+        }
+      ]
+    },
+    "cpt": {
+      "description": "cptIntroDesc",
+      "benefits": [
+        {
+          "icon": "time-outline",
+          "key": "benefitCpt1"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "benefitCpt2"
+        },
+        {
+          "icon": "shield-checkmark-outline",
+          "key": "benefitCpt3"
+        }
+      ]
+    },
+    "digit_span": {
+      "description": "digitSpanIntroDesc",
+      "benefits": [
+        {
+          "icon": "call-outline",
+          "key": "benefitDigit1"
+        },
+        {
+          "icon": "create-outline",
+          "key": "benefitDigit2"
+        },
+        {
+          "icon": "fitness-outline",
+          "key": "benefitDigit3"
+        }
+      ]
+    },
+    "eye_gym": {
+      "description": "eyeGymIntroDesc",
+      "benefits": [
+        {
+          "icon": "eye-outline",
+          "key": "benefitEye1"
+        },
+        {
+          "icon": "sunny-outline",
+          "key": "benefitEye2"
+        },
+        {
+          "icon": "happy-outline",
+          "key": "benefitEye3"
+        }
+      ]
+    },
+    "find_differences": {
+      "description": "findDiffIntroDesc",
+      "benefits": [
+        {
+          "icon": "eye-outline",
+          "key": "benefitFind1"
+        },
+        {
+          "icon": "search-outline",
+          "key": "benefitFind2"
+        },
+        {
+          "icon": "sparkles-outline",
+          "key": "benefitFind3"
+        }
+      ]
+    },
+    "flanker": {
+      "description": "flankerIntroDesc",
+      "benefits": [
+        {
+          "icon": "eye-outline",
+          "key": "benefitFl1"
+        },
+        {
+          "icon": "flash-outline",
+          "key": "benefitFl2"
+        },
+        {
+          "icon": "shield-checkmark-outline",
+          "key": "benefitFl3"
+        }
+      ]
+    },
+    "go_no_go": {
+      "description": "goNoGoIntroDesc",
+      "benefits": [
+        {
+          "icon": "pause-circle-outline",
+          "key": "benefitGoNoGo1"
+        },
+        {
+          "icon": "flash-outline",
+          "key": "benefitGoNoGo2"
+        },
+        {
+          "icon": "shield-checkmark-outline",
+          "key": "benefitGoNoGo3"
+        }
+      ]
+    },
+    "goods_sort": {
+      "description": "goodsSortIntroDesc",
+      "benefits": [
+        {
+          "icon": "eye-outline",
+          "key": "benefitGoods1"
+        },
+        {
+          "icon": "git-branch-outline",
+          "key": "benefitGoods2"
+        },
+        {
+          "icon": "albums-outline",
+          "key": "benefitGoods3"
+        }
+      ]
+    },
+    "hanoi": {
+      "description": "hanoiIntroDesc",
+      "benefits": [
+        {
+          "icon": "extension-puzzle-outline",
+          "key": "benefitHanoi1"
+        },
+        {
+          "icon": "analytics-outline",
+          "key": "benefitHanoi2"
+        },
+        {
+          "icon": "trending-up-outline",
+          "key": "benefitHanoi3"
+        }
+      ]
+    },
+    "inhibition": {
+      "description": "inhibitionIntroDesc",
+      "benefits": [
+        {
+          "icon": "pause-circle-outline",
+          "key": "benefitInhibition1"
+        },
+        {
+          "icon": "flash-outline",
+          "key": "benefitInhibition2"
+        },
+        {
+          "icon": "shield-checkmark-outline",
+          "key": "benefitInhibition3"
+        }
+      ]
+    },
+    "iowa": {
+      "description": "iowaIntroDesc",
+      "benefits": [
+        {
+          "icon": "analytics-outline",
+          "key": "benefitIgt1"
+        },
+        {
+          "icon": "trending-up-outline",
+          "key": "benefitIgt2"
+        },
+        {
+          "icon": "bulb-outline",
+          "key": "benefitIgt3"
+        }
+      ]
+    },
+    "lexical_decision": {
+      "description": "lexicalDecisionIntroDesc",
+      "benefits": [
+        {
+          "icon": "flash-outline",
+          "key": "benefitLd1"
+        },
+        {
+          "icon": "library-outline",
+          "key": "benefitLd2"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "benefitLd3"
+        }
+      ]
+    },
+    "mahjong": {
+      "description": "mahjongIntroDesc",
+      "benefits": [
+        {
+          "icon": "search-outline",
+          "key": "benefitMahjong1"
+        },
+        {
+          "icon": "git-branch-outline",
+          "key": "benefitMahjong2"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "benefitMahjong3"
+        }
+      ]
+    },
+    "math_sprint": {
+      "description": "mathSprintIntroDesc",
+      "benefits": [
+        {
+          "icon": "calculator-outline",
+          "key": "benefitMath1"
+        },
+        {
+          "icon": "cash-outline",
+          "key": "benefitMath2"
+        },
+        {
+          "icon": "flash-outline",
+          "key": "benefitMath3"
+        }
+      ]
+    },
+    "memory_matrix": {
+      "description": "memoryMatrixIntroDesc",
+      "benefits": [
+        {
+          "icon": "map-outline",
+          "key": "benefitMatrix1"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "benefitMatrix2"
+        },
+        {
+          "icon": "images-outline",
+          "key": "benefitMatrix3"
+        }
+      ]
+    },
+    "mental_rotation": {
+      "description": "mentalRotationIntroDesc",
+      "benefits": [
+        {
+          "icon": "cube-outline",
+          "key": "benefitMr1"
+        },
+        {
+          "icon": "sync-outline",
+          "key": "benefitMr2"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "benefitMr3"
+        }
+      ]
+    },
+    "mnemonics": {
+      "description": "mnemonicsIntroDesc",
+      "benefits": [
+        {
+          "icon": "cart-outline",
+          "key": "benefitMnemonics1"
+        },
+        {
+          "icon": "call-outline",
+          "key": "benefitMnemonics2"
+        },
+        {
+          "icon": "list-outline",
+          "key": "benefitMnemonics3"
+        }
+      ]
+    },
+    "n_back": {
+      "description": "nBackIntroDesc",
+      "benefits": [
+        {
+          "icon": "analytics-outline",
+          "key": "benefitNback1"
+        },
+        {
+          "icon": "school-outline",
+          "key": "benefitNback2"
+        },
+        {
+          "icon": "rocket-outline",
+          "key": "benefitNback3"
+        }
+      ]
+    },
+    "number_bonds": {
+      "description": "numberBondsIntroDesc",
+      "benefits": [
+        {
+          "icon": "calculator-outline",
+          "key": "benefitNumberBonds1"
+        },
+        {
+          "icon": "shuffle-outline",
+          "key": "benefitNumberBonds2"
+        },
+        {
+          "icon": "git-merge-outline",
+          "key": "benefitNumberBonds3"
+        }
+      ]
+    },
+    "nut_sort": {
+      "description": "nutSortIntroDesc",
+      "benefits": [
+        {
+          "icon": "map-outline",
+          "key": "waterSortBenefitPlan"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "waterSortBenefitHold"
+        },
+        {
+          "icon": "hourglass-outline",
+          "key": "waterSortBenefitPatience"
+        }
+      ]
+    },
+    "ospan": {
+      "description": "ospanIntroDesc",
+      "benefits": [
+        {
+          "icon": "calculator-outline",
+          "key": "benefitOs1"
+        },
+        {
+          "icon": "library-outline",
+          "key": "benefitOs2"
+        },
+        {
+          "icon": "shield-outline",
+          "key": "benefitOs3"
+        }
+      ]
+    },
+    "pattern": {
+      "description": "patternIntroDesc",
+      "benefits": [
+        {
+          "icon": "analytics-outline",
+          "key": "benefitPattern1"
+        },
+        {
+          "icon": "school-outline",
+          "key": "benefitPattern2"
+        },
+        {
+          "icon": "bulb-outline",
+          "key": "benefitPattern3"
+        }
+      ]
+    },
+    "phonemic_fluency": {
+      "description": "phonemicIntroDesc",
+      "benefits": [
+        {
+          "icon": "chatbubbles-outline",
+          "key": "benefitFlu1"
+        },
+        {
+          "icon": "flash-outline",
+          "key": "benefitFlu2"
+        },
+        {
+          "icon": "school-outline",
+          "key": "benefitFlu3"
+        }
+      ]
+    },
+    "picture_pairs": {
+      "description": "picturePairsIntroDesc",
+      "benefits": [
+        {
+          "icon": "heart-outline",
+          "key": "benefitPairs1"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "benefitPairs2"
+        },
+        {
+          "icon": "time-outline",
+          "key": "benefitPairs3"
+        }
+      ]
+    },
+    "posner": {
+      "description": "posnerIntroDesc",
+      "benefits": [
+        {
+          "icon": "eye-outline",
+          "key": "benefitPosner1"
+        },
+        {
+          "icon": "navigate-outline",
+          "key": "benefitPosner2"
+        },
+        {
+          "icon": "flash-outline",
+          "key": "benefitPosner3"
+        }
+      ]
+    },
+    "prl": {
+      "description": "prlIntroDesc",
+      "benefits": [
+        {
+          "icon": "trending-up-outline",
+          "key": "benefitPrl1"
+        },
+        {
+          "icon": "sync-outline",
+          "key": "benefitPrl2"
+        },
+        {
+          "icon": "analytics-outline",
+          "key": "benefitPrl3"
+        }
+      ]
+    },
+    "proofreading": {
+      "description": "proofreadingIntroDesc",
+      "benefits": [
+        {
+          "icon": "document-text-outline",
+          "key": "benefitProofreading1"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "benefitProofreading2"
+        },
+        {
+          "icon": "shield-checkmark-outline",
+          "key": "benefitProofreading3"
+        }
+      ]
+    },
+    "quick_count": {
+      "description": "quickCountIntroDesc",
+      "benefits": [
+        {
+          "icon": "flash-outline",
+          "key": "benefitQuickCount1"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "benefitQuickCount2"
+        },
+        {
+          "icon": "calculator-outline",
+          "key": "benefitQuickCount3"
+        }
+      ]
+    },
+    "reading_span": {
+      "description": "readingSpanIntroDesc",
+      "benefits": [
+        {
+          "icon": "book-outline",
+          "key": "benefitRs1"
+        },
+        {
+          "icon": "library-outline",
+          "key": "benefitRs2"
+        },
+        {
+          "icon": "sync-outline",
+          "key": "benefitRs3"
+        }
+      ]
+    },
+    "rmet": {
+      "description": "rmetIntroDesc",
+      "benefits": [
+        {
+          "icon": "eye-outline",
+          "key": "benefitRmet1"
+        },
+        {
+          "icon": "people-outline",
+          "key": "benefitRmet2"
+        },
+        {
+          "icon": "heart-circle-outline",
+          "key": "benefitRmet3"
+        }
+      ]
+    },
+    "schulte_table": {
+      "description": "schulteIntroDesc",
+      "benefits": [
+        {
+          "icon": "book-outline",
+          "key": "benefitSchulte1"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "benefitSchulte2"
+        },
+        {
+          "icon": "search-outline",
+          "key": "benefitSchulte3"
+        }
+      ]
+    },
+    "sdmt": {
+      "description": "sdmtIntroDesc",
+      "benefits": [
+        {
+          "icon": "flash-outline",
+          "key": "benefitSdmt1"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "benefitSdmt2"
+        },
+        {
+          "icon": "extension-puzzle-outline",
+          "key": "benefitSdmt3"
+        }
+      ]
+    },
+    "semantic_sort": {
+      "description": "semanticSortIntroDesc",
+      "benefits": [
+        {
+          "icon": "albums-outline",
+          "key": "benefitSort1"
+        },
+        {
+          "icon": "link-outline",
+          "key": "benefitSort2"
+        },
+        {
+          "icon": "speedometer-outline",
+          "key": "benefitSort3"
+        }
+      ]
+    },
+    "set_game": {
+      "description": "setGameIntroDesc",
+      "benefits": [
+        {
+          "icon": "eye-outline",
+          "key": "benefitSet1"
+        },
+        {
+          "icon": "layers-outline",
+          "key": "benefitSet2"
+        },
+        {
+          "icon": "shapes-outline",
+          "key": "benefitSet3"
+        }
+      ]
+    },
+    "simon": {
+      "description": "simonIntroDesc",
+      "benefits": [
+        {
+          "icon": "flash-outline",
+          "key": "benefitSi1"
+        },
+        {
+          "icon": "shield-checkmark-outline",
+          "key": "benefitSi2"
+        },
+        {
+          "icon": "speedometer-outline",
+          "key": "benefitSi3"
+        }
+      ]
+    },
+    "spatial_span": {
+      "description": "spatialSpanIntroDesc",
+      "benefits": [
+        {
+          "icon": "apps-outline",
+          "key": "benefitSs1"
+        },
+        {
+          "icon": "arrow-undo-outline",
+          "key": "benefitSs2"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "benefitSs3"
+        }
+      ]
+    },
+    "stop_signal": {
+      "description": "stopSignalIntroDesc",
+      "benefits": [
+        {
+          "icon": "hand-left-outline",
+          "key": "benefitStopSignal1"
+        },
+        {
+          "icon": "pause-circle-outline",
+          "key": "benefitStopSignal2"
+        },
+        {
+          "icon": "flash-off-outline",
+          "key": "benefitStopSignal3"
+        }
+      ]
+    },
+    "story_recall": {
+      "description": "storyIntroDesc",
+      "benefits": [
+        {
+          "icon": "book-outline",
+          "key": "benefitStory1"
+        },
+        {
+          "icon": "time-outline",
+          "key": "benefitStory2"
+        },
+        {
+          "icon": "briefcase-outline",
+          "key": "benefitStory3"
+        }
+      ]
+    },
+    "stroop": {
+      "description": "stroopIntroDesc",
+      "benefits": [
+        {
+          "icon": "eye-outline",
+          "key": "benefitStroop1"
+        },
+        {
+          "icon": "shuffle-outline",
+          "key": "benefitStroop2"
+        },
+        {
+          "icon": "bulb-outline",
+          "key": "benefitStroop3"
+        }
+      ]
+    },
+    "stroop_emotional": {
+      "description": "stroopEmotionalIntroDesc",
+      "benefits": [
+        {
+          "icon": "heart-dislike-outline",
+          "key": "benefitStroop2_1"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "benefitStroop2_2"
+        },
+        {
+          "icon": "shield-checkmark-outline",
+          "key": "benefitStroop2_3"
+        }
+      ]
+    },
+    "sudoku": {
+      "description": "sudokuIntroDesc",
+      "benefits": [
+        {
+          "icon": "extension-puzzle-outline",
+          "key": "benefitSudoku1"
+        },
+        {
+          "icon": "analytics-outline",
+          "key": "benefitSudoku2"
+        },
+        {
+          "icon": "pulse-outline",
+          "key": "benefitSudoku3"
+        }
+      ]
+    },
+    "switching_task": {
+      "description": "switchingTaskIntroDesc",
+      "benefits": [
+        {
+          "icon": "swap-horizontal-outline",
+          "key": "benefitSw1"
+        },
+        {
+          "icon": "speedometer-outline",
+          "key": "benefitSw2"
+        },
+        {
+          "icon": "shuffle-outline",
+          "key": "benefitSw3"
+        }
+      ]
+    },
+    "targets": {
+      "description": "targetsIntroDesc",
+      "benefits": [
+        {
+          "icon": "car-outline",
+          "key": "benefitTargets1"
+        },
+        {
+          "icon": "football-outline",
+          "key": "benefitTargets2"
+        },
+        {
+          "icon": "flash-outline",
+          "key": "benefitTargets3"
+        }
+      ]
+    },
+    "tower_london": {
+      "description": "towerLondonIntroDesc",
+      "benefits": [
+        {
+          "icon": "git-branch-outline",
+          "key": "benefitTol1"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "benefitTol2"
+        },
+        {
+          "icon": "extension-puzzle-outline",
+          "key": "benefitTol3"
+        }
+      ]
+    },
+    "trail_making": {
+      "description": "trailMakingIntroDesc",
+      "benefits": [
+        {
+          "icon": "swap-horizontal-outline",
+          "key": "benefitTrail1"
+        },
+        {
+          "icon": "flash-outline",
+          "key": "benefitTrail2"
+        },
+        {
+          "icon": "pulse-outline",
+          "key": "benefitTrail3"
+        }
+      ]
+    },
+    "visual_search": {
+      "description": "visualSearchIntroDesc",
+      "benefits": [
+        {
+          "icon": "eye-outline",
+          "key": "benefitVs1"
+        },
+        {
+          "icon": "scan-outline",
+          "key": "benefitVs2"
+        },
+        {
+          "icon": "speedometer-outline",
+          "key": "benefitVs3"
+        }
+      ]
+    },
+    "vocab_srs": {
+      "description": "vocabSrsIntroDesc",
+      "benefits": [
+        {
+          "icon": "trending-up-outline",
+          "key": "benefitVocab1"
+        },
+        {
+          "icon": "time-outline",
+          "key": "benefitVocab2"
+        },
+        {
+          "icon": "list-outline",
+          "key": "benefitVocab3"
+        }
+      ]
+    },
+    "water_sort": {
+      "description": "waterSortIntroDesc",
+      "benefits": [
+        {
+          "icon": "map-outline",
+          "key": "waterSortBenefitPlan"
+        },
+        {
+          "icon": "eye-outline",
+          "key": "waterSortBenefitHold"
+        },
+        {
+          "icon": "hourglass-outline",
+          "key": "waterSortBenefitPatience"
+        }
+      ]
+    },
+    "wcst": {
+      "description": "wcstIntroDesc",
+      "benefits": [
+        {
+          "icon": "shuffle-outline",
+          "key": "benefitWcst1"
+        },
+        {
+          "icon": "bulb-outline",
+          "key": "benefitWcst2"
+        },
+        {
+          "icon": "options-outline",
+          "key": "benefitWcst3"
+        }
+      ]
+    },
+    "word_pairs": {
+      "description": "wordPairsIntroDesc",
+      "benefits": [
+        {
+          "icon": "people-outline",
+          "key": "benefitWordPairs1"
+        },
+        {
+          "icon": "language-outline",
+          "key": "benefitWordPairs2"
+        },
+        {
+          "icon": "git-branch-outline",
+          "key": "benefitWordPairs3"
+        }
+      ]
+    }
+  }
+}
