@@ -230,6 +230,8 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
     _sessionLaunch = SessionLaunch.capture();
     _ladder = LevelLadder(gameId: 'number_run', store: SharedLevelStore(widget.state), sessionMode: 'levels');
     _ticker = createTicker(_tick);
+    // 3D-сцена грузится, пока человек на настройке: к «Старту» нет голубого экрана ожидания.
+    Road3d.prewarm().catchError((Object _) {});
     _boot();
   }
 
