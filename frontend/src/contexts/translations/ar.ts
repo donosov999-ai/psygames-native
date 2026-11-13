@@ -3848,5 +3848,6 @@ const t: Record<string, string> = {
   "sumMixedRuleChanges": "قد تتغير القاعدة في كل جولة",
   "dropModeDrag": "اسحب",
   "dropModeTap": "المس",
+  "dropInputLabel": "الإدخال",
 };
 export default t;

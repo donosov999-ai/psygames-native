@@ -3847,5 +3847,6 @@ const t: Record<string, string> = {
   "sumMixedRuleChanges": "라운드마다 규칙이 바뀔 수 있어요",
   "dropModeDrag": "끌기",
   "dropModeTap": "누르기",
+  "dropInputLabel": "입력",
 };
 export default t;

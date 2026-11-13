@@ -250,7 +250,7 @@ enum WcstOutcome { hit, miss }
 
 /// Партия.
 class WcstGame {
-  WcstGame({required this.level, this.classic = false, Random? rnd})
+  WcstGame({required this.level, this.classic = false, this.trialsOverride, Random? rnd})
       : params = WcstLevel.of(level),
         _rnd = rnd ?? Random();
 
@@ -259,10 +259,14 @@ class WcstGame {
   /// Классический режим: серия 10, доля разводящих классическая, лестница не
   /// трогается.
   final bool classic;
+
+  /// Число проб свободной классики (веб: селектор 20 / 40 / 60). Нет — берётся из уровня.
+  /// Только для классики: в уровневом режиме число проб — ось уровня.
+  final int? trialsOverride;
   final WcstLevel params;
   final Random _rnd;
 
-  int get trialsTotal => params.trials;
+  int get trialsTotal => classic ? (trialsOverride ?? params.trials) : params.trials;
   int get ruleStreak => classic ? wcstClassicStreak : params.ruleChangeStreak;
   double get discShare => classic ? classicDiscShare : params.discriminatingShare;
 
@@ -370,3 +374,26 @@ class WcstGame {
     return perseverative <= params.persevCap && hits >= (trialsTotal * 0.55).ceil();
   }
 }
+
+/// Поля партии для записи — как `saveSession` веба (`wcst.tsx`): `perseverative` — клиническая
+/// метрика, обязательна по схеме; среднее и число сдвигов пишутся вместе (среднее по одному сдвигу и
+/// по пяти — разные по надёжности числа). Уровень и условие — только в уровневом режиме: в классике
+/// колода канонная и одна на всех, условию неоткуда взяться.
+Map<String, Object?> wcstSessionDetails(WcstGame g) {
+  final rc = g.ruleCatch;
+  return {
+    'perseverative': g.perseverative,
+    'categories_completed': g.categories,
+    'rule_catch_trials': rc.trials,
+    'rule_catch_mean': rc.mean,
+    'rule_shifts_caught': rc.shifts,
+    'rule_shifts_total': g.shiftsTotal,
+    'hits': g.hits,
+    'n_trials': g.trialsTotal,
+    if (!g.classic) ...{'level': g.level, ...g.params.condition},
+  };
+}
+
+/// Звёзды за уровень — формула веба (`wcst.tsx`, проп `stars` у `LevelCleared`): по персеверациям,
+/// а не по общему числу ошибок — это главная мера пробы.
+int wcstStars(int perseverative) => perseverative == 0 ? 3 : (perseverative <= 2 ? 2 : 1);
