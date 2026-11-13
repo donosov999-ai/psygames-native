@@ -1,6 +1,20 @@
 {
  "entries": [
   {
+   "version": "2.71.0",
+   "date": "2026-11-13",
+   "en": [
+    "Hubs in three columns with large artwork; Classic rows show the artwork too",
+    "Make the Sum: Counter and Number Bonds are one game with Speed, Composition and Mixed modes",
+    "The round timer pauses while the mode sheet is open"
+   ],
+   "ru": [
+    "Разделы в три колонки с крупными картинками, в «Классике» — картинки в строках",
+    "«Собери сумму»: «Считалка» и «Числовые пары» — одна игра, режимы «Скорость», «Состав», «Вперемешку»",
+    "Таймер стоит, пока открыт выбор режима"
+   ]
+  },
+  {
    "version": "2.70.0",
    "date": "2026-11-13",
    "en": [
