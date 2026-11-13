@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/digit_span/model.dart';
 import 'package:psygames_flutter/games/digit_span/screen.dart';
+import 'package:psygames_flutter/shell/ability_wallet.dart';
 import 'package:psygames_flutter/shell/demo_lesson.dart';
 import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
@@ -217,6 +218,53 @@ void main() {
     expect(find.text(L.t('retry')), findsOneWidget);
     expect(sent.single['details']['correctRounds'], 0);
     expect(state.get(dsPersonalBestKey), isNull, reason: 'рекорд — только с первого уровня');
+  });
+
+  /// Партия «4, 4 верно → длина 5; 5, 5 ошибка → конец, уровень взят» — по экрану, как человек.
+  Future<void> playPassedRound(WidgetTester tester) async {
+    await tester.tap(find.byKey(const Key('ds-start')));
+    await tester.pump();
+    for (final wrong in [false, false, true, true]) {
+      final seen = await watch(tester);
+      await answer(tester, seen, wrong: wrong);
+      await tester.pump(const Duration(milliseconds: dsNextRowMs + 10));
+    }
+    await settle(tester);
+  }
+
+  String walletJson(int n) => jsonEncode({'nzt48': {'practice_run': n}});
+
+  testWidgets('🔴 пробный заход: заявлен до старта → уровень, отчёт, рекорд не тронуты, списана одна штука', (tester) async {
+    await boot(tester, level: 1, prefs: {AbilityWallet.key: walletJson(2)});
+    expect(find.byKey(const Key('practice-run-switch')), findsOneWidget, reason: 'переключатель на экране настройки');
+    expect(find.textContaining(L.f('abilityInWallet', {'n': '2'})), findsOneWidget, reason: 'остаток виден до траты');
+    await tester.tap(find.byKey(const Key('practice-run-switch')));
+    await tester.pump();
+    expect(find.text(L.t('abilityPracticeOn')), findsOneWidget);
+    await playPassedRound(tester);
+    expect(find.byKey(const Key('ds-again')), findsOneWidget, reason: 'партия дошла до конца');
+    expect(find.byKey(const Key('practice-run-spent')), findsOneWidget, reason: 'на итоге — «никуда не записана»');
+    expect(sent, isEmpty, reason: 'отчёта о партии нет');
+    expect(state.get('psygames_digit_span_level_nzt48'), '1', reason: 'уровень не поднят, хотя ряд пройден');
+    expect(state.get(dsPersonalBestKey), isNull, reason: 'рекорд не записан');
+    expect(AbilityWallet(state).count('practice_run'), 1, reason: 'списана ровно одна');
+  });
+
+  testWidgets('без пробного захода та же партия — зачётная: отчёт есть, уровень вырос, штуки целы', (tester) async {
+    await boot(tester, level: 1, prefs: {AbilityWallet.key: walletJson(2)});
+    await playPassedRound(tester);
+    expect(find.byKey(const Key('practice-run-spent')), findsNothing);
+    expect(sent, hasLength(1));
+    expect(AbilityWallet(state).count('practice_run'), 2);
+    expect(state.get('psygames_digit_span_level_nzt48'), '2', reason: 'уровень взят');
+  });
+
+  testWidgets('нет ни одной штуки — строки нет; в шаге зарядки её нет и с запасом', (tester) async {
+    await boot(tester, level: 1);
+    expect(find.byKey(const Key('practice-run-switch')), findsNothing, reason: 'нечего включать — настройки не удлиняем');
+    await tester.pumpWidget(const SizedBox());
+    await boot(tester, level: 1, preset: {'wu': '1'}, prefs: {AbilityWallet.key: walletJson(2)});
+    expect(find.byKey(const Key('practice-run-switch')), findsNothing, reason: 'шаг зарядки пробным не бывает');
   });
 
   testWidgets('🔴 «весь ряд разом»: ряд целиком, своя лестница, рекорд не пишется', (tester) async {
