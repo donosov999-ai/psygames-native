@@ -8,6 +8,7 @@ import 'level_ladder.dart';
 import 'shared_level_store.dart';
 import 'l10n.dart';
 import 'shared_state.dart';
+import 'suite_switch.dart';
 import 'web_theme.dart';
 
 /// РАЗВИЛКА (хаб) — ОБЩИЙ ЭКРАН НА ВСЕ РАЗДЕЛЫ.
@@ -224,6 +225,7 @@ String? hubIconFile(Map<String, dynamic> index, HubCard c) =>
 class _HubScreenState extends State<HubScreen> {
   List<HubCard>? _cards;
   Map<String, dynamic> _icons = const {};
+  List<GameSuite> _suites = const [];
   String _title = '';
   String _desc = '';
   String _footnote = '';
@@ -399,6 +401,9 @@ class _HubScreenState extends State<HubScreen> {
       await ladder.load();
       _levels[c.route] = ladder.level;
     }
+    // Наборы игр: карточка набора называет свои режимы, иначе за «Решения» не видно ни PRL, ни
+    // Iowa, ни BART (отчёт 13.11: BART в «Конфликте внимания» не нашли).
+    final suites = await GameSuites.load();
     Catalog? catalog;
     try {
       catalog = await Catalog.load();
@@ -417,12 +422,44 @@ class _HubScreenState extends State<HubScreen> {
     setState(() {
       _cards = cards;
       _catalog = catalog;
+      _suites = suites;
       _icons = icons;
       _title = tr('titleKey', meta?['title'] as String?);
       _desc = tr('descKey', meta?['desc'] as String?);
       _footnote = tr('footnoteKey', meta?['footnote'] as String?);
       _pick = tr('pickKey', j['pick'] as String? ?? _pick);
     });
+  }
+
+  /// Подпись карточки. У карточки набора ([GameSuites]) вторая строка — ЕГО РЕЖИМЫ («Правило
+  /// меняется · Четыре колоды · Надувай шар»): карточка одна на набор, и без списка не видно, что
+  /// внутри есть ещё игры. Режимы — только открытые профилю; меньше двух — как у обычной карточки.
+  Widget _subtitle(HubCard c, ColorScheme scheme) {
+    final text = [
+      if ((c.type ?? '').isNotEmpty) c.type!,
+      if (c.desc.isNotEmpty) c.desc,
+    ].join(' · ');
+    final suite = GameSuites.of(c.route, _suites);
+    final modes = suite == null ? const <SuiteMode>[] : GameSuites.openModes(widget.state, suite);
+    if (modes.length < 2) {
+      // ⚠️ ДВЕ СТРОКИ, А НЕ СКОЛЬКО ВЫЙДЕТ. На снимке описания растягивали карточку на четыре
+      // строки, и в экран помещалось три с половиной карточки из восьми — то есть развилка
+      // перестала показывать выбор.
+      return Text(text, maxLines: 2, overflow: TextOverflow.ellipsis);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (text.isNotEmpty) Text(text, maxLines: 1, overflow: TextOverflow.ellipsis),
+        Text(
+          modes.map((m) => L.t(m.labelKey)).join(' · '),
+          key: ValueKey('hub-modes-${c.route}'),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: scheme.primary),
+        ),
+      ],
+    );
   }
 
   CatalogEntry? _entry(HubCard c) {
@@ -572,18 +609,7 @@ class _HubScreenState extends State<HubScreen> {
                           ),
                       },
                       title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w700)),
-                      subtitle: Text(
-                        [
-                          if ((c.type ?? '').isNotEmpty) c.type!,
-                          if (c.desc.isNotEmpty) c.desc,
-                        ].join(' · '),
-                        // ⚠️ ДВЕ СТРОКИ, А НЕ СКОЛЬКО ВЫЙДЕТ. На снимке описания
-                        // растягивали карточку на четыре строки, и в экран
-                        // помещалось три с половиной карточки из восьми — то есть
-                        // развилка перестала показывать выбор.
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      subtitle: _subtitle(c, scheme),
                       trailing: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.end,

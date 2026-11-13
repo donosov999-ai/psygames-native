@@ -400,6 +400,31 @@ class Road3d extends StatefulWidget {
 
   static bool _failed = false;
 
+  /// 🔴 13.11.2026, Денис: «запускается через голубой экран». Сцена при каждом старте грузила движок,
+  /// цифры и 12 моделей окружения ПО ОЧЕРЕДИ, а экран всё это время был заливкой воды. Теперь всё
+  /// грузится ОДИН раз за жизнь приложения, модели — параллельно, и начинается заранее: экран забега
+  /// зовёт [prewarm] ещё на настройке, к «Старту» сцене остаётся только собрать узлы.
+  static Future<void>? _warm;
+  static Future<void> prewarm() {
+    if (!available) return Future.value();
+    return _warm ??= () async {
+      await Scene.initializeStaticResources();
+      await RunnerNumerals.load();
+      await envModels();
+    }();
+  }
+
+  static const _envNames = [
+    'pillar-stone', 'lantern', 'tree-high-round', 'flag-banner-long', 'tower-square-arch', 'tree-large', //
+    'flower_purpleA', 'flower_purpleB', 'flower_redA', 'plant_bushLarge', 'plant_bushDetailed', 'cliff_waterfall_stone',
+  ];
+  static Future<Map<String, Node>>? _env;
+  /// Модели окружения — общие на все партии (в сцене живут их клоны).
+  static Future<Map<String, Node>> envModels() => _env ??= () async {
+    final nodes = await Future.wait(_envNames.map((n) => Node.fromGlbAsset('assets/number_run/env/$n.glb')));
+    return Map.fromIterables(_envNames, nodes);
+  }();
+
   @override
   State<Road3d> createState() => _Road3dState();
 }
@@ -505,7 +530,7 @@ class _Road3dState extends State<Road3d> {
 
   Future<void> _init() async {
     try {
-      await Scene.initializeStaticResources();
+      await Road3d.prewarm();
       _numerals = await RunnerNumerals.load();
     } catch (e) {
       Road3d._failed = true;
@@ -594,14 +619,7 @@ class _Road3dState extends State<Road3d> {
   /// фонари и клумбы; дальше — острова с деревьями и аркой; у горизонта — скалы с водопадом.
   /// Модели — Kenney Castle/Fantasy Town/Nature Kit (CC0, `assets/number_run/env/LICENSE-*`).
   Future<void> _loadEnvironment() async {
-    Future<Node> glb(String n) => Node.fromGlbAsset('assets/number_run/env/$n.glb');
-    final m = <String, Node>{
-      for (final n in const [
-        'pillar-stone', 'lantern', 'tree-high-round', 'flag-banner-long', 'tower-square-arch', 'tree-large', //
-        'flower_purpleA', 'flower_purpleB', 'flower_redA', 'plant_bushLarge', 'plant_bushDetailed', 'cliff_waterfall_stone',
-      ])
-        n: await glb(n),
-    };
+    final m = await Road3d.envModels();
     Node put(String n, double scale, double x, double y, double z, {double yaw = 0}) => m[n]!.clone()
       ..scale = vm.Vector3.all(scale)
       ..position = vm.Vector3(x, y, z)

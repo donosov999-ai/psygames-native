@@ -2009,6 +2009,7 @@ const translations: Translations = {
   suiteModeSimon:     { ru: 'Позиция',                   en: 'Position' },
   suiteModeChoice:    { ru: 'Выбор',                     en: 'Choice' },
   suiteModeAnt:       { ru: 'Подсказка',                 en: 'Cue' },
+  suiteGameLabel:     { ru: 'Игра',                      en: 'Game' },
   suiteModeVigilance: { ru: 'Редкая цель',               en: 'Rare target' },
   suiteModeSwitch:    { ru: 'Смена правил',              en: 'Rule switch' },
   /**

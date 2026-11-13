@@ -963,6 +963,7 @@ const t: Record<string, string> = {
   "suiteModeSimon": "Posizione",
   "suiteModeChoice": "Scelta",
   "suiteModeAnt": "Indizio",
+  "suiteGameLabel": "Gioco",
   "suiteModeVigilance": "Bersaglio raro",
   "suiteModeSwitch": "Cambio di regola",
   "attentionConflictFootnote": "Un solo tema: tenere la regola mentre tutto spinge a rispondere altrimenti. L’interferenza cambia forma — un tratto che contraddice, un movimento pronto da frenare, un’abitudine che costa — e ogni paradigma tiene la propria misura.",

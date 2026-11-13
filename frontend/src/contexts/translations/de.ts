@@ -609,6 +609,7 @@ const t: Record<string, string> = {
   "suiteModeSimon": "Position",
   "suiteModeChoice": "Auswahl",
   "suiteModeAnt": "Hinweis",
+  "suiteGameLabel": "Spiel",
   "suiteModeVigilance": "Seltenes Ziel",
   "suiteModeSwitch": "Regelwechsel",
   "attentionConflictFootnote": "Ein Thema: die Regel halten, während alles zur anderen Antwort drängt. Die Störung hat viele Formen — ein widersprechendes Merkmal, eine verbotene fertige Bewegung, eine teure Gewohnheit — und jedes Paradigma führt sein eigenes Maß.",

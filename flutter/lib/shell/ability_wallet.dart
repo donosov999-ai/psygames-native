@@ -25,6 +25,7 @@ class AbilityWallet {
   /// Имена способностей — `AbilityId` веба дословно.
   static const secondLife = 'second_life';
   static const sudokuHint = 'sudoku_hint';
+  static const practiceRun = 'practice_run';
 
   Map<String, Object?> _read() {
     try {
