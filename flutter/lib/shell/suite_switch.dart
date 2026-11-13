@@ -150,7 +150,9 @@ class _SuiteSwitchState extends State<SuiteSwitch> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(L.t(suite.titleKey), style: Theme.of(context).textTheme.labelLarge),
+          // «Игра», а не название набора: на настройке рядом идёт своя строка «Режим» (Уровни / Свободно),
+          // и два выбора под одним словом путались (Денис 13.11, настройки PRL: выбора PRL · Iowa · BART не нашёл).
+          Text(L.t('suiteGameLabel'), key: const Key('suite-game-label'), style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 6),
           Wrap(
             alignment: WrapAlignment.center,

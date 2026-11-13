@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/inhibition/model.dart';
 import 'package:psygames_flutter/games/inhibition/screen.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -271,5 +272,57 @@ void main() {
         await tester.pump(const Duration(milliseconds: 50));
       }
     });
+  });
+  testWidgets('🔴 «Торможение»: на настройке выбор парадигмы — Go/No-Go, Стоп-сигнал, Микс (задача 3667c6d2)', (tester) async {
+    // Без выбора игра всегда шла как Go/No-Go, а «Стоп-сигнал» и «Микс» веба были недостижимы.
+    await tester.pumpWidget(MaterialApp(home: InhibitionScreen(state: state, rnd: Random(2))));
+    await tester.pumpAndSettle();
+    for (final m in ['go_no_go', 'stop_signal', 'mixed']) {
+      expect(find.byKey(Key('inhibition-mode-$m')), findsOneWidget, reason: 'нет плашки парадигмы $m');
+    }
+    expect(tester.widget<ChoiceChip>(find.byKey(const Key('inhibition-mode-go_no_go'))).selected, isTrue);
+    expect(find.text(L.t('inhibitionGngHint')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('inhibition-mode-stop_signal')));
+    await tester.pumpAndSettle();
+    expect(tester.widget<ChoiceChip>(find.byKey(const Key('inhibition-mode-stop_signal'))).selected, isTrue);
+    expect(find.text(L.t('inhibitionSsHint')), findsOneWidget, reason: 'правило не сменилось вместе с парадигмой');
+    final params = (find.byKey(const Key('inhibition-params')).evaluate().first.widget as Text).data!;
+    expect(params.contains('${InhibitionLevel.of(1).ssdMs}'), isTrue, reason: 'у стоп-сигнала своя строка параметров: $params');
+
+    await tester.tap(find.byKey(const Key('inhibition-mode-mixed')));
+    await tester.pumpAndSettle();
+    expect(find.text(L.t('inhibitionMixedHint')), findsOneWidget);
+    // Выбранная парадигма доезжает в партию: в миксе первой пробой идёт либо Go/No-Go, либо стоп-сигнал,
+    // а не всегда Go/No-Go — достаточно, что партия стартует и плашки уходят.
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    expect(find.byKey(const Key('inhibition-mode-mixed')), findsNothing, reason: 'в партии выбор парадигмы не показывается');
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  for (final (param, hintKey) in [
+    ('stop_signal', 'inhibitionSsHint'),
+    ('mixed', 'inhibitionMixedHint'),
+    ('go_no_go', 'inhibitionGngHint'),
+  ]) {
+    testWidgets('?mode=$param из адреса выбирает парадигму на настройке', (tester) async {
+      GamePreset.set({'mode': param});
+      addTearDown(GamePreset.clear);
+      await tester.pumpWidget(MaterialApp(home: InhibitionScreen(state: state, rnd: Random(2))));
+      await tester.pumpAndSettle();
+      expect(tester.widget<ChoiceChip>(find.byKey(Key('inhibition-mode-$param'))).selected, isTrue,
+          reason: 'адрес ?mode=$param не выбрал парадигму');
+      expect(find.text(L.t(hintKey)), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
+  testWidgets('чужое имя в ?mode= — парадигма по умолчанию', (tester) async {
+    GamePreset.set({'mode': 'classic'});
+    addTearDown(GamePreset.clear);
+    await tester.pumpWidget(MaterialApp(home: InhibitionScreen(state: state, rnd: Random(2))));
+    await tester.pumpAndSettle();
+    expect(tester.widget<ChoiceChip>(find.byKey(const Key('inhibition-mode-go_no_go'))).selected, isTrue);
   });
 }

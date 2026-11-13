@@ -963,6 +963,7 @@ const t: Record<string, string> = {
   "suiteModeSimon": "الموضع",
   "suiteModeChoice": "الاختيار",
   "suiteModeAnt": "إشارة",
+  "suiteGameLabel": "اللعبة",
   "suiteModeVigilance": "هدف نادر",
   "suiteModeSwitch": "تبديل القاعدة",
   "attentionConflictFootnote": "موضوع واحد: أن تمسك بالقاعدة بينما يدفعك كل شيء إلى جواب آخر. التشويش يأتي بأشكال — سمة تناقض، حركة جاهزة يجب كبحها، عادة مكلفة — وكل نموذج يحفظ قياسه وحده.",

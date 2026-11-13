@@ -102,6 +102,7 @@ void main() {
       final s = await stateFor('nzt48');
       await open(tester, screens[route]!(s));
       expect(find.byKey(Key('suite-switch-${suite.id}')), findsOneWidget, reason: 'плашек набора нет на настройке');
+      expect(find.text(L.t('suiteGameLabel')), findsOneWidget, reason: 'подпись над плашками набора — «Игра»');
       for (final m in suite.modes) {
         expect(chip(m.route), findsOneWidget, reason: 'нет плашки режима ${m.route}');
       }
