@@ -16,7 +16,7 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
-    version: '3.0.0',
+    version: '2.60.0',
     date: '2026-11-13',
     en: [
       'Shared level result: stars, a win animation, the next level starts by itself',
