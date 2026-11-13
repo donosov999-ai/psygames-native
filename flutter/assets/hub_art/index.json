@@ -430,10 +430,6 @@
       "light": "assets/hub_art/light/math-sprint.webp",
       "dark": "assets/hub_art/dark/math-sprint.webp"
     },
-    "/games/number-bonds": {
-      "light": "assets/hub_art/light/number-bonds.webp",
-      "dark": "assets/hub_art/dark/number-bonds.webp"
-    },
     "/games/pattern": {
       "light": "assets/hub_art/light/patterns.webp",
       "dark": "assets/hub_art/dark/patterns.webp"
