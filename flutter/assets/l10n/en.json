@@ -621,6 +621,8 @@
 "facesNamesIntroDesc":"Associative memory: remember a procedural portrait, an exact name, and a fact about the person, then recall each part separately. This is the everyday failure “I know the face but not the name”: recognising a face and retrieving the word attached to it are different abilities, and the second one goes first.",
 "favouriteSections":"What you play most",
 "feedbackFabLabel":"Send feedback",
+"feedbackSendingProgress":"Sending… {n}s",
+"feedbackSendingSlow":"Uploading the screenshot and recording — usually up to 10 seconds. Please keep this open.",
 "field":"Field",
 "figAcorn":"Acorn",
 "figAnchor":"Anchor",

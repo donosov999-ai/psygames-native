@@ -621,6 +621,8 @@
 "facesNamesIntroDesc":"Memória associativa: memorize um retrato, o nome exato e um fato sobre a pessoa e depois recupere cada parte separadamente. É a falha do dia a dia «lembro do rosto, mas não do nome»: reconhecer um rosto e recuperar a palavra ligada a ele são capacidades diferentes, e a segunda cai primeiro.",
 "favouriteSections":"O que você mais joga",
 "feedbackFabLabel":"Enviar feedback",
+"feedbackSendingProgress":"Enviando… {n} s",
+"feedbackSendingSlow":"Enviando a captura de tela e a gravação — geralmente até 10 segundos. Não feche esta janela.",
 "field":"Campo",
 "figAcorn":"Bolota",
 "figAnchor":"Âncora",

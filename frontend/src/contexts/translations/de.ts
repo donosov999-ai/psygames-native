@@ -70,6 +70,8 @@ const t: Record<string, string> = {
   cloudPilotAgree: "Ich stimme zu, weiter zur Anmeldung",
   cloudPilotEmail: "E-Mail-Adresse",
   cloudPilotSend: "Anmeldelink senden",
+  feedbackSendingProgress: "Wird gesendet… {n} s",
+  feedbackSendingSlow: "Screenshot und Aufnahme werden hochgeladen – meist bis zu 10 Sekunden. Bitte nicht schließen.",
   cloudPilotLinkSent: "Anfrage angenommen. Öffne den Link aus der E-Mail auf diesem Gerät. Dein Fortschritt wird noch nicht hochgeladen.",
   cloudPilotHistory: "Wähle, welchen Verlauf du verwenden möchtest",
   cloudPilotHistoryHint: "Du kannst die Sicherung des lokalen Verlaufs aktivieren oder zuerst eine Cloud-Kopie ansehen. Bei Konflikten entscheidest du; Punktestände werden niemals addiert.",

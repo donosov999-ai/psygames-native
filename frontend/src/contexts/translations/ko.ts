@@ -69,6 +69,8 @@ const t: Record<string, string> = {
   cloudPilotAgree: "동의하고 로그인으로 이동",
   cloudPilotEmail: "이메일 주소",
   cloudPilotSend: "로그인 링크 보내기",
+  feedbackSendingProgress: "보내는 중… {n}초",
+  feedbackSendingSlow: "스크린샷과 녹음을 업로드하고 있어요. 보통 10초 정도 걸립니다. 창을 닫지 마세요.",
   cloudPilotLinkSent: "요청이 접수되었습니다. 이 기기에서 이메일의 링크를 열어 주세요. 진행 상황은 아직 업로드되지 않고 있습니다.",
   cloudPilotHistory: "사용할 기록 선택",
   cloudPilotHistoryHint: "기기에 있는 기록의 백업을 켜거나 먼저 클라우드 사본을 미리 볼 수 있습니다. 충돌이 있으면 직접 선택해야 하며, 포인트 잔액은 합산되지 않습니다.",

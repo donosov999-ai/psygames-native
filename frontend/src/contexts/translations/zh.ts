@@ -70,6 +70,8 @@ const t: Record<string, string> = {
   cloudPilotAgree: "我同意，继续登录",
   cloudPilotEmail: "电子邮箱地址",
   cloudPilotSend: "发送登录链接",
+  feedbackSendingProgress: "正在发送… {n} 秒",
+  feedbackSendingSlow: "正在上传截图和录音，通常需要 10 秒左右。请勿关闭此窗口。",
   cloudPilotLinkSent: "请求已受理。请在此设备上打开邮件中的链接。游戏进度尚未上传。",
   cloudPilotHistory: "选择要使用的历史记录",
   cloudPilotHistoryHint: "你可以开启本地历史记录备份，也可以先预览云端副本。如有冲突，需要由你选择；积分余额绝不会相加。",

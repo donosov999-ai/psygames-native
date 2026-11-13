@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -6,6 +7,7 @@ import 'package:flutter/rendering.dart';
 
 import 'game_clock.dart' show GameHoldScope;
 import 'ion_icon.dart';
+import 'l10n.dart';
 import 'screen_ui.dart';
 import 'web_theme.dart';
 
@@ -755,7 +757,73 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: web.border, width: 0.5)),
       ),
-      child: body,
+      // 🔴 Отзыв 0824bc32 (задача 2437d60a): отправка идёт 5–10 с, а видно было только
+      // крутилку на кнопке — «кажется зависшей». Пока идёт отправка, под кнопкой — полоса
+      // хода, счётчик секунд и (после 3 с) пояснение, что это нормально.
+      child: sending
+          ? Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              body,
+              _SendingProgress(color: _amber, text: web.textSecondary),
+            ])
+          : body,
     );
   }
+}
+
+/// Ход отправки отзыва: полоса, «Отправляем… N с», а с 3-й секунды — пояснение.
+/// Живёт ровно столько, сколько идёт отправка (виджет снимается вместе с флагом).
+class _SendingProgress extends StatefulWidget {
+  const _SendingProgress({required this.color, required this.text});
+  final Color color;
+  final Color text;
+  @override
+  State<_SendingProgress> createState() => _SendingProgressState();
+}
+
+class _SendingProgressState extends State<_SendingProgress> {
+  int _sec = 0;
+  Timer? _tick;
+
+  @override
+  void initState() {
+    super.initState();
+    _tick = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _sec++);
+    });
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    key: const ValueKey('feedback-sending-progress'),
+    padding: const EdgeInsets.only(top: 10),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 6,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(minHeight: 4, color: widget.color, backgroundColor: widget.color.withValues(alpha: .18)),
+        ),
+        Text(
+          L.t('feedbackSendingProgress').replaceAll('{n}', '$_sec'),
+          key: const ValueKey('feedback-sending-seconds'),
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: widget.text),
+        ),
+        if (_sec >= 3)
+          Text(
+            L.t('feedbackSendingSlow'),
+            key: const ValueKey('feedback-sending-slow'),
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, height: 16 / 12, color: widget.text),
+          ),
+      ],
+    ),
+  );
 }

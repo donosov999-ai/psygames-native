@@ -621,6 +621,8 @@
 "facesNamesIntroDesc":"연상 기억입니다. 초상과 정확한 이름, 그 사람에 대한 한 가지 사실을 외운 뒤 각각 따로 떠올립니다. 바로 «얼굴은 아는데 이름이 안 떠오른다»는 일상의 그 순간입니다. 얼굴을 알아보는 힘과 그 얼굴에 붙은 낱말을 꺼내는 힘은 다른 능력이고, 먼저 무너지는 쪽은 늘 뒤쪽입니다.",
 "favouriteSections":"가장 많이 하는 것",
 "feedbackFabLabel":"문제 알리기",
+"feedbackSendingProgress":"보내는 중… {n}초",
+"feedbackSendingSlow":"스크린샷과 녹음을 업로드하고 있어요. 보통 10초 정도 걸립니다. 창을 닫지 마세요.",
 "field":"게임판",
 "figAcorn":"도토리",
 "figAnchor":"닻",

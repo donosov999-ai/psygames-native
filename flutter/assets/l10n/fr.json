@@ -621,6 +621,8 @@
 "facesNamesIntroDesc":"Mémoire associative : retenez un portrait, le nom exact et un détail sur la personne, puis restituez chaque partie séparément. C'est le raté quotidien « je vois très bien le visage, mais le nom ne vient pas » : reconnaître un visage et retrouver le mot qui lui est attaché sont deux capacités distinctes, et c'est la seconde qui lâche en premier.",
 "favouriteSections":"Ce que tu joues le plus",
 "feedbackFabLabel":"Signaler un problème",
+"feedbackSendingProgress":"Envoi… {n} s",
+"feedbackSendingSlow":"Envoi de la capture d’écran et de l’enregistrement — généralement jusqu’à 10 secondes. Ne fermez pas cette fenêtre.",
 "field":"Plateau",
 "figAcorn":"Gland",
 "figAnchor":"Ancre",
