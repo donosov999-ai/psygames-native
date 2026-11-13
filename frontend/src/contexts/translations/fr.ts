@@ -181,7 +181,7 @@ const t: Record<string, string> = {
   "profileName_whatsnew": "Nouveautés",
   "profileDesc_whatsnew": "Nouveautés et refontes sur 3 mois",
   "profileName_free": "Standard",
-  "profileDesc_free": "12 exercices · une sélection pour démarrer",
+  "profileDesc_free": "13 exercices · une sélection pour démarrer",
   "profileName_drivers": "Réaction",
   "profileDesc_drivers": "Décisions en une fraction de seconde · quand l'erreur coûte une vie",
   "profileName_seniors": "Esprit actif 50+",
@@ -1802,6 +1802,7 @@ const t: Record<string, string> = {
   "classicLabel": "Classique",
   "schulteDividedHint": "Plusieurs compteurs indépendants à la fois, distingués par couleur — cherche-les à tour de rôle",
   "schulteMoving": "Cible fuyante",
+  "schulteGorbov": "Schulte–Gorbov",
   "schulteMovingHint": "Après chaque clic juste, la grille se remélange — impossible de mémoriser les positions",
   "schulteShare": "J’ai bouclé une table de Schulte {g}×{g} en {t}s sur PsyGames — fais mieux !",
   "patternClassArithmetic": "Suite arithmétique",
@@ -3844,5 +3845,7 @@ const t: Record<string, string> = {
   "sumRuleSpeedSub": "Touche ou glisse sur les nombres : atteins la somme avant la fin du temps",
   "sumRuleCompSub": "Compose la cible avec les jetons puis appuie sur « Vérifier »",
   "sumMixedRuleChanges": "La règle peut changer à chaque manche",
+  "dropModeDrag": "Glisser",
+  "dropModeTap": "Toucher",
 };
 export default t;

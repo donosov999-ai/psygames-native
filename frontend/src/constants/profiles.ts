@@ -476,7 +476,7 @@ const FREE: ProfileDef = {
   display_name: 'Стандарт',
   emoji: '🎁',
   color: '#f59e0b',
-  description: '12 тренажёров · подобранный набор для старта',
+  description: '13 тренажёров · подобранный набор для старта',
   long_description: 'Набор для старта. По одному тренажёру из каждой категории: Шульте (внимание), Парные картинки (память), Мишени (реакция), Математический спринт + Считалка, Поиск отличий, Анаграммы, Ханойская башня, Сортировка товаров, N-back (рабочая память — облегчённая), Детский мат и Прокладывание пути. Двенадцать — это осознанный размер: полный каталог в первый день не помогает, а отпугивает. Последние две добавлены 06.09.2026, чтобы стартовому набору были видны развилки «Шахматы» и «Маршруты» — просьба Дениса «добавить во все профили». Остальные профили — такие же подборки под конкретную задачу.',
   long_description_en: 'The starter set. One trainer from each category: Schulte tables (attention), Picture Pairs (memory), Targets (reaction), Math Sprint + Counter, Spot the Difference, Anagrams, Tower of Hanoi, Goods Sort, N-back (working memory — light version), the Scholar\'s Mate drill and Trail Making. Themed profiles are similar sets built for a specific goal.',
   audience: 'Знакомство с приложением',

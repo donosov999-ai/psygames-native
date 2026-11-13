@@ -11,6 +11,7 @@ import '../../shell/js_compat.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
@@ -183,17 +184,6 @@ class _NavigatorScreenState extends State<NavigatorScreen> with WidgetsBindingOb
         auxRow: AuxBar(children: [
           AuxAction(inPause: true, icon: Icons.refresh, label: s.t('restart'), onPressed: done ? null : _restart),
         ]),
-        toolbar: done
-            ? Padding(
-                padding: const EdgeInsets.all(12),
-                child: FilledButton.icon(
-                  key: const Key('nav-next'),
-                  onPressed: () => setState(_deal),
-                  icon: Icon(_passed ? Icons.arrow_forward : Icons.replay),
-                  label: Text(_passed ? L.t('nextLabel') : L.t('retry')),
-                ),
-              )
-            : null,
         pauseActions: [
           PauseAction(label: s.t('restart'), icon: Icons.refresh, onPressed: _restart),
         ],
@@ -240,12 +230,19 @@ class _NavigatorScreenState extends State<NavigatorScreen> with WidgetsBindingOb
           ),
         ]);
       case NavigatorPhase.result:
+        // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход — к правилам следующей
+        // партии (уровень уже следующий после победы), как раньше вела кнопка; вид задания — в подробностях.
         final m = session.result!;
-        return _CardView(children: [
-          _Heading(_passed ? L.f('levelDone', {'n': '$_level'}) : s.mode(m.mode)),
-          Text('${L.t('score')}: ${m.score}', key: const Key('nav-score'), textAlign: TextAlign.center),
-          Text('${L.t('errors')}: ${m.errors}', textAlign: TextAlign.center),
-        ]);
+        return SizedBox(
+          height: h,
+          child: LevelResult(
+            passed: _passed,
+            level: _level,
+            score: '${L.t('score')}: ${m.score} · ${L.t('errors')}: ${m.errors}',
+            details: Text(s.mode(m.mode), textAlign: TextAlign.center),
+            onNext: () => setState(_deal),
+          ),
+        );
       case NavigatorPhase.disposed:
         return const SizedBox.shrink();
       case NavigatorPhase.study:

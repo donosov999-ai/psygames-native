@@ -13,6 +13,7 @@ import '../../shell/l10n.dart';
 import '../../shell/js_compat.dart' show Rng, createRng;
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/suite_switch.dart' show SuiteModeAction;
@@ -69,6 +70,9 @@ class _SumMixedScreenState extends State<SumMixedScreen> {
   bool? _right;
   bool _won = false;
   bool? _boss;
+
+  /// Уровень, который играется в этой партии: после победы лестница уже на следующем.
+  int _levelPlayed = 1;
   bool _ready = false;
   _Phase _phase = _Phase.banner;
   int _leftMs = 0;
@@ -107,6 +111,7 @@ class _SumMixedScreenState extends State<SumMixedScreen> {
     _tick?.cancel();
     _next?.cancel();
     _clear?.cancel();
+    _levelPlayed = _ladder.level;
     _cfg = mixedLevelParams(_ladder.level);
     _rules = dealRules(_cfg.rounds, _rng);
     _round = 1;
@@ -313,6 +318,7 @@ class _SumMixedScreenState extends State<SumMixedScreen> {
         HudItem(label: L.t('errors'), value: '$_errors', icon: Icons.error_outline),
       ],
       field: (context, h) {
+        if (_phase == _Phase.result) return SizedBox(height: h, child: _result());
         if (_phase == _Phase.banner) return _RuleBanner(rule: _rule, name: _ruleName(_rule));
         if (_rule == SumRule.speed) {
           final c = deal.speed!;
@@ -354,36 +360,25 @@ class _SumMixedScreenState extends State<SumMixedScreen> {
         ),
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
-      toolbar: _toolbar(context),
+      toolbar: _phase == _Phase.result ? null : _toolbar(context),
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
     );
   }
 
+  /// Итог — общий каркаса ([LevelResult]): автопереход — сразу новая партия (после победы лестница уже
+  /// на следующем уровне).
+  Widget _result() => LevelResult(
+        passed: _won,
+        level: _levelPlayed,
+        score: '$_hits/${_cfg.rounds} · ${L.t('errors')} $_errors · ${L.t('hud_missed')} $_timeouts',
+        details: BossOutcomeLine(_boss),
+        onNext: () => setState(_reset),
+      );
+
   Widget _toolbar(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    if (_phase == _Phase.result) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(
-            '$_hits/${_cfg.rounds} · ${L.t('errors')} $_errors · ${L.t('hud_missed')} $_timeouts',
-            key: const Key('result'),
-            textAlign: TextAlign.center,
-            style: text.titleMedium,
-          ),
-          BossOutcomeLine(_boss),
-          const SizedBox(height: 8),
-          FilledButton.icon(
-            key: const Key('next'),
-            onPressed: () => setState(_reset),
-            icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-            label: Text(_won ? L.t('nextLabel') : L.t('retry')),
-          ),
-        ]),
-      );
-    }
     if (_rule == SumRule.composition) {
       return Padding(
         padding: const EdgeInsets.all(12),

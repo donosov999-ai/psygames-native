@@ -141,13 +141,13 @@ void main() {
 
   testWidgets('🔴 партия доигрывается нажатиями до победы, и ступень растёт', (tester) async {
     await boot(tester);
-    expect(find.byKey(const Key('next')), findsNothing);
+    expect(find.byKey(const Key('level-result-next')), findsNothing);
 
     for (var r = 0; r < 6; r++) {
       await reveal(tester, r, first.board.solution[r]);
     }
 
-    expect(find.byKey(const Key('next')), findsOneWidget, reason: 'победа видна человеку');
+    expect(find.byKey(const Key('level-result-next')), findsOneWidget, reason: 'победа видна человеку');
     await tester.pump(const Duration(milliseconds: 50));
     expect(state.get('${SharedState.prefix}cats_level_nzt48'), '2',
         reason: 'ступень записана в общую память');
@@ -164,7 +164,7 @@ void main() {
       }
     }
 
-    expect(find.byKey(const Key('next')), findsOneWidget, reason: 'партия кончилась');
+    expect(find.byKey(const Key('level-result-next')), findsOneWidget, reason: 'партия кончилась');
     await tester.pump(const Duration(milliseconds: 50));
     // 🔴 НОМЕР ПОПЫТКИ ВХОДИТ В ЗЕРНО — тот же приём, что вернул судоку новую доску
     // после проигрыша (решение Дениса 23.09). Без него человек получал бы ту же самую.

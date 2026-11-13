@@ -763,7 +763,7 @@ const t: Record<string, string> = {
   "profileName_whatsnew": "新上线",
   "profileDesc_whatsnew": "近三个月的新增与改版",
   "profileName_free": "标准",
-  "profileDesc_free": "12 项训练 · 为入门精选的一组",
+  "profileDesc_free": "13 项训练 · 为入门精选的一组",
   "profileName_drivers": "反应",
   "profileDesc_drivers": "瞬间决策 · 当失误的代价是生命",
   "profileName_seniors": "50+ 活跃思维",
@@ -1668,6 +1668,7 @@ const t: Record<string, string> = {
   "classicLabel": "经典",
   "schulteDividedHint": "同时数条独立计数线，用颜色区分——轮流寻找",
   "schulteMoving": "移动目标",
+  "schulteGorbov": "舒尔特–戈尔博夫",
   "schulteMovingHint": "每次点对后棋盘重新洗牌——无法靠记位置",
   "schulteShare": "我在 PsyGames 用 {t}秒 完成了 {g}×{g} 舒尔特方格——来超越我！",
   "patternClassArithmetic": "等差数列",
@@ -3849,5 +3850,7 @@ const t: Record<string, string> = {
   "sumRuleSpeedSub": "点按或滑过数字：在时间用完前凑出目标和",
   "sumRuleCompSub": "用筹码拼出目标，然后点“检查”",
   "sumMixedRuleChanges": "每一轮的规则都可能改变",
+  "dropModeDrag": "拖动",
+  "dropModeTap": "点按",
 };
 export default t;

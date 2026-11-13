@@ -136,7 +136,7 @@ void main() {
       endsWith('${deck.length}/${deck.length}'),
     );
     final next = find.descendant(
-      of: find.byKey(const Key('sm-next')),
+      of: find.byKey(const Key('level-result-next')),
       matching: find.byType(Text),
     );
     expect(

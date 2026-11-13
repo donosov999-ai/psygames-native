@@ -763,7 +763,7 @@ const t: Record<string, string> = {
   "profileName_whatsnew": "Neuheiten",
   "profileDesc_whatsnew": "Neu und überarbeitet in 3 Monaten",
   "profileName_free": "Standard",
-  "profileDesc_free": "12 Trainer · ein kuratiertes Set für den Start",
+  "profileDesc_free": "13 Trainer · ein kuratiertes Set für den Start",
   "profileName_drivers": "Reaktion",
   "profileDesc_drivers": "Entscheidungen in Sekundenbruchteilen · wenn ein Fehler das Leben kostet",
   "profileName_seniors": "Aktiver Geist 50+",
@@ -1668,6 +1668,7 @@ const t: Record<string, string> = {
   "classicLabel": "Klassik",
   "schulteDividedHint": "Mehrere eigene Zähler gleichzeitig, farblich getrennt — such sie reihum",
   "schulteMoving": "Flüchtiges Ziel",
+  "schulteGorbov": "Schulte–Gorbow",
   "schulteMovingHint": "Nach jedem richtigen Klick mischt sich das Gitter neu — Positionen merken zwecklos",
   "schulteShare": "Ich habe eine {g}×{g}-Schulte-Tabelle in {t}s auf PsyGames geschafft — überbiete das!",
   "patternClassArithmetic": "Arithmetische Folge",
@@ -3849,5 +3850,7 @@ const t: Record<string, string> = {
   "sumRuleSpeedSub": "Tippe oder wische über die Zahlen: erreiche die Zielsumme, bevor die Zeit abläuft",
   "sumRuleCompSub": "Setze das Ziel aus den Chips zusammen und drücke „Prüfen“",
   "sumMixedRuleChanges": "Die Regel kann sich von Runde zu Runde ändern",
+  "dropModeDrag": "Ziehen",
+  "dropModeTap": "Tippen",
 };
 export default t;

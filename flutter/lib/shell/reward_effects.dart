@@ -8,16 +8,19 @@ const rewardEffectsPilot = bool.fromEnvironment('PSYGAMES_REWARD_EFFECTS', defau
 
 /// Presentation of an already confirmed level-up. Never awards anything.
 class RewardStar extends StatelessWidget {
-  const RewardStar({super.key});
+  const RewardStar({super.key, this.enabled = rewardEffectsPilot, this.size = 56});
+
+  /// Итог уровня ([LevelResult]) включает звезду у всех игр, остальные места — по флагу пилота.
+  final bool enabled;
+  final double size;
   @override
   Widget build(BuildContext context) {
-    if (!rewardEffectsPilot || MediaQuery.disableAnimationsOf(context)) {
-      return const Text('⭐', style: TextStyle(fontSize: 40));
-    }
+    final still = Text('⭐', style: TextStyle(fontSize: size * .72));
+    if (!enabled || MediaQuery.disableAnimationsOf(context)) return still;
     return ExcludeSemantics(child: Lottie.asset(
       'assets/animation_pilot/reward_star.json', key: const ValueKey('reward-lottie'),
-      width: 56, height: 56, repeat: false,
-      errorBuilder: (_, _, _) => const Text('⭐', style: TextStyle(fontSize: 40)),
+      width: size, height: size, repeat: false,
+      errorBuilder: (_, _, _) => still,
     ));
   }
 }

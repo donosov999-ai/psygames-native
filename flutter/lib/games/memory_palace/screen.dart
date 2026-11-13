@@ -33,6 +33,7 @@ import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/resume_store.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -408,20 +409,23 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> with WidgetsBin
           ]),
         );
       case MemoryPalacePhase.result:
+        // Итог — общий каркаса ([LevelResult], задача e90a53d5): «дальше» сразу начинает новый круг
+        // (раньше кнопка уводила на экран правил), точность опроса в обе стороны — в подробностях.
         final m = s.result!;
         return _Pad(
           height: h,
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(m.passed ? Icons.emoji_events_outlined : Icons.replay_outlined,
-                size: 44, color: m.passed ? scheme.primary : scheme.onSurfaceVariant),
-            const SizedBox(height: 8),
-            Text(m.passed ? L.f('levelDone', {'n': '${m.level}'}) : L.t('retry'),
-                style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
-            const SizedBox(height: 8),
-            Text('${c.s(L.locale, 'recallForward')}: ${(m.forwardLocationAccuracy * m.lociCount).round()}/${m.lociCount}'),
-            Text('${c.s(L.locale, 'recallReverse')}: ${(m.reverseLocationAccuracy * m.lociCount).round()}/${m.lociCount}'),
-            Text('${L.t('score')}: ${m.score}', style: const TextStyle(fontWeight: FontWeight.w700)),
-          ]),
+          child: LevelResult(
+            passed: m.passed,
+            level: m.level,
+            score: '${L.t('score')}: ${m.score}',
+            details: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text('${c.s(L.locale, 'recallForward')}: ${(m.forwardLocationAccuracy * m.lociCount).round()}/${m.lociCount}',
+                  textAlign: TextAlign.center),
+              Text('${c.s(L.locale, 'recallReverse')}: ${(m.reverseLocationAccuracy * m.lociCount).round()}/${m.lociCount}',
+                  textAlign: TextAlign.center),
+            ]),
+            onNext: _restart,
+          ),
         );
       default:
         return const SizedBox.shrink();
@@ -553,13 +557,6 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> with WidgetsBin
           onPressed: () => _act(s.continueToReverse),
           icon: const Icon(Icons.arrow_forward),
           label: Text(c.s(L.locale, 'recallReverse')),
-        ));
-      case MemoryPalacePhase.result:
-        return bar(FilledButton.icon(
-          key: const ValueKey('mp-again'),
-          onPressed: () => setState(_newRound),
-          icon: const Icon(Icons.arrow_forward),
-          label: Text(s.result!.passed ? L.t('nextLabel') : L.t('retry')),
         ));
       default:
         return null;

@@ -44,6 +44,12 @@ import {
   type DigitSpanLocale,
 } from '@/src/games/digit-span/core/i18n';
 
+/**
+ * Пауза между цифрами на уровне 1 личной игры — `levelParams(1).gapMs` (13.11.2026: мягкий старт, было 1100;
+ * значение закреплено пробой digit-span-ladder-grows). Шаг зарядки (`wu: '1'`) идёт по темпу ступени, там 1100.
+ */
+const L1_GAP = 1350;
+
 declare const __dirname: string;
 declare function require(m: string): any;
 const { readFileSync } = require('fs');
@@ -459,7 +465,7 @@ describe('охват и рекорд видно по ходу партии', () 
       expect(`старт: ${g.textOf('ds-span-record')}`).toContain('0');
       expect(`старт: ${g.textOf('ds-span-record')}`).toContain('3');
 
-      const shown = await watchDigits(g, 4, 1100);
+      const shown = await watchDigits(g, 4, L1_GAP);
       await g.type([...shown].join(''));
       expect(`ответ: ${verdict(g)}`).toBe('ответ: right');
 
@@ -584,13 +590,13 @@ describe('темп показа — рычаг только свободной �
   });
 
   it('🔴 в личной игре по уровням тот же рычаг не меняет ничего', async () => {
-    // Уровень 1 — это 1100 мс на цифру: 4400+400 > 3400, в окно быстрого не влезает.
+    // Уровень 1 — это L1_GAP мс на цифру: 5400+400 > 3400, в окно быстрого не влезает.
     expect(`уровень с «быстрым» рычагом: ${await reachesInputWithin({ pace: 'fast' }, WINDOW)}`)
       .toBe('уровень с «быстрым» рычагом: false');
     expect(`уровень со «медленным» рычагом: ${await reachesInputWithin({ pace: 'slow' }, WINDOW)}`)
       .toBe('уровень со «медленным» рычагом: false');
     // обе партии одинаковы: доходят до ввода ровно на своём, уровневом темпе
-    expect(`уровень дошёл на своём темпе: ${await reachesInputWithin({ pace: 'fast' }, 5000)}`)
+    expect(`уровень дошёл на своём темпе: ${await reachesInputWithin({ pace: 'fast' }, L1_GAP * 4 + 700)}`)
       .toBe('уровень дошёл на своём темпе: true');
   });
 

@@ -14,6 +14,7 @@ import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -64,6 +65,9 @@ class _MahjongScreenState extends State<MahjongScreen> {
   int _undosUsed = 0;
   bool _won = false;
   Timer? _blockersTimer;
+
+  /// Уровень раздачи — для итога: после победы лестница уже на следующем.
+  int _levelPlayed = 1;
 
   /// Время на доску этого уровня, секунд; `null` — лимита нет (до 29-го или тихий шаг).
   double? _limitSec;
@@ -122,6 +126,7 @@ class _MahjongScreenState extends State<MahjongScreen> {
     _shufflesUsed = 0;
     _undosUsed = 0;
     _won = false;
+    _levelPlayed = _ladder.level;
     _clock?.cancel();
     _clock = null;
     _startedAt = null;
@@ -351,16 +356,30 @@ class _MahjongScreenState extends State<MahjongScreen> {
             icon: Icons.timer_outlined,
           ),
       ],
-      field: (context, h) => MahjongBoard(
-        tiles: _tiles,
-        alive: _alive,
-        selected: _selected,
-        blockers: _blockers,
-        hidden: _hidden,
-        won: _won,
-        height: h,
-        onTap: _tap,
-      ),
+      // Итог — общий каркаса ([LevelResult], задача e90a53d5): собрал доску — автопереход на следующий
+      // уровень, время вышло — «Ещё раз» на том же. Настройки у маджонга нет.
+      field: (context, h) => _won || _timedOut
+          ? SizedBox(
+              height: h,
+              child: LevelResult(
+                passed: _won,
+                level: _levelPlayed,
+                score: _won
+                    ? L.f('mjCleared', {'errors': '$_errors'})
+                    : L.f('mjTimeUp', {'limit': _mmss(_limitSec!.round())}),
+                onNext: () => setState(_deal),
+              ),
+            )
+          : MahjongBoard(
+              tiles: _tiles,
+              alive: _alive,
+              selected: _selected,
+              blockers: _blockers,
+              hidden: _hidden,
+              won: _won,
+              height: h,
+              onTap: _tap,
+            ),
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.shuffle,
@@ -374,36 +393,11 @@ class _MahjongScreenState extends State<MahjongScreen> {
         ),
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_deal)),
       ]),
-      toolbar: _won || _timedOut || _openPairs == 0
+      // Тупик — подсказка под доской; конец партии рисует итог каркаса в поле.
+      toolbar: !_won && !_timedOut && _openPairs == 0
           ? Padding(
               padding: const EdgeInsets.all(12),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(
-                  _won
-                      ? L.f('mjCleared', {'errors': '$_errors'})
-                      : _timedOut
-                          ? L.f('mjTimeUp', {'limit': _mmss(_limitSec!.round())})
-                          : _stuckLine,
-                  key: const Key('итог'),
-                  textAlign: TextAlign.center,
-                ),
-                if (_timedOut) ...[
-                  const SizedBox(height: 8),
-                  FilledButton.icon(
-                    onPressed: () => setState(_deal),
-                    icon: const Icon(Icons.refresh),
-                    label: Text(L.t('retry')),
-                  ),
-                ],
-                if (_won) ...[
-                  const SizedBox(height: 8),
-                  FilledButton.icon(
-                    onPressed: () => setState(_deal),
-                    icon: const Icon(Icons.arrow_forward),
-                    label: Text(L.t('nextLabel')),
-                  ),
-                ],
-              ]),
+              child: Text(_stuckLine, key: const Key('итог'), textAlign: TextAlign.center),
             )
           : null,
       pauseActions: [

@@ -13,6 +13,7 @@ import '../../shell/js_compat.dart' show jsRound;
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -180,7 +181,7 @@ class _TrailMakingScreenState extends State<TrailMakingScreen> {
           icon: Icons.timer_outlined,
         ),
       ],
-      field: (context, h) => _field(context, h),
+      field: (context, h) => _phase == TrailPhase.done ? SizedBox(height: h, child: _result()) : _field(context, h),
       auxRow: AuxBar(children: [
         // Тот же `_restart`, что «Заново» в паузе (там доступен всегда) — под «Авророй» только в паузе.
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _phase == TrailPhase.playing ? _restart : null),
@@ -193,15 +194,6 @@ class _TrailMakingScreenState extends State<TrailMakingScreen> {
               onPressed: _start,
               icon: const Icon(Icons.play_arrow),
               label: Text(L.t('start')),
-            ),
-          ),
-        TrailPhase.done => Padding(
-            padding: const EdgeInsets.all(12),
-            child: FilledButton.icon(
-              key: const Key('trail-next'),
-              onPressed: _start,
-              icon: Icon(_passed ? Icons.arrow_forward : Icons.replay),
-              label: Text(_passed ? L.t('nextLabel') : L.t('retry')),
             ),
           ),
         _ => null,
@@ -234,7 +226,8 @@ class _TrailMakingScreenState extends State<TrailMakingScreen> {
         children: [
           const SizedBox(height: 6),
           Text(
-            _phase == TrailPhase.done ? _resultLine() : '${L.t('nextLabel')}: $next',
+            // Подсказка хода — какой узел следующий. Итог партии — общий каркаса ([_result]).
+            '${L.t('nextLabel')}: $next',
             key: const Key('trail-hint'),
             textAlign: TextAlign.center,
             style: TextStyle(color: scheme.onSurfaceVariant, fontWeight: FontWeight.w600),
@@ -272,10 +265,16 @@ class _TrailMakingScreenState extends State<TrailMakingScreen> {
     });
   }
 
-  String _resultLine() {
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
+  /// Заголовок «Уровень N пройден!» рисует каркас, счёт и ошибки — строкой игры.
+  Widget _result() {
     final g = _game!;
-    final head = _passed ? L.f('levelDone', {'n': '$_level'}) : L.t('done');
-    return '$head · ${L.t('score')}: ${trailScore(_elapsed, g.errors)} · ${L.t('errors')}: ${g.errors}';
+    return LevelResult(
+      passed: _passed,
+      level: _level,
+      score: '${L.t('score')}: ${trailScore(_elapsed, g.errors)} · ${L.t('errors')}: ${g.errors}',
+      onNext: _start,
+    );
   }
 
   Widget _readyCard(BuildContext context) {

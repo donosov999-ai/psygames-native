@@ -181,7 +181,7 @@ const t: Record<string, string> = {
   "profileName_whatsnew": "新着",
   "profileDesc_whatsnew": "3か月以内の新規・刷新",
   "profileName_free": "スタンダード",
-  "profileDesc_free": "12種のトレーニング · 始めるための厳選セット",
+  "profileDesc_free": "13種のトレーニング · 始めるための厳選セット",
   "profileName_drivers": "反応",
   "profileDesc_drivers": "瞬時の判断・ミスが命に関わる状況に対応",
   "profileName_seniors": "50+ アクティブ・マインド",
@@ -1000,6 +1000,7 @@ const t: Record<string, string> = {
   "classicLabel": "クラシック",
   "schulteDividedHint": "色分けされた複数のカウンターを同時進行 — 順番に探そう",
   "schulteMoving": "逃げるターゲット",
+  "schulteGorbov": "シュルテ–ゴルボフ",
   "schulteMovingHint": "正解のたびに盤面がシャッフル — 位置を覚えても無駄",
   "schulteShare": "PsyGamesで{g}×{g}のシュルテ表を{t}秒でクリア — 超えてみて！",
   "patternClassArithmetic": "等差数列",
@@ -3843,5 +3844,7 @@ const t: Record<string, string> = {
   "sumRuleSpeedSub": "数字をタップかなぞって、時間切れ前に目標の合計を作る",
   "sumRuleCompSub": "チップで目標を作り「チェック」を押す",
   "sumMixedRuleChanges": "ラウンドごとにルールが変わることがあります",
+  "dropModeDrag": "ドラッグ",
+  "dropModeTap": "タップ",
 };
 export default t;

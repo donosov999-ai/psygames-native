@@ -11,6 +11,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/suite_switch.dart' show SuiteModeAction;
@@ -63,6 +64,9 @@ class _CounterScreenState extends State<CounterScreen> {
   int _timeouts = 0;
   bool _won = false;
 
+  /// Сыгранный уровень — для итога: после победы лестница уже на следующем.
+  int _levelPlayed = 1;
+
   /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
   bool? _boss;
   bool _ready = false;
@@ -113,6 +117,7 @@ class _CounterScreenState extends State<CounterScreen> {
     _tick?.cancel();
     _next?.cancel();
     _clear?.cancel();
+    _levelPlayed = _ladder.level;
     _cfg = counterLevelParams(_ladder.level);
     _shadow.deal(_ladder.level);
     _round = 1;
@@ -313,22 +318,24 @@ class _CounterScreenState extends State<CounterScreen> {
           icon: Icons.error_outline,
         ),
       ],
-      field: (context, h) => CounterField(
-        numbers: _numbers,
-        picked: _picked,
-        gridSize: _cfg.gridSize,
-        target: _target,
-        sum: _sum,
-        feedback: _phase == _Phase.success
-            ? CounterFeedback.success
-            : _phase == _Phase.timeout
-                ? CounterFeedback.timeout
-                : CounterFeedback.none,
-        height: h,
-        onTap: _tap,
-        onSwipePick: _swipePick,
-        onSwipeUnpick: _swipeUnpick,
-      ),
+      field: (context, h) => _phase == _Phase.result
+          ? SizedBox(height: h, child: _result())
+          : CounterField(
+              numbers: _numbers,
+              picked: _picked,
+              gridSize: _cfg.gridSize,
+              target: _target,
+              sum: _sum,
+              feedback: _phase == _Phase.success
+                  ? CounterFeedback.success
+                  : _phase == _Phase.timeout
+                      ? CounterFeedback.timeout
+                      : CounterFeedback.none,
+              height: h,
+              onTap: _tap,
+              onSwipePick: _swipePick,
+              onSwipeUnpick: _swipeUnpick,
+            ),
       auxRow: AuxBar(
         children: [
           // Набор «Собери сумму»: режим — листом (экрана настройки у партии нет).
@@ -349,7 +356,7 @@ class _CounterScreenState extends State<CounterScreen> {
           ),
         ],
       ),
-      toolbar: _toolbar(context),
+      toolbar: _phase == _Phase.result ? null : _toolbar(context),
       pauseActions: [
         PauseAction(
           label: L.t('restart'),
@@ -360,34 +367,19 @@ class _CounterScreenState extends State<CounterScreen> {
     );
   }
 
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход — сразу новая партия (после победы
+  /// лестница уже на следующем уровне). Просрочки показываются отдельно от переборов: это разные промахи —
+  /// «не успел искать» и «сложил лишнего», и лечатся они по-разному.
+  Widget _result() => LevelResult(
+        passed: _won,
+        level: _levelPlayed,
+        score: '$_hits/${_cfg.rounds} · ${L.t('errors')} $_errors · ${L.t('hud_missed')} $_timeouts',
+        details: BossOutcomeLine(_boss),
+        onNext: () => setState(_reset),
+      );
+
   Widget _toolbar(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    if (_phase == _Phase.result) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              // Просрочки показываются отдельно от переборов: это разные промахи —
-              // «не успел искать» и «сложил лишнего», и лечатся они по-разному.
-              '$_hits/${_cfg.rounds} · ${L.t('errors')} $_errors · ${L.t('hud_missed')} $_timeouts',
-              key: const Key('result'),
-              textAlign: TextAlign.center,
-              style: text.titleMedium,
-            ),
-            BossOutcomeLine(_boss),
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              key: const Key('next'),
-              onPressed: () => setState(_reset),
-              icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-              label: Text(_won ? L.t('nextLabel') : L.t('retry')),
-            ),
-          ],
-        ),
-      );
-    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Text(

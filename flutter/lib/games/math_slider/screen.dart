@@ -10,6 +10,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../counting_common/generator_shadow.dart';
@@ -49,6 +50,9 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
   double _estimate = 0;
   bool _touched = false;
   bool _won = false;
+
+  /// Уровень раздачи — для итога: после победы лестница уже на следующем.
+  int _levelPlayed = 1;
   TrialScore? _last;
   final List<TrialScore> _trials = [];
 
@@ -113,6 +117,7 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
     LessonUsed.reset();
     _auto?.cancel();
     _advance?.cancel();
+    _levelPlayed = _playLevel;
     _questions = generateMathSliderQuestions(_seed, _playLevel, _trialCount);
     _shadow.deal(_playLevel);
     _training = generateTrainingQuestion(_seed);
@@ -266,17 +271,31 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
         ),
         HudItem(label: L.t('sliderOutside'), value: '$_outside', icon: Icons.error_outline),
       ],
-      field: (context, h) => _Field(
-        question: q,
-        estimate: _estimate,
-        height: h,
-        prompt: _prompt,
-        training: _phase == _Phase.training || _phase == _Phase.trainingFeedback,
-        revealed: _phase == _Phase.feedback || _phase == _Phase.trainingFeedback,
-        touched: _touched,
-        enabled: _answering,
-        onChange: _change,
-      ),
+      // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
+      field: (context, h) => _phase == _Phase.result
+          ? SizedBox(
+              height: h,
+              child: LevelResult(
+                passed: _won,
+                level: _levelPlayed,
+                score: _won
+                    ? L.f('sliderResultWin', {'p': '${(_accuracy * 100).round()}'})
+                    : L.f('sliderResultFail',
+                        {'p': '${(_accuracy * 100).round()}', 'need': '${(passAccuracy * 100).round()}'}),
+                onNext: () => setState(_reset),
+              ),
+            )
+          : _Field(
+              question: q,
+              estimate: _estimate,
+              height: h,
+              prompt: _prompt,
+              training: _phase == _Phase.training || _phase == _Phase.trainingFeedback,
+              revealed: _phase == _Phase.feedback || _phase == _Phase.trainingFeedback,
+              touched: _touched,
+              enabled: _answering,
+              onChange: _change,
+            ),
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.chevron_left,
@@ -290,7 +309,7 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
         ),
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
-      toolbar: _toolbar(context),
+      toolbar: _phase == _Phase.result ? null : _toolbar(context),
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
@@ -299,29 +318,6 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
 
   Widget _toolbar(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    if (_phase == _Phase.result) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(
-            _won
-                ? L.f('sliderResultWin', {'p': '${(_accuracy * 100).round()}'})
-                : L.f('sliderResultFail', {'p': '${(_accuracy * 100).round()}', 'need': '${(passAccuracy * 100).round()}'}),
-            key: const Key('итог'),
-            textAlign: TextAlign.center,
-            style: text.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          FilledButton.icon(
-            key: const Key('дальше'),
-            onPressed: () => setState(_reset),
-            icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-            label: Text(_won ? L.t('nextLabel') : L.t('retry')),
-          ),
-        ]),
-      );
-    }
-
     final score = _last;
     if (!_answering && score != null) {
       return Padding(

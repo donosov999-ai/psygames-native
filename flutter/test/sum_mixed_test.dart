@@ -174,8 +174,9 @@ void main() {
       }
       await tester.pump(const Duration(milliseconds: 400));
       expect(seen.toSet(), {SumRule.speed, SumRule.composition}, reason: 'за партию правило не менялось: $seen');
-      expect(find.byKey(const Key('result')), findsOneWidget, reason: 'итог партии не показан');
-      expect(tester.widget<Text>(find.byKey(const Key('result'))).data, startsWith('$mixedRounds/$mixedRounds'));
+      expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'итог партии (общий каркаса) не показан');
+      expect(find.textContaining('$mixedRounds/$mixedRounds'), findsWidgets, reason: 'счёт партии в итоге');
+      expect(find.byKey(const Key('level-result-next')), findsOneWidget);
 
       final prefs = await SharedPreferences.getInstance();
       final keys = prefs.getKeys();

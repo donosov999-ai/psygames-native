@@ -95,7 +95,7 @@ void main() {
   testWidgets('🔴 «Поворот чисел»: ступень собирается решением ядра', (tester) async {
     await solve(tester, LabMode.twiddle, 1);
     expect(find.text(L.t('spatialLabSolved')), findsOneWidget);
-    expect(find.byKey(const Key('дальше')), findsOneWidget);
+    expect(find.byKey(const Key('level-result-next')), findsOneWidget);
     // Односторонняя лестница: победа поднимает ступень.
     expect(find.text('2'), findsWidgets, reason: 'уровень вырос до второго');
   });

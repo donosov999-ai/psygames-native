@@ -181,7 +181,7 @@ const t: Record<string, string> = {
   "profileName_whatsnew": "الجديد",
   "profileDesc_whatsnew": "جديد ومُحدَّث خلال 3 أشهر",
   "profileName_free": "قياسي",
-  "profileDesc_free": "١٢ تمرينًا · مجموعة مختارة للبداية",
+  "profileDesc_free": "١٣ تمرينًا · مجموعة مختارة للبداية",
   "profileName_drivers": "رد الفعل",
   "profileDesc_drivers": "قرارات في أجزاء من الثانية · حين يكون ثمن الخطأ حياة",
   "profileName_seniors": "العقل النشط 50+",
@@ -1803,6 +1803,7 @@ const t: Record<string, string> = {
   "classicLabel": "كلاسيكي",
   "schulteDividedHint": "عدّادات مستقلة عدة في آن واحد تميّزها الألوان — ابحث عنها بالتناوب",
   "schulteMoving": "هدف هارب",
+  "schulteGorbov": "شولت–غوربوف",
   "schulteMovingHint": "بعد كل نقرة صحيحة يُعاد خلط الشبكة — لا يمكنك حفظ المواضع",
   "schulteShare": "أنهيت جدول شولت {g}×{g} في {t}ث على PsyGames — تفوّق عليّ!",
   "patternClassArithmetic": "متتالية حسابية",
@@ -3845,5 +3846,7 @@ const t: Record<string, string> = {
   "sumRuleSpeedSub": "اضغط على الأرقام أو اسحب عليها: حقق المجموع قبل انتهاء الوقت",
   "sumRuleCompSub": "كوّن الهدف من الرقائق ثم اضغط «تحقق»",
   "sumMixedRuleChanges": "قد تتغير القاعدة في كل جولة",
+  "dropModeDrag": "اسحب",
+  "dropModeTap": "المس",
 };
 export default t;

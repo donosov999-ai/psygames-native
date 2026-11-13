@@ -86,7 +86,8 @@ void main() {
     expect(reports.single['errors'], 0);
     expect(reports.single['mode'], '${n}n');
     expect(await storedLevel(), 2);
-    expect(find.text(L.t('nextLabel')), findsOneWidget);
+    expect(find.byKey(const Key('level-result-next')), findsOneWidget, reason: 'итог — общий каркаса');
+    expect(find.textContaining(L.t('nextLabel')), findsOneWidget);
   });
 
   // ⚠️ Касание узла засчитывает и протяжка: без соперника она выигрывает спор жестов сразу на касании.

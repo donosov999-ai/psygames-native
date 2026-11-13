@@ -143,7 +143,7 @@ void main() {
     expect(d['ideal_moves'], moves, reason: 'стратегия пробы — ровно эталон');
     expect(d['efficiency'], 1.0);
 
-    await tester.tap(find.text(L.t('nextLabel')));
+    await tester.tap(find.byKey(const Key('level-result-next')));
     await tester.pump();
     expect(tester.widget<Text>(find.byKey(const Key('pp-kids-step'))).data,
         L.t('pairsKidsStep').replaceAll('{n}', '2').replaceAll('{m}', '${pairsKidsSteps.length}').replaceAll('{p}', '8'));

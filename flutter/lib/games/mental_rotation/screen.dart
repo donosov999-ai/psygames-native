@@ -13,6 +13,7 @@ import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -397,21 +398,7 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
           ),
         ),
         Phase.playing => task == null ? null : _options(context, task),
-        Phase.result => Padding(
-          padding: const EdgeInsets.all(12),
-          child: FilledButton.icon(
-            key: const Key('ещё-раз'),
-            onPressed: () => setState(() => _phase = Phase.config),
-            icon: const Icon(Icons.arrow_forward),
-            label: Text(
-              _practice != null
-                  ? L.t('settings')
-                  : _passed
-                  ? L.t('nextLabel')
-                  : L.t('retry'),
-            ),
-          ),
-        ),
+        Phase.result => null,
       },
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _startRun),
@@ -538,44 +525,46 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
 
   // ─── итог ───────────────────────────────────────────────────────────────
 
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень, свои
+  /// показатели партии (время, наклон, виды заданий) — в подробностях. Отработка одного вида лестницы
+  /// не двигает: итог — «Готово!» без номера уровня, «дальше» — та же отработка ещё раз.
   Widget _result(BuildContext context, double height) {
-    final scheme = Theme.of(context).colorScheme;
     final hits = _records.where((r) => r.correct).length;
     final slope = angleResponseSlope(_records);
     final samples = slopeSamples(_records).length;
     final counts = taskKindCounts(_records);
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-      children: [
-        Text(
-          // Как у общего итога уровня веба (`LevelCleared`): «Уровень N пройден!» / «Уровень N — почти!».
-          _practice != null
-              ? '${mrWord('practiceTitle')}: ${kindWord(_practice!)}'
-              : _passed
-              ? L.f('levelDone', {'n': '$_level'})
-              : L.f('levelAlmost', {'n': '$_level'}),
-          key: const Key('итог-партии'),
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            color: _practice != null ? null : (_passed ? scheme.primary : scheme.error),
-          ),
+    return SizedBox(
+      height: height,
+      child: LevelResult(
+        passed: _practice != null || _passed,
+        level: _practice != null ? null : _level,
+        score: '${L.t('hud_correct')}: $hits/$_trials',
+        details: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_practice != null)
+              Text('${mrWord('practiceTitle')}: ${kindWord(_practice!)}',
+                  textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium),
+            _line(L.t('time'), _secondsText(_elapsed)),
+            // 🔴 НАКЛОН СЧИТАЕТСЯ ТОЛЬКО ПО ПОВОРОТНЫМ ПРОБАМ. Рядом с ним — на скольких пробах он
+            // посчитан: иначе «наклон 0, потому что человек ровный» не отличить от «точек было мало».
+            _line(
+              L.t('mrSlopeLabel'),
+              samples >= 2
+                  ? L.f('mrSlopeValue', {'v': slope.toStringAsFixed(2), 'n': '$samples'})
+                  : L.t('mrSlopeTooFew'),
+            ),
+            _line(L.t('mrMeanRotationRt'), samples > 0 ? '${meanSlopeRt(_records)} ${L.t('msShort')}' : '—'),
+            const SizedBox(height: 12),
+            Text(L.t('mrRunTasks'), style: Theme.of(context).textTheme.titleMedium),
+            for (final e in counts.entries)
+              if (e.value > 0) _line(kindWord(e.key), '${e.value}'),
+          ],
         ),
-        const SizedBox(height: 8),
-        _line(L.t('hud_correct'), '$hits/$_trials'),
-        _line(L.t('time'), _secondsText(_elapsed)),
-        // 🔴 НАКЛОН СЧИТАЕТСЯ ТОЛЬКО ПО ПОВОРОТНЫМ ПРОБАМ. Рядом с ним — на скольких пробах он
-        // посчитан: иначе «наклон 0, потому что человек ровный» не отличить от «точек было мало».
-        _line(
-          L.t('mrSlopeLabel'),
-          samples >= 2
-              ? L.f('mrSlopeValue', {'v': slope.toStringAsFixed(2), 'n': '$samples'})
-              : L.t('mrSlopeTooFew'),
-        ),
-        _line(L.t('mrMeanRotationRt'), samples > 0 ? '${meanSlopeRt(_records)} ${L.t('msShort')}' : '—'),
-        const SizedBox(height: 12),
-        Text(L.t('mrRunTasks'), style: Theme.of(context).textTheme.titleMedium),
-        for (final e in counts.entries)
-          if (e.value > 0) _line(kindWord(e.key), '${e.value}'),
-      ],
+        onNext: _startRun,
+        onSettings: () => setState(() => _phase = Phase.config),
+      ),
     );
   }
 

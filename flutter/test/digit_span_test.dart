@@ -114,9 +114,9 @@ void main() {
     }
   });
 
-  test('🔴 шаг лесенки длин — 160 случаев живого spanStep', () {
+  test('🔴 шаг лесенки длин — 320 случаев живого spanStep (с серией верных подряд)', () {
     final steps = ref['steps'] as List;
-    expect(steps.length, 160);
+    expect(steps.length, 320);
     for (final raw in steps) {
       final c = raw as Map<String, dynamic>;
       final s = spanStep(
@@ -124,9 +124,10 @@ void main() {
         round: c['round'] as int,
         atLenErrors: c['atLenErrorsBefore'] as int,
         correct: c['correct'] as bool,
+        streak: c['streakBefore'] as int,
       );
-      expect('${s.nextLen} ${s.cont} ${s.atLenErrors} ${spanFinished(s)}',
-          '${c['nextLen']} ${c['cont']} ${c['atLenErrors']} ${c['finished']}', reason: '$c');
+      expect('${s.nextLen} ${s.cont} ${s.atLenErrors} ${s.streak} ${spanFinished(s)}',
+          '${c['nextLen']} ${c['cont']} ${c['atLenErrors']} ${c['streak']} ${c['finished']}', reason: '$c');
     }
   });
 
@@ -223,5 +224,79 @@ void main() {
       expect(s.entered, [7, 1]);
       expect(s.rowCorrect, isFalse);
     });
+  });
+
+  // ── 13.11.2026, Денис: «сложность слишком быстрая», «по умолчанию — весь ряд сразу» ──────────────
+  test('🔴 кривая L1…L30: +1 к старту раз в два уровня до 9 (пара уровней различается мягким темпом), дальше — прежние оси', () {
+    // (уровень, старт, показ мс, пауза мс, обратный, удержание мс, направление после показа)
+    const curve = [
+      (1, 4, 820, 1350, false, 0, false), (2, 4, 796, 1300, false, 0, false),
+      (3, 5, 772, 1250, false, 0, false), (4, 5, 748, 1200, false, 0, false),
+      (5, 6, 724, 1150, false, 0, false), (6, 6, 700, 1100, false, 0, false),
+      (7, 7, 655, 1030, false, 0, false), (8, 7, 610, 960, false, 0, false),
+      (9, 8, 565, 890, false, 0, false), (10, 8, 520, 820, false, 0, false),
+      (11, 9, 475, 750, true, 0, false), (12, 9, 430, 680, true, 0, false),
+      (13, 9, 385, 610, true, 0, false), (14, 9, 350, 550, true, 0, false),
+      (15, 9, 350, 550, true, 700, true), (16, 9, 350, 550, true, 1400, true),
+      (17, 9, 350, 550, true, 2100, true), (18, 9, 350, 550, true, 2800, true),
+      (19, 9, 350, 550, true, 3500, true), (20, 9, 350, 550, true, 4200, true),
+      (21, 9, 350, 550, true, 4900, true), (22, 9, 350, 550, true, 5600, true),
+      (23, 9, 350, 550, true, 6300, true), (24, 9, 350, 550, true, 7000, true),
+      (25, 9, 350, 550, true, 7700, true), (26, 9, 350, 550, true, 8400, true),
+      (27, 9, 350, 550, true, 9100, true), (28, 9, 350, 550, true, 9800, true),
+      (29, 9, 350, 550, true, 10500, true), (30, 9, 350, 550, true, 11200, true),
+    ];
+    final keys = <String>{};
+    for (final (l, start, show, gap, rev, hold, sur) in curve) {
+      final p = LevelParams.of(l);
+      expect('${p.startLen} ${p.showMs} ${p.gapMs} ${p.reverse} ${p.holdMs} ${p.surpriseDir}', '$start $show $gap $rev $hold $sur',
+          reason: 'L$l');
+      expect(keys.add('${p.startLen} ${p.showMs} ${p.gapMs} ${p.reverse} ${p.holdMs} ${p.surpriseDir}'), isTrue,
+          reason: 'L$l — клон предыдущих: правило раздела «соседние уровни различаются»');
+    }
+  });
+
+  test('🔴 длина внутри уровня растёт после ДВУХ верных рядов подряд; ошибка обнуляет серию', () {
+    ({int nextLen, bool cont, int atLenErrors, int streak}) step(int len, bool ok, {int streak = 0, int errs = 0, int round = 1}) =>
+        spanStep(seqLen: len, round: round, atLenErrors: errs, correct: ok, streak: streak);
+    final first = step(5, true);
+    expect('${first.nextLen} ${first.streak} ${first.cont}', '5 1 true', reason: 'один верный — длина та же');
+    final second = step(5, true, streak: 1);
+    expect('${second.nextLen} ${second.streak} ${second.atLenErrors}', '6 0 0', reason: 'два верных подряд — на цифру длиннее');
+    final wrong = step(5, false, streak: 1);
+    expect('${wrong.nextLen} ${wrong.streak} ${wrong.atLenErrors}', '5 0 1', reason: 'ошибка снимает серию');
+    expect(step(5, true, streak: 1, errs: 1).atLenErrors, 0, reason: 'взятая длина обнуляет ошибки на длине');
+    expect(step(5, true, errs: 1).atLenErrors, 1, reason: 'первый верный из двух ошибок на длине не прощает');
+    expect(spanFinished(step(12, true, streak: 1)), isTrue, reason: 'потолок 12 — как прежде');
+    expect(spanFinished(step(12, true)), isFalse, reason: 'на двенадцати первый верный ещё не конец');
+  });
+
+  test('🔴 партия: 4, 4, 5, 5, 6 — длина и серия по ходу; ошибка посреди пары не засчитывает рост', () {
+    final s = DigitSpanSession(level: 1, isPreset: false, direction: Direction.forward, startLen: 4);
+    double rng() => 0.5;
+    final lens = <int>[];
+    for (final ok in [true, true, true, false, true, true]) {
+      s.deal(rng);
+      lens.add(s.seqLen);
+      for (final d in (ok ? s.expected : [for (final d in s.expected) (d + 1) % 10])) {
+        s.enter(d);
+      }
+      s.submit();
+    }
+    expect(lens, [4, 4, 5, 5, 5, 5], reason: '4,4 → 5; 5 верно, 5 ошибка (серия сброшена), 5 верно, 5 верно → 6');
+    expect(s.seqLen, 6);
+    expect(s.streak, 0);
+  });
+
+  test('🔴 способ подачи при открытии: без выбора — весь ряд сразу; явный выбор сохраняется; шаг зарядки — по-старому', () {
+    Delivery d({bool warm = false, String param = '', String? stored}) => initialDelivery(isWarmup: warm, param: param, stored: stored);
+    expect(d(), Delivery.all, reason: 'выбора нет — весь ряд сразу');
+    expect(d(stored: ''), Delivery.all);
+    expect(d(stored: 'screen'), Delivery.screen, reason: 'явный выбор «по одной» сохранён');
+    expect(d(stored: 'voice'), Delivery.voice);
+    expect(d(stored: 'мусор'), Delivery.all, reason: 'битое значение — умолчание');
+    expect(d(param: 'screen', stored: 'all'), Delivery.screen, reason: 'параметр адреса сильнее');
+    expect(d(warm: true), Delivery.screen, reason: 'шаг зарядки без параметра — по одной цифре, как было');
+    expect(d(warm: true, param: 'all', stored: 'voice'), Delivery.all, reason: 'шаг зарядки — по своему параметру, а не по выбору игрока');
   });
 }

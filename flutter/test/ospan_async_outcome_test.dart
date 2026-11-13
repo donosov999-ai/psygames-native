@@ -127,7 +127,7 @@ void main() {
               .readOnly;
           await tester.tap(submit);
           await tester.pumpAndSettle();
-          expect(find.byKey(const Key('итог')), findsNothing);
+          expect(find.byKey(const Key('level-result-score')), findsNothing);
           gate.complete();
           await tester.pumpAndSettle();
           expect(
@@ -151,16 +151,16 @@ void main() {
           );
           expect(textOf(tester, 'правда'), truth);
           expect(
-            textOf(tester, 'итог'),
+            textOf(tester, 'level-result-score'),
             passed
                 ? L.f('ospanResultWin', {'n': '${truth.split(' ').length}'})
                 : L.f('ospanResultFail', {'n': '1'}),
           );
           expect(
-            find.text(L.t(passed ? 'nextLabel' : 'retry')),
+            passed ? find.textContaining(L.t('nextLabel')) : find.text(L.t('retry')),
             findsOneWidget,
           );
-          await tester.tap(find.byKey(const Key('дальше')));
+          await tester.tap(find.byKey(const Key('level-result-next')));
           await tester.pumpAndSettle();
           await recallRound(tester, passed: passed);
           await tester.tap(submit);
@@ -209,14 +209,14 @@ void main() {
                 'late old completion must not replace the restarted equation',
           );
           expect(textOf(tester, 'равенство'), equation);
-          expect(find.byKey(const Key('итог')), findsNothing);
+          expect(find.byKey(const Key('level-result-score')), findsNothing);
           await recallRound(tester, passed: !passed);
           await tester.tap(find.byKey(const Key('проверить')));
           await tester.pumpAndSettle();
           expect(reports, hasLength(2));
           expect(outcomes, [passed, !passed]);
           expect(
-            find.text(L.t(passed ? 'retry' : 'nextLabel')),
+            passed ? find.text(L.t('retry')) : find.textContaining(L.t('nextLabel')),
             findsOneWidget,
           );
           await tester.pumpWidget(const SizedBox.shrink());

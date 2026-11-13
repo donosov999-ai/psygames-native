@@ -71,7 +71,7 @@ void main() {
       await tester.pump();
     }
 
-    expect(find.text(L.t('nextLabel')), findsOneWidget,
+    expect(find.textContaining(L.t('nextLabel')), findsOneWidget,
         reason: 'маршрут пройден по доске — экран обязан предложить следующий уровень');
     expect(find.text('${level.totalPasses}/${level.totalPasses}'), findsOneWidget);
   });

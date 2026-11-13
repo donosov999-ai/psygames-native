@@ -90,7 +90,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
     }
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.byKey(const Key('ld-score')), findsOneWidget);
+    expect(find.byKey(const Key('level-result-score')), findsOneWidget, reason: 'итог — общий каркаса');
     expect(state.get(SharedState.levelKey('lexical_decision', 'nzt48')), '2');
     expect(sent, hasLength(1));
     final s = sent.single;

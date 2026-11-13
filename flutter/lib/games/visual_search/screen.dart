@@ -14,6 +14,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -72,6 +73,9 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
   int _hits = 0;
   int _errors = 0;
   bool _won = false;
+
+  /// Сыгранный уровень — для итога (после победы лестница уже на следующем).
+  int _levelPlayed = 1;
 
   /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
   bool? _boss;
@@ -198,6 +202,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
     if (!mounted) return;
     if (_round >= _trials) {
       final passed = _errors <= vsErrorsAllowed;
+      _levelPlayed = _ladder.level;
       // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «сложи подсвеченные».
       bool? boss;
       if (passed) {
@@ -312,7 +317,8 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
           icon: Icons.error_outline,
         ),
       ],
-      field: (context, h) => LayoutBuilder(
+      // Партия кончилась — итог на поле ([_result]).
+      field: (context, h) => _phase == _Phase.result ? SizedBox(height: h, child: _result()) : LayoutBuilder(
         builder: (context, c) {
           const headH = 64.0;
           final side = math.max(
@@ -413,32 +419,18 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
     );
   }
 
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
+  Widget _result() => LevelResult(
+        passed: _won,
+        level: _levelPlayed,
+        score: '$_hits/$_trials · ${L.t('errors')} $_errors',
+        details: BossOutcomeLine(_boss),
+        onNext: () => setState(_reset),
+      );
+
   Widget _toolbar(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    if (_phase == _Phase.result) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '$_hits/$_trials · ${L.t('errors')} $_errors',
-              key: const Key('result'),
-              textAlign: TextAlign.center,
-              style: text.titleMedium,
-            ),
-            BossOutcomeLine(_boss),
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              key: const Key('next'),
-              onPressed: () => setState(_reset),
-              icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-              label: Text(_won ? L.t('nextLabel') : L.t('retry')),
-            ),
-          ],
-        ),
-      );
-    }
+    if (_phase == _Phase.result) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Text(

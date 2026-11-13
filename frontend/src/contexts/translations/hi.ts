@@ -766,7 +766,7 @@ const t: Record<string, string> = {
   "profileName_whatsnew": "नया क्या है",
   "profileDesc_whatsnew": "3 महीनों में नया और बेहतर",
   "profileName_free": "मानक",
-  "profileDesc_free": "12 अभ्यास · शुरुआत के लिए चुना गया सेट",
+  "profileDesc_free": "13 अभ्यास · शुरुआत के लिए चुना गया सेट",
   "profileName_drivers": "रिएक्शन",
   "profileDesc_drivers": "पल-भर के निर्णय · जब ग़लती की क़ीमत जान हो",
   "profileName_seniors": "50+ सक्रिय मन",
@@ -1671,6 +1671,7 @@ const t: Record<string, string> = {
   "classicLabel": "क्लासिक",
   "schulteDividedHint": "एक साथ कई अलग-अलग रंगों के काउंटर — बारी-बारी से ढूँढ़ें",
   "schulteMoving": "भागता लक्ष्य",
+  "schulteGorbov": "शुल्ते–गोर्बोव",
   "schulteMovingHint": "हर सही क्लिक के बाद ग्रिड फिर फिंट जाती है — स्थितियाँ याद नहीं रख सकते",
   "schulteShare": "मैंने PsyGames में {g}×{g} शुल्टे टेबल {t}से में पूरी की — मुझे हराओ!",
   "patternClassArithmetic": "समांतर श्रेणी",
@@ -3852,5 +3853,7 @@ const t: Record<string, string> = {
   "sumRuleSpeedSub": "संख्याओं को टैप करें या स्वाइप करें: समय खत्म होने से पहले लक्ष्य योग बनाएँ",
   "sumRuleCompSub": "चिप्स से लक्ष्य बनाएँ और “जाँचें” दबाएँ",
   "sumMixedRuleChanges": "हर राउंड में नियम बदल सकता है",
+  "dropModeDrag": "खींचें",
+  "dropModeTap": "छुएँ",
 };
 export default t;

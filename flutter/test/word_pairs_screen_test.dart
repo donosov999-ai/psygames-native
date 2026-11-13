@@ -82,7 +82,7 @@ void main() {
     }
 
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('wp-again')), findsOneWidget, reason: 'круг обязан дойти до итога');
+    expect(find.byKey(const Key('level-result-next')), findsOneWidget, reason: 'круг обязан дойти до итога');
   });
 
   testWidgets('🔴 правый столбец перемешан, а не повторяет порядок показа', (tester) async {
