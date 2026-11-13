@@ -218,7 +218,8 @@ void main() {
     // на каждом уровне и этого пути не проходят. Здесь 3-й уровень с боем, «Следующий
     // уровень» той же кнопкой, 4-й без боя — строки «Босс устоял» в его итоге быть не должно.
     Future<void> playToEnd() async {
-      await tester.tap(find.text(L.t('start')));
+      // «Следующий» общего итога (e90a53d5) сразу раздаёт новую таблицу — «Начать» есть только в первый раз.
+      if (find.text(L.t('start')).evaluate().isNotEmpty) await tester.tap(find.text(L.t('start')));
       await tester.pump();
       for (
         var i = 0;

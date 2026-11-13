@@ -65,6 +65,14 @@ class LevelRules {
       L.has(textKey(gameId, ruleKey, 'title')) && L.has(textKey(gameId, ruleKey, 'rule'));
 
   static String seenKey(String gameId, String ruleKey) => 'psygames_rulehint_${gameId}_$ruleKey';
+
+  /// Ждёт ли на этом уровне карточка правила, которую человек ещё не видел. Итог уровня ([LevelResult])
+  /// по ней решает, начинать ли следующую партию сразу или остановиться на «Начать», где каркас
+  /// покажет карточку (она открывается только в спокойный момент). Таблица не загружена — `false`.
+  static bool cardDue(SharedState state, String gameId, int level) {
+    final key = activeKey(gameId, level);
+    return key != null && hasText(gameId, key) && state.get(seenKey(gameId, key)) == null;
+  }
 }
 
 /// Где сейчас игра: какая игра, какой уровень и можно ли показать карточку.

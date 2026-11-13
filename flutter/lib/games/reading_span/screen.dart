@@ -240,7 +240,11 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
               passed: g!.passed,
               level: g.level,
               details: _Done(game: g, levelNow: _ladder.level),
-              onNext: () => setState(_reset),
+              // Сразу в следующий круг; на «Начать» — только если ждёт карточка нового правила уровня.
+              onNext: () {
+                setState(_reset);
+                if (!LevelRules.cardDue(widget.state, 'reading_span', _ladder.level)) _start();
+              },
             ),
           ),
         RspanPhase.revealed => RspanSolution(seq: g?.seq ?? const [], language: _lang),

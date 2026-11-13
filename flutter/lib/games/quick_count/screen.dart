@@ -270,7 +270,11 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
                 level: _levelPlayed,
                 score: _line,
                 details: BossOutcomeLine(_boss),
-                onNext: () => setState(_reset),
+                // Сразу в следующую пробу; на «Начать» — только если ждёт карточка нового правила уровня.
+                onNext: () {
+                  setState(_reset);
+                  if (!LevelRules.cardDue(widget.state, 'quick_count', _ladder.level)) _startTrial();
+                },
               ),
             )
           : _Field(

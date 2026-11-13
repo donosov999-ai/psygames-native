@@ -597,7 +597,11 @@ class _SchulteScreenState extends State<SchulteScreen> {
                 ),
               ),
             ]),
-            onNext: () => setState(_reset),
+            // Автопереход сразу в следующую таблицу (задача e90a53d5), а не на экран «Начать».
+            onNext: () {
+              setState(_reset);
+              _start();
+            },
           ),
         );
       },

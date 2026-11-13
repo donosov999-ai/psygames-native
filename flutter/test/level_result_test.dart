@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/level_ladder.dart';
 import 'package:psygames_flutter/shell/level_result.dart';
 import 'package:psygames_flutter/shell/reward_effects.dart';
 
@@ -106,5 +107,24 @@ void main() {
     expect(find.byWidgetPredicate((w) => w is GameWidget), findsNothing, reason: 'искр нет');
     await t.pump(const Duration(milliseconds: 1600));
     expect(log, ['next']);
+  });
+
+  testWidgets('🔴 звёзды дорисовываются, когда игра засчитала победу ПОСЛЕ открытия итога, и берутся у выигравшей лестницы, а не у последней загруженной («Шульте»)', (t) async {
+    LevelLadder.newScreen();
+    final ladder = LevelLadder(gameId: 'probe_stars', store: MemoryLevelStore());
+    await t.runAsync(ladder.load);
+    // Вторая лестница на том же экране загружена ПОСЛЕ (как «Серия» у «Шульте») — current теперь она.
+    await t.runAsync(LevelLadder(gameId: 'probe_series', store: MemoryLevelStore()).load);
+    await t.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: LevelResult(passed: true, level: 1, onNext: () {})),
+      ),
+    );
+    await t.pump();
+    expect(find.byKey(const Key('level-result-stars')), findsNothing, reason: 'победа ещё не засчитана');
+    await t.runAsync(() => ladder.win(errors: 0, report: false));
+    await t.pump();
+    expect(find.text('★★★'), findsOneWidget, reason: '0 ошибок — три звезды этой партии');
+    LevelResult.autoAdvance = false;
   });
 }

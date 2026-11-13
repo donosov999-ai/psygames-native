@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:synapse_advisor/synapse_advisor.dart' show Outcome;
 
 import 'game_preset.dart';
@@ -104,6 +106,7 @@ class LevelLadder {
   static void newScreen() {
     _screen++;
     _picks.clear();
+    lastWin.value = null;
   }
 
   /// Лестница игры на экране; `null` — у игры нет лестницы или она ещё не загружена.
@@ -287,10 +290,10 @@ class LevelLadder {
     }
     reportOutcome(true, lesson: lesson);
     // Звёзды — ПОСЛЕ отчёта и исхода: ступень-переход ждёт исход в прежнем порядке (fractal_outcome_test).
-    lastStars = null;
+    lastWin.value = null;
     if (counted && !_training) {
       final earned = stars ?? starsForErrors(errors);
-      lastStars = (level: before, stars: earned.clamp(1, 3));
+      lastWin.value = (gameId: gameId, level: before, stars: earned.clamp(1, 3));
       unawaited(_saveStars(before, earned));
     }
     return counted;
@@ -422,9 +425,10 @@ class LevelLadder {
    * своя формула игры — аргументом `stars`, иначе по ошибкам, как в вебе по умолчанию (без ошибок — 3).
    */
   /// Звёзды по числу ошибок: 0 → 3, до двух → 2, больше → 1; ошибок игра не знает → 3 (как `LevelCleared`).
-  /// Звёзды последней засчитанной победы — сразу, не дожидаясь записи (итог уровня [LevelResult]
-  /// открывается в том же кадре, когда запись звёзд ещё идёт).
-  ({int level, int stars})? lastStars;
+  /// Звёзды последней засчитанной победы НА ЭКРАНЕ — сразу, не дожидаясь записи. Одна на экран, а не на
+  /// лестницу: у «Шульте» лестниц несколько (обычная и три «Серии»), и [current] — последняя загруженная,
+  /// а не та, что выиграла. Итог уровня ([LevelResult]) открывается раньше записи и подписан на это.
+  static final lastWin = ValueNotifier<({String gameId, int level, int stars})?>(null);
 
   static int starsForErrors(int? errors) => errors == null || errors == 0 ? 3 : errors <= 2 ? 2 : 1;
 

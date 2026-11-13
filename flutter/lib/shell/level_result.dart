@@ -81,15 +81,12 @@ class _LevelResultState extends State<LevelResult> with SingleTickerProviderStat
     duration: widget.passed ? LevelResult.winDelay : LevelResult.failDelay,
   );
   bool _gone = false;
-  Future<Map<int, int>>? _stars;
 
   bool get _auto => widget.auto && LevelResult.autoAdvance && !GamePreset.isWarmup;
 
   @override
   void initState() {
     super.initState();
-    final ladder = LevelLadder.current;
-    if (widget.passed && widget.level != null && ladder != null) _stars = ladder.stars();
     _countdown.addStatusListener((s) {
       if (s == AnimationStatus.completed) _go(widget.onNext);
     });
@@ -122,23 +119,24 @@ class _LevelResultState extends State<LevelResult> with SingleTickerProviderStat
             : '${L.t('nextLabel')} · ${L.t('label_level_short')} ${widget.level! + 1}')
       : L.t('retry');
 
-  Widget _starsRow(Color color) => _stars == null
-      ? const SizedBox.shrink()
-      : FutureBuilder<Map<int, int>>(
-          future: _stars,
-          builder: (_, s) {
-            // Звёзды ЭТОЙ партии — у лестницы сразу (запись в хранилище ещё может идти); нет их — лучшее
-            // из хранилища.
-            final last = LevelLadder.current?.lastStars;
-            final n = (last != null && last.level == widget.level ? last.stars : s.data?[widget.level] ?? 0).clamp(0, 3);
-            return Text(
-              '★' * n + '☆' * (3 - n),
-              key: const Key('level-result-stars'),
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 34, letterSpacing: 6, color: color),
-            );
-          },
+  /// Звёзды ЭТОЙ партии — из последней засчитанной победы на экране ([LevelLadder.lastWin]). Итог может
+  /// открыться раньше, чем игра засчитает победу (у «Шульте» — так): строка подписана и появится, когда
+  /// победа записана. Нет засчитанной победы этого уровня (разбор, переигровка) — строки нет.
+  Widget _starsRow(Color color) {
+    if (!widget.passed || widget.level == null) return const SizedBox.shrink();
+    return ValueListenableBuilder<({String gameId, int level, int stars})?>(
+      valueListenable: LevelLadder.lastWin,
+      builder: (_, last, _) {
+        if (last == null || last.level != widget.level) return const SizedBox.shrink();
+        return Text(
+          '★' * last.stars + '☆' * (3 - last.stars),
+          key: const Key('level-result-stars'),
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 34, letterSpacing: 6, color: color),
         );
+      },
+    );
+  }
 
   /// Значок исхода: победа — звезда с искрами (решение Дениса 13.11, пилот `reward_effects.dart`
   /// у всех игр), провал — значок «ещё раз».
