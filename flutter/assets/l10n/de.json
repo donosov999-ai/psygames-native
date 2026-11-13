@@ -736,6 +736,8 @@
 "dotsConnect":"Punkte verbinden",
 "dotsConnectDesc":"Verbinde gleiche Punkte mit kreuzungsfreien Wegen und fülle das ganze Gitter",
 "dotsConnectIntroDesc":"Zieh mit dem Finger von einem Punkt zu seinem Partner in derselben Farbe — der Weg folgt deinem Finger. Wege verschiedener Paare kreuzen sich nie, und am Ende darf kein Feld leer bleiben. Trainiert räumliches Planen.",
+"dropModeDrag":"Ziehen",
+"dropModeTap":"Tippen",
 "duration":"Dauer",
 "easy":"Leicht",
 "equip":"Anlegen",

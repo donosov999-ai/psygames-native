@@ -3842,5 +3842,7 @@ const t: Record<string, string> = {
   "pauseExperiencedOnly": "仅适用于已掌握的技巧",
   "pauseWarningsTitle": "开始之前",
   "pausePracticeComplete": "练习完成",
+  "dropModeDrag": "拖动",
+  "dropModeTap": "点按",
 };
 export default t;

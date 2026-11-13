@@ -736,6 +736,8 @@
 "dotsConnect":"Dots Connect",
 "dotsConnectDesc":"Connect matching dots with non-crossing paths and fill the whole grid",
 "dotsConnectIntroDesc":"Drag your finger from a dot to its partner of the same colour — a path follows your finger. Paths of different pairs never cross, and by the end no cell may stay empty. Trains spatial planning.",
+"dropModeDrag":"Drag",
+"dropModeTap":"Tap",
 "duration":"Duration",
 "easy":"Easy",
 "equip":"Equip",

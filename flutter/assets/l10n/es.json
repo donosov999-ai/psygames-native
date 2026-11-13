@@ -736,6 +736,8 @@
 "dotsConnect":"Une los puntos",
 "dotsConnectDesc":"Une los puntos iguales con caminos que no se crucen y llena toda la cuadrícula",
 "dotsConnectIntroDesc":"Arrastra el dedo desde un punto hasta su pareja del mismo color: el camino sigue a tu dedo. Los caminos de parejas distintas no se cruzan y al final no puede quedar ninguna casilla vacía. Entrena la planificación espacial.",
+"dropModeDrag":"Arrastrar",
+"dropModeTap":"Tocar",
 "duration":"Duración",
 "easy":"Fácil",
 "equip":"Equipar",

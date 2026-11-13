@@ -736,6 +736,8 @@
 "dotsConnect":"Ligue os pontos",
 "dotsConnectDesc":"Ligue os pontos iguais com caminhos que não se cruzam e preencha toda a grade",
 "dotsConnectIntroDesc":"Arraste o dedo de um ponto até o par da mesma cor — o caminho segue o seu dedo. Caminhos de pares diferentes não se cruzam, e no fim nenhuma casa pode ficar vazia. Treina o planejamento espacial.",
+"dropModeDrag":"Arrastar",
+"dropModeTap":"Tocar",
 "duration":"Duração",
 "easy":"Fácil",
 "equip":"Equipar",

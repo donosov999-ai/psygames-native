@@ -736,6 +736,8 @@
 "dotsConnect":"点つなぎ",
 "dotsConnectDesc":"同じ印どうしを交差しない線でつなぎ、盤面をすべて埋めます",
 "dotsConnectIntroDesc":"点から同じ色の相手の点まで指でなぞると、指に沿って道ができます。ちがう色の道は交差できず、最後に空いたマスを残してはいけません。空間の計画力を鍛えます。",
+"dropModeDrag":"ドラッグ",
+"dropModeTap":"タップ",
 "duration":"時間",
 "easy":"やさしい",
 "equip":"装備",

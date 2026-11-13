@@ -2220,6 +2220,8 @@ const translations: Translations = {
   label_validated_paradigms: { ru: '47 валидированных парадигм', en: '47 validated paradigms' },
   btn_hint: { ru: 'Подсказка', en: 'Hint' },
   btn_undo: { ru: 'Отменить', en: 'Undo' },
+  dropModeDrag: { ru: 'Перетаскивать', en: 'Drag' },   // выбор способа ответа в паузе «Цветов и форм» (shell/drop_baskets.dart)
+  dropModeTap: { ru: 'Нажимать', en: 'Tap' },
   label_on: { ru: 'Вкл', en: 'On' },
   label_off: { ru: 'Выкл', en: 'Off' },
   sudokuLineHighlight:    { ru: 'Подсветка строки и столбца', en: 'Row and column highlight' },

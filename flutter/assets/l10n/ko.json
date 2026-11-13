@@ -736,6 +736,8 @@
 "dotsConnect":"점 잇기",
 "dotsConnectDesc":"같은 점끼리 서로 겹치지 않는 길로 잇고 격자를 모두 채우세요",
 "dotsConnectIntroDesc":"점에서 같은 색의 짝까지 손가락으로 끌면 길이 손가락을 따라 그려집니다. 다른 짝의 길은 서로 교차할 수 없고, 마지막에 빈칸이 남으면 안 됩니다. 공간 계획 능력을 훈련합니다.",
+"dropModeDrag":"끌기",
+"dropModeTap":"누르기",
 "duration":"시간",
 "easy":"쉬움",
 "equip":"장착",
