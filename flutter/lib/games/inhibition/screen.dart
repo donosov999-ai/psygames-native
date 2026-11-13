@@ -21,6 +21,7 @@ import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 
@@ -254,6 +255,7 @@ class _InhibitionScreenState extends State<InhibitionScreen> {
         HudItem(label: L.t('hud_held'), value: '${g.correctRejections}', icon: Icons.pan_tool_outlined),
       ],
       onLesson: () => openDemoLesson(context, title: L.t('inhibition'), trials: _demoTrials()),
+      suiteSwitch: _phase == InhibitionPhase.ready ? SuiteSwitch(route: '/games/inhibition', state: widget.state) : null,
       field: (context, h) => _Field(
         game: g,
         mode: widget.mode,

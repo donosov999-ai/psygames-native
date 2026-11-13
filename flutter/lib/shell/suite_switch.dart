@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'game_preset.dart';
 import 'hub_screen.dart' show HubCardTap, HubScreen;
 import 'l10n.dart';
+import 'profiles.dart';
 import 'shared_state.dart';
 
 /// Режим набора: игра (маршрут) и подпись плашки.
@@ -78,16 +79,32 @@ class GameSuites {
   /// их профилем, хуже, чем не показать переключатель (замер 02.10: у kids в «Позициях» одна «Матрица»).
   static List<SuiteMode> openModes(SharedState state, GameSuite suite) {
     final raw = state.get(HubScreen.visibleKey);
-    if (raw == null || raw.isEmpty) return const [];
-    try {
-      final o = jsonDecode(raw) as Map<String, dynamic>;
-      if (o['profile'] != state.activeProfile) return const [];
-      final open = ((o['suites'] as Map<String, dynamic>?)?[suite.id] as List?)?.cast<String>().toSet();
-      if (open == null) return const [];
-      return [for (final m in suite.modes) if (open.contains(m.route)) m];
-    } catch (_) {
-      return const [];
+    if (raw != null && raw.isNotEmpty) {
+      try {
+        final o = jsonDecode(raw) as Map<String, dynamic>;
+        if (o['profile'] == state.activeProfile) {
+          final open = ((o['suites'] as Map<String, dynamic>?)?[suite.id] as List?)?.cast<String>().toSet();
+          if (open != null) return [for (final m in suite.modes) if (open.contains(m.route)) m];
+        }
+      } catch (_) {
+        // Битая запись — считаем по профилю, как без неё.
+      }
     }
+    return _openByProfile(state, suite);
+  }
+
+  /// 🔴 ЗАПАСНОЙ ПУТЬ — ПО СПИСКУ ИГР ПРОФИЛЯ. Список веба (`visibleKey`) пишет веб-половина; без неё
+  /// (открыли игру до развилки, профиль сменили, веб не запускался) плашек не было вовсе, и девять игр
+  /// «Конфликта внимания» не открывались ни откуда (отчёт 13.11: BART не найти). Профиль известен —
+  /// берём режимы из его `allowed_games` (`null` — вся библиотека); неизвестен — ничего не показываем,
+  /// как и прежде: закрытый профилем режим хуже, чем отсутствие переключателя.
+  static List<SuiteMode> _openByProfile(SharedState state, GameSuite suite) {
+    final profile = Profiles.current.byId(state.activeProfile);
+    if (profile == null) return const [];
+    final games = profile.games;
+    if (games == null) return suite.modes;
+    final allowed = games.toSet();
+    return [for (final m in suite.modes) if (allowed.contains(m.route.split('/').last.replaceAll('-', '_'))) m];
   }
 }
 

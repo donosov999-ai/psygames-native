@@ -21,6 +21,7 @@ import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 
@@ -129,6 +130,7 @@ class _IowaScreenState extends State<IowaScreen> {
         HudItem(label: L.t('hud_goodDecks'), value: '${g.result.advantageous}', icon: Icons.thumb_up_outlined),
         HudItem(label: L.t('hud_badDecks'), value: '${g.result.disadvantageous}', icon: Icons.thumb_down_outlined),
       ],
+      suiteSwitch: _phase == IowaPhase.ready ? SuiteSwitch(route: '/games/iowa', state: widget.state) : null,
       field: (context, h) => _Field(
         game: g,
         phase: _phase,

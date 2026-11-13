@@ -23,6 +23,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 
@@ -288,6 +289,7 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
       onLesson: _game == null
           ? null
           : () => openDemoLesson(context, title: L.t('switchingTask'), trials: _demoTrials()),
+      suiteSwitch: _phase == SwitchPhase.ready ? SuiteSwitch(route: '/games/switching-task', state: widget.state) : null,
       field: (context, h) => _Field(
         game: g,
         mode: _mode,

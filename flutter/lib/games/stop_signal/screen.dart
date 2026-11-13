@@ -11,6 +11,7 @@ import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 import 'strings.dart';
@@ -229,6 +230,7 @@ class _StopSignalScreenState extends State<StopSignalScreen> {
         HudItem(label: L.t('hud_held'), value: '${g.inhibited}', icon: Icons.pan_tool_outlined),
       ],
       onLesson: () => openDemoLesson(context, title: L.t('stopSignal'), trials: _demoTrials()),
+      suiteSwitch: _phase == StopSignalPhase.ready ? SuiteSwitch(route: '/games/stop-signal', state: widget.state) : null,
       field: (context, h) => _Field(
         game: g,
         text: text,
