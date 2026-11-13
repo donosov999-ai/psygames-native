@@ -1803,6 +1803,7 @@ const t: Record<string, string> = {
   "classicLabel": "كلاسيكي",
   "schulteDividedHint": "عدّادات مستقلة عدة في آن واحد تميّزها الألوان — ابحث عنها بالتناوب",
   "schulteMoving": "هدف هارب",
+  "schulteGorbov": "شولت–غوربوف",
   "schulteMovingHint": "بعد كل نقرة صحيحة يُعاد خلط الشبكة — لا يمكنك حفظ المواضع",
   "schulteShare": "أنهيت جدول شولت {g}×{g} في {t}ث على PsyGames — تفوّق عليّ!",
   "patternClassArithmetic": "متتالية حسابية",

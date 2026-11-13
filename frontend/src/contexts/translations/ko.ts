@@ -1802,6 +1802,7 @@ const t: Record<string, string> = {
   "classicLabel": "클래식",
   "schulteDividedHint": "색으로 구분된 여러 카운터를 동시에 — 번갈아 찾으세요",
   "schulteMoving": "움직이는 목표",
+  "schulteGorbov": "슐테–고르보프",
   "schulteMovingHint": "정답을 클릭할 때마다 격자가 다시 섞입니다 — 위치 암기 불가",
   "schulteShare": "PsyGames에서 {g}×{g} 슐테 표를 {t}초에 클리어 — 나를 이겨봐!",
   "patternClassArithmetic": "등차수열",
