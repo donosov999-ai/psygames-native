@@ -178,7 +178,7 @@ DropHost<I> _hostOf<I extends Object>(BuildContext context) {
   final data = context.dependOnInheritedWidgetOfExactType<_DropData<I>>();
   assert(
     data != null,
-    'DropCard<$I>/DropBasket<$I, …> вне DropBasketsScope<$I, …>',
+    'DropCard<$I>/DropBasket<$I, …> used outside DropBasketsScope<$I, …>',
   );
   return data!.host;
 }
