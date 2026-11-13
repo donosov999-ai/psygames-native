@@ -21,6 +21,7 @@ import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/suite_switch.dart';
 import '../../shell/tap_latency.dart';
 import 'model.dart';
 
@@ -184,6 +185,7 @@ class _BartScreenState extends State<BartScreen> {
         HudItem(label: L.t('hud_atRisk'), value: '${g.pending}', icon: Icons.warning_amber_outlined),
         HudItem(label: L.t('hud_pops'), value: '${g.metrics.popped}', icon: Icons.local_fire_department_outlined),
       ],
+      suiteSwitch: _phase == BartPhase.ready ? SuiteSwitch(route: '/games/bart', state: widget.state) : null,
       field: (context, h) => _Field(
         game: g,
         classic: widget.classic != null,

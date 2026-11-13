@@ -963,6 +963,7 @@ const t: Record<string, string> = {
   "suiteModeSimon": "위치",
   "suiteModeChoice": "선택",
   "suiteModeAnt": "단서",
+  "suiteGameLabel": "게임",
   "suiteModeVigilance": "드문 표적",
   "suiteModeSwitch": "규칙 전환",
   "attentionConflictFootnote": "주제는 하나다. 모든 것이 다른 답을 밀어붙일 때 규칙을 지키는 것. 방해는 형태가 여럿이다 — 어긋나는 속성, 이미 시작한 동작을 멈추기, 손해 보는 습관 — 그리고 각 패러다임은 자기 측정치를 따로 남긴다.",

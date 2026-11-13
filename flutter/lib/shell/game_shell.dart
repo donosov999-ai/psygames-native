@@ -35,6 +35,7 @@ class GameShell extends StatelessWidget {
     required this.field,
     this.hud = const [],
     this.auxRow,
+    this.suiteSwitch,
     this.toolbar,
     this.onBack,
     this.onRules,
@@ -64,6 +65,12 @@ class GameShell extends StatelessWidget {
 
   /// Ряд служебных значков ПОД полем (AuxBar).
   final Widget? auxRow;
+
+  /// Плашки «Режим» набора игр ([SuiteSwitch]) — НАД полем, только пока игра на экране настройки
+  /// (экран отдаёт `null` в партии). Место одно на все игры наборов: шапку и HUD не трогают, поле
+  /// получает оставшуюся высоту числом. Без слота игра набора из развилки не открывалась (BART,
+  /// Iowa, Simon… — замер 02.10, отчёт 13.11).
+  final Widget? suiteSwitch;
 
   /// Липкий низ: клавиатура цифр, варианты ответа.
   final Widget? toolbar;
@@ -165,6 +172,17 @@ class GameShell extends StatelessWidget {
         if (hud.isNotEmpty) 'hud': {for (final h in hud) h.label: h.value},
       };
 
+  /// Поле игры; при плашках набора — под ними, с остатком высоты.
+  Widget _fieldArea() {
+    Widget game() => LayoutBuilder(builder: (context, c) => field(context, c.maxHeight));
+    final plates = suiteSwitch;
+    if (plates == null) return game();
+    return Column(children: [
+      Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 0), child: plates),
+      Expanded(child: game()),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     feedbackState = _feedbackState();
@@ -264,11 +282,9 @@ class GameShell extends StatelessWidget {
               // Без него проверить это снаружи нечем — `Wrap` и `Stack` о
               // переполнении молчат и просто рисуют поверх нижних полос.
               key: const Key('game-field'),
-              child: LayoutBuilder(
-                // 🔴 Высота поля отдаётся игре числом. Игра НЕ считает доску от окна:
-                // окно не знает про шапку, счётчики, ряд значков и липкий низ.
-                builder: (context, c) => field(context, c.maxHeight),
-              ),
+              // 🔴 Высота поля отдаётся игре числом. Игра НЕ считает доску от окна:
+              // окно не знает про шапку, счётчики, ряд значков и липкий низ.
+              child: _fieldArea(),
             ),
             ?auxRow,
             if (toolbar != null)
@@ -401,7 +417,7 @@ class GameShell extends StatelessWidget {
         key: const Key('game-field'),
         child: ColoredBox(
           color: auroraTransparentField ? Colors.transparent : Theme.of(context).scaffoldBackgroundColor,
-          child: LayoutBuilder(builder: (context, c) => field(context, c.maxHeight)),
+          child: _fieldArea(),
         ),
       ),
       if (toolbar != null)
