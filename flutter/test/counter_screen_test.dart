@@ -180,8 +180,8 @@ void main() {
         }
         await tester.pump();
       }
-      expect(find.byKey(const Key('result')), findsOneWidget, reason: 'партия не закончилась');
-      return find.text('Следующий').evaluate().isNotEmpty;
+      expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'партия не закончилась');
+      return find.text(L.t('sameLevelRetry')).evaluate().isEmpty;
     }
 
     expect(await play(8), isTrue, reason: '8 из 10 — это ровно порог прохода');
@@ -254,11 +254,11 @@ void main() {
 
   testWidgets('🔴 веха: победа на 3-м уровне открывает бой «сложи подсвеченные», на 2-м — нет', (tester) async {
     // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
-    await expectBossAfterWin(tester, won: find.text(L.t('nextLabel')), hudKey: 'bossHudCounting', play: (level) async {
+    await expectBossAfterWin(tester, won: find.descendant(of: find.byKey(const Key('level-result-next')), matching: find.textContaining(L.t('nextLabel'))), hudKey: 'bossHudCounting', play: (level) async {
       await open(tester, level: level, seed: 'босс$level');
       for (var r = 0;
           r < 40 &&
-              find.byKey(const Key('result')).evaluate().isEmpty &&
+              find.byKey(const Key('level-result')).evaluate().isEmpty &&
               find.byKey(const Key('boss-round')).evaluate().isEmpty;
           r += 1) {
         await tapCells(tester, solve(cellsOnScreen(tester), targetOnScreen(tester)));

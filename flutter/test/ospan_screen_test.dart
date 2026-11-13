@@ -84,7 +84,7 @@ void main() {
     await tester.enterText(find.byKey(const Key('ввод')), seen.join());
     await tester.tap(find.byKey(const Key('проверить')));
     await tester.pump();
-    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'все буквы по порядку — уровень взят');
+    expect(find.textContaining(L.t('nextLabel')), findsOneWidget, reason: 'все буквы по порядку — уровень взят');
   });
 
   testWidgets('🔴 порядок букв важен: та же строка задом наперёд уровень не берёт', (tester) async {

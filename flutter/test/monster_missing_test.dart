@@ -134,7 +134,7 @@ void main() {
         final r = MissingRound.deal(5, rnd);
         await answer(tester, r, r.goneMonsters, 5);
       }
-      expect(find.byKey(const ValueKey('mm-next')), findsOneWidget, reason: 'ступень не закончилась');
+      expect(find.byKey(const Key('level-result-next')), findsOneWidget, reason: 'ступень не закончилась');
       expect(find.textContaining(L.t('nextLabel')), findsOneWidget, reason: 'три из трёх — ступень взята');
       expect(reports, hasLength(1));
       expect(reports.single['game_type'], 'monster_traits');

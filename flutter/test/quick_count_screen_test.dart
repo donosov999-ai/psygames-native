@@ -103,7 +103,7 @@ void main() {
       expect(find.text('${i + 1}/$trialsPerRound'), findsOneWidget, reason: 'проба ${i + 1}');
       await playTrial(tester, p);
     }
-    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'двенадцать из двенадцати — уровень взят');
+    expect(find.textContaining(L.t('nextLabel')), findsOneWidget, reason: 'двенадцать из двенадцати — уровень взят');
   });
 
   testWidgets('🔴 верный ответ ВСЕГДА есть среди кнопок, и их не больше шести', (tester) async {
@@ -180,7 +180,7 @@ void main() {
 
   testWidgets('🔴 веха: победа на 3-м уровне открывает бой «тапни только зелёный», на 2-м — нет', (tester) async {
     // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
-    await expectBossAfterWin(tester, won: find.text(L.t('nextLabel')), hudKey: 'bossHudGonogo', play: (level) async {
+    await expectBossAfterWin(tester, won: find.textContaining(L.t('nextLabel')), hudKey: 'bossHudGonogo', play: (level) async {
       final p = levelParams(level);
       await open(tester, level: level, seed: level);
       await tester.tap(find.byKey(const Key('начать')));
@@ -251,7 +251,7 @@ void main() {
       expect(keysOnScreen(tester, 'чужая'), 0, reason: 'проба ${i + 1}: до 42-го приманок нет');
       await playTrial(tester, p);
     }
-    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'уровень взят');
+    expect(find.textContaining(L.t('nextLabel')), findsOneWidget, reason: 'уровень взят');
     expect(state.get('${SharedState.prefix}quick_count_level_nzt48'), '42', reason: 'лестница не упирается в 41-й');
   });
 
@@ -279,7 +279,7 @@ void main() {
     }
     expect(longest, 3, reason: 'на 44-м приманок в среднем 1,25 — в части проб их две');
     expect(places.length, greaterThan(1), reason: 'своя вспышка стоит в серии на разных местах: $places');
-    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'все ответы по своим — уровень взят');
+    expect(find.textContaining(L.t('nextLabel')), findsOneWidget, reason: 'все ответы по своим — уровень взят');
     expect(state.get('${SharedState.prefix}quick_count_level_nzt48'), '45');
   });
 

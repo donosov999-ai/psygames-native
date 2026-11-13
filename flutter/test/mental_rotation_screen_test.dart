@@ -98,9 +98,9 @@ void main() {
       if (await answer(tester)) hits++;
     }
 
-    expect(find.byKey(const Key('итог-партии')), findsOneWidget, reason: 'партия кончилась итогом');
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'партия кончилась итогом — общим каркаса');
     expect(
-      find.text('$hits/5'),
+      find.text('${L.t('hud_correct')}: $hits/5'),
       findsOneWidget,
       reason: 'в итоге ровно столько верных, сколько экран признал по ходу партии',
     );
@@ -134,10 +134,12 @@ void main() {
       await tester.pump(const Duration(milliseconds: 900));
       await tester.pump();
     }
-    expect(find.text('5/5'), findsOneWidget, reason: 'пять верных из пяти');
+    expect(find.text('${L.t('hud_correct')}: 5/5'), findsOneWidget, reason: 'пять верных из пяти');
 
     // Партия без единой ошибки — уровень вырос: правило лестницы тоже проверяется тычками.
-    await tester.tap(find.byKey(const Key('ещё-раз')));
+    // Подробности партии длинные — кнопки итога ниже края, до них прокручивают.
+    await tester.ensureVisible(find.byKey(const Key('level-result-settings')));
+    await tester.tap(find.byKey(const Key('level-result-settings')));
     await tester.pump();
     expect(find.text('Уровень 2'), findsOneWidget);
   });
@@ -207,7 +209,9 @@ void main() {
       expect(find.text('${mrWord('practiceTitle')}: Сечение'), findsOneWidget);
 
       // Уровень игрока от отработки не меняется — ни вверх, ни вниз.
-      await tester.tap(find.byKey(const Key('ещё-раз')));
+      // Подробности партии длинные — кнопки итога ниже края, до них прокручивают.
+      await tester.ensureVisible(find.byKey(const Key('level-result-settings')));
+      await tester.tap(find.byKey(const Key('level-result-settings')));
       await tester.pump();
       expect(find.text('Уровень 1'), findsOneWidget);
     },

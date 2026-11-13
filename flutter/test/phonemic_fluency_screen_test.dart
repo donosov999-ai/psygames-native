@@ -58,7 +58,7 @@ void main() {
     expect(find.text('лампа ✗'), findsOneWidget, reason: 'чужая буква помечена');
     now += 20000;
     await tester.pump(const Duration(seconds: 60));
-    expect(find.byKey(const Key('pf-count')), findsOneWidget);
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'итог — общий каркаса');
     expect(sent, hasLength(1));
     final s = sent.single;
     expect(s['game_type'], 'phonemic_fluency');

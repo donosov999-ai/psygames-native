@@ -6,6 +6,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
@@ -151,12 +152,31 @@ class _OneLineScreenState extends State<OneLineScreen> {
             value: '${game.passesDone}/${level.totalPasses}',
             icon: Icons.timeline),
       ],
-      field: (context, h) => OneLineBoard(
-        level: level,
-        game: game,
-        fieldHeight: h,
-        onChanged: _check,
-      ),
+      // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень. Зачёт
+      // победы по-прежнему в [_next] — его и зовёт итог; пройденная линия остаётся снимком в подробностях.
+      field: (context, h) => _won
+          ? SizedBox(
+              height: h,
+              child: LevelResult(
+                passed: true,
+                level: _playLevel,
+                details: IgnorePointer(
+                  child: OneLineBoard(
+                    level: level,
+                    game: game,
+                    fieldHeight: (h * 0.3).clamp(0.0, 220.0),
+                    onChanged: () {},
+                  ),
+                ),
+                onNext: _next,
+              ),
+            )
+          : OneLineBoard(
+              level: level,
+              game: game,
+              fieldHeight: h,
+              onChanged: _check,
+            ),
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.undo,
@@ -174,16 +194,6 @@ class _OneLineScreenState extends State<OneLineScreen> {
           onPressed: _won ? null : _showSolution,
         ),
       ]),
-      toolbar: _won
-          ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: FilledButton.icon(
-                onPressed: _nextPending ? null : _next,
-                icon: const Icon(Icons.arrow_forward),
-                label: Text(L.t('nextLabel')),
-              ),
-            )
-          : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
         PauseAction(

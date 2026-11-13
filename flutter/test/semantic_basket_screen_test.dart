@@ -82,7 +82,7 @@ void main() {
       }
       await t.pump(const Duration(seconds: 1));
       await t.pumpAndSettle();
-      expect(find.byKey(const Key('semantic-score')), findsOneWidget);
+      expect(find.byKey(const Key('level-result-score')), findsOneWidget);
       expect(reports, hasLength(1));
       expect(reports.single['details']['mode'], 'baskets');
       expect(reports.single['details']['accuracy'], 1);
@@ -193,7 +193,7 @@ void main() {
         await t.pump(const Duration(seconds: 1));
         await t.pumpAndSettle();
       }
-      expect(find.byKey(const Key('semantic-score')), findsOneWidget);
+      expect(find.byKey(const Key('level-result-score')), findsOneWidget);
       expect(reports, hasLength(1));
       expect(reports.single['score'], 12);
       expect(reports.single['details']['target_lang'], 'en+es');
@@ -279,7 +279,7 @@ void main() {
       expect(state.get(SharedState.levelKey('semantic_sort', 'nzt48')), '2');
       // 🔴 Денис 12.11: «Дальше» после пройденного уровня сразу начинает
       // следующий — без возврата на экран настроек.
-      await t.tap(find.byKey(const Key('semantic-again')));
+      await t.tap(find.byKey(const Key('level-result-next')));
       await t.pumpAndSettle();
       expect(find.byKey(const Key('semantic-start')), findsNothing);
       expect(find.byType(SemanticBasketField), findsOneWidget);
@@ -308,7 +308,7 @@ void main() {
       }
       await t.pump(const Duration(seconds: 1));
       await t.pumpAndSettle();
-      await t.tap(find.byKey(const Key('semantic-to-settings')));
+      await t.tap(find.byKey(const Key('level-result-settings')));
       await t.pumpAndSettle();
       final picker = t.widget<LangDropdown>(
         find.byKey(const Key('semantic-lang')),

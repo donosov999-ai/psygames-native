@@ -74,7 +74,7 @@ void main() {
     }
     // Время вышло — партия закрывается сама.
     await tester.pump(const Duration(seconds: 61));
-    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'двенадцать верных — уровень взят');
+    expect(find.textContaining(L.t('nextLabel')), findsOneWidget, reason: 'двенадцать верных — уровень взят');
   });
 
   testWidgets('🔴 неверный ответ сдаётся кнопкой: ошибка, серия обнуляется, очки падают', (tester) async {
@@ -140,7 +140,7 @@ void main() {
 
   testWidgets('🔴 веха: победа на 3-м уровне открывает бой «дополни ряд до 1–9», на 2-м — нет', (tester) async {
     // В вебе этот экран зовёт BossRound каждые три уровня; при переносе бой пропал молча.
-    await expectBossAfterWin(tester, won: find.text(L.t('nextLabel')), hudKey: 'bossHudCompleteline', play: (level) async {
+    await expectBossAfterWin(tester, won: find.textContaining(L.t('nextLabel')), hudKey: 'bossHudCompleteline', play: (level) async {
       final rnd = createRng('босс$level');
       await open(tester, level: level, seed: 'босс$level');
       await tester.tap(find.byKey(const Key('начать')));

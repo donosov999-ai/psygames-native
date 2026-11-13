@@ -12,6 +12,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -294,7 +295,18 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
           ),
         LspanPhase.listen => _Listen(game: g, spokenIdx: _spokenIdx, holding: _holding),
         LspanPhase.recall => _Recall(game: g, onTap: _tap),
-        LspanPhase.done => _Done(game: g),
+        // Итог — общий каркаса ([LevelResult], задача e90a53d5): «дальше» сразу начинает новую партию
+        // (раньше кнопка уводила на экран старта); «Настройки» — экран старта с выбором языка.
+        LspanPhase.done => LevelResult(
+            passed: g.passed,
+            level: g.level,
+            score: '${L.t('hud_span')}: ${g.params.span} · ${L.t('hud_errors')}: ${g.errors}',
+            onNext: () {
+              setState(_reset);
+              _start();
+            },
+            onSettings: () => setState(_reset),
+          ),
         LspanPhase.revealed => _Recall(game: g, onTap: (_) {}, revealed: true),
       },
       auxRow: AuxBar(children: [
@@ -306,14 +318,15 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
         ),
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
-      toolbar: _phase == LspanPhase.done || _phase == LspanPhase.revealed
+      // Показанное решение — не итог уровня: партия без зачёта, только «Ещё раз».
+      toolbar: _phase == LspanPhase.revealed
           ? Padding(
               padding: const EdgeInsets.all(12),
               child: FilledButton.icon(
                 key: const Key('lspan-again'),
                 onPressed: () => setState(_reset),
                 icon: const Icon(Icons.arrow_forward),
-                label: Text(_phase == LspanPhase.done && g.passed ? L.t('nextLabel') : L.t('retry')),
+                label: Text(L.t('retry')),
               ),
             )
           : null,
@@ -582,35 +595,6 @@ class _Recall extends StatelessWidget {
             wrongIdx: revealed ? null : game.wrongIdx,
             onTap: revealed ? null : onTap,
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Done extends StatelessWidget {
-  const _Done({required this.game});
-
-  final ListeningSpanGame game;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(game.passed ? Icons.check_circle_outline : Icons.replay,
-              key: Key(game.passed ? 'lspan-passed' : 'lspan-failed'),
-              size: 56,
-              color: game.passed ? const Color(0xFF22C55E) : _wrong),
-          const SizedBox(height: 12),
-          Text('${L.t('hud_span')}: ${game.params.span}', style: text.titleMedium),
-          Text('${L.t('hud_errors')}: ${game.errors}', key: const Key('lspan-errors'), style: text.titleMedium),
-          if (!game.passed) ...[
-            const SizedBox(height: 8),
-            Text(L.t('sameLevelRetry'), style: text.bodySmall),
-          ],
         ],
       ),
     );

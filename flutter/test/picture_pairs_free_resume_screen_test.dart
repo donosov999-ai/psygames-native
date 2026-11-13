@@ -255,7 +255,7 @@ void main() {
     for (final places in groups.skip(1)) {
       await collect(tester, places);
     }
-    expect(find.text(L.t('nextLabel')), findsOneWidget, reason: 'тот же расклад доигран по запомненным местам');
+    expect(find.textContaining(L.t('nextLabel')), findsOneWidget, reason: 'тот же расклад доигран по запомненным местам');
     expect(state.get(resumeKey), isNull, reason: 'доигранная партия записи не оставляет');
     await leave(tester);
   });

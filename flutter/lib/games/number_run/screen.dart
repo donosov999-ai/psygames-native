@@ -14,6 +14,7 @@ import '../../shell/js_compat.dart' show jsNum, jsRound;
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/session_report.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -586,20 +587,22 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
     }
   }
 
-  /// ОКНО РЕЗУЛЬТАТА (UI22, лист 03 референса Кодекса): лента вердикта, «Число на финише» крупно,
-  /// порог стража или пробитые стены ярлыком, одна главная кнопка. Значения — из снимка итога.
+  /// ОКНО РЕЗУЛЬТАТА (UI22, лист 03 референса Кодекса): карточка поверх дороги, «Число на финише»
+  /// крупно, порог стража или пробитые стены ярлыком. Заголовок, звёзды, кнопки и автопереход — общий
+  /// итог каркаса ([LevelResult], задача e90a53d5); игра отдаёт снимок итога. Особый вердикт (страж
+  /// пройден, «почти», забег доехал) — строкой в подробностях. «Дальше» сразу ведёт на дорогу
+  /// следующей раздачи (раньше — на экран настройки), «Настройки» — туда.
   Widget? _resultWindow() {
     final o = _outcome;
     if (o == null) return null;
     final won = o.level == null ? o.reached : o.passed;
-    // Вердикт — словами итога: доехал, но стен мало — «почти»; упал — «ещё раз».
-    final verdict = o.level == null
-        ? (o.reached ? L.t('numberRunDone') : L.t('retry'))
+    final note = o.level == null
+        ? (o.reached ? L.t('numberRunDone') : null)
         : o.passed
-            ? (o.guard != null ? L.t('numberRunGuardPassed') : L.t('levelDone').replaceAll('{n}', '${o.level}'))
+            ? (o.guard != null ? L.t('numberRunGuardPassed') : null)
             : o.reached
                 ? L.t('levelAlmost').replaceAll('{n}', '${o.level}')
-                : L.t('retry');
+                : null;
     const nb = '\u00a0';
     final threshold = o.guard != null
         ? L.t('numberRunThreshold').replaceAll('{n}', '${o.guard}')
@@ -613,53 +616,45 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
       key: const Key('nr-result'),
       constraints: const BoxConstraints(maxWidth: 358),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+        padding: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
           color: Nr.ivory,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: Nr.gold, width: 3),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .35), blurRadius: 18, offset: const Offset(0, 6))],
         ),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            if (won) const Icon(Icons.star_rounded, color: Nr.gold, size: 30),
-            Flexible(
-              child: KeyedSubtree(
-                key: const Key('nr-verdict'),
-                child: NrCandy(
-                  text: verdict.toUpperCase(),
-                  color: won ? Nr.violet : Nr.navy,
-                  size: 18,
-                  height: 40,
-                  padding: 18,
+        // Карточка светлая при любой теме — итог каркаса рисуется светлой схемой забега.
+        child: Theme(
+          data: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Nr.violet)),
+          child: LevelResult(
+            passed: won,
+            level: o.level,
+            score: stats,
+            details: Column(mainAxisSize: MainAxisSize.min, children: [
+              if (note != null)
+                Text(note.toUpperCase(),
+                    key: const Key('nr-verdict'),
+                    textAlign: TextAlign.center,
+                    style: nrText(15, won ? Nr.violet : Nr.navy)),
+              Text(L.t('numberRunFinishNumber').toUpperCase(), textAlign: TextAlign.center, style: nrText(13, Nr.ink)),
+              Text(
+                '${o.number}',
+                key: const Key('nr-finish-number'),
+                textAlign: TextAlign.center,
+                style: nrText(56, o.number < 0 ? Nr.red : Nr.blue, height: 1.1).copyWith(
+                  shadows: [Shadow(color: (o.number < 0 ? Nr.red : Nr.blue).withValues(alpha: .35), blurRadius: 14)],
                 ),
               ),
-            ),
-            if (won) const Icon(Icons.star_rounded, color: Nr.gold, size: 30),
-          ]),
-          const SizedBox(height: 12),
-          Text(L.t('numberRunFinishNumber').toUpperCase(), style: nrText(13, Nr.ink)),
-          Text(
-            '${o.number}',
-            key: const Key('nr-finish-number'),
-            style: nrText(56, o.number < 0 ? Nr.red : Nr.blue, height: 1.1).copyWith(
-              shadows: [Shadow(color: (o.number < 0 ? Nr.red : Nr.blue).withValues(alpha: .35), blurRadius: 14)],
-            ),
+              if (threshold != null)
+                KeyedSubtree(key: const Key('nr-threshold'), child: NrTab(threshold, upper: false)),
+            ]),
+            onNext: () {
+              _next();
+              _start();
+            },
+            onSettings: _next,
           ),
-          if (threshold != null) KeyedSubtree(key: const Key('nr-threshold'), child: NrTab(threshold, upper: false)),
-          const SizedBox(height: 10),
-          Text(stats, textAlign: TextAlign.center, style: nrText(13, Nr.muted)),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: NrActionButton(
-              key: const Key('nr-next'),
-              label: o.level == null ? L.t('restart') : (won ? L.t('nextLabel') : L.t('retry')),
-              height: 52,
-              onPressed: _next,
-            ),
-          ),
-        ]),
+        ),
       ),
     );
   }

@@ -13,6 +13,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/swipe_select.dart';
@@ -239,7 +240,23 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
         if (g != null)
           HudItem(label: L.t('errors'), value: '${g.missed.length + g.extras.length}', icon: Icons.error_outline),
       ],
-      field: (context, h) => Column(
+      // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующую ступень, разбор
+      // отметок (пропущенные и лишние карточки) — в подробностях.
+      field: (context, h) => g != null
+          ? SizedBox(
+              height: h,
+              child: LevelResult(
+                passed: _won,
+                level: _levelNo,
+                score: '${L.t('mtMissed')}: ${g.missed.length} · ${L.t('mtExtra')}: ${g.extras.length}',
+                details: LayoutBuilder(
+                  builder: (context, c) =>
+                      _Grid(round: round, selected: _selected, graded: g, maxW: c.maxWidth, maxH: h * 0.45),
+                ),
+                onNext: _next,
+              ),
+            )
+          : Column(
         children: [
           _Prompt(round: round),
           const SizedBox(height: 8),
@@ -266,24 +283,17 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
           onPressed: _checked || _selected.isEmpty ? null : () => setState(_selected.clear),
         ),
       ]),
-      toolbar: Padding(
-        padding: const EdgeInsets.all(12),
-        child: !_checked
-            ? FilledButton.icon(
+      toolbar: _checked
+          ? null
+          : Padding(
+              padding: const EdgeInsets.all(12),
+              child: FilledButton.icon(
                 key: const ValueKey('mt-check'),
                 onPressed: _selected.isEmpty ? null : _check,
                 icon: const Icon(Icons.check),
                 label: Text(L.t('check')),
-              )
-            : FilledButton.icon(
-                key: const ValueKey('mt-next'),
-                onPressed: _next,
-                icon: Icon(_won ? Icons.arrow_forward : Icons.refresh),
-                label: Text(_won
-                    ? '★★★ · ${L.t('nextLabel')}'
-                    : '${L.t('mtMissed')}: ${g!.missed.length} · ${L.t('mtExtra')}: ${g.extras.length}'),
               ),
-      ),
+            ),
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_deal)),
       ],

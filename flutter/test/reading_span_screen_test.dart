@@ -215,11 +215,13 @@ void main() {
     final notes = <String>[];
     for (var round = 0; round < 3; round++) {
       if (round > 0) {
-        await tester.tap(find.byKey(const Key('rspan-again')));
+        // «Ещё раз» общего итога (e90a53d5) сразу начинает круг — без «Начать», если не ждёт карточка правила.
+        await tester.tap(find.byKey(const Key('level-result-next')));
+        await tester.pump();
+      } else {
+        await tester.tap(find.byKey(const Key('rspan-start')));
         await tester.pump();
       }
-      await tester.tap(find.byKey(const Key('rspan-start')));
-      await tester.pump();
       await readSet(tester);
       await answer(tester, 'мимо');
       notes.add(tester.widget<Text>(find.byKey(const Key('rspan-retry-note'))).data!);

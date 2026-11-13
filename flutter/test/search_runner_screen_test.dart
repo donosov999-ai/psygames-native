@@ -71,11 +71,11 @@ void main() {
     await open(tester);
     final lv = makeSearchLevel(1, 7);
     await drive(tester, lv, (i) => lv.rows[i].answer - 1);
-    expect(find.byKey(const Key('runner-result')), findsOneWidget, reason: 'уровень не закончился');
+    expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'уровень не закончился — итог общий каркаса');
     expect(find.textContaining(L.t('nextLabel')), findsWidgets, reason: 'все ряды верно — уровень взят');
-    expect(tester.widget<Text>(find.byKey(const Key('runner-result'))).data,
+    expect(tester.widget<Text>(find.byKey(const Key('level-result-score'))).data,
         contains('${lv.rows.length}/${lv.rows.length}'), reason: 'в итоге не «найдено все»');
-    expect(tester.widget<Text>(find.byKey(const Key('runner-result'))).data, contains('${L.t('goalLabel')} ${lv.needed}'),
+    expect(tester.widget<Text>(find.byKey(const Key('level-result-score'))).data, contains('${L.t('goalLabel')} ${lv.needed}'),
         reason: 'в итоге не названа цель — порог');
   });
 
@@ -83,7 +83,7 @@ void main() {
     await open(tester, seed: 11);
     final lv = makeSearchLevel(1, 11);
     await drive(tester, lv, (_) => 0);
-    expect(find.byKey(const Key('runner-result')), findsOneWidget);
+    expect(find.byKey(const Key('level-result')), findsOneWidget);
     expect(find.textContaining(L.t('retry')), findsWidgets, reason: 'стоящий на месте прошёл уровень');
   });
 

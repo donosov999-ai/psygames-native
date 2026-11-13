@@ -12,6 +12,7 @@ import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/noise.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -480,20 +481,17 @@ class _DictationScreenState extends State<DictationScreen> {
     );
   }
 
+  /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
   Widget _result(BuildContext context, double h) {
     final s = dictationSummary(_chars, _typos, (_now - _startMs) / 1000);
     return SizedBox(
       height: h,
-      child: Center(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(_passed ? L.t('levelDone').replaceAll('{n}', '$_levelPlayed') : L.t('sameLevelRetry'),
-              style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
-          const SizedBox(height: 8),
-          Text('${s.cpm} · ${s.accuracy}% · ${L.t('hud_errors')}: $_typos', key: const Key('dict-score')),
-          const SizedBox(height: 20),
-          FilledButton(key: const Key('dict-again'), onPressed: _start, child: Text(_passed ? L.t('nextNow') : L.t('retry'))),
-          TextButton(onPressed: () => setState(() => _phase = DictationPhase.config), child: Text(L.t('skip'))),
-        ]),
+      child: LevelResult(
+        passed: _passed,
+        level: _levelPlayed,
+        score: '${s.cpm} · ${s.accuracy}% · ${L.t('hud_errors')}: $_typos',
+        onNext: _start,
+        onSettings: () => setState(() => _phase = DictationPhase.config),
       ),
     );
   }
