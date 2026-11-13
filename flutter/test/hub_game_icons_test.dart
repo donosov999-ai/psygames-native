@@ -26,6 +26,9 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   final index = jsonDecode(File('assets/game_icons/index.json').readAsStringSync()) as Map<String, dynamic>;
+  // С 13.11.2026 строки «Классики» рисуют картинку Кодекса из общей карты разделов (hub_art),
+  // а прежний значок каталога — только когда картинки нет.
+  final hubArt = (jsonDecode(File('assets/hub_art/index.json').readAsStringSync()) as Map)['byRoute'] as Map;
 
   test('🔴 выгрузка свежая: картинки байт в байт как в вебе, карта ключей пересчитывается из реестра', () {
     final reg = File('../frontend/src/constants/gameIcons.ts').readAsStringSync();
@@ -142,9 +145,9 @@ void main() {
       await boot(tester, '/games/hearing-hub');
       final icon = find.byKey(const ValueKey('hub-icon-/games/phoneme-pairs'));
       expect(icon, findsOneWidget);
-      final img = tester.widget<Image>(icon);
-      expect((img.image as AssetImage).assetName, 'assets/game_icons/${index['byNameKey']['phonemePairs']}');
-      expect(find.byType(CircleAvatar), findsNothing, reason: 'у всех пяти игр «Слуха» иконки есть');
+      final img = tester.widget<Image>(find.descendant(of: icon, matching: find.byType(Image)));
+      expect((img.image as AssetImage).assetName, hubArt['/games/phoneme-pairs']['light']);
+      expect(find.byType(CircleAvatar), findsNothing, reason: 'у всех пяти игр «Слуха» картинки есть');
     });
 
     testWidgets('«Конфликт внимания»: «Струп» подписан своим ключом — иконка всё равно есть', (tester) async {
@@ -156,8 +159,8 @@ void main() {
       await boot(tester, '/games/sudoku-hub');
       final icon = find.byKey(const ValueKey('hub-icon-/games/sudoku?mode=towers'));
       expect(icon, findsOneWidget);
-      expect((tester.widget<Image>(icon).image as AssetImage).assetName,
-          'assets/game_icons/${index['byRoute']['/games/sudoku?mode=towers']}');
+      expect((tester.widget<Image>(find.descendant(of: icon, matching: find.byType(Image))).image as AssetImage).assetName,
+          hubArt['/games/sudoku?mode=towers']['light']);
     });
 
     testWidgets('🔴 EN: уровень на строке — словом языка, а не русским «ур.»', (tester) async {
@@ -168,13 +171,15 @@ void main() {
       expect(find.text('${L.t('unitLevelShort')} 1'), findsWidgets);
     });
 
-    testWidgets('нет карты иконок — строки с прежним значком, не пустое место', (tester) async {
+    testWidgets('нет ни карты картинок, ни карты иконок — строки с прежним значком, не пустое место', (tester) async {
       // Карту подменяем пустой: новая строка без иконки (или битая выгрузка) не должна
       // оставлять дыру в ряду.
       final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
       messenger.setMockMessageHandler('flutter/assets', (msg) async {
         final key = Uri.decodeFull(utf8.decode(msg!.buffer.asUint8List(msg.offsetInBytes, msg.lengthInBytes)));
-        if (key == 'assets/game_icons/index.json') return ByteData.sublistView(utf8.encode('{}'));
+        if (key == 'assets/game_icons/index.json' || key == 'assets/hub_art/index.json') {
+          return ByteData.sublistView(utf8.encode('{}'));
+        }
         final f = File(key);
         return f.existsSync() ? ByteData.sublistView(f.readAsBytesSync()) : null;
       });
@@ -182,7 +187,7 @@ void main() {
       await boot(tester, '/games/sudoku-hub');
       final row = find.byKey(const ValueKey('hub-card-/games/sudoku?mode=towers'));
       expect(row, findsOneWidget);
-      expect(find.descendant(of: row, matching: find.byType(CircleAvatar)), findsOneWidget);
+      expect(find.descendant(of: row, matching: find.byType(Icon)), findsWidgets);
       expect(find.descendant(of: row, matching: find.byType(Image)), findsNothing);
     });
   });
