@@ -138,11 +138,15 @@ class AuroraTabHeader extends StatelessWidget {
     this.petKey,
     this.settingsKey,
     this.subtitleKey,
+    this.leading,
   });
   final String route;
   final String title;
   final String subtitle;
   final Widget? titleWidget;
+
+  /// Nested hubs share the root chrome, but retain their ordinary Back action.
+  final Widget? leading;
   final Widget? pet;
   final ValueChanged<String>? onOpen;
   final Key? petKey, settingsKey, subtitleKey;
@@ -190,10 +194,26 @@ class AuroraTabHeader extends StatelessWidget {
     builder: (context, box) {
       final dark = Theme.of(context).brightness == Brightness.dark;
       final crystal = CrystalPalette.of(context);
-      final text = crystal?.foreground ?? Theme.of(context).colorScheme.onSurface;
-      final secondary = crystal?.foreground.withValues(alpha:.8) ?? Theme.of(context).colorScheme.onSurfaceVariant;
+      final text =
+          crystal?.foreground ?? Theme.of(context).colorScheme.onSurface;
+      final secondary =
+          crystal?.foreground.withValues(alpha: .8) ??
+          Theme.of(context).colorScheme.onSurfaceVariant;
       final open = onOpen ?? TabChromeHost.open;
-      final titleSlot = titleHeight(context, box.maxWidth);
+      var titleSlot = titleHeight(context, box.maxWidth);
+      if (leading != null) {
+        final painter = TextPainter(
+          text: TextSpan(
+            text: title,
+            style: DefaultTextStyle.of(context).style.merge(titleStyle),
+          ),
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+          maxLines: 2,
+        )..layout(maxWidth: math.max(40, box.maxWidth - 188));
+        titleSlot = math.max(titleSlot, painter.height);
+        painter.dispose();
+      }
       Widget action(Key? key, String label, Widget child, String destination) =>
           IconButton(
             key: key,
@@ -208,6 +228,7 @@ class AuroraTabHeader extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (leading != null) ...[leading!, const SizedBox(width: 4)],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,13 +298,32 @@ class AuroraTabHeader extends StatelessWidget {
         ),
       );
       return SizedBox(
-        height: height(context, box.maxWidth),
+        height: math.max(
+          height(context, box.maxWidth),
+          20 +
+              titleSlot +
+              4 +
+              MediaQuery.textScalerOf(context).scale(14) * 2.5 +
+              10,
+        ),
         child: DecoratedBox(
           key: const ValueKey('aurora-tab-header'),
-          decoration: BoxDecoration(image: ChromeArt.header(dark,context:context),
-            boxShadow: crystal == null ? null : [BoxShadow(
-              color: HSVColor.fromAHSV(crystal.recipe.glow,crystal.recipe.hue,
-                crystal.recipe.saturation.clamp(0,1),1).toColor(),blurRadius:12)]),
+          decoration: BoxDecoration(
+            image: ChromeArt.header(dark, context: context),
+            boxShadow: crystal == null
+                ? null
+                : [
+                    BoxShadow(
+                      color: HSVColor.fromAHSV(
+                        crystal.recipe.glow,
+                        crystal.recipe.hue,
+                        crystal.recipe.saturation.clamp(0, 1),
+                        1,
+                      ).toColor(),
+                      blurRadius: 12,
+                    ),
+                  ],
+          ),
           child: TabEntryMotion(
             route: route,
             child: PilotLiquidSurface(child: content),

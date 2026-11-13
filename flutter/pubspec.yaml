@@ -209,6 +209,10 @@ flutter:
     # Иконки игр «поле в миниатюре» для строк развилок — выгрузка веб-реестра
     # (flutter/tools/embed-game-icons.mjs), не править руками.
     - assets/game_icons/
+    # Isolated Aurora catalogue artwork. Classic and the source icon registry stay intact.
+    - assets/hub_art/index.json
+    - assets/hub_art/light/
+    - assets/hub_art/dark/
     - assets/aurora_hubs/
     - assets/aurora_sections/
     # Превью игр фоном плиток вкладки «Игры» — копия веба (`flutter-catalog-asset-fresh.test.ts`), не править руками.
