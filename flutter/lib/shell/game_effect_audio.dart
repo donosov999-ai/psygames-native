@@ -5,13 +5,16 @@ import 'package:flutter_soloud/flutter_soloud.dart' as so;
 
 /// An explicit comparison build opts in. Normal builds initialize neither engine.
 const gameSfxEngine = String.fromEnvironment('PSYGAMES_SFX_ENGINE', defaultValue: 'off');
-enum GameSound { selection, transfer, landing, group, victory }
+enum GameSound { selection, transfer, landing, group, victory, correct, wrong }
 const _files = <GameSound, String>{
   GameSound.selection: 'click_001.wav',
   GameSound.transfer: 'glass_001.wav',
   GameSound.landing: 'drop_001.wav',
   GameSound.group: 'confirmation_001.wav',
   GameSound.victory: 'bong_001.wav',
+  // Отклик на ответ (shell/answer_feedback.dart, задача 5d4d04bb) — свои, tools/gen-answer-sfx.py.
+  GameSound.correct: 'answer_correct.wav',
+  GameSound.wrong: 'answer_wrong.wav',
 };
 
 abstract class GameSoundBackend {

@@ -30,7 +30,7 @@ void main() {
     expect(b.played, isEmpty);
     await a.dispose();
   });
-  test('five real event types deduplicate per move, next attempt can emit again', () async {
+  test('every event type deduplicates per move, next attempt can emit again', () async {
     final b = FakeSound();
     final a = GameEffectAudio(backend: b, enabled: () => true);
     for (final s in GameSound.values) { a.emit(s, 'move1'); a.emit(s, 'move1'); }
@@ -39,7 +39,7 @@ void main() {
     a.reset();
     a.emit(GameSound.victory, 'move1');
     await a.settled;
-    expect(b.played.length, 6);
+    expect(b.played.length, GameSound.values.length + 1);
     await a.dispose();
   });
   test('hold/mute/exit invalidate commands still loading; resume does not replay', () async {

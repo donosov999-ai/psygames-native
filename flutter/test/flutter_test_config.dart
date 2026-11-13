@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:psygames_flutter/shell/answer_feedback.dart';
 import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/level_result.dart';
 
@@ -15,5 +16,7 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   LevelResult.autoAdvance = false;
   // Анимацию победы (Lottie и Flame) пробы игр не грузят; её проверяет `level_result_test.dart`.
   LevelResult.effects = false;
+  // Отклик на ответ в пробах — без звукового движка (подсветка, пауза и вибрация остаются).
+  AnswerFeedback.backendFactory = () => null;
   await testMain();
 }

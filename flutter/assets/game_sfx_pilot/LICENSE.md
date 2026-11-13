@@ -13,3 +13,7 @@ confirmation_001.ogg — group; bong_001.ogg — victory.
 
 Only these effects are included. No new music is redistributed. Original
 just_audio music, voice and practice ownership are unchanged.
+
+13.11.2026: `answer_correct.wav` and `answer_wrong.wav` (answer feedback, task 5d4d04bb) are not from
+Kenney: they are synthesized by `flutter/tools/gen-answer-sfx.py` (sine tones, mono 44.1 kHz PCM16) and
+released together with this set under CC0.

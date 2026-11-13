@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/quick_count/model.dart';
 import 'package:psygames_flutter/games/quick_count/screen.dart';
+import 'package:psygames_flutter/shell/answer_feedback.dart';
 import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/level_rules.dart';
@@ -73,6 +74,12 @@ void main() {
     final answer = correct ? n : (find.byKey(Key('ответ${n + 1}')).evaluate().isNotEmpty ? n + 1 : n - 1);
     await tester.tap(find.byKey(Key('ответ$answer')));
     await tester.pump();
+    // Отклик на ответ (задача 5d4d04bb): выбранное горит ✓/✗ [AnswerFeedback.hold], потом следующая проба.
+    expect(find.byKey(Key(correct ? 'answer-mark-good' : 'answer-mark-bad')), findsOneWidget,
+        reason: 'ответ подсвечен: ${correct ? 'зелёный ✓' : 'красный ✗'}');
+    if (!correct) expect(find.byKey(const Key('answer-mark-good')), findsOneWidget, reason: 'при ошибке верный — зелёным');
+    await tester.pump(AnswerFeedback.hold);
+    await tester.pump();
     return n;
   }
 
@@ -123,6 +130,7 @@ void main() {
         expect(buttons <= answerMax, isTrue, reason: 'L$level: кнопок $buttons, не больше шести');
         await tester.tap(find.byKey(Key('ответ$n')));
         await tester.pump();
+        await tester.pump(AnswerFeedback.hold); // отклик на ответ (5d4d04bb)
       }
     }
   });
@@ -276,6 +284,7 @@ void main() {
       await tester.pump(Duration(milliseconds: p.holdMs + 1));
       await tester.tap(find.byKey(Key('ответ${seen.own}')));
       await tester.pump();
+      await tester.pump(AnswerFeedback.hold); // отклик на ответ (5d4d04bb)
     }
     expect(longest, 3, reason: 'на 44-м приманок в среднем 1,25 — в части проб их две');
     expect(places.length, greaterThan(1), reason: 'своя вспышка стоит в серии на разных местах: $places');
@@ -297,6 +306,7 @@ void main() {
       if (canLure) byLure += 1;
       await tester.tap(find.byKey(Key('ответ${canLure ? lure : seen.own}')));
       await tester.pump();
+      await tester.pump(AnswerFeedback.hold); // отклик на ответ (5d4d04bb)
     }
     expect(byLure, greaterThanOrEqualTo(3), reason: 'проба осмысленна: по приманке отвечено $byLure раз');
     expect(find.text(L.t('retry')), findsOneWidget, reason: 'ответы по приманке засчитаны ошибками');
