@@ -7,6 +7,18 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.70.0",
+   "date": "2026-11-13",
+   "items": [
+    "Shared level result: stars, a win animation, the next level starts by itself",
+    "Swipe across tiles in Counter, Number Bonds, Fillwords and Anagrams",
+    "Attention Conflict: BART, Iowa, Simon, ANT and 5 more games in their sets",
+    "Schulte: Free mode is back — Gorbov, letters, reverse order",
+    "Digit Span shows the whole number; Quick Count is slower on early levels",
+    "Colors and Shapes: drag cards; level map before you start"
+   ]
+  },
+  {
    "version": "v2.56.65",
    "date": "2026-11-13",
    "items": [

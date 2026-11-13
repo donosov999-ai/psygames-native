@@ -1,6 +1,26 @@
 {
  "entries": [
   {
+   "version": "2.70.0",
+   "date": "2026-11-13",
+   "en": [
+    "Shared level result: stars, a win animation, the next level starts by itself",
+    "Swipe across tiles in Counter, Number Bonds, Fillwords and Anagrams",
+    "Attention Conflict: BART, Iowa, Simon, ANT and 5 more games in their sets",
+    "Schulte: Free mode is back — Gorbov, letters, reverse order",
+    "Digit Span shows the whole number; Quick Count is slower on early levels",
+    "Colors and Shapes: drag cards; level map before you start"
+   ],
+   "ru": [
+    "Общий итог уровня: звёзды, анимация, следующий уровень стартует сам",
+    "Протяжка пальцем в «Считалке», «Числовых парах», «Филвордах», «Анаграммах»",
+    "«Конфликт внимания»: BART, Iowa, Simon, ANT и ещё 5 игр в наборах",
+    "Шульте: режим «Свободно» — Горбов, буквы, обратный порядок",
+    "«Запомни цифры» — весь ряд сразу; «Быстрый счёт» медленнее",
+    "«Цвета и формы» — перетаскивание; карта уровней до старта"
+   ]
+  },
+  {
    "version": "2.56.65",
    "date": "2026-11-13",
    "en": [
