@@ -3852,5 +3852,6 @@ const t: Record<string, string> = {
   "sumMixedRuleChanges": "Die Regel kann sich von Runde zu Runde ändern",
   "dropModeDrag": "Ziehen",
   "dropModeTap": "Tippen",
+  "dropInputLabel": "Eingabe",
 };
 export default t;

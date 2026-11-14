@@ -3852,5 +3852,6 @@ const t: Record<string, string> = {
   "sumMixedRuleChanges": "每一轮的规则都可能改变",
   "dropModeDrag": "拖动",
   "dropModeTap": "点按",
+  "dropInputLabel": "输入",
 };
 export default t;

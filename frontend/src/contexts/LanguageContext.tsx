@@ -2231,6 +2231,7 @@ const translations: Translations = {
   btn_undo: { ru: 'Отменить', en: 'Undo' },
   dropModeDrag: { ru: 'Перетаскивать', en: 'Drag' },   // выбор способа ответа в паузе «Цветов и форм» (shell/drop_baskets.dart)
   dropModeTap: { ru: 'Нажимать', en: 'Tap' },
+  dropInputLabel: { ru: 'Ввод', en: 'Input' },
   label_on: { ru: 'Вкл', en: 'On' },
   label_off: { ru: 'Выкл', en: 'Off' },
   sudokuLineHighlight:    { ru: 'Подсветка строки и столбца', en: 'Row and column highlight' },
