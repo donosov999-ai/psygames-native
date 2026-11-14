@@ -650,6 +650,7 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
               pieces: scholarsPieces(run.fen, whiteBottom: white),
               side: side,
               keyPrefix: 'sm',
+              squareName: (i) => scholarsSquareName(i, whiteBottom: white),
               onTapSquare: threat
                   ? null
                   : (i) => setState(
@@ -773,6 +774,7 @@ class ScholarsLessonBoard extends StatelessWidget {
       pieces: scholarsPieces(frame.fen, whiteBottom: white),
       side: side,
       keyPrefix: 'sml',
+      squareName: (i) => scholarsSquareName(i, whiteBottom: white),
       selected: at(frame.from),
       targets: {?at(frame.to)},
       hinted: at(frame.focus),
