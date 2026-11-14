@@ -16,6 +16,40 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.71.0',
+    date: '2026-11-13',
+    en: [
+      'Hubs in three columns with large artwork; Classic rows show the artwork too',
+      'Make the Sum: Counter and Number Bonds are one game with Speed, Composition and Mixed modes',
+      'The round timer pauses while the mode sheet is open',
+    ],
+    ru: [
+      'Разделы в три колонки с крупными картинками, в «Классике» — картинки в строках',
+      '«Собери сумму»: «Считалка» и «Числовые пары» — одна игра, режимы «Скорость», «Состав», «Вперемешку»',
+      'Таймер стоит, пока открыт выбор режима',
+    ],
+  },
+  {
+    version: '2.70.0',
+    date: '2026-11-13',
+    en: [
+      'Shared level result: stars, a win animation, the next level starts by itself',
+      'Swipe across tiles in Counter, Number Bonds, Fillwords and Anagrams',
+      'Attention Conflict: BART, Iowa, Simon, ANT and 5 more games in their sets',
+      'Schulte: Free mode is back — Gorbov, letters, reverse order',
+      'Digit Span shows the whole number; Quick Count is slower on early levels',
+      'Colors and Shapes: drag cards; level map before you start',
+    ],
+    ru: [
+      'Общий итог уровня: звёзды, анимация, следующий уровень стартует сам',
+      'Протяжка пальцем в «Считалке», «Числовых парах», «Филвордах», «Анаграммах»',
+      '«Конфликт внимания»: BART, Iowa, Simon, ANT и ещё 5 игр в наборах',
+      'Шульте: режим «Свободно» — Горбов, буквы, обратный порядок',
+      '«Запомни цифры» — весь ряд сразу; «Быстрый счёт» медленнее',
+      '«Цвета и формы» — перетаскивание; карта уровней до старта',
+    ],
+  },
+  {
     version: '2.56.65',
     date: '2026-11-13',
     en: [
