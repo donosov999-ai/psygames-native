@@ -10,6 +10,7 @@ import 'package:psygames_flutter/games/puzzles/ladder.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/games/puzzles/screen.dart';
 import 'package:psygames_flutter/games/puzzles/undead_glyph.dart';
+import 'package:psygames_flutter/shell/restart_scope.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -56,6 +57,35 @@ void main() {
       }
     });
     await tester.pump();
+  }
+
+  // Тропинка уровней шахматных режимов Тэтхэма (задача 8e970066): карта — общий пункт паузы каркаса.
+  for (final mode in ['Signpost', 'Pegs', 'Inertia']) {
+    testWidgets('🔴 карта уровней в паузе: $mode, достигнуто выше 1', (tester) async {
+      SharedPreferences.setMockInitialValues({
+        'psygames_active_profile': 'nzt48',
+        'psygames_puzzles_${mode.toLowerCase()}_level_nzt48': '1',
+        'psygames_puzzles_${mode.toLowerCase()}_best_nzt48': '3',
+      });
+      state = await SharedState.open();
+      await tester.runAsync(() async {
+        await tester.pumpWidget(MaterialApp(
+          home: RestartScope(
+            builder: (_) => PuzzlesScreen(state: state, mode: mode, libraryPath: libPath, seed: 20261011),
+          ),
+        ));
+        for (var i = 0; i < 60; i++) {
+          await tester.pump(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+          if (find.byKey(const Key('board')).evaluate().isNotEmpty) break;
+        }
+      });
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.pause));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text(L.t('levelMap')), findsOneWidget);
+    });
   }
 
   testWidgets('🔴 доска Solo появляется, а не вечная загрузка', (tester) async {
