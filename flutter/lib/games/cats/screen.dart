@@ -28,6 +28,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/swipe_select.dart';
 import '../../shell/game_colors.dart';
 import 'grade.dart';
 import 'ladder.dart';
@@ -136,6 +137,37 @@ class _CatsScreenState extends State<CatsScreen> {
         _marks.remove(cell);
       } else {
         _marks[cell] = CatMark.cross;
+      }
+    });
+  }
+
+  /// Протяжка по клеткам (общий жест каркаса, `shell/swipe_select.dart`) ставит ✕ на каждую пройденную
+  /// клетку — как короткий тычок, но не переключая: уже помеченная не снимается. Вскрытие кошки остаётся
+  /// за долгим нажатием: палец, ушедший с клетки, долгое нажатие отменяет сам, поэтому протяжка кошку
+  /// не вскроет и жизнь не снимет.
+  void _swipeMark(int r, int c) {
+    final board = _board;
+    if (board == null || _won || _lost) return;
+    final cell = r * board.n + c;
+    if (_revealed(cell) || _marks[cell] == CatMark.cross) return;
+    setState(() {
+      _history.add((cell: cell, was: _marks[cell] ?? CatMark.empty));
+      _marks[cell] = CatMark.cross;
+    });
+  }
+
+  /// Возврат пальца на предыдущую клетку снимает ✕, поставленный последним в этой протяжке.
+  void _swipeUnmark(int r, int c) {
+    final board = _board;
+    if (board == null || _won || _lost) return;
+    final cell = r * board.n + c;
+    if (_marks[cell] != CatMark.cross || _history.isEmpty || _history.last.cell != cell) return;
+    setState(() {
+      final last = _history.removeLast();
+      if (last.was == CatMark.empty) {
+        _marks.remove(cell);
+      } else {
+        _marks[cell] = last.was;
       }
     });
   }
@@ -268,6 +300,8 @@ class _CatsScreenState extends State<CatsScreen> {
           height: height,
           onTap: _tap,
           onLongPress: _reveal,
+          onSwipeMark: _swipeMark,
+          onSwipeUnmark: _swipeUnmark,
         );
       },
       auxRow: AuxBar(children: [
@@ -381,6 +415,8 @@ class CatsBoardView extends StatelessWidget {
     required this.height,
     required this.onTap,
     this.onLongPress,
+    this.onSwipeMark,
+    this.onSwipeUnmark,
   });
 
   final CatsBoard board;
@@ -392,6 +428,12 @@ class CatsBoardView extends StatelessWidget {
 
   /// Долгое нажатие — вскрыть кошку; `null` — поле только показывает (разбор).
   final void Function(int r, int c)? onLongPress;
+
+  /// Протяжка по клеткам — ✕ на каждую пройденную; `null` — поле только показывает (разбор).
+  final void Function(int r, int c)? onSwipeMark;
+
+  /// Возврат пальца на предыдущую клетку — снять последний ✕ протяжки.
+  final void Function(int r, int c)? onSwipeUnmark;
 
   @override
   Widget build(BuildContext context) {
@@ -405,28 +447,38 @@ class CatsBoardView extends StatelessWidget {
           child: SizedBox(
             width: side,
             height: side,
-            child: Column(
-              children: [
-                for (var r = 0; r < n; r++)
-                  SizedBox(
-                    height: cell,
-                    child: Row(
-                      children: [
-                        for (var col = 0; col < n; col++)
-                          _Cell(
-                            size: cell,
-                            row: r,
-                            col: col,
-                            color: _regionColors[board.regionAt(r, col) % _regionColors.length],
-                            mark: marks[r * n + col] ?? CatMark.empty,
-                            scheme: scheme,
-                            onTap: onTap,
-                            onLongPress: onLongPress,
-                          ),
-                      ],
+            child: SwipeSelect(
+              enabled: onSwipeMark != null,
+              // Уже с ✕ или вскрытая клетка протяжкой не берётся: ✕ не переключается.
+              isSelected: (i) => marks[i] != null && marks[i] != CatMark.empty,
+              onSelect: (i) => onSwipeMark?.call(i ~/ n, i % n),
+              onUnselect: (i) => onSwipeUnmark?.call(i ~/ n, i % n),
+              child: Column(
+                children: [
+                  for (var r = 0; r < n; r++)
+                    SizedBox(
+                      height: cell,
+                      child: Row(
+                        children: [
+                          for (var col = 0; col < n; col++)
+                            SwipeTarget(
+                              index: r * n + col,
+                              child: _Cell(
+                                size: cell,
+                                row: r,
+                                col: col,
+                                color: _regionColors[board.regionAt(r, col) % _regionColors.length],
+                                mark: marks[r * n + col] ?? CatMark.empty,
+                                scheme: scheme,
+                                onTap: onTap,
+                                onLongPress: onLongPress,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         );

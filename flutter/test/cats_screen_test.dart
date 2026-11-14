@@ -237,4 +237,65 @@ void main() {
     expect(L.t('catsRuleTouch'), isNot('catsRuleTouch'));
     expect(L.t('catsHowPress'), isNot('catsHowPress'), reason: 'как играть: долгое нажатие и ✕');
   });
+
+  // ─── Протяжка (общий жест каркаса): ✕ по пройденным клеткам ───
+
+  Offset cellCenter(WidgetTester tester, int r, int c) => tester.getCenter(find.byKey(Key('cell_${r}_$c')));
+
+  Future<void> sweepCells(WidgetTester tester, List<List<int>> cells, {Duration step = Duration.zero}) async {
+    final g = await tester.startGesture(cellCenter(tester, cells.first[0], cells.first[1]));
+    for (final rc in cells.skip(1)) {
+      await g.moveTo(cellCenter(tester, rc[0], rc[1]));
+      if (step > Duration.zero) await tester.pump(step);
+    }
+    await g.up();
+    await tester.pump();
+  }
+
+  int crosses(WidgetTester tester) =>
+      find.byWidgetPredicate((w) => RegExp(r'cross_\d+_\d+').hasMatch(w.key?.toString() ?? '')).evaluate().length;
+
+  testWidgets('🔴 протяжка по клеткам ставит ✕ на каждую пройденную — одним движением, без вскрытия', (tester) async {
+    await boot(tester);
+    await sweepCells(tester, [[0, 0], [0, 1], [0, 2]]);
+    for (final c in [0, 1, 2]) {
+      expect(find.byKey(Key('cross_0_$c')), findsOneWidget, reason: 'клетка 0,$c без ✕ после протяжки');
+    }
+    expect(find.byKey(const Key('miss_0_0')), findsNothing);
+    expect(find.textContaining('🐱'), findsNothing, reason: 'протяжка вскрыла кошку');
+  });
+
+  testWidgets('🔴 протяжка ЕДЕТ МЕДЛЕННО (секунда на три клетки) — долгое нажатие не срабатывает, жизнь цела', (tester) async {
+    await boot(tester);
+    await sweepCells(tester, [[1, 0], [1, 1], [1, 2]], step: const Duration(milliseconds: 400));
+    expect(crosses(tester), 3);
+    expect(find.byKey(const Key('miss_1_0')), findsNothing);
+    expect(find.byKey(const Key('miss_1_1')), findsNothing);
+    expect(find.textContaining('🐱'), findsNothing, reason: 'медленная протяжка вскрыла клетку долгим нажатием');
+  });
+
+  testWidgets('возврат на предыдущую клетку снимает последний ✕ протяжки', (tester) async {
+    await boot(tester);
+    await sweepCells(tester, [[0, 0], [0, 1], [0, 2], [0, 1]]);
+    expect(find.byKey(const Key('cross_0_0')), findsOneWidget);
+    expect(find.byKey(const Key('cross_0_1')), findsOneWidget);
+    expect(find.byKey(const Key('cross_0_2')), findsNothing, reason: 'возврат не снял последний ✕');
+  });
+
+  testWidgets('протяжка не снимает ✕, поставленный раньше тычком (не переключает)', (tester) async {
+    await boot(tester);
+    await tapCell(tester, 0, 1);
+    await sweepCells(tester, [[0, 0], [0, 1], [0, 2]]);
+    expect(find.byKey(const Key('cross_0_1')), findsOneWidget, reason: 'протяжка сняла ✕ с клетки, где он уже стоял');
+    expect(crosses(tester), 3);
+  });
+
+  testWidgets('отмена убирает ✕ протяжки по одному', (tester) async {
+    await boot(tester);
+    await sweepCells(tester, [[2, 0], [2, 1], [2, 2]]);
+    expect(crosses(tester), 3);
+    await tester.tap(find.byTooltip(L.t('btn_undo')));
+    await tester.pump();
+    expect(crosses(tester), 2, reason: 'отмена не сняла последний ✕ протяжки');
+  });
 }
