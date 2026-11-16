@@ -13,6 +13,7 @@ import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
+import 'setup.dart';
 import 'teach.dart';
 import 'mode_switch.dart';
 import 'word_lang.dart';
@@ -46,6 +47,7 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
   WordBank? _bank;
   ClassicGame? _game;
   AnagramRound? _round;
+  bool _started = false;
 
   final List<int> _picked = [];
   int _trial = 0;
@@ -84,6 +86,11 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
 
   AnagramLevel get _level => AnagramLevel.of(_ladder.level);
 
+  void _start() {
+    setState(() => _started = true);
+    _startTimer();
+  }
+
   void _nextWord() {
     final g = _game;
     if (g == null) return;
@@ -94,7 +101,7 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
       _wrong = false;
       _secLeft = _level.wordSec;
     });
-    _startTimer();
+    if (_started) _startTimer();
   }
 
   /// Часы идут только там, где лимит есть: уровни 1–6 играются без времени.
@@ -243,6 +250,20 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
     final round = _round;
     if (round == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (!_started) {
+      return GameShell(
+        title: L.t('anagrams'),
+        hud: [HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined)],
+        field: (context, h) => AnagramSetup(
+          state: widget.state,
+          mode: AnagramMode.classic,
+          level: _ladder.level,
+          lang: _lang,
+          height: h,
+          onStart: _start,
+        ),
+      );
     }
     return GameShell(
       title: L.t('anagrams'),

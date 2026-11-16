@@ -11,6 +11,7 @@ import 'package:psygames_flutter/games/anagrams/screen.dart';
 import 'package:psygames_flutter/shell/game_shell.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/restart_scope.dart';
+import 'package:psygames_flutter/shell/setup_scroll.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -81,6 +82,10 @@ void main() {
       for (var i = 0; i < 200; i++) {
         await tester.pump(const Duration(milliseconds: 50));
         await Future<void>.delayed(const Duration(milliseconds: 50));
+        if (find.byType(SetupScroll).evaluate().isNotEmpty) {
+          await tester.tap(find.text(L.t('start')));
+          await tester.pump();
+        }
         if (find.byType(board).evaluate().isNotEmpty) break;
       }
     });

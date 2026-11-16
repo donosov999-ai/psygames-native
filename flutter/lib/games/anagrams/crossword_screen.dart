@@ -12,6 +12,7 @@ import '../../shell/shared_state.dart';
 import 'crossword.dart';
 import 'crossword_board.dart';
 import 'model.dart';
+import 'setup.dart';
 import 'teach.dart';
 import 'mode_switch.dart';
 import 'word_lang.dart';
@@ -40,6 +41,7 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
   WordBank? _bank;
   Crossword? _cw;
   List<String> _letters = const [];
+  bool _started = false;
 
   final List<int> _picked = [];
   final List<String> _found = [];
@@ -188,6 +190,21 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
     final cw = _cw;
     if (cw == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (!_started) {
+      return GameShell(
+        title: L.t('anagramCrossword'),
+        hud: [HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined)],
+        field: (context, h) => AnagramSetup(
+          state: widget.state,
+          mode: AnagramMode.cross,
+          level: _ladder.level,
+          lang: _lang,
+          height: h,
+          packCount: _bank!.packCount,
+          onStart: () => setState(() => _started = true),
+        ),
+      );
     }
     return GameShell(
       title: L.t('anagramCrossword'),
