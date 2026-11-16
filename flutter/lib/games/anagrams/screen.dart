@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -47,7 +48,7 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
   WordBank? _bank;
   ClassicGame? _game;
   AnagramRound? _round;
-  bool _started = false;
+  bool _started = GamePreset.autostart;
 
   final List<int> _picked = [];
   int _trial = 0;
@@ -254,6 +255,7 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
     if (!_started) {
       return GameShell(
         title: L.t('anagrams'),
+        onLesson: _ladder.level <= 3 && _lessonSteps.length > 1 ? _openLesson : null,
         hud: [HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined)],
         field: (context, h) => AnagramSetup(
           state: widget.state,

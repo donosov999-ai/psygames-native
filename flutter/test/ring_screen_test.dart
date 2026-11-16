@@ -20,12 +20,14 @@ Future<void> _boot(WidgetTester tester, SharedState state) async {
     for (var i = 0; i < 60; i++) {
       await tester.pump(const Duration(milliseconds: 50));
       await Future<void>.delayed(const Duration(milliseconds: 50));
-      if (find.byType(SetupScroll).evaluate().isNotEmpty) break;
+      if (find.byType(SetupScroll).evaluate().isNotEmpty || find.byType(RingBoard).evaluate().isNotEmpty) break;
     }
   });
   await tester.pump();
-  await tester.tap(find.text(L.t('start')));
-  await tester.pump();
+  if (find.byType(SetupScroll).evaluate().isNotEmpty) {
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+  }
 }
 
 RingBoard _board(WidgetTester t) => t.widget<RingBoard>(find.byType(RingBoard));
