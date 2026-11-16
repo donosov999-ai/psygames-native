@@ -141,6 +141,12 @@ void main() {
           final stage = key('pet-gem-stage'), rect = t.getRect(stage);
           expect(rect.width, lessThanOrEqualTo(390));
           expect(rect.height, rect.width);
+          expect(t.getRect(key('pet-bubble')).width, lessThanOrEqualTo(260));
+          expect(
+            t.getRect(key('pet-speech-scroll')).height,
+            lessThanOrEqualTo(40),
+            reason: 'Collapsed speech must hug the text instead of reserving a large white panel',
+          );
           final buttons = [
             'pet-feed',
             'pet-care-wash',
