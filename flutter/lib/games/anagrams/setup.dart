@@ -8,6 +8,7 @@ import '../../shell/shared_state.dart';
 import '../languages/lang_names.dart';
 import 'mode_switch.dart';
 import 'model.dart';
+import 'options.dart';
 import 'word_lang.dart';
 
 class AnagramSetup extends StatefulWidget {
@@ -21,6 +22,14 @@ class AnagramSetup extends StatefulWidget {
     required this.onStart,
     this.packCount,
     this.ringCount,
+    this.bilingual = false,
+    this.secondLang = 'es',
+    this.hintsOn = true,
+    this.theme = 'all',
+    this.onBilingual,
+    this.onSecondLang,
+    this.onHints,
+    this.onTheme,
   });
 
   final SharedState state;
@@ -31,6 +40,14 @@ class AnagramSetup extends StatefulWidget {
   final VoidCallback onStart;
   final int? packCount;
   final int? ringCount;
+  final bool bilingual;
+  final String secondLang;
+  final bool hintsOn;
+  final String theme;
+  final ValueChanged<bool>? onBilingual;
+  final ValueChanged<String>? onSecondLang;
+  final ValueChanged<bool>? onHints;
+  final ValueChanged<String>? onTheme;
 
   @override
   State<AnagramSetup> createState() => _AnagramSetupState();
@@ -112,6 +129,56 @@ class _AnagramSetupState extends State<AnagramSetup> {
         const SizedBox(height: 4),
         Text(_pass, textAlign: TextAlign.center, style: text.bodySmall),
         const SizedBox(height: 16),
+        if (widget.mode == AnagramMode.classic) ...[
+          SetupChoice<bool>(
+            label: L.t('bilingualMode'),
+            options: [
+              (true, L.t('label_on'), 'anagram-bilingual-on'),
+              (false, L.t('label_off'), 'anagram-bilingual-off'),
+            ],
+            value: widget.bilingual,
+            onPick: widget.onBilingual ?? (_) {},
+          ),
+          const SizedBox(height: 6),
+          Text(
+            _names.bilingualDesc(widget.lang, widget.secondLang),
+            textAlign: TextAlign.center,
+            style: text.bodySmall,
+          ),
+          if (widget.bilingual) ...[
+            const SizedBox(height: 12),
+            SetupChoice<String>(
+              label: L.t('wordLangLabel'),
+              options: [
+                for (final lang in anagramLangsOf(widget.mode))
+                  (lang, _names.label(lang), 'anagram-second-lang-$lang'),
+              ],
+              value: widget.secondLang,
+              onPick: widget.onSecondLang ?? (_) {},
+            ),
+          ],
+          const SizedBox(height: 16),
+          SetupChoice<String>(
+            label: L.t('themeLabel'),
+            options: [
+              for (final theme in anagramThemes)
+                (theme, anagramThemeName(theme), 'anagram-theme-$theme'),
+            ],
+            value: widget.theme,
+            onPick: widget.onTheme ?? (_) {},
+          ),
+          const SizedBox(height: 16),
+          SetupChoice<bool>(
+            label: L.t('btn_hint'),
+            options: [
+              (true, L.t('label_on'), 'anagram-hints-on'),
+              (false, L.t('label_off'), 'anagram-hints-off'),
+            ],
+            value: widget.hintsOn,
+            onPick: widget.onHints ?? (_) {},
+          ),
+          const SizedBox(height: 16),
+        ],
         if (anagramModeSwitchShown) ...[
           SetupChoice<AnagramMode>(
             label: L.t('mode'),
