@@ -53,13 +53,15 @@ class AnswerFeedback {
   final mark = ValueNotifier<AnswerMarkState?>(null);
 
   int _seq = 0;
+  bool _disposed = false;
 
   /// Идёт ли отклик: игра на это время не принимает новые ответы.
-  bool get busy => mark.value != null;
+  bool get busy => !_disposed && mark.value != null;
 
   /// Отклик на ответ: подсветка, вибрация, звук; вернётся через [hold], когда подсветка снята.
   /// `right` — для игр, где «верно» не сводится к равенству (несколько верных вариантов).
   Future<void> show(Object? picked, Object? correct, {bool? right}) async {
+    if (_disposed) return;
     final ok = right ?? picked == correct;
     final seq = ++_seq;
     mark.value = (picked: picked, correct: correct, right: ok);
@@ -67,7 +69,7 @@ class AnswerFeedback {
     _audio.emit(ok ? GameSound.correct : GameSound.wrong, 'answer$seq');
     final done = Completer<void>();
     gameTimeout(hold, () {
-      if (seq == _seq) mark.value = null;
+      if (!_disposed && seq == _seq) mark.value = null;
       done.complete();
     });
     return done.future;
@@ -75,11 +77,16 @@ class AnswerFeedback {
 
   /// Снять подсветку сразу (уход с экрана, новая партия).
   void clear() {
+    if (_disposed) return;
     _seq++;
     mark.value = null;
   }
 
   Future<void> dispose() async {
+    if (_disposed) return;
+    _disposed = true;
+    _seq++;
+    mark.value = null;
     mark.dispose();
     await _audio.dispose();
   }

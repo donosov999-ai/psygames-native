@@ -106,4 +106,16 @@ void main() {
     expect(sound.played, isEmpty);
     expect(haptics, isEmpty);
   });
+
+  testWidgets('уход во время подсветки: отложенный таймер не пишет в закрытый экран', (t) async {
+    final (f, _) = await pump(t);
+    var done = false;
+    f.show(4, 4).then((_) => done = true);
+    await t.pump();
+    await t.pumpWidget(const SizedBox());
+    await f.dispose();
+    await t.pump(AnswerFeedback.hold);
+    expect(done, isTrue);
+    expect(t.takeException(), isNull);
+  });
 }
