@@ -6,9 +6,12 @@ import 'package:flutter/material.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/design_template.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/setup_scroll.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/tap_latency.dart';
@@ -242,9 +245,6 @@ class _PosnerScreenState extends State<PosnerScreen> {
   }
 }
 
-const Color _good = Color(0xFF22C55E);
-const Color _bad = Color(0xFFEF4444);
-
 /// 🔴 ПАРА РАМОК ОТДЕЛЬНЫМ ВИДЖЕТОМ — ЧТОБЫ РАЗБОР ПОКАЗЫВАЛ ТО ЖЕ САМОЕ.
 ///
 /// Подсказка здесь — ВСПЫШКА РАМКИ стороны, а не стрелка в центре: так проба
@@ -267,6 +267,7 @@ class PosnerBoxes extends StatelessWidget {
 
   Widget _box(BuildContext context, PosnerSide side) {
     final t = trial;
+    final roles = GameColors.of(context);
     final cueHere = cueShown && t?.cueDir == side;
     final targetHere = targetShown && t?.targetSide == side;
     return Container(
@@ -274,9 +275,10 @@ class PosnerBoxes extends StatelessWidget {
       width: 96,
       height: 120,
       decoration: BoxDecoration(
+        color: roles.cell,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: cueHere ? Theme.of(context).colorScheme.primary : Theme.of(context).dividerColor,
+          color: cueHere ? roles.selected : roles.boardLine,
           width: cueHere ? 4 : 1,
         ),
       ),
@@ -287,7 +289,7 @@ class PosnerBoxes extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
+                  color: roles.highlight,
                   shape: BoxShape.circle,
                 ),
               )
@@ -341,8 +343,9 @@ class _Field extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (phase) {
       case PosnerPhase.ready:
-        return _Centered(
+        return SetupScroll(
           height: height,
+          onStart: onStart,
           children: [
             Text('${L.t('level')} ${game.level}', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
@@ -359,8 +362,6 @@ class _Field extends StatelessWidget {
             const SizedBox(height: 4),
             Text(L.t('passCorrect80Window'),
                 style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onStart, child: Text(L.t('start'))),
           ],
         );
       case PosnerPhase.done:
@@ -398,6 +399,7 @@ class _Field extends StatelessWidget {
           ],
         );
       case PosnerPhase.playing:
+        final roles = GameColors.of(context);
         return SizedBox(
           height: height,
           child: Column(
@@ -414,9 +416,9 @@ class _Field extends StatelessWidget {
               SizedBox(
                 height: 28,
                 child: switch (flash) {
-                  PosnerOutcome.hit => const Icon(Icons.check_circle, color: _good, key: Key('posner-hit')),
-                  PosnerOutcome.wrong => const Icon(Icons.cancel, color: _bad, key: Key('posner-wrong')),
-                  PosnerOutcome.miss => const Icon(Icons.timer_off, color: _bad, key: Key('posner-miss')),
+                  PosnerOutcome.hit => Icon(Icons.check_circle, color: roles.correct, key: const Key('posner-hit')),
+                  PosnerOutcome.wrong => Icon(Icons.cancel, color: roles.wrong, key: const Key('posner-wrong')),
+                  PosnerOutcome.miss => Icon(Icons.timer_off, color: roles.wrong, key: const Key('posner-miss')),
                   null => const SizedBox.shrink(),
                 },
               ),
@@ -442,6 +444,17 @@ class _Centered extends StatelessWidget {
           ),
         ),
       );
+}
+
+ButtonStyle _answerStyle(BuildContext context) {
+  final aurora = Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+  final roles = GameColors.of(context);
+  return FilledButton.styleFrom(
+    padding: EdgeInsets.zero,
+    backgroundColor: aurora ? roles.cell : null,
+    foregroundColor: aurora ? roles.onCell : null,
+    side: aurora ? BorderSide(color: roles.boardLine) : null,
+  );
 }
 
 /// Две кнопки ответа.
@@ -470,6 +483,7 @@ class _Answers extends StatelessWidget {
                         child: FilledButton(
                           key: Key('posner-answer-${s.name}'),
                           onPressed: () => onPick(s),
+                          style: _answerStyle(context),
                           child: Icon(
                             s == PosnerSide.left ? Icons.arrow_back : Icons.arrow_forward,
                             size: 32,

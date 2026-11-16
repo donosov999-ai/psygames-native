@@ -1850,7 +1850,7 @@ const translations: Translations = {
   ospanRecallTitle: { ru: 'Вспомните буквы', en: 'Recall the letters' },
 
   // Round-6 — names
-  posner:          { ru: 'Posner Cuing: внимание',     en: 'Posner Cuing: Attention' },
+  posner:          { ru: 'Познер: внимание',           en: 'Posner Cuing: Attention' },
   ant:             { ru: 'ANT: 3 сети внимания',        en: 'ANT: Attention Networks' },
   bart:            { ru: 'BART: риск-баллон',           en: 'BART: Risk Balloon' },
   iowa:            { ru: 'Iowa: 4 колоды',              en: 'Iowa: 4 Decks' },
@@ -2059,7 +2059,7 @@ const translations: Translations = {
   sdmtHint:         { ru: 'Смотри на ключ сверху: под каждым знаком своя цифра', en: 'Use the key above: every symbol has its own digit' },
   vocabSrsHint:     { ru: 'Выбери перевод показанного слова',                   en: 'Pick the translation of the word above' },
 
-  posnerHint:     { ru: 'Где появилась мишень? Не доверяйте cue слепо',     en: 'Where did target appear? Don\'t trust cue blindly' },
+  posnerHint:     { ru: 'Где появилась мишень? Не доверяйте подсказке слепо', en: 'Where did target appear? Don\'t trust cue blindly' },
   bartHint:       { ru: 'Pump надувает (+1¢) · Cash забирает в банк',         en: 'Pump inflates (+1¢) · Cash banks it' },
   bartPopped:     { ru: '💥 Шар лопнул — деньги потеряны',                  en: '💥 Burst — money lost' },
   bartCashed:     { ru: '✓ Деньги в банке',                                  en: '✓ Cashed in' },
