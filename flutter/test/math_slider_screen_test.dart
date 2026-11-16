@@ -145,7 +145,7 @@ void main() {
     expect(find.byKey(const Key('подтвердить')), findsOneWidget, reason: 'без касания ничего не засчитано');
 
     await dragTo(tester, training.scale, training.answer);
-    expect(find.text(L.f('sliderReleaseHint', {'n': '3'})), findsOneWidget);
+    expect(find.text(L.f('sliderAutoConfirmHint', {'n': '3'})), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 2500));
     expect(find.byKey(const Key('разбор')), findsNothing, reason: 'до трёх секунд ещё рано');
     await tester.pump(const Duration(milliseconds: 700));
@@ -223,5 +223,36 @@ void main() {
     }
 
     expect(find.text(L.t('retry')), findsOneWidget, reason: 'точность ниже 90% — уровень не взят');
+  });
+
+  testWidgets('🔴 до ответа показаны инструкция и Confirm, после — разбор и Next', (tester) async {
+    final training = generateTrainingQuestion('math-slider-1');
+    await open(tester);
+
+    expect(find.text(L.t('sliderDragOrTap')), findsOneWidget, reason: 'подсказка как в рефе v2');
+    expect(find.byKey(const Key('подтвердить')), findsOneWidget, reason: 'кнопка Confirm до ответа');
+    expect(find.byKey(const Key('дальше')), findsNothing, reason: 'Next скрыт до ответа');
+
+    await dragTo(tester, training.scale, training.answer);
+    await tester.tap(find.byKey(const Key('подтвердить')));
+    await tester.pump();
+
+    expect(find.byKey(const Key('разбор')), findsOneWidget, reason: 'карточка разбора видна');
+    expect(find.text(L.t('sliderYourAnswer')), findsOneWidget);
+    expect(find.text(L.t('sliderExactAnswer')), findsOneWidget);
+    expect(find.text(L.t('sliderError')), findsOneWidget);
+    expect(find.text(L.t('sliderAccuracy')), findsOneWidget);
+    expect(find.byKey(const Key('подтвердить')), findsNothing, reason: 'Confirm заменён на Next');
+    expect(find.byKey(const Key('дальше')), findsOneWidget, reason: 'кнопка Next после ответа');
+  });
+
+  testWidgets('🔴 маркер живого значения читается через accessibility', (tester) async {
+    final training = generateTrainingQuestion('math-slider-1');
+    await open(tester);
+
+    await dragTo(tester, training.scale, training.answer);
+    final got = estimateOnScreen(tester);
+    expect((got - training.answer).abs() <= training.scale.keyboardStep, isTrue,
+        reason: 'оценка на экране совпадает с ответом');
   });
 }
