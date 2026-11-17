@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import 'aurora_glass.dart';
 import 'catalog.dart';
 import 'chrome_art.dart';
 import 'hub_art.dart';
@@ -792,10 +793,12 @@ class _HubScreenState extends State<HubScreen> {
             onTap: (route) =>
                 Navigator.of(context).pop(HubCardTap(route, tab: true)),
           ),
-    body: SafeArea(
-      bottom: false,
-      child: Column(
-        children: [
+    body: DecoratedBox(
+      decoration: AuroraGlass.backdrop(Theme.of(context).brightness == Brightness.dark),
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
           AuroraTabHeader(
             route: widget.hubRoute,
             title: _title,
@@ -881,6 +884,7 @@ class _HubScreenState extends State<HubScreen> {
                   ),
           ),
         ],
+        ),
       ),
     ),
   );
