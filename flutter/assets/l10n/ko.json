@@ -2348,7 +2348,6 @@
 "sliderDragOrTap":"자를 드래그하거나 탭하세요",
 "sliderError":"오차",
 "sliderExactAnswer":"정확한 답",
-"sliderFeedback":"정확한 답 {a} · 내 추정 {e} · 오차는 눈금 너비의 {p}%",
 "sliderMarkerA11y":"표시, 추정값 {x}",
 "sliderNextQuestion":"다음 문제",
 "sliderNudgeLeft":"왼쪽으로 조정",

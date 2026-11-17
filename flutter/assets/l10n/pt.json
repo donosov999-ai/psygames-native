@@ -2348,7 +2348,6 @@
 "sliderDragOrTap":"Arraste ou toque na régua",
 "sliderError":"Erro",
 "sliderExactAnswer":"Resposta exata",
-"sliderFeedback":"Resposta exata {a} · sua estimativa {e} · erro de {p}% da largura da escala",
 "sliderMarkerA11y":"marcador, estimativa {x}",
 "sliderNextQuestion":"Próxima questão",
 "sliderNudgeLeft":"Ajustar à esquerda",

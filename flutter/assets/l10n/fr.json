@@ -2348,7 +2348,6 @@
 "sliderDragOrTap":"Glisse ou tape sur la règle",
 "sliderError":"Erreur",
 "sliderExactAnswer":"Réponse exacte",
-"sliderFeedback":"Réponse exacte {a} · ton estimation {e} · écart de {p} % de la largeur de l’échelle",
 "sliderMarkerA11y":"repère, estimation {x}",
 "sliderNextQuestion":"Question suivante",
 "sliderNudgeLeft":"Affiner à gauche",

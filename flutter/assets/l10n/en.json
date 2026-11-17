@@ -2348,7 +2348,6 @@
 "sliderDragOrTap":"Drag or tap the ruler",
 "sliderError":"Error",
 "sliderExactAnswer":"Exact answer",
-"sliderFeedback":"Exact answer {a} · your estimate {e} · error {p}% of the scale width",
 "sliderMarkerA11y":"marker, estimate {x}",
 "sliderNextQuestion":"Next question",
 "sliderNudgeLeft":"Nudge left",

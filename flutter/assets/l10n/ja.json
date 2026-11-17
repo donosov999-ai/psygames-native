@@ -2348,7 +2348,6 @@
 "sliderDragOrTap":"目盛りをドラッグまたはタップ",
 "sliderError":"誤差",
 "sliderExactAnswer":"正確な答え",
-"sliderFeedback":"正確な答え {a} · あなたの見積もり {e} · 誤差は目盛り幅の {p}%",
 "sliderMarkerA11y":"マーカー、見積もり {x}",
 "sliderNextQuestion":"次の問題",
 "sliderNudgeLeft":"左へ微調整",

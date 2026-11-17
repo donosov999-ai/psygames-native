@@ -2348,7 +2348,6 @@
 "sliderDragOrTap":"اسحب أو اضغط على المقياس",
 "sliderError":"الخطأ",
 "sliderExactAnswer":"الإجابة الدقيقة",
-"sliderFeedback":"الإجابة الدقيقة {a} · تقديرك {e} · الخطأ {p}% من عرض المقياس",
 "sliderMarkerA11y":"العلامة، التقدير {x}",
 "sliderNextQuestion":"السؤال التالي",
 "sliderNudgeLeft":"ضبط لليسار",

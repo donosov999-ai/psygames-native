@@ -2348,7 +2348,6 @@
 "sliderDragOrTap":"Arrastra o toca la regla",
 "sliderError":"Error",
 "sliderExactAnswer":"Respuesta exacta",
-"sliderFeedback":"Respuesta exacta {a} · tu estimación {e} · error del {p} % del ancho de la escala",
 "sliderMarkerA11y":"marcador, estimación {x}",
 "sliderNextQuestion":"Siguiente pregunta",
 "sliderNudgeLeft":"Afinar a la izquierda",

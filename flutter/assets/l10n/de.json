@@ -2348,7 +2348,6 @@
 "sliderDragOrTap":"Ziehen oder auf die Skala tippen",
 "sliderError":"Fehler",
 "sliderExactAnswer":"Exakte Antwort",
-"sliderFeedback":"Genaue Antwort {a} · deine Schätzung {e} · Fehler {p} % der Skalenbreite",
 "sliderMarkerA11y":"Markierung, Schätzung {x}",
 "sliderNextQuestion":"Nächste Aufgabe",
 "sliderNudgeLeft":"Etwas nach links",
