@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -12,6 +14,7 @@ import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_result.dart';
 import '../../shell/level_rules.dart';
@@ -47,6 +50,9 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
   static const double dotR = 16;
 
   late LevelLadder _ladder;
+
+  /// Отклик на ответ — общий каркаса (задача 5d4d04bb): ✓/✗ 600 мс, вибрация, звук.
+  late final _feedback = AnswerFeedback(widget.state);
   late math.Random _rnd;
   late LevelParams _params;
 
@@ -89,6 +95,7 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
 
   @override
   void dispose() {
+    unawaited(_feedback.dispose());
     _timer?.cancel();
     super.dispose();
   }
@@ -175,7 +182,7 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
   }
 
   Future<void> _answer(int value) async {
-    if (_phase != _Phase.answer) return;
+    if (_phase != _Phase.answer || _feedback.busy) return;
     final right = value == _n;
     setState(() {
       _picked = value;
@@ -186,6 +193,10 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
       }
       _trial += 1;
     });
+    // Отклик ПОСЛЕ ответа (правило 13.11): выбранное загорается ✓/✗, при ошибке верное — ✓; 600 мс на
+    // кнопках ответа, потом следующая проба. Таймера пробы в фазе ответа нет — паузе нечего съедать.
+    await _feedback.show(value, _n);
+    if (!mounted) return;
     if (_trial < trialsPerRound) {
       _startTrial();
       return;
@@ -346,11 +357,16 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
                   SizedBox(
                     width: grid.size,
                     height: grid.size,
-                    child: FilledButton(
-                      key: Key('ответ$value'),
-                      style: _answerStyle(context),
-                      onPressed: () => _answer(value),
-                      child: Text('$value'),
+                    child: AnswerMark(
+                      feedback: _feedback,
+                      value: value,
+                      radius: grid.size / 2,
+                      child: FilledButton(
+                        key: Key('ответ$value'),
+                        style: _answerStyle(context),
+                        onPressed: () => _answer(value),
+                        child: Text('$value'),
+                      ),
                     ),
                   ),
               ],

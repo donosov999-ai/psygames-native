@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -44,6 +45,7 @@ class _ClozeScreenState extends State<ClozeScreen> {
   Map<String, List<ClozePhrase>> _phrases = const {};
   LangNames _names = LangNames.empty;
   late final double Function() _rng = widget.random ?? Random().nextDouble;
+  late final _feedback = AnswerFeedback(widget.state);
 
   ClozePhase _phase = ClozePhase.config;
   String _targetLang = 'en';
@@ -64,7 +66,7 @@ class _ClozeScreenState extends State<ClozeScreen> {
   bool _passed = false;
   Timer? _deadline;
   Timer? _tick;
-  Timer? _advance;
+  int _run = 0;
 
   int get _now => (widget.clock ?? () => DateTime.now().millisecondsSinceEpoch)();
   String get _baseLang => widget.state.language;
@@ -80,13 +82,13 @@ class _ClozeScreenState extends State<ClozeScreen> {
   @override
   void dispose() {
     _clearTimers();
+    unawaited(_feedback.dispose());
     super.dispose();
   }
 
   void _clearTimers() {
     _deadline?.cancel();
     _tick?.cancel();
-    _advance?.cancel();
   }
 
   Future<void> _boot() async {
@@ -118,6 +120,8 @@ class _ClozeScreenState extends State<ClozeScreen> {
   List<String> get _langs => [for (final l in _phrases.keys) if (l != _baseLang) l];
 
   Future<void> _start() async {
+    _run += 1;
+    _feedback.clear();
     final p = clozeLevelParams(_ladder.level);
     // Шаг зарядки играет своим числом раундов и БЕЗ лимита времени — как веб.
     final rounds = GamePreset.isPreset ? GamePreset.num('rounds', 10) : p.rounds;
@@ -168,23 +172,30 @@ class _ClozeScreenState extends State<ClozeScreen> {
   }
 
   /// Не успел в лимит: ошибка и показ верного ответа, дальше само.
-  void _onTimeout() {
+  Future<void> _onTimeout() async {
     if (!mounted || _picked != null) return;
     _tick?.cancel();
+    final run = _run, idx = _idx;
     _rtSum += _timeLimitMs;
     setState(() {
       _errors += 1;
       _picked = clozeTimeoutPick;
     });
-    _advance = Timer(const Duration(milliseconds: 1200), _next);
+    await _feedback.show(clozeTimeoutPick, _rounds[idx].answer, right: false);
+    if (mounted && run == _run && idx == _idx && _picked == clozeTimeoutPick) {
+      _next();
+    }
   }
 
-  void _pick(String option) {
-    if (_picked != null || _phase != ClozePhase.playing) return;
+  Future<void> _pick(String option) async {
+    if (_picked != null || _feedback.busy || _phase != ClozePhase.playing) {
+      return;
+    }
     _deadline?.cancel();
     _tick?.cancel();
+    final run = _run, idx = _idx;
     _rtSum += _now - _shownAtMs;
-    final ok = option == _rounds[_idx].answer;
+    final ok = option == _rounds[idx].answer;
     setState(() {
       _picked = option;
       if (ok) {
@@ -193,7 +204,8 @@ class _ClozeScreenState extends State<ClozeScreen> {
         _errors += 1;
       }
     });
-    _advance = Timer(Duration(milliseconds: ok ? 400 : 1200), _next);
+    await _feedback.show(option, _rounds[idx].answer, right: ok);
+    if (mounted && run == _run && idx == _idx && _picked == option) _next();
   }
 
   void _next() {
@@ -382,7 +394,6 @@ class _ClozeScreenState extends State<ClozeScreen> {
       );
 
   Widget _options(BuildContext context, ClozeRound r) {
-    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       child: LayoutBuilder(
@@ -394,20 +405,15 @@ class _ClozeScreenState extends State<ClozeScreen> {
               SizedBox(
                 width: (c.maxWidth - 8) / 2,
                 height: 56,
-                child: FilledButton(
-                  key: Key('cloze-option-$o'),
-                  onPressed: _picked == null ? () => _pick(o) : null,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    backgroundColor: _picked == null
-                        ? null
-                        : o == r.answer
-                            ? const Color(0xFF22C55E)
-                            : o == _picked
-                                ? const Color(0xFFEF4444)
-                                : scheme.surfaceContainerHighest,
+                child: AnswerMark(
+                  feedback: _feedback,
+                  value: o,
+                  child: FilledButton(
+                    key: Key('cloze-option-$o'),
+                    onPressed: _picked == null ? () => _pick(o) : null,
+                    style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
+                    child: FittedBox(fit: BoxFit.scaleDown, child: Text(o, maxLines: 2)),
                   ),
-                  child: FittedBox(fit: BoxFit.scaleDown, child: Text(o, maxLines: 2)),
                 ),
               ),
           ],

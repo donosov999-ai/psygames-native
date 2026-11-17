@@ -30,7 +30,7 @@ const _baseline = <String, int>{
   'chinese_tones/screen.dart': 3,
   'choice_rt/model.dart': 1,
   'choice_rt/screen.dart': 3,
-  'cloze/screen.dart': 5,
+  'cloze/screen.dart': 3,
   'cpt/model.dart': 1,
   'cpt/screen.dart': 4,
   'dictation/screen.dart': 3,

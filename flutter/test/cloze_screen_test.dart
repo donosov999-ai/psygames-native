@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/cloze/model.dart';
 import 'package:psygames_flutter/games/cloze/screen.dart';
+import 'package:psygames_flutter/shell/answer_feedback.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
@@ -60,8 +61,11 @@ void main() {
     expect(find.text('1/$total'), findsOneWidget);
     for (var i = 0; i < total; i += 1) {
       now += 1000;
-      await tester.tap(find.byKey(Key('cloze-option-${answerOf(tester)}')));
-      await tester.pump(const Duration(milliseconds: 500));
+      final option = find.byKey(Key('cloze-option-${answerOf(tester)}'));
+      await tester.tap(option);
+      await tester.pump();
+      expect(find.ancestor(of: option, matching: find.byKey(const Key('answer-mark-good'))), findsOneWidget);
+      await tester.pump(AnswerFeedback.hold);
     }
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'итог — общий каркаса');
@@ -69,6 +73,26 @@ void main() {
     expect(sent, hasLength(1));
     expect(sent.single['game_type'], 'cloze');
     expect((sent.single['details'] as Map)['time_limit_ms'], clozeLevelParams(1).timeLimitMs);
+  });
+
+  testWidgets('🔴 ошибка: выбранное красное, верное зелёное, переход через 600 мс', (tester) async {
+    var now = 1000;
+    await tester.pumpWidget(app(() => now));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('cloze-start')));
+    await tester.pump();
+    final answer = answerOf(tester);
+    final wrong = vocab.firstWhere(
+      (w) => w['en'] != answer && find.byKey(Key('cloze-option-${w['en']}')).evaluate().isNotEmpty,
+    )['en'];
+    final picked = find.byKey(Key('cloze-option-$wrong'));
+    final correct = find.byKey(Key('cloze-option-$answer'));
+    await tester.tap(picked);
+    await tester.pump();
+    expect(find.ancestor(of: picked, matching: find.byKey(const Key('answer-mark-bad'))), findsOneWidget);
+    expect(find.ancestor(of: correct, matching: find.byKey(const Key('answer-mark-good'))), findsOneWidget);
+    await tester.pump(AnswerFeedback.hold);
+    expect(find.text('2/${clozeLevelParams(1).rounds}'), findsOneWidget);
   });
 
   testWidgets('🔴 время вышло — это ошибка, и верный ответ показан', (tester) async {
@@ -82,8 +106,11 @@ void main() {
     await tester.pump(Duration(milliseconds: limit + 10));
     expect(find.text('1'), findsWidgets, reason: 'ошибок стало 1');
     // Кнопки заперты — ответ уже засчитан как просрочка.
-    final right = tester.widget<FilledButton>(find.byKey(Key('cloze-option-${answerOf(tester)}')));
+    final correct = find.byKey(Key('cloze-option-${answerOf(tester)}'));
+    final right = tester.widget<FilledButton>(correct);
     expect(right.onPressed, isNull);
+    expect(find.ancestor(of: correct, matching: find.byKey(const Key('answer-mark-good'))), findsOneWidget);
+    expect(find.byKey(const Key('answer-mark-bad')), findsNothing);
     await tester.pump(const Duration(milliseconds: 1300));
     expect(find.text('2/${clozeLevelParams(1).rounds}'), findsOneWidget, reason: 'дальше само');
   });
