@@ -859,7 +859,7 @@ class _PetScreenState extends State<PetScreen>
         key: const ValueKey('pet-bubble'),
         constraints: const BoxConstraints(maxWidth: 260),
         margin: const EdgeInsets.only(bottom: 6),
-        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 14),
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
         decoration: BoxDecoration(
           color: web.surface,
           border: Border.all(color: web.border),

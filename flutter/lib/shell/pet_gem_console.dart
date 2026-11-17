@@ -58,8 +58,8 @@ class PetGemConsole extends StatelessWidget {
       final controlsHeight = buttonHeight * rows + (rows - 1) * 6;
       final headHeight = math.max(48.0, scaler.scale(12) * 1.2 + 24);
       final speechHeight = expandedSpeech
-          ? (large ? 170.0 : 130.0)
-          : (large ? 96.0 : 60.0);
+          ? (large ? 160.0 : 120.0)
+          : (large ? 88.0 : 48.0);
       final height = large || expandedSpeech
           ? math.max(
               width,
@@ -178,9 +178,11 @@ class PetGemConsole extends StatelessWidget {
                         right: 0,
                         height: speechHeight,
                         child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
+                            Flexible(
+                              fit: FlexFit.loose,
                               child: CustomPaint(
                                 foregroundPainter: _ComicTail(
                                   Theme.of(context).colorScheme.surface,
