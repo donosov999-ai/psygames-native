@@ -20,9 +20,12 @@ import 'package:flutter/material.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/design_template.dart';
+import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/setup_scroll.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/suite_switch.dart';
@@ -315,8 +318,9 @@ class _Field extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (phase) {
       case AntPhase.ready:
-        return _Centered(
+        return SetupScroll(
           height: height,
+          onStart: onStart,
           children: [
             Text('${L.t('level')} ${game.level}', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
@@ -331,8 +335,6 @@ class _Field extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onStart, child: Text(L.t('start'))),
           ],
         );
       case AntPhase.done:
@@ -368,6 +370,7 @@ class _Field extends StatelessWidget {
       case AntPhase.playing:
         final t = game.trial!;
         final shown = game.targetShown;
+        final roles = GameColors.of(context);
         return SizedBox(
           height: height,
           child: Column(
@@ -378,9 +381,9 @@ class _Field extends StatelessWidget {
               SizedBox(
                 height: 28,
                 child: switch (flash) {
-                  AntOutcome.hit => const Icon(Icons.check_circle, color: Color(0xFF22C55E), key: Key('ant-hit')),
-                  AntOutcome.wrong => const Icon(Icons.cancel, color: Color(0xFFEF4444), key: Key('ant-wrong')),
-                  AntOutcome.miss => const Icon(Icons.timer_off, color: Color(0xFFEF4444), key: Key('ant-miss')),
+                  AntOutcome.hit => Icon(Icons.check_circle, color: roles.correct, key: const Key('ant-hit')),
+                  AntOutcome.wrong => Icon(Icons.cancel, color: roles.wrong, key: const Key('ant-wrong')),
+                  AntOutcome.miss => Icon(Icons.timer_off, color: roles.wrong, key: const Key('ant-miss')),
                   null => const SizedBox.shrink(),
                 },
               ),
@@ -478,7 +481,10 @@ class _Glyph extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6),
-        child: Text(text, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w700)),
+        child: Text(
+          text,
+          style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700, color: GameColors.of(context).onCell),
+        ),
       );
 }
 
@@ -497,6 +503,17 @@ class _Centered extends StatelessWidget {
           ),
         ),
       );
+}
+
+ButtonStyle _answerStyle(BuildContext context) {
+  final aurora = Theme.of(context).extension<UiTemplateTheme>()?.template == UiTemplate.aurora;
+  final roles = GameColors.of(context);
+  return FilledButton.styleFrom(
+    padding: EdgeInsets.zero,
+    backgroundColor: aurora ? roles.cell : null,
+    foregroundColor: aurora ? roles.onCell : null,
+    side: aurora ? BorderSide(color: roles.boardLine) : null,
+  );
 }
 
 class _Answers extends StatelessWidget {
@@ -530,7 +547,7 @@ class _Btn extends StatelessWidget {
           child: FilledButton(
             key: Key('ant-answer-${side.name}'),
             onPressed: () => onPick(side),
-            style: FilledButton.styleFrom(padding: EdgeInsets.zero),
+            style: _answerStyle(context),
             child: FittedBox(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 22))),
           ),
         ),
