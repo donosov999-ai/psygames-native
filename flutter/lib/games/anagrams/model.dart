@@ -315,12 +315,14 @@ class AnagramRound {
 /// множество `validWords`, и без него игрок получает «неверно» за настоящее
 /// слово. Перенесено вместе с механикой, а не забыто.
 class ClassicGame {
-  ClassicGame({required this.bank, required this.level, Random? rnd})
-      : _rnd = rnd ?? Random(),
-        _valid = {for (final w in bank.classicBank(level.length)) w.toUpperCase()};
+  ClassicGame({required this.bank, required this.level, List<String>? words, Random? rnd})
+      : _words = words,
+        _rnd = rnd ?? Random(),
+        _valid = {for (final w in words ?? bank.classicBank(level.length)) w.toUpperCase()};
 
   final WordBank bank;
   final AnagramLevel level;
+  final List<String>? _words;
   final Random _rnd;
   final Set<String> _valid;
   final Set<String> _used = {};
@@ -340,7 +342,7 @@ class ClassicGame {
   ///
   /// Банк исчерпан — использованные сбрасываются, а не партия встаёт.
   AnagramRound next() {
-    final all = bank.classicBank(level.length);
+    final all = _words ?? bank.classicBank(level.length);
     var avail = [for (final w in all) if (!_used.contains(w)) w];
     if (avail.isEmpty) {
       _used.clear();

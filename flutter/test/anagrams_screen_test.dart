@@ -6,6 +6,7 @@ import 'package:psygames_flutter/shell/game_shell.dart';
 import 'package:psygames_flutter/games/anagrams/teach.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/lesson.dart';
+import 'package:psygames_flutter/shell/setup_scroll.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,16 +16,34 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// зелёные правила при неработающей доске уже давали в этом проекте «правила ок,
 /// продукт не работает»: кнопка была нарисована и объявлена, а нажатие до неё не
 /// доходило. Поэтому здесь буквы жмутся по-настоящему.
-Future<void> _boot(WidgetTester tester, SharedState state) async {
+Future<void> _boot(
+  WidgetTester tester,
+  SharedState state, {
+  bool start = true,
+  Brightness brightness = Brightness.light,
+  double textScale = 1,
+}) async {
   await tester.runAsync(() async {
-    await tester.pumpWidget(MaterialApp(home: AnagramsScreen(state: state, locale: 'ru')));
+    await tester.pumpWidget(MaterialApp(
+      theme: ThemeData(brightness: brightness),
+      home: Builder(
+        builder: (context) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: AnagramsScreen(state: state, locale: 'ru'),
+        ),
+      ),
+    ));
     for (var i = 0; i < 60; i++) {
       await tester.pump(const Duration(milliseconds: 50));
       await Future<void>.delayed(const Duration(milliseconds: 50));
-      if (find.byType(AnagramBoard).evaluate().isNotEmpty) break;
+      if (find.byType(SetupScroll).evaluate().isNotEmpty) break;
     }
   });
   await tester.pump();
+  if (start) {
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+  }
 }
 
 AnagramBoard _board(WidgetTester t) => t.widget<AnagramBoard>(find.byType(AnagramBoard));
@@ -57,6 +76,45 @@ void main() {
     // Подписи — из ТОГО ЖЕ словаря, что и в сборке: проба заодно проверяет, что
     // `assets/l10n/ru.json` собран и читается, а не сверяется с переписанной строкой.
     await L.load('ru');
+  });
+
+  testWidgets('настройка показывает режим, язык и условия до начала партии', (tester) async {
+    await _boot(tester, state, start: false);
+    expect(find.byType(GameShell), findsOneWidget);
+    expect(find.byType(SetupScroll), findsOneWidget);
+    expect(find.byType(AnagramBoard), findsNothing);
+    expect(find.text(L.t('anagramsDesc')), findsOneWidget);
+    expect(find.text('${L.t('level')} 1'), findsOneWidget);
+    expect(find.text(L.f('anagramsLvlParamsFree', {'n': '10', 'l': '4'})), findsOneWidget);
+    expect(find.text(L.t('anagramsPass')), findsOneWidget);
+    expect(find.text(L.t('anagramClassicHint')), findsOneWidget);
+    expect(find.byKey(const Key('anagram-setup-mode-classic')), findsOneWidget);
+    expect(find.byKey(const Key('anagram-setup-lang-ru')), findsOneWidget);
+    expect(find.text(L.t('wordLangLabel')), findsOneWidget);
+    expect(find.text(L.t('start')), findsOneWidget);
+
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    expect(find.byType(SetupScroll), findsNothing);
+    expect(find.byType(AnagramBoard), findsOneWidget);
+  });
+
+  testWidgets('настройка доступна на 320/390 px, в обеих темах и с крупным текстом', (tester) async {
+    addTearDown(tester.view.reset);
+    for (final size in [const Size(320, 568), const Size(390, 844)]) {
+      for (final brightness in Brightness.values) {
+        await tester.pumpWidget(const SizedBox());
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1;
+        await _boot(tester, state, start: false, brightness: brightness, textScale: 1.3);
+        expect(tester.takeException(), isNull, reason: '$size, $brightness');
+        expect(find.byType(SetupScroll), findsOneWidget);
+        expect(tester.getRect(find.text(L.t('start'))).bottom, lessThanOrEqualTo(size.height));
+        await tester.tap(find.text(L.t('start')));
+        await tester.pump();
+        expect(find.byType(AnagramBoard), findsOneWidget);
+      }
+    }
   });
 
   testWidgets('🔴 экран доходит до доски, а не крутит загрузку вечно', (tester) async {

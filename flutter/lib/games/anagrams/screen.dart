@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -11,8 +12,12 @@ import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../languages/bilingual.dart';
+import 'bilingual_game.dart';
 import 'board.dart';
 import 'model.dart';
+import 'options.dart';
+import 'setup.dart';
 import 'teach.dart';
 import 'mode_switch.dart';
 import 'word_lang.dart';
@@ -46,6 +51,13 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
   WordBank? _bank;
   ClassicGame? _game;
   AnagramRound? _round;
+  bool _started = GamePreset.autostart;
+  bool _bilingual = false;
+  String _secondLang = 'es';
+  bool _hintsOn = true;
+  String _theme = 'all';
+  Map<String, String> _themeMap = const {};
+  List<BilingualStep> _bilingualSteps = const [];
 
   final List<int> _picked = [];
   int _trial = 0;
@@ -74,15 +86,74 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
   Future<void> _boot() async {
     await _ladder.load();
     final bank = await WordBank.load(_lang);
+    final themes = await AnagramWordThemes.load(_lang);
     if (!mounted) return;
     setState(() {
       _bank = bank;
-      _game = ClassicGame(bank: bank, level: AnagramLevel.of(_ladder.level));
+      _themeMap = themes;
+      _game = _classicGame();
     });
     _nextWord();
   }
 
   AnagramLevel get _level => AnagramLevel.of(_ladder.level);
+
+  List<String> _classicWords() {
+    final all = _bank!.classicBank(_level.length);
+    if (_theme == 'all' || _themeMap.isEmpty) return all;
+    final filtered = [for (final word in all) if (_themeMap[word.toLowerCase()] == _theme) word];
+    return filtered.length >= 4 ? filtered : all;
+  }
+
+  ClassicGame _classicGame() => ClassicGame(bank: _bank!, level: _level, words: _classicWords());
+
+  bool get _bilingualActive => _bilingualSteps.isNotEmpty;
+  int get _trialsTotal => _bilingualActive ? _bilingualSteps.length : _level.trials;
+
+  Future<void> _start() async {
+    if (_bilingual) {
+      await _startBilingual();
+      return;
+    }
+    setState(() => _started = true);
+    _startTimer();
+  }
+
+  Future<void> _startBilingual() async {
+    final native = widget.state.language;
+    final first = _lang == native ? pairFor(native).first : _lang;
+    final second = secondNotFirst(native, first, _secondLang);
+    final game = await BilingualGame.create(
+      nativeLang: native,
+      firstLang: first,
+      secondLang: second,
+      triples: (_level.trials / 3).ceil(),
+      rnd: _game!.rnd,
+    );
+    _bilingualSteps = game.steps;
+    if (!_bilingualActive) {
+      setState(() => _started = true);
+      _startTimer();
+      return;
+    }
+    _trial = 0;
+    _solved = 0;
+    _hintsLeft = _hintsPerGame;
+    setState(() => _started = true);
+    _nextBilingualStep();
+  }
+
+  void _nextBilingualStep() {
+    final step = _bilingualSteps[_trial];
+    final target = step.word.toUpperCase();
+    setState(() {
+      _round = AnagramRound(target: target, letters: ClassicGame.shuffleLetters(target, _game!.rnd));
+      _picked.clear();
+      _revealed = 0;
+      _wrong = false;
+      _secLeft = 0;
+    });
+  }
 
   void _nextWord() {
     final g = _game;
@@ -94,13 +165,13 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
       _wrong = false;
       _secLeft = _level.wordSec;
     });
-    _startTimer();
+    if (_started) _startTimer();
   }
 
   /// Часы идут только там, где лимит есть: уровни 1–6 играются без времени.
   void _startTimer() {
     _tick?.cancel();
-    if (_level.wordSec <= 0) return;
+    if (_bilingualActive || _level.wordSec <= 0) return;
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() => _secLeft = _secLeft > 0 ? _secLeft - 1 : 0);
@@ -123,7 +194,10 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
   /// загаданное: из тех же букв часто складывается другое верное слово.
   void _check() {
     final g = _game!;
-    if (g.accepts(_assembled)) {
+    final correct = _bilingualActive
+        ? _assembled.toUpperCase() == _round!.target.toUpperCase()
+        : g.accepts(_assembled);
+    if (correct) {
       _haptics.hit();
       _solved++;
       _advance();
@@ -138,9 +212,9 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
   Future<void> _advance() async {
     _tick?.cancel();
     _trial++;
-    if (_trial >= _level.trials) {
+    if (_trial >= _trialsTotal) {
       // Партия сыграна: половина слов и больше — уровень засчитан.
-      if (_solved * 2 >= _level.trials) {
+      if (_solved * 2 >= _trialsTotal) {
         await _ladder.win();
       } else {
         await _ladder.fail();
@@ -148,14 +222,22 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
       if (!mounted) return;
       // Новая партия — отметка разбора снимается: следующая снова зачётная.
       LessonUsed.reset();
+      if (_bilingualActive) {
+        await _startBilingual();
+        return;
+      }
       setState(() {
         _trial = 0;
         _solved = 0;
         _hintsLeft = _hintsPerGame;
-        _game = ClassicGame(bank: _bank!, level: _level);
+        _game = _classicGame();
       });
     }
-    _nextWord();
+    if (_bilingualActive) {
+      _nextBilingualStep();
+    } else {
+      _nextWord();
+    }
   }
 
   void _reset() => setState(() {
@@ -197,7 +279,7 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
   List<TeachStep> get _lessonSteps {
     final round = _round;
     final bank = _bank;
-    if (round == null || bank == null) return const [];
+    if (_bilingualActive || round == null || bank == null) return const [];
     return anagramLesson(round.target, round.letters, bank.classicBank);
   }
 
@@ -244,6 +326,33 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
     if (round == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+    if (!_started) {
+      return GameShell(
+        title: L.t('anagrams'),
+        onLesson: _ladder.level <= 3 && _lessonSteps.length > 1 ? _openLesson : null,
+        hud: [HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined)],
+        field: (context, h) => AnagramSetup(
+          state: widget.state,
+          mode: AnagramMode.classic,
+          level: _ladder.level,
+          lang: _lang,
+          height: h,
+          bilingual: _bilingual,
+          secondLang: _secondLang,
+          hintsOn: _hintsOn,
+          theme: _theme,
+          onBilingual: (value) => setState(() => _bilingual = value),
+          onSecondLang: (value) => setState(() => _secondLang = value),
+          onHints: (value) => setState(() => _hintsOn = value),
+          onTheme: (value) => setState(() {
+            _theme = value;
+            _game = _classicGame();
+            _round = _game!.next();
+          }),
+          onStart: _start,
+        ),
+      );
+    }
     return GameShell(
       title: L.t('anagrams'),
       // Кнопка разбора — только там, где он есть: первые уровни и слово, которое
@@ -251,9 +360,9 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
       onLesson: _ladder.level <= 3 && _lessonSteps.length > 1 ? _openLesson : null,
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: L.t('round'), value: '${_trial + 1}/${_level.trials}', icon: Icons.tag),
+        HudItem(label: L.t('round'), value: '${_trial + 1}/$_trialsTotal', icon: Icons.tag),
         HudItem(label: L.t('hud_correct'), value: '$_solved', icon: Icons.check_circle_outline),
-        if (_level.wordSec > 0)
+        if (_level.wordSec > 0 && !_bilingualActive)
           HudItem(label: L.t('timeLeftLabel'), value: '$_secLeft${L.t('secShort')}', icon: Icons.timer_outlined),
       ],
       field: (context, h) => AnagramBoard(
@@ -268,7 +377,8 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
       // Служебное — значками под полем: подсказка тратит ресурс, перемешивание
       // трогает игру. Ответ игрока живёт ниже, в липком низу.
       auxRow: AuxBar(children: [
-        AuxAction(
+        if (_hintsOn)
+          AuxAction(
           icon: Icons.lightbulb_outline,
           label: L.t('btn_hint'),
           tint: const Color(0xFFB45309),

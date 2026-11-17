@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/app_haptics.dart';
 import '../../shell/aux_action.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -11,6 +12,7 @@ import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'ring.dart';
 import 'ring_board.dart';
+import 'setup.dart';
 import 'teach.dart';
 import 'mode_switch.dart';
 import 'word_lang.dart';
@@ -40,6 +42,7 @@ class _RingScreenState extends State<RingScreen> {
   RingPacks? _packs;
   Ring? _ring;
   List<String> _letters = const [];
+  bool _started = GamePreset.autostart;
 
   final List<int> _picked = [];
   final Set<String> _solved = {};
@@ -200,6 +203,22 @@ class _RingScreenState extends State<RingScreen> {
     final ring = _ring;
     if (ring == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (!_started) {
+      return GameShell(
+        title: L.t('anagramSquare'),
+        onLesson: _ladder.level <= 3 && _lessonSteps.length > 1 ? _openLesson : null,
+        hud: [HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined)],
+        field: (context, h) => AnagramSetup(
+          state: widget.state,
+          mode: AnagramMode.square,
+          level: _ladder.level,
+          lang: _lang,
+          height: h,
+          ringCount: _packs!.rings.length,
+          onStart: () => setState(() => _started = true),
+        ),
+      );
     }
     return GameShell(
       title: L.t('anagramSquare'),
