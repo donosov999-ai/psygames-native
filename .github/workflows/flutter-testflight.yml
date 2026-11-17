@@ -32,7 +32,11 @@ on:
       notes:
         # Уходит в «Что тестировать» у сборки КАК ЕСТЬ — его читает каждый тестировщик на
         # телефоне. Коммит и прогон в поле не пишутся (01.10.2026): только в журнал прогона.
-        description: 'Что тестировать — одной строкой, для людей (без ссылок и коммитов)'
+        description: 'Что тестировать en-US — одной строкой, для людей (без ссылок и коммитов)'
+        required: false
+        default: ''
+      notes_ru:
+        description: 'Что тестировать ru-RU — одной строкой, для людей (без ссылок и коммитов)'
         required: false
         default: ''
 
@@ -285,6 +289,7 @@ jobs:
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           WHAT_TO_TEST: ${{ inputs.notes }}
+          WHAT_TO_TEST_RU: ${{ inputs.notes_ru }}
         run: |
           # ⚠️ ОТДЕЛЬНОЕ ОКРУЖЕНИЕ, А НЕ `pip install` В СИСТЕМНЫЙ PYTHON. На раннере
           # macOS python3 из Homebrew, и он отбивает установку с

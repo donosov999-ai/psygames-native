@@ -675,6 +675,12 @@ class _HubScreenState extends State<HubScreen> {
                           child: fallback(),
                         ),
                       ),
+                    if ((widget.isNative?.call(c.route) ?? false))
+                      PositionedDirectional(
+                        top: 6,
+                        start: 6,
+                        child: Icon(Icons.bolt, size: 18, color: scheme.primary),
+                      ),
                     if (modes.length >= 2)
                       PositionedDirectional(
                         top: 6,
@@ -770,37 +776,6 @@ class _HubScreenState extends State<HubScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _classicArt(HubCard c, ColorScheme scheme) {
-    final art = HubArt.resolve(_hubArt, c.route, Theme.of(context).brightness);
-    final file = hubIconFile(_icons, c);
-    Widget icon() => file != null
-        ? Image.asset(
-            'assets/game_icons/$file',
-            fit: BoxFit.cover,
-            excludeFromSemantics: true,
-          )
-        : ColoredBox(
-            color: scheme.secondaryContainer,
-            child: Icon(hubIcon(c.icon), color: scheme.onSecondaryContainer),
-          );
-    return ClipRRect(
-      // Скруглённый квадрат, как в каталоге: круг срезал бы углы картинки.
-      borderRadius: BorderRadius.circular(12),
-      child: SizedBox.square(
-        key: ValueKey('hub-icon-${c.route}'),
-        dimension: 64,
-        child: art == null
-            ? icon()
-            : Image.asset(
-                art,
-                fit: BoxFit.cover,
-                excludeFromSemantics: true,
-                errorBuilder: (_, _, _) => icon(),
-              ),
       ),
     );
   }
@@ -1032,47 +1007,30 @@ class _HubScreenState extends State<HubScreen> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                for (final c in cards)
-                  Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      key: ValueKey('hub-card-${c.route}'),
-                      // Картинка Кодекса и в «Классике» (Денис 13.11: «да, 2 делай») —
-                      // крупнее прежнего значка, описание строки остаётся. Нет картинки —
-                      // прежний значок каталога.
-                      leading: _classicArt(c, scheme),
-                      title: Text(
-                        c.name,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      subtitle: _subtitle(c, scheme),
-                      trailing: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          // Уровень — то самое, за чем человек и возвращается.
-                          Text(
-                            '${L.t('unitLevelShort')} ${_levels[c.route] ?? 1}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: scheme.onSurfaceVariant,
-                            ),
+                LayoutBuilder(
+                  builder: (context, grid) {
+                    final scale = MediaQuery.textScalerOf(context).scale(12) / 12;
+                    final columns = scale >= 1.7
+                        ? 1
+                        : grid.maxWidth < 330 || scale > 1.15
+                        ? 2
+                        : 3;
+                    final side = (grid.maxWidth - (columns - 1) * 10) / columns;
+                    return Wrap(
+                      key: ValueKey('hub-grid-$columns'),
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        for (final c in cards)
+                          SizedBox(
+                            width: side,
+                            height: columns == 1 ? side * .75 : side * 1.22,
+                            child: _gridCard(c),
                           ),
-                          if (widget.isNative?.call(c.route) ?? false)
-                            Icon(Icons.bolt, size: 14, color: scheme.primary),
-                        ],
-                      ),
-                      /*
-                       * 🔴 ОТКРЫВАЕТ НЕ ХАБ, А ОБОЛОЧКА. Хаб возвращает выбранный
-                       * маршрут наверх (`pop`), а гибрид решает: перенесённую игру
-                       * показать нативно, остальные открыть в веб-половине.
-                       * Иначе хабу пришлось бы знать и карту нативных экранов, и
-                       * веб-адреса — то есть быть второй оболочкой.
-                       */
-                      onTap: () =>
-                          Navigator.of(context).pop(HubCardTap(c.route)),
-                    ),
-                  ),
+                      ],
+                    );
+                  },
+                ),
                 if (_footnote.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text(

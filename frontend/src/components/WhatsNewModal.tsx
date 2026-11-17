@@ -4,6 +4,7 @@
  * пропущенные обновления. Сохраняем просмотр только по кнопке «Понятно».
  */
 import React from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -32,8 +33,12 @@ export default function WhatsNewModal() {
     (async () => {
       const seen = await getSeenVersion();
       const cur = currentVersion();
-      if (!seen) { if (active) await setSeenVersion(cur); return; }
-      const unread = unreadReleaseNotes(cur, seen);
+      if (!seen) {
+        const keys = await AsyncStorage.getAllKeys();
+        const hasOnboarding = keys.some((key) => key.startsWith('psygames_onboarding_picked_'));
+        if (!hasOnboarding) { if (active) await setSeenVersion(cur); return; }
+      }
+      const unread = seen ? unreadReleaseNotes(cur, seen) : unreadReleaseNotes(cur, 'unknown');
       if (active && unread.length) {
         setEntries(unread);
         setVisible(true);
