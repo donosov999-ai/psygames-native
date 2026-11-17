@@ -279,7 +279,7 @@ void main() {
           t,
           HubScreen(
               state: state, hubRoute: '/games/spatial-hub', icon: Icons.extension, gradient: const [Colors.blue, Colors.indigo]));
-      final before = find.byType(ListTile).evaluate().length;
+      final before = find.byWidgetPredicate((w) => w.key is ValueKey<String> && (w.key! as ValueKey<String>).value.startsWith('hub-card-')).evaluate().length;
       expect(before, greaterThan(1));
       // Решение Дениса 04.10 (99628ecf, п. 4): видимый поиск НАД карточками, не значком в панели.
       expect(find.byKey(const ValueKey('hub-search')), findsOneWidget);
@@ -288,7 +288,7 @@ void main() {
       // у профиля по умолчанию здесь «Чёрный ящик», и в адресе у него пробел (`Black%20Box`).
       await _type(t, const ValueKey('hub-search'), 'чёрный');
       expect(find.byKey(const ValueKey('hub-card-/games/puzzles?mode=Black%20Box')), findsOneWidget);
-      expect(find.byType(ListTile), findsOneWidget);
+      expect(find.byWidgetPredicate((w) => w.key is ValueKey<String> && (w.key! as ValueKey<String>).value.startsWith('hub-card-')), findsOneWidget);
       await _type(t, const ValueKey('hub-search'), 'zzzqqq');
       expect(find.byKey(const ValueKey('hub-nothing')), findsOneWidget);
     });
@@ -307,7 +307,7 @@ void main() {
       await t.tap(find.text(skillTitle('skillInhibition')).last);
       await t.pumpAndSettle();
       expect(find.byKey(const ValueKey('hub-card-/games/stroop')), findsOneWidget);
-      final shown = find.byType(ListTile).evaluate().length;
+      final shown = find.byWidgetPredicate((w) => w.key is ValueKey<String> && (w.key! as ValueKey<String>).value.startsWith('hub-card-')).evaluate().length;
       expect(shown, lessThan(8), reason: 'фильтр отбирает, а не показывает все 8 (Корректура уехала в «Поиск глазами»)');
     });
   });

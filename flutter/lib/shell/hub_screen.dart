@@ -660,12 +660,14 @@ class _HubScreenState extends State<HubScreen> {
                   fit: StackFit.expand,
                   children: [
                     if (artwork != null)
-                      Image.asset(
-                        artwork,
+                      KeyedSubtree(
                         key: ValueKey('hub-icon-${c.route}'),
-                        fit: BoxFit.cover,
-                        excludeFromSemantics: true,
-                        errorBuilder: (_, _, _) => fallback(),
+                        child: Image.asset(
+                          artwork,
+                          fit: BoxFit.cover,
+                          excludeFromSemantics: true,
+                          errorBuilder: (_, _, _) => fallback(),
+                        ),
                       )
                     else
                       KeyedSubtree(
