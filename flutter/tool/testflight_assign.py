@@ -60,7 +60,7 @@ def token() -> str:
         return _TOKEN['value']
     key_id = os.environ['APPLE_API_KEY_ID']
     issuer = os.environ['APPLE_API_ISSUER']
-    key_file = os.environ['APPLE_API_KEY_FILE']
+    key_file = os.path.expanduser(os.environ['APPLE_API_KEY_FILE'])
     with open(key_file) as f:
         key = f.read()
     _TOKEN['value'] = jwt.encode(
@@ -136,7 +136,7 @@ def stamp_what_to_test(bid: str, notes: str, notes_ru: str = '') -> None:
     text_ru = notes_ru.strip()
     if not text and not text_ru:
         return
-    localized = {'en-US': text or text_ru, 'ru-RU': text_ru or text}
+    localized = {'en-US': text or text_ru, 'ru': text_ru or text}
     try:
         locs = call('GET', f'/builds/{bid}/betaBuildLocalizations?limit=50').get('data', [])
         existing = {loc['attributes'].get('locale'): loc['id'] for loc in locs}
