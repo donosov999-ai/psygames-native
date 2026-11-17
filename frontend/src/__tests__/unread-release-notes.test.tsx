@@ -100,4 +100,10 @@ describe('real update notice and durable acknowledgement', () => {
     expect(root.toJSON()).toBeNull();
     expect(await AsyncStorage.getItem(KEY)).toBe('2.56.12');
   });
+  test('migrated install with completed onboarding sees the current update', async () => {
+    await AsyncStorage.setItem('psygames_onboarding_picked_nzt48', '1');
+    await open();
+    expect(shownVersions()).toEqual(['2.56.12']);
+    expect(await AsyncStorage.getItem(KEY)).toBeNull();
+  });
 });

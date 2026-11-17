@@ -112,8 +112,8 @@ void main() {
        * не выполнится никогда, а проба скажет «хаб ничего не вернул».
        */
       // С 07.10 над карточками стоит поиск (решение Дениса 04.10, 99628ecf) — карточку довести до экрана.
-      await tester.scrollUntilVisible(find.byKey(const ValueKey('hub-card-/games/nut-sort')), 120,
-          scrollable: find.byType(Scrollable).first);
+      await tester.ensureVisible(find.byKey(const ValueKey('hub-card-/games/nut-sort')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('hub-card-/games/nut-sort')));
       for (var i = 0; i < 20 && popped == null; i++) {
         await tester.pump(const Duration(milliseconds: 50));

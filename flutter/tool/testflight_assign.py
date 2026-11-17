@@ -120,7 +120,7 @@ def provenance_line():
     return line
 
 
-def stamp_what_to_test(bid: str, notes: str) -> None:
+def stamp_what_to_test(bid: str, notes: str, notes_ru: str = '') -> None:
     """«Что тестировать» у сборки — ТОЛЬКО заметки для людей.
 
     🔴 01.10.2026, Денис со скрином TestFlight: в поле «Что тестировать» у 2.56.2 (37) стояло
@@ -133,20 +133,24 @@ def stamp_what_to_test(bid: str, notes: str) -> None:
     """
     print('· происхождение (только в журнал):', provenance_line() or '—')
     text = notes.strip()
-    if not text:
+    text_ru = notes_ru.strip()
+    if not text and not text_ru:
         return
+    localized = {'en-US': text or text_ru, 'ru-RU': text_ru or text}
     try:
         locs = call('GET', f'/builds/{bid}/betaBuildLocalizations?limit=50').get('data', [])
-        if not locs:
-            call('POST', '/betaBuildLocalizations', {'data': {
-                'type': 'betaBuildLocalizations',
-                'attributes': {'locale': 'en-US', 'whatsNew': text},
-                'relationships': {'build': {'data': {'type': 'builds', 'id': bid}}}}})
-        for loc in locs:
-            call('PATCH', f"/betaBuildLocalizations/{loc['id']}", {'data': {
-                'type': 'betaBuildLocalizations', 'id': loc['id'],
-                'attributes': {'whatsNew': text}}})
-        print('· «Что тестировать» записано:', text.replace('\n', ' | '))
+        existing = {loc['attributes'].get('locale'): loc['id'] for loc in locs}
+        for locale, body in localized.items():
+            if locale in existing:
+                call('PATCH', f"/betaBuildLocalizations/{existing[locale]}", {'data': {
+                    'type': 'betaBuildLocalizations', 'id': existing[locale],
+                    'attributes': {'whatsNew': body}}})
+            else:
+                call('POST', '/betaBuildLocalizations', {'data': {
+                    'type': 'betaBuildLocalizations',
+                    'attributes': {'locale': locale, 'whatsNew': body},
+                    'relationships': {'build': {'data': {'type': 'builds', 'id': bid}}}}})
+        print('· «Что тестировать» записано:', localized)
     except urllib.error.HTTPError as e:
         print(f'::warning title=TestFlight::«Что тестировать» не записалось ({e.code}): '
               f'{e.read().decode()[:300]}')
@@ -169,6 +173,15 @@ def show(version: str, number: str) -> int:
 def main() -> int:
     if len(sys.argv) >= 4 and sys.argv[1] == '--show':
         return show(sys.argv[2], sys.argv[3])
+    if len(sys.argv) >= 4 and sys.argv[1] == '--localize':
+        app_id = os.environ.get('APPLE_APP_ID') or app_by_bundle(os.environ['BUNDLE_ID'])
+        build = find_build(app_id, sys.argv[2], sys.argv[3])
+        if not build:
+            print(f'::error title=TestFlight::сборки {sys.argv[2]}+{sys.argv[3]} нет среди последних двадцати')
+            return 1
+        stamp_what_to_test(build['id'], os.environ.get('WHAT_TO_TEST', ''),
+                           os.environ.get('WHAT_TO_TEST_RU', ''))
+        return 0
     if len(sys.argv) < 3:
         print(__doc__)
         return 2
@@ -198,7 +211,8 @@ def main() -> int:
                        'attributes': {'usesNonExemptEncryption': False}}})
         print('· экспортная декларация проставлена (стандартное шифрование)')
 
-    stamp_what_to_test(bid, os.environ.get('WHAT_TO_TEST', ''))
+    stamp_what_to_test(bid, os.environ.get('WHAT_TO_TEST', ''),
+                       os.environ.get('WHAT_TO_TEST_RU', ''))
 
     groups = call('GET', f'/betaGroups?filter[app]={app_id}&limit=20')['data']
     target = next((g for g in groups if g['attributes'].get('name') == group_name), None)

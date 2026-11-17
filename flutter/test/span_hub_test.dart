@@ -67,7 +67,11 @@ void main() {
       expect(find.descendant(of: card(e.key), matching: find.text(e.value)), findsOneWidget,
           reason: 'карточка «${e.value}»');
     }
-    expect(find.byType(ListTile), findsNWidgets(exercises.length), reason: 'лишних карточек нет');
+    expect(
+      find.byWidgetPredicate((w) => w.key is ValueKey<String> && (w.key! as ValueKey<String>).value.startsWith('hub-card-')),
+      findsNWidgets(exercises.length),
+      reason: 'лишних карточек нет',
+    );
   });
 
   testWidgets('🔴 шапка — та же, что у веб-развилки: заголовок, призыв и сноска раздела', (tester) async {
