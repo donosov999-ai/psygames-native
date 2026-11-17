@@ -5,8 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/posner/model.dart';
 import 'package:psygames_flutter/games/posner/screen.dart';
+import 'package:psygames_flutter/shell/app_theme.dart';
+import 'package:psygames_flutter/shell/design_template.dart';
+import 'package:psygames_flutter/shell/game_colors.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/setup_scroll.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -219,4 +223,24 @@ void main() {
       }
     });
   });
+
+  for (final brightness in Brightness.values) {
+    testWidgets('Aurora: setup и кнопки используют роли темы (${brightness.name})', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        theme: applyUiTemplate(classicShellTheme(brightness), UiTemplate.aurora),
+        home: PosnerScreen(state: state, rnd: Random(7)),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.byType(SetupScroll), findsOneWidget);
+      await tester.tap(find.text(L.t('start')));
+      await tester.pump();
+
+      final roles = GameColors.of(tester.element(find.byType(PosnerBoxes)));
+      final box = tester.widget<Container>(find.byKey(const Key('posner-box-left')));
+      expect((box.decoration! as BoxDecoration).color, roles.cell);
+      final answer = tester.widget<FilledButton>(find.byKey(const Key('posner-answer-left')));
+      expect(answer.style?.backgroundColor?.resolve({}), roles.cell);
+      expect(answer.style?.foregroundColor?.resolve({}), roles.onCell);
+    });
+  }
 }

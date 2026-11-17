@@ -43,6 +43,8 @@ const Set<String> auroraReadyRoutes = {
   '/games/number-run',
   '/games/pattern',
   '/games/quick-count',
+  '/games/posner',
+  '/games/ant',
   // «Мнемотехники» (волна 3, OWNERSHIP_145: psygames-memory-hearing-claude-mac), 13.11.2026: поля на
   // ролях темы и GameColors (RMET — correct/wrong вместо литералов, «Дворец» — onStrong на номере
   // места); цвета лица в «Лицах и именах» — стимул. Кадры Аврора тёмная/светлая + Classic —

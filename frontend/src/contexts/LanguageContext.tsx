@@ -1850,7 +1850,7 @@ const translations: Translations = {
   ospanRecallTitle: { ru: 'Вспомните буквы', en: 'Recall the letters' },
 
   // Round-6 — names
-  posner:          { ru: 'Posner Cuing: внимание',     en: 'Posner Cuing: Attention' },
+  posner:          { ru: 'Познер: внимание',           en: 'Posner Cuing: Attention' },
   ant:             { ru: 'ANT: 3 сети внимания',        en: 'ANT: Attention Networks' },
   bart:            { ru: 'BART: риск-баллон',           en: 'BART: Risk Balloon' },
   iowa:            { ru: 'Iowa: 4 колоды',              en: 'Iowa: 4 Decks' },
@@ -2059,7 +2059,7 @@ const translations: Translations = {
   sdmtHint:         { ru: 'Смотри на ключ сверху: под каждым знаком своя цифра', en: 'Use the key above: every symbol has its own digit' },
   vocabSrsHint:     { ru: 'Выбери перевод показанного слова',                   en: 'Pick the translation of the word above' },
 
-  posnerHint:     { ru: 'Где появилась мишень? Не доверяйте cue слепо',     en: 'Where did target appear? Don\'t trust cue blindly' },
+  posnerHint:     { ru: 'Где появилась мишень? Не доверяйте подсказке слепо', en: 'Where did target appear? Don\'t trust cue blindly' },
   bartHint:       { ru: 'Pump надувает (+1¢) · Cash забирает в банк',         en: 'Pump inflates (+1¢) · Cash banks it' },
   bartPopped:     { ru: '💥 Шар лопнул — деньги потеряны',                  en: '💥 Burst — money lost' },
   bartCashed:     { ru: '✓ Деньги в банке',                                  en: '✓ Cashed in' },
@@ -5140,7 +5140,12 @@ const translations: Translations = {
   sliderNextQuestion: { ru: 'Следующее задание', en: 'Next question' },
   sliderReleaseHint: { ru: 'Отпусти — засчитаю через {n} с', en: 'Let go — it counts in {n} s' },
   sliderPlaceHint: { ru: 'Поставь маркер туда, где ответ', en: 'Put the marker where the answer is' },
+  sliderAutoConfirmHint: { ru: 'Автоподтверждение через {n} с после движения', en: 'Auto-confirm {n} s after last move' },
   sliderConfirm: { ru: 'Подтвердить', en: 'Confirm' },
+  sliderDragOrTap: { ru: 'Потяни или нажми на шкалу', en: 'Drag or tap the ruler' },
+  sliderError: { ru: 'Ошибка', en: 'Error' },
+  sliderExactAnswer: { ru: 'Точный ответ', en: 'Exact answer' },
+  sliderYourAnswer: { ru: 'Твой ответ', en: 'Your answer' },
   sliderTrainingNote: { ru: 'Тренировка — эта попытка не сохраняется', en: 'Practice — this try isn’t saved' },
   sliderMarkerA11y: { ru: 'маркер, оценка {x}', en: 'marker, estimate {x}' },
   // «Счёт» — подписи нативного экрана «Паттерны» (задача 4b6f863e, 02.10.2026)
