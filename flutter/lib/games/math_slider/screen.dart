@@ -423,7 +423,7 @@ class _FeedbackCard extends StatelessWidget {
                 Container(width: 1, height: 40, color: scheme.outlineVariant),
                 Expanded(
                   child: _FeedbackItem(
-                    label: L.t('sliderAccuracy'),
+                    label: L.t('hudAccuracy'),
                     value: accuracy,
                     color: isPerfect ? scheme.tertiary : scheme.primary,
                   ),

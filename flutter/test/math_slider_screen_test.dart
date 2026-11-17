@@ -241,7 +241,7 @@ void main() {
     expect(find.text(L.t('sliderYourAnswer')), findsOneWidget);
     expect(find.text(L.t('sliderExactAnswer')), findsOneWidget);
     expect(find.text(L.t('sliderError')), findsOneWidget);
-    expect(find.text(L.t('sliderAccuracy')), findsOneWidget);
+    expect(find.text(L.t('hudAccuracy')), findsOneWidget);
     expect(find.byKey(const Key('подтвердить')), findsNothing, reason: 'Confirm заменён на Next');
     expect(find.byKey(const Key('дальше')), findsOneWidget, reason: 'кнопка Next после ответа');
   });

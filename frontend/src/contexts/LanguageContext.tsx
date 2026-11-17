@@ -5140,7 +5140,6 @@ const translations: Translations = {
   sliderNextQuestion: { ru: 'Следующее задание', en: 'Next question' },
   sliderReleaseHint: { ru: 'Отпусти — засчитаю через {n} с', en: 'Let go — it counts in {n} s' },
   sliderPlaceHint: { ru: 'Поставь маркер туда, где ответ', en: 'Put the marker where the answer is' },
-  sliderAccuracy: { ru: 'Точность', en: 'Accuracy' },
   sliderAutoConfirmHint: { ru: 'Автоподтверждение через {n} с после движения', en: 'Auto-confirm {n} s after last move' },
   sliderConfirm: { ru: 'Подтвердить', en: 'Confirm' },
   sliderDragOrTap: { ru: 'Потяни или нажми на шкалу', en: 'Drag or tap the ruler' },
