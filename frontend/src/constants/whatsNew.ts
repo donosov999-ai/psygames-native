@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.72.0',
+    date: '2026-11-17',
+    en: [
+      'Math Scale: a compact ruler, a live value above the marker and a clear answer review',
+      'Quick Count and Cloze show clear right/wrong feedback; Anagrams restore setup and letter dragging',
+      'Sudoku Killer and Free are visible in every profile; Synapse speech is more compact; Posner and ANT warmup fields are aligned',
+    ],
+    ru: [
+      '«Математическая шкала»: компактная линейка, живое значение над маркером и понятный разбор ответа',
+      '«Быстрый счёт» и «Пропуски» показывают понятный отклик на ответ; в «Анаграммах» снова есть настройка и протяжка по буквам',
+      '«Судоку»: «Киллер» и «Свободно» видны во всех профилях; реплики Синапса компактнее; поля Posner и ANT в зарядке выровнены',
+    ],
+  },
+  {
     version: '2.71.0',
     date: '2026-11-13',
     en: [

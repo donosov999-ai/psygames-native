@@ -7,6 +7,15 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.72.0",
+   "date": "2026-11-17",
+   "items": [
+    "Math Scale: a compact ruler, a live value above the marker and a clear answer review",
+    "Quick Count and Cloze show clear right/wrong feedback; Anagrams restore setup and letter dragging",
+    "Sudoku Killer and Free are visible in every profile; Synapse speech is more compact; Posner and ANT warmup fields are aligned"
+   ]
+  },
+  {
    "version": "v2.71.0",
    "date": "2026-11-13",
    "items": [
