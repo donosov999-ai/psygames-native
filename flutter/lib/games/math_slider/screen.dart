@@ -92,7 +92,7 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
   /// даёт одни и те же примеры, поэтому «повторить эти же» имеет смысл.
   /// 🔴 УРОВЕНЬ ПАРТИИ — ИЗ ШАГА ЗАРЯДКИ, ЕСЛИ ШАГ ЕГО ЗАДАЛ, ИНАЧЕ ЛИЧНЫЙ.
   ///
-  /// Шаг передаёт уровень по правилу Дениса от 13.09.2026 «освоенный минус 20 %»
+  /// Шаг передаёт уровень по правилу Дениса от 13.09.2026 «освоенный минус 20 %"
   /// (`warmup.ts`, `уровеньШага`): разминка заходит чуть ниже потолка, а не
   /// пытается взять максимум. Веб делает ровно так (`math-slider.tsx`:
   /// `num('level', lvl.level)`), и от этого же уровня строит зерно. Лестница при
@@ -168,7 +168,7 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
     setState(() {
       _last = score;
       if (_phase == _Phase.training) {
-        _phase = _Phase.trainingFeedback;   // тренировка в счёт не идёт
+        _phase = _Phase.trainingFeedback; // тренировка в счёт не идёт
       } else {
         _trials.add(score);
         _phase = _Phase.feedback;
@@ -223,9 +223,6 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
   }
 
   int get _outside => _trials.where((t) => t.outsideTarget).length;
-
-  /// Разделитель дробей — по языку человека, как в вебе: «6,25» по-русски, «6.25» иначе.
-  String _fmt(double v) => formatNumber(v, locale: numberLocale(L.locale));
 
   String get _prompt {
     final e = _question.expression;
@@ -317,50 +314,158 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
   }
 
   Widget _toolbar(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
     final score = _last;
     if (!_answering && score != null) {
       return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(
-            L.f('sliderFeedback', {
-              'a': _fmt(score.answer),
-              'e': _fmt(score.estimate),
-              'p': '${(score.normalizedError * 100).round()}',
-            }),
-            key: const Key('разбор'),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          FilledButton.icon(
-            key: const Key('дальше'),
-            onPressed: _next,
-            icon: const Icon(Icons.arrow_forward),
-            label: Text(_phase == _Phase.trainingFeedback ? L.t('sliderStartGame') : L.t('sliderNextQuestion')),
-          ),
-        ]),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _FeedbackCard(score: score),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              key: const Key('дальше'),
+              onPressed: _next,
+              icon: const Icon(Icons.arrow_forward),
+              label: Text(_phase == _Phase.trainingFeedback ? L.t('sliderStartGame') : L.t('sliderNextQuestion')),
+            ),
+          ],
+        ),
       );
     }
 
     return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text(
-          _touched
-              ? L.f('sliderReleaseHint', {'n': '${autoConfirmDelay.inSeconds}'})
-              : L.t('sliderPlaceHint'),
-          key: const Key('подсказка'),
-          style: text.bodySmall,
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FilledButton.icon(
+            key: const Key('подтвердить'),
+            onPressed: _confirm,
+            icon: const Icon(Icons.check),
+            label: Text(L.t('sliderConfirm')),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _touched
+                ? L.f('sliderAutoConfirmHint', {'n': '${autoConfirmDelay.inSeconds}'})
+                : L.t('sliderDragOrTap'),
+            key: const Key('подсказка'),
+            textAlign: TextAlign.center,
+            style: text.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Карточка разбора: четыре показателя, цвет не единственный носитель значения.
+class _FeedbackCard extends StatelessWidget {
+  const _FeedbackCard({required this.score});
+
+  final TrialScore score;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    final locale = numberLocale(L.locale);
+    final answer = formatNumber(score.answer, locale: locale);
+    final estimate = formatNumber(score.estimate, locale: locale);
+    final signedError = formatNumber(score.signedError.abs(), locale: locale);
+    final errorSign = score.signedError >= 0 ? '+' : '−';
+    final accuracy = '${(score.accuracy * 100).round()}%';
+    final isPerfect = score.accuracy >= 0.9999;
+
+    return Card(
+      key: const Key('разбор'),
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: _FeedbackItem(
+                    label: L.t('sliderYourAnswer'),
+                    value: estimate,
+                    color: scheme.primary,
+                  ),
+                ),
+                Container(width: 1, height: 40, color: scheme.outlineVariant),
+                Expanded(
+                  child: _FeedbackItem(
+                    label: L.t('sliderExactAnswer'),
+                    value: answer,
+                    color: scheme.tertiary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _FeedbackItem(
+                    label: L.t('sliderError'),
+                    value: '$errorSign$signedError',
+                    color: isPerfect ? scheme.outline : scheme.error,
+                  ),
+                ),
+                Container(width: 1, height: 40, color: scheme.outlineVariant),
+                Expanded(
+                  child: _FeedbackItem(
+                    label: L.t('hudAccuracy'),
+                    value: accuracy,
+                    color: isPerfect ? scheme.tertiary : scheme.primary,
+                  ),
+                ),
+              ],
+            ),
+            if (!isPerfect) ...[
+              const SizedBox(height: 10),
+              Text(
+                L.f('sliderFeedback', {
+                  'a': answer,
+                  'e': estimate,
+                  'p': '${(score.normalizedError * 100).round()}',
+                }),
+                textAlign: TextAlign.center,
+                style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+              ),
+            ],
+          ],
         ),
-        const SizedBox(height: 6),
-        FilledButton.icon(
-          key: const Key('подтвердить'),
-          onPressed: _confirm,
-          icon: const Icon(Icons.check),
-          label: Text(L.t('sliderConfirm')),
-        ),
-      ]),
+      ),
+    );
+  }
+}
+
+class _FeedbackItem extends StatelessWidget {
+  const _FeedbackItem({required this.label, required this.value, required this.color});
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label, style: text.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        const SizedBox(height: 2),
+        Text(value, style: text.titleLarge?.copyWith(color: color, fontWeight: FontWeight.w800)),
+      ],
     );
   }
 }
@@ -391,55 +496,80 @@ class _Field extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     final figure = question.expression is IntegralArea;
-    // Высота делится ОТ ЧИСЛА каркаса: прямая держит свои 128, фигура забирает
-    // не больше половины остатка, подпись живёт в том, что осталось.
-    const lineBlock = 128.0;
-    final rest = math.max(0.0, height - lineBlock - 24);
-    final figureHeight = figure ? math.min(rest * 0.62, 200.0) : 0.0;
+
+    // Компактный блок: вопрос, подсказка, фигура, шкала. Без огромных пустот.
+    final figureHeight = figure ? math.min(120.0, math.max(64.0, height * 0.22)) : 0.0;
+    final lineHeight = math.min(160.0, math.max(120.0, height * 0.32));
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          const SizedBox(height: 8),
-          if (training)
-            Text(L.t('sliderTrainingNote'),
-                key: const Key('тренировка'), style: text.bodySmall),
-          Flexible(
-            child: Center(
-              child: Text(
+      child: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: height),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              if (training)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    L.t('sliderTrainingNote'),
+                    key: const Key('тренировка'),
+                    style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              Text(
                 formatExpression(question.expression, locale: numberLocale(L.locale)),
                 key: const Key('вопрос'),
                 textAlign: TextAlign.center,
-                style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+                style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
               ),
-            ),
-          ),
-          if (figure)
-            SizedBox(
-              height: figureHeight,
-              width: double.infinity,
-              child: CustomPaint(
-                painter: _AreaPainter(
-                  area: question.expression as IntegralArea,
-                  fill: scheme.primary,
-                  negative: scheme.error,
-                  axis: scheme.outline,
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Text(
+                  prompt,
+                  style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+                  textAlign: TextAlign.center,
                 ),
               ),
-            ),
-          Text(prompt, style: text.bodyMedium, textAlign: TextAlign.center),
-          SizedBox(
-            height: lineBlock,
-            child: _NumberLine(
-              question: question,
-              estimate: estimate,
-              revealed: revealed,
-              enabled: enabled,
-              onChange: onChange,
-            ),
+              if (figure) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: figureHeight,
+                  width: double.infinity,
+                  child: CustomPaint(
+                    painter: _AreaPainter(
+                      area: question.expression as IntegralArea,
+                      fill: scheme.primary,
+                      negative: scheme.error,
+                      axis: scheme.outline,
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 8),
+              SizedBox(
+                height: lineHeight,
+                child: _NumberLine(
+                  question: question,
+                  estimate: estimate,
+                  revealed: revealed,
+                  enabled: enabled,
+                  onChange: onChange,
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -466,14 +596,12 @@ class _NumberLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final scale = question.scale;
+    final locale = numberLocale(L.locale);
+
     return LayoutBuilder(builder: (context, c) {
-      // 🔴 ДОРОЖКА УЖЕ ПОЛЯ НА ПОЛПОДПИСИ С КАЖДОЙ СТОРОНЫ. Подписи делений и
-      // маркер рисуются ОТ СЕРЕДИНЫ своей позиции, поэтому крайнее деление
-      // выносило подпись за край поля на 8 точек (замер 23.09.2026, гейт раздела
-      // «доска вписана в поле», 360×640 и 390×844). Обрезать нельзя: под подписью
-      // человек и целится. Дорожка сжимается, отсчёт по ней остаётся тем же.
-      const pad = 24.0;   // половина самой широкой подписи деления (width: 48)
+      final pad = _sidePadding(c.maxWidth, scale);
       final w = math.max(1.0, c.maxWidth - 2 * pad);
+
       void fromX(double x) {
         final ratio = math.min(1.0, math.max(0.0, (x - pad) / w));
         onChange(scale.min + ratio * scale.width);
@@ -482,54 +610,187 @@ class _NumberLine extends StatelessWidget {
       final pos = pad + ((estimate - scale.min) / scale.width).clamp(0.0, 1.0) * w;
       final answerPos = pad + ((question.answer - scale.min) / scale.width).clamp(0.0, 1.0) * w;
 
+      // Мелкие деления: не меняют шаг ответа, только визуальная сетка.
+      final majorWidth = w / scale.tickCount;
+      final minorCount = majorWidth > 56 ? 4 : (majorWidth > 28 ? 1 : 0);
+
       return GestureDetector(
         key: const Key('шкала'),
         behavior: HitTestBehavior.opaque,
         onTapDown: enabled ? (d) => fromX(d.localPosition.dx) : null,
         onHorizontalDragStart: enabled ? (d) => fromX(d.localPosition.dx) : null,
         onHorizontalDragUpdate: enabled ? (d) => fromX(d.localPosition.dx) : null,
-        child: Stack(children: [
-          Positioned(
-            left: pad,
-            width: w,
-            top: 46,
-            child: Container(height: 4, color: scheme.outlineVariant),
-          ),
-          for (var i = 0; i < scale.ticks.length; i += 1)
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Дорожка.
             Positioned(
-              left: pad + (i / scale.tickCount) * w - 24,
-              top: 52,
-              width: 48,
-              child: Column(children: [
-                Container(width: 2, height: 8, color: scheme.outline),
-                Text(formatNumber(scale.ticks[i], locale: numberLocale(L.locale)),
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.labelSmall),
-              ]),
+              left: pad,
+              width: w,
+              top: _trackTop,
+              child: Container(
+                height: 4,
+                decoration: BoxDecoration(
+                  color: scheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
             ),
-          if (revealed)
-            Positioned(
-              left: answerPos - 10,
-              top: 26,
-              child: Icon(Icons.arrow_drop_down, size: 20, color: scheme.tertiary, key: const Key('ответ')),
+            // Мелкие деления.
+            if (minorCount > 0)
+              for (var i = 0; i < scale.tickCount; i += 1)
+                for (var j = 1; j <= minorCount; j += 1)
+                  Positioned(
+                    left: pad + (i + j / (minorCount + 1)) / scale.tickCount * w - 1,
+                    top: _trackTop + 2,
+                    child: Container(
+                      width: 2,
+                      height: 6,
+                      color: scheme.outline.withValues(alpha: 0.5),
+                    ),
+                  ),
+            // Крупные деления и подписи.
+            for (var i = 0; i < scale.ticks.length; i += 1)
+              Positioned(
+                left: pad + (i / scale.tickCount) * w - _labelWidth / 2,
+                top: _trackTop + 2,
+                width: _labelWidth,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(width: 2, height: 10, color: scheme.outline),
+                    const SizedBox(height: 4),
+                    Text(
+                      formatNumber(scale.ticks[i], locale: locale),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            // Точный ответ.
+            if (revealed)
+              _ValueBubble(
+                left: answerPos,
+                value: formatNumber(question.answer, locale: locale),
+                color: scheme.tertiary,
+                onSurface: scheme.onTertiary,
+                offset: _bubbleOffset(answerPos, pos, c.maxWidth),
+                key: const Key('ответ'),
+              ),
+            // Маркер оценки пользователя.
+            _ValueBubble(
+              left: pos,
+              value: formatNumber(estimate, locale: locale),
+              color: scheme.primary,
+              onSurface: scheme.onPrimary,
+              offset: revealed && (answerPos - pos).abs() < 40 ? 44.0 : 0.0,
+              isMarker: true,
+              semanticsKey: const Key('маркер'),
+              semanticsLabel: L.f('sliderMarkerA11y', {'x': formatNumber(estimate, locale: locale)}),
             ),
-          Positioned(
-            left: pos - 22,
-            top: 0,
-            child: Semantics(
-              key: const Key('маркер'),
-              slider: true,
-              label: L.f('sliderMarkerA11y', {'x': formatNumber(estimate, locale: numberLocale(L.locale))}),
-              child: Column(children: [
-                Text(formatNumber(estimate, locale: numberLocale(L.locale)),
-                    style: TextStyle(fontWeight: FontWeight.w700, color: scheme.primary)),
-                Icon(Icons.place, color: scheme.primary, size: 28),
-              ]),
-            ),
-          ),
-        ]),
+          ],
+        ),
       );
     });
+  }
+
+  static const double _trackTop = 96.0;
+  static const double _labelWidth = 48.0;
+
+  double _sidePadding(double maxWidth, MathSliderScale scale) {
+    // На узком экране уменьшаем запас, но оставляем место для крайних подписей.
+    final want = maxWidth > 360 ? 32.0 : 26.0;
+    return math.min(want, maxWidth * 0.12);
+  }
+
+  double _bubbleOffset(double answerPos, double estimatePos, double maxWidth) {
+    // Если маркеры близко, разводим их по высоте: ответ выше.
+    if ((answerPos - estimatePos).abs() < 40) return -44.0;
+    return 0.0;
+  }
+}
+
+/// Пузырёк со значением над маркером. При необходимости смещается внутрь поля.
+class _ValueBubble extends StatelessWidget {
+  const _ValueBubble({
+    required this.left,
+    required this.value,
+    required this.color,
+    required this.onSurface,
+    this.offset = 0.0,
+    this.isMarker = false,
+    this.semanticsKey,
+    this.semanticsLabel,
+    super.key,
+  });
+
+  final double left;
+  final String value;
+  final Color color;
+  final Color onSurface;
+  final double offset;
+  final bool isMarker;
+  final Key? semanticsKey;
+  final String? semanticsLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final bubble = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: scheme.shadow.withValues(alpha: 0.12),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Text(
+        value,
+        style: TextStyle(
+          color: onSurface,
+          fontWeight: FontWeight.w800,
+          fontSize: 14,
+        ),
+      ),
+    );
+
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        bubble,
+        const SizedBox(height: 2),
+        Icon(
+          isMarker ? Icons.location_on : Icons.arrow_drop_down,
+          size: isMarker ? 26 : 22,
+          color: isMarker ? color : color.withValues(alpha: 0.9),
+        ),
+      ],
+    );
+
+    return Positioned(
+      left: left,
+      top: _NumberLine._trackTop - 44 + offset,
+      child: Transform.translate(
+        offset: const Offset(-0.5, 0),
+        child: semanticsKey != null
+            ? Semantics(
+                key: semanticsKey,
+                slider: true,
+                label: semanticsLabel,
+                child: content,
+              )
+            : content,
+      ),
+    );
   }
 }
 
@@ -564,8 +825,12 @@ class _AreaPainter extends CustomPainter {
     if (steps) {
       for (var i = 0; i < samples.length; i += 1) {
         final h = samples[i] * unit;
-        final r = Rect.fromLTRB(i * cell + 1, h >= 0 ? base - h : base, (i + 1) * cell - 1,
-            h >= 0 ? base : base - h);
+        final r = Rect.fromLTRB(
+          i * cell + 1,
+          h >= 0 ? base - h : base,
+          (i + 1) * cell - 1,
+          h >= 0 ? base : base - h,
+        );
         canvas.drawRect(r, h >= 0 ? up : down);
       }
     } else {
