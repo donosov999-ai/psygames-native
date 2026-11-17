@@ -60,7 +60,7 @@ def token() -> str:
         return _TOKEN['value']
     key_id = os.environ['APPLE_API_KEY_ID']
     issuer = os.environ['APPLE_API_ISSUER']
-    key_file = os.environ['APPLE_API_KEY_FILE']
+    key_file = os.path.expanduser(os.environ['APPLE_API_KEY_FILE'])
     with open(key_file) as f:
         key = f.read()
     _TOKEN['value'] = jwt.encode(
