@@ -325,11 +325,15 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
           children: [
             _FeedbackCard(score: score),
             const SizedBox(height: 12),
-            FilledButton.icon(
-              key: const Key('дальше'),
-              onPressed: _next,
-              icon: const Icon(Icons.arrow_forward),
-              label: Text(_phase == _Phase.trainingFeedback ? L.t('sliderStartGame') : L.t('sliderNextQuestion')),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: FilledButton.icon(
+                key: const Key('дальше'),
+                onPressed: _next,
+                icon: const Icon(Icons.arrow_forward),
+                label: Text(_phase == _Phase.trainingFeedback ? L.t('sliderStartGame') : L.t('sliderNextQuestion')),
+              ),
             ),
           ],
         ),
@@ -341,11 +345,15 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          FilledButton.icon(
-            key: const Key('подтвердить'),
-            onPressed: _confirm,
-            icon: const Icon(Icons.check),
-            label: Text(L.t('sliderConfirm')),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: FilledButton.icon(
+              key: const Key('подтвердить'),
+              onPressed: _confirm,
+              icon: const Icon(Icons.check),
+              label: Text(L.t('sliderConfirm')),
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -374,7 +382,6 @@ class _FeedbackCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
     final locale = numberLocale(L.locale);
     final answer = formatNumber(score.answer, locale: locale);
     final estimate = formatNumber(score.estimate, locale: locale);
@@ -430,18 +437,7 @@ class _FeedbackCard extends StatelessWidget {
                 ),
               ],
             ),
-            if (!isPerfect) ...[
-              const SizedBox(height: 10),
-              Text(
-                L.f('sliderFeedback', {
-                  'a': answer,
-                  'e': estimate,
-                  'p': '${(score.normalizedError * 100).round()}',
-                }),
-                textAlign: TextAlign.center,
-                style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
-              ),
-            ],
+
           ],
         ),
       ),
@@ -525,7 +521,7 @@ class _Field extends StatelessWidget {
                 formatExpression(question.expression, locale: numberLocale(L.locale)),
                 key: const Key('вопрос'),
                 textAlign: TextAlign.center,
-                style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                style: text.displaySmall?.copyWith(fontWeight: FontWeight.w800, height: 1.1),
               ),
               const SizedBox(height: 6),
               Container(
@@ -779,8 +775,8 @@ class _ValueBubble extends StatelessWidget {
     return Positioned(
       left: left,
       top: _NumberLine._trackTop - 44 + offset,
-      child: Transform.translate(
-        offset: const Offset(-0.5, 0),
+      child: FractionalTranslation(
+        translation: const Offset(-0.5, 0),
         child: semanticsKey != null
             ? Semantics(
                 key: semanticsKey,

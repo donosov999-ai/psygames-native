@@ -2348,7 +2348,6 @@
 "sliderDragOrTap":"Потяни или нажми на шкалу",
 "sliderError":"Ошибка",
 "sliderExactAnswer":"Точный ответ",
-"sliderFeedback":"Точный ответ {a} · ваша оценка {e} · ошибка {p}% ширины шкалы",
 "sliderMarkerA11y":"маркер, оценка {x}",
 "sliderNextQuestion":"Следующее задание",
 "sliderNudgeLeft":"Точнее влево",

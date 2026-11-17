@@ -2348,7 +2348,6 @@
 "sliderDragOrTap":"स्केल को खींचें या टैप करें",
 "sliderError":"त्रुटि",
 "sliderExactAnswer":"सटीक उत्तर",
-"sliderFeedback":"सटीक उत्तर {a} · आपका अनुमान {e} · त्रुटि पैमाने की चौड़ाई का {p}%",
 "sliderMarkerA11y":"मार्कर, अनुमान {x}",
 "sliderNextQuestion":"अगला प्रश्न",
 "sliderNudgeLeft":"थोड़ा बाएँ",

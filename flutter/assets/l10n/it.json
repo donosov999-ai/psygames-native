@@ -2348,7 +2348,6 @@
 "sliderDragOrTap":"Trascina o tocca la scala",
 "sliderError":"Errore",
 "sliderExactAnswer":"Risposta esatta",
-"sliderFeedback":"Risposta esatta {a} · la tua stima {e} · errore del {p}% della larghezza della scala",
 "sliderMarkerA11y":"segnalino, stima {x}",
 "sliderNextQuestion":"Prossima domanda",
 "sliderNudgeLeft":"Affina a sinistra",
