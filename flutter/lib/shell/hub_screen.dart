@@ -693,7 +693,7 @@ class _HubScreenState extends State<HubScreen> {
                               .map((m) => L.t(m.labelKey))
                               .join(' · '),
                           child: DecoratedBox(
-                            key: ValueKey('hub-modes-${c.route}'),
+                            key: ValueKey('hub-modes-badge-${c.route}'),
                             decoration: BoxDecoration(
                               color: scheme.secondaryContainer,
                               borderRadius: BorderRadius.circular(10),
@@ -747,6 +747,10 @@ class _HubScreenState extends State<HubScreen> {
                               height: 1.15,
                               fontWeight: FontWeight.w800,
                             ),
+                          ),
+                          DefaultTextStyle(
+                            style: TextStyle(fontSize: 9.5, color: scheme.onSurfaceVariant),
+                            child: _subtitle(c, scheme),
                           ),
                           Text(
                             level,

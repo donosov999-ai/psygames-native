@@ -23,7 +23,7 @@ def call(method, path, body=None):
     sent.append(body['data']['attributes']['whatsNew'])
     return {}
 m.call = call
-m.stamp_what_to_test('build1', 'Зарядка целиком в приложении')
+m.stamp_what_to_test('build1', 'Full workout in the app', 'Зарядка целиком в приложении')
 print(json.dumps(sent, ensure_ascii=False))
 ''';
     final r = await Process.run('python3', ['-c', probe], environment: {
@@ -35,7 +35,7 @@ print(json.dumps(sent, ensure_ascii=False))
     expect(r.exitCode, 0, reason: '${r.stderr}');
     final lines = (r.stdout as String).trim().split('\n');
     final sent = (jsonDecode(lines.last) as List).cast<String>();
-    expect(sent, ['Зарядка целиком в приложении'], reason: 'в «Что тестировать» ушло лишнее: $sent');
+    expect(sent, ['Full workout in the app', 'Зарядка целиком в приложении'], reason: 'в «Что тестировать» ушло лишнее: $sent');
     for (final t in sent) {
       expect(t, isNot(contains('github')), reason: 'ссылка на GitHub в поле тестировщика');
       expect(t, isNot(contains('6afc0067')), reason: 'коммит в поле тестировщика');
