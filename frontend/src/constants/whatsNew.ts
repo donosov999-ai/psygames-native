@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.73.0',
+    date: '2026-11-18',
+    en: [
+      'Space now uses the shared section screen: three columns, large artwork, search and levels, just like the other hubs',
+      'The fresh-games shelf has been updated on its usual schedule',
+    ],
+    ru: [
+      '«Пространство» теперь использует общий экран разделов: три колонки, крупные иллюстрации, поиск и уровни, как в других хабах',
+      'Витрина новых игр обновлена по обычному расписанию',
+    ],
+  },
+  {
     version: '2.72.0',
     date: '2026-11-17',
     en: [
