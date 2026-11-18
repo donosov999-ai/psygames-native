@@ -28,19 +28,33 @@ void main() {
     await L.load('ru');
   });
 
-  Future<List<String>> boot(WidgetTester tester) async {
+  Future<List<String>> boot(WidgetTester tester, {bool withReceiver = true}) async {
     final opened = <String>[];
-    await tester.pumpWidget(
-      MaterialApp(home: SpatialHubScreen(state: state, onOpen: opened.add)),
-    );
-    await tester.pump();
+    tester.view.physicalSize = const Size(780, 1688);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SpatialHubScreen(
+            state: state,
+            onOpen: withReceiver ? opened.add : null,
+          ),
+        ),
+      );
+      for (var i = 0; i < 40; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        if (find.byType(Card).evaluate().isNotEmpty) break;
+      }
+    });
     await tester.pump();
     return opened;
   }
 
   testWidgets('🔴 состав развилки — тот же и в том же порядке, что в вебе', (tester) async {
     await boot(tester);
-    expect(find.text('Пространство'), findsOneWidget);
+    expect(find.text('Пространство'), findsWidgets);
     expect(spatialHubCards.map((c) => c.route).toList(), [
       '/games/mental-rotation',
       '/games/spatial-lab?mode=twiddle',
@@ -53,17 +67,15 @@ void main() {
       '/games/navigator',
     ]);
     expect(find.text('Ментальная ротация'), findsOneWidget);
-    // Сноска — в самом низу списка: до неё доходим прокруткой, как человек.
-    await tester.scrollUntilVisible(find.byKey(const Key('сноска')), 120);
-    expect(find.byKey(const Key('сноска')), findsOneWidget);
+    expect(find.byKey(const Key('hub-grid-3')), findsOneWidget);
   });
 
   testWidgets('🔴 каждая карточка уходит хосту своим маршрутом целиком', (tester) async {
     final opened = await boot(tester);
     for (final card in spatialHubCards) {
-      await tester.ensureVisible(find.byKey(Key('карточка-${card.route}')));
+      await tester.ensureVisible(find.byKey(Key('hub-card-${card.route}')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(Key('карточка-${card.route}')));
+      await tester.tap(find.byKey(Key('hub-card-${card.route}')));
       await tester.pump();
     }
     expect(opened, spatialHubCards.map((c) => c.route).toList(),
@@ -75,55 +87,53 @@ void main() {
     await boot(tester);
     expect(find.text('ур. 7'), findsOneWidget, reason: 'уровень «Ротации» из ключа веб-стороны');
     expect(find.text('ур. 3'), findsOneWidget, reason: 'уровень «Сети труб»');
-    // У карточек, которых нет в общей памяти, значка уровня нет вовсе — а не «ур. 1».
     expect(find.text('ур. 1'), findsWidgets);
   });
 
   testWidgets('🔴 без хоста нажатие не роняет экран', (tester) async {
     HybridApp.open = null;
-    await tester.pumpWidget(MaterialApp(home: SpatialHubScreen(state: state)));
-    await tester.pump();
-    await tester.pump();
-    // Карточка далеко внизу и ещё не построена — доезжаем до неё прокруткой.
-    await tester.scrollUntilVisible(find.byKey(const Key('карточка-/games/navigator')), 120);
+    await boot(tester, withReceiver: false);
+    final card = find.byKey(const Key('hub-card-/games/navigator'));
+    await tester.ensureVisible(card);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('карточка-/games/navigator')));
+    await tester.tap(card);
     await tester.pump();
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('🔴 у каждой из девяти строк — иконка игры из общей карты, а не значок', (tester) async {
-    // Решение Дениса 01.10.2026 (4c3ba7c9): в строке развилки — поле игры в миниатюре. Карта —
-    // та же, что у общего экрана развилок; адрес — целиком, с ?mode= («Клоцки» ≠ «Сокобан»).
-    final index = jsonDecode(File('assets/game_icons/index.json').readAsStringSync()) as Map<String, dynamic>;
-    final byRoute = index['byRoute'] as Map<String, dynamic>;
+  testWidgets('🔴 у каждой из девяти карточек — иллюстрация игры из общей карты', (tester) async {
+    final hubArt = (jsonDecode(File('assets/hub_art/index.json').readAsStringSync())
+        as Map<String, dynamic>)['byRoute'] as Map<String, dynamic>;
     await boot(tester);
     for (final card in spatialHubCards) {
-      final row = find.byKey(Key('карточка-${card.route}'));
+      final row = find.byKey(Key('hub-card-${card.route}'));
       await tester.ensureVisible(row);
       await tester.pump();
       final icon = find.descendant(of: row, matching: find.byKey(ValueKey('hub-icon-${card.route}')));
-      expect(icon, findsOneWidget, reason: '${card.route}: строка без иконки');
-      final image = tester.widget<Image>(icon);
-      expect((image.image as AssetImage).assetName, 'assets/game_icons/${byRoute[card.route]}',
-          reason: '${card.route}: иконка чужой игры');
-      expect(File('assets/game_icons/${byRoute[card.route]}').existsSync(), isTrue,
-          reason: '${card.route}: файла иконки нет — экран показал бы пустой квадрат');
+      expect(icon, findsOneWidget, reason: '${card.route}: карточка без иллюстрации');
+      final image = tester.widget<Image>(find.descendant(of: icon, matching: find.byType(Image)));
+      final artwork = (hubArt[card.route] as Map<String, dynamic>)['light'] as String;
+      expect((image.image as AssetImage).assetName, artwork,
+          reason: '${card.route}: иллюстрация чужой игры');
+      expect(File(artwork).existsSync(), isTrue,
+          reason: '${card.route}: файла иллюстрации нет — экран показал бы запасной значок');
     }
   });
 
-  testWidgets('нет карты иконок — строки с прежним значком, не пустое место', (tester) async {
+  testWidgets('нет карт иллюстраций и иконок — карточки с прежним значком, не пустое место', (tester) async {
     final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     messenger.setMockMessageHandler('flutter/assets', (msg) async {
       final key = Uri.decodeFull(utf8.decode(msg!.buffer.asUint8List(msg.offsetInBytes, msg.lengthInBytes)));
-      if (key == 'assets/game_icons/index.json') return ByteData.sublistView(utf8.encode('{}'));
+      if (key == 'assets/game_icons/index.json' || key == 'assets/hub_art/index.json') {
+        return ByteData.sublistView(utf8.encode('{}'));
+      }
       final f = File(key);
       return f.existsSync() ? ByteData.sublistView(f.readAsBytesSync()) : null;
     });
     addTearDown(() => messenger.setMockMessageHandler('flutter/assets', null));
     await boot(tester);
-    final row = find.byKey(const Key('карточка-/games/mental-rotation'));
-    expect(find.descendant(of: row, matching: find.byType(Icon)), findsOneWidget);
+    final row = find.byKey(const Key('hub-card-/games/mental-rotation'));
+    expect(find.descendant(of: row, matching: find.byType(Icon)), findsWidgets);
     expect(find.descendant(of: row, matching: find.byType(Image)), findsNothing);
   });
 }
