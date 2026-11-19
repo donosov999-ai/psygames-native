@@ -69,6 +69,7 @@ void main() {
   testWidgets('🔴 ход засчитывается ТАПОМ: товар уезжает в пустую нишу', (tester) async {
     await _boot(tester, state);
     await _tapMove(tester, 'item-5-1', 1);   // 37 из пятой ниши в пустую вторую
+    expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
     expect(find.byKey(const ValueKey('item-1-0')), findsOneWidget,
         reason: 'товар обязан появиться в нише-цели');
     expect(find.byKey(const ValueKey('item-5-1')), findsNothing, reason: 'и исчезнуть из прежней');
