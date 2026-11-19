@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/aux_action.dart';
@@ -48,6 +50,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
   static const _feedbackDelay = Duration(milliseconds: 600);
 
   late LevelLadder _ladder;
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late Rng _rng;
   late BondsCfg _cfg;
 
@@ -86,6 +89,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
   void dispose() {
     _tick?.cancel();
     _next?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -105,6 +109,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
     LessonUsed.reset();
     _tick?.cancel();
     _next?.cancel();
+    _answerFeedback.clear();
     _levelPlayed = _ladder.level;
     _cfg = levelParams(_ladder.level);
     // ШАГ ЗАРЯДКИ — СВОЁ ЧИСЛО ЗАДАЧ (`?trials=`, по умолчанию 8), как веб (`number-bonds.tsx:115`,
@@ -162,6 +167,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
 
   void _accept() {
     _tick?.cancel();
+    unawaited(_answerFeedback.show('board', 'board'));
     setState(() {
       _hits += 1;
       _right = true;
@@ -172,6 +178,7 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
 
   void _fail({bool late = false}) {
     _tick?.cancel();
+    unawaited(_answerFeedback.show('board', null, right: false));
     setState(() {
       _errors += 1;
       _right = false;
@@ -262,15 +269,19 @@ class _NumberBondsScreenState extends State<NumberBondsScreen> {
                 onNext: () => setState(_reset),
               ),
             )
-          : BondsField(
-              puzzle: p,
-              picked: _picked,
-              sum: _sum,
-              right: _right,
-              height: h,
-              onTap: _toggle,
-              onSwipePick: _swipePick,
-              onSwipeUnpick: _swipeUnpick,
+          : AnswerMark(
+              feedback: _answerFeedback,
+              value: 'board',
+              child: BondsField(
+                puzzle: p,
+                picked: _picked,
+                sum: _sum,
+                right: _right,
+                height: h,
+                onTap: _toggle,
+                onSwipePick: _swipePick,
+                onSwipeUnpick: _swipeUnpick,
+              ),
             ),
       auxRow: AuxBar(children: [
         // Набор «Собери сумму»: режим — листом (экрана настройки у партии нет).

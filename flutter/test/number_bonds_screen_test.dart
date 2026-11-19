@@ -83,6 +83,7 @@ void main() {
         await tester.pump();
       }
       // Кнопку «Проверить» не трогаем — верное засчитывается само.
+      expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 700));
     }
     expect(find.textContaining(L.t('nextLabel')), findsOneWidget, reason: 'без ошибок — уровень взят');
@@ -94,6 +95,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.byKey(const Key('проверить')));
     await tester.pump();
+    expect(find.byKey(const Key('answer-mark-bad')), findsOneWidget);
     expect(find.text('1/$bondsErrorsAllowed'), findsOneWidget, reason: 'ошибка засчитана');
   });
 

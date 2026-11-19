@@ -1,8 +1,9 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
@@ -43,8 +44,7 @@ class CounterScreen extends StatefulWidget {
 enum _Phase { playing, success, timeout, result }
 
 class _CounterScreenState extends State<CounterScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   /// Задержки веб-версии: успех показывается дольше промаха.
   static const _successDelay = Duration(milliseconds: 800);
   static const _timeoutDelay = Duration(milliseconds: 700);
@@ -97,6 +97,7 @@ class _CounterScreenState extends State<CounterScreen> {
     _tick?.cancel();
     _next?.cancel();
     _clear?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -117,6 +118,7 @@ class _CounterScreenState extends State<CounterScreen> {
     _tick?.cancel();
     _next?.cancel();
     _clear?.cancel();
+    _answerFeedback.clear();
     _levelPlayed = _ladder.level;
     _cfg = counterLevelParams(_ladder.level);
     _shadow.deal(_ladder.level);
@@ -179,7 +181,7 @@ class _CounterScreenState extends State<CounterScreen> {
   }
 
   void _hit() {
-    _haptics.win();
+    unawaited(_answerFeedback.show('board', 'board'));
     _tick?.cancel();
     setState(() {
       _hits += 1;
@@ -192,7 +194,7 @@ class _CounterScreenState extends State<CounterScreen> {
   /// Перебор: ошибка сразу, а выбор гаснет через 300 мс — нажатие, попавшее в
   /// это окно, обязано сработать (правило веб-версии).
   void _overshoot() {
-    _haptics.miss();
+    unawaited(_answerFeedback.show('board', null, right: false));
     setState(() => _errors += 1);
     _clear?.cancel();
     _clear = gameTimeout(_resetDelay, () {
@@ -202,7 +204,7 @@ class _CounterScreenState extends State<CounterScreen> {
   }
 
   void _onTimeout() {
-    _haptics.miss();
+    unawaited(_answerFeedback.show('board', null, right: false));
     _tick?.cancel();
     setState(() {
       _timeouts += 1;
@@ -320,21 +322,25 @@ class _CounterScreenState extends State<CounterScreen> {
       ],
       field: (context, h) => _phase == _Phase.result
           ? SizedBox(height: h, child: _result())
-          : CounterField(
-              numbers: _numbers,
-              picked: _picked,
-              gridSize: _cfg.gridSize,
-              target: _target,
-              sum: _sum,
-              feedback: _phase == _Phase.success
-                  ? CounterFeedback.success
-                  : _phase == _Phase.timeout
-                      ? CounterFeedback.timeout
-                      : CounterFeedback.none,
-              height: h,
-              onTap: _tap,
-              onSwipePick: _swipePick,
-              onSwipeUnpick: _swipeUnpick,
+          : AnswerMark(
+              feedback: _answerFeedback,
+              value: 'board',
+              child: CounterField(
+                numbers: _numbers,
+                picked: _picked,
+                gridSize: _cfg.gridSize,
+                target: _target,
+                sum: _sum,
+                feedback: _phase == _Phase.success
+                    ? CounterFeedback.success
+                    : _phase == _Phase.timeout
+                        ? CounterFeedback.timeout
+                        : CounterFeedback.none,
+                height: h,
+                onTap: _tap,
+                onSwipePick: _swipePick,
+                onSwipeUnpick: _swipeUnpick,
+              ),
             ),
       auxRow: AuxBar(
         children: [

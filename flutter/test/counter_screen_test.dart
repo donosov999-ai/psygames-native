@@ -88,6 +88,7 @@ void main() {
     final move = solve(cells, target);
     expect(move, isNotEmpty, reason: 'цель $target не собирается из $cells');
     await tapCells(tester, move);
+    expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
     expect(find.byKey(const Key('feedback')), findsOneWidget, reason: 'нет отклика на верную сумму');
     // Счётчик раунда сдвигается только после паузы отклика.
     expect(find.text('1/10'), findsOneWidget);
@@ -133,6 +134,7 @@ void main() {
     }
     expect(sum, greaterThan(target), reason: 'не удалось перебрать цель');
     await tapCells(tester, idx);
+    expect(find.byKey(const Key('answer-mark-bad')), findsOneWidget);
     expect(hudValue(tester, Icons.error_outline), 1, reason: 'ошибка не засчитана');
 
     // 🔴 ЗАМЕР СТОИТ ТАМ, ГДЕ ПРАВИЛО РАБОТАЕТ — ВНУТРИ ОКНА 300 мс.
