@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
@@ -42,6 +43,7 @@ enum _Phase { training, trainingFeedback, playing, feedback, result }
 
 class _MathSliderScreenState extends State<MathSliderScreen> {
   late LevelLadder _ladder;
+  late final _answerFeedback = AnswerFeedback(widget.state);
 
   List<MathSliderQuestion> _questions = const [];
   MathSliderQuestion? _training;
@@ -76,6 +78,7 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
   void dispose() {
     _auto?.cancel();
     _advance?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -117,6 +120,7 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
     LessonUsed.reset();
     _auto?.cancel();
     _advance?.cancel();
+    _answerFeedback.clear();
     _levelPlayed = _playLevel;
     _questions = generateMathSliderQuestions(_seed, _playLevel, _trialCount);
     _shadow.deal(_playLevel);
@@ -165,6 +169,8 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
     _auto?.cancel();
     _watch.stop();
     final score = scoreEstimate(_question, _estimate, _watch.elapsedMilliseconds);
+    final right = !score.outsideTarget;
+    unawaited(_answerFeedback.show('scale', right ? 'scale' : null, right: right));
     setState(() {
       _last = score;
       if (_phase == _Phase.training) {
@@ -282,16 +288,20 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
                 onNext: () => setState(_reset),
               ),
             )
-          : _Field(
-              question: q,
-              estimate: _estimate,
-              height: h,
-              prompt: _prompt,
-              training: _phase == _Phase.training || _phase == _Phase.trainingFeedback,
-              revealed: _phase == _Phase.feedback || _phase == _Phase.trainingFeedback,
-              touched: _touched,
-              enabled: _answering,
-              onChange: _change,
+          : AnswerMark(
+              feedback: _answerFeedback,
+              value: 'scale',
+              child: _Field(
+                question: q,
+                estimate: _estimate,
+                height: h,
+                prompt: _prompt,
+                training: _phase == _Phase.training || _phase == _Phase.trainingFeedback,
+                revealed: _phase == _Phase.feedback || _phase == _Phase.trainingFeedback,
+                touched: _touched,
+                enabled: _answering,
+                onChange: _change,
+              ),
             ),
       auxRow: AuxBar(children: [
         AuxAction(

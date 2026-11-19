@@ -55,6 +55,7 @@ const coveredRoutes = <String>{
   '/games/puzzles?mode=Guess',
   '/games/quick-count',
   '/games/math-sprint',
+  '/games/math-slider',
   '/games/pattern',
   '/games/number-bonds',
   '/games/counter',
