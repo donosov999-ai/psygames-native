@@ -27,47 +27,69 @@ const int vocabEasyRtMs = 2500;
 const int vocabRetryOffset = 3;
 
 class CardState {
-  CardState({this.reps = 0, this.intervalDays = 0, this.ease = 2.5, this.dueAt = 0, this.lapses = 0});
+  CardState({
+    this.reps = 0,
+    this.intervalDays = 0,
+    this.ease = 2.5,
+    this.dueAt = 0,
+    this.lapses = 0,
+  });
 
   /// Успешных повторов подряд. 0 — новая или сброшенная ошибкой.
   int reps;
   int intervalDays;
   double ease;
+
   /// Когда карточка снова созреет, мс epoch.
   int dueAt;
   int lapses;
 
   factory CardState.fromJson(Map<String, dynamic> j) => CardState(
-        reps: (j['reps'] as num?)?.toInt() ?? 0,
-        intervalDays: (j['intervalDays'] as num?)?.toInt() ?? 0,
-        ease: (j['ease'] as num?)?.toDouble() ?? 2.5,
-        dueAt: (j['dueAt'] as num?)?.toInt() ?? 0,
-        lapses: (j['lapses'] as num?)?.toInt() ?? 0,
-      );
+    reps: (j['reps'] as num?)?.toInt() ?? 0,
+    intervalDays: (j['intervalDays'] as num?)?.toInt() ?? 0,
+    ease: (j['ease'] as num?)?.toDouble() ?? 2.5,
+    dueAt: (j['dueAt'] as num?)?.toInt() ?? 0,
+    lapses: (j['lapses'] as num?)?.toInt() ?? 0,
+  );
 
   Map<String, dynamic> toJson() => {
-        'reps': reps,
-        'intervalDays': intervalDays,
-        'ease': ease,
-        'dueAt': dueAt,
-        'lapses': lapses,
-      };
+    'reps': reps,
+    'intervalDays': intervalDays,
+    'ease': ease,
+    'dueAt': dueAt,
+    'lapses': lapses,
+  };
 }
 
 class CustomWord {
-  const CustomWord({required this.id, required this.base, required this.target});
+  const CustomWord({
+    required this.id,
+    required this.base,
+    required this.target,
+  });
   final String id;
   final String base;
   final String target;
 
-  factory CustomWord.fromJson(Map<String, dynamic> j) =>
-      CustomWord(id: j['id'] as String, base: j['base'] as String, target: j['target'] as String);
+  factory CustomWord.fromJson(Map<String, dynamic> j) => CustomWord(
+    id: j['id'] as String,
+    base: j['base'] as String,
+    target: j['target'] as String,
+  );
 
   Map<String, dynamic> toJson() => {'id': id, 'base': base, 'target': target};
 }
 
 class CardRef {
-  const CardRef({required this.id, required this.base, required this.target, required this.isNew, this.lang});
+  const CardRef({
+    required this.id,
+    required this.base,
+    required this.target,
+    required this.isNew,
+    this.lang,
+    this.secondTarget,
+    this.secondLang,
+  });
 
   final String id;
 
@@ -83,7 +105,18 @@ class CardRef {
   /// уйти в СВОЮ колоду.
   final String? lang;
 
-  CardRef withLang(String l) => CardRef(id: id, base: base, target: target, isNew: isNew, lang: l);
+  final String? secondTarget;
+  final String? secondLang;
+
+  CardRef withLang(String l) => CardRef(
+    id: id,
+    base: base,
+    target: target,
+    isNew: isNew,
+    lang: l,
+    secondTarget: secondTarget,
+    secondLang: secondLang,
+  );
 }
 
 class SrsQueue {
@@ -136,7 +169,8 @@ class MemoryDeckStore implements DeckStore {
 /// категория, игре не нужна, но в данных лежит).
 typedef VocabEntry = Map<String, String>;
 
-String deckKeyFor(String baseLang, String targetLang) => 'psygames_vocab_srs_${baseLang}_$targetLang';
+String deckKeyFor(String baseLang, String targetLang) =>
+    'psygames_vocab_srs_${baseLang}_$targetLang';
 
 class _Deck {
   _Deck(this.states, this.custom);
@@ -152,7 +186,11 @@ class _Deck {
       final states = <String, CardState>{};
       final s = j['states'];
       if (s is Map) {
-        s.forEach((k, v) => states['$k'] = CardState.fromJson((v as Map).cast<String, dynamic>()));
+        s.forEach(
+          (k, v) => states['$k'] = CardState.fromJson(
+            (v as Map).cast<String, dynamic>(),
+          ),
+        );
       }
       final custom = <CustomWord>[];
       final c = j['custom'];
@@ -169,9 +207,9 @@ class _Deck {
   }
 
   String encode() => jsonEncode({
-        'states': states.map((k, v) => MapEntry(k, v.toJson())),
-        'custom': custom.map((c) => c.toJson()).toList(),
-      });
+    'states': states.map((k, v) => MapEntry(k, v.toJson())),
+    'custom': custom.map((c) => c.toJson()).toList(),
+  });
 }
 
 /// Движок одной языковой пары. Сам ничего не рисует и не знает про экран.
@@ -183,9 +221,9 @@ class VocabSrs {
     required DeckStore store,
     int Function()? nowMs,
     double Function()? random,
-  })  : _store = store,   // ignore: prefer_initializing_formals — поле приватное, а параметр именованный
-        _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch),
-        _rnd = random ?? Random().nextDouble;
+  }) : _store = store, // ignore: prefer_initializing_formals — поле приватное, а параметр именованный
+       _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch),
+       _rnd = random ?? Random().nextDouble;
 
   final List<VocabEntry> vocab;
   final String baseLang;
@@ -205,7 +243,8 @@ class VocabSrs {
   /// слова раньше попадают в новые — так и в веб-версии.
   List<CardRef> _allCards(List<CustomWord> custom) {
     final out = <CardRef>[
-      for (final c in custom) CardRef(id: c.id, base: c.base, target: c.target, isNew: false),
+      for (final c in custom)
+        CardRef(id: c.id, base: c.base, target: c.target, isNew: false),
     ];
     for (final w in vocab) {
       final b = w[baseLang], t = w[targetLang];
@@ -228,10 +267,14 @@ class VocabSrs {
       final st = deck.states[c.id];
       if (st != null && st.reps > 0) {
         if (st.dueAt <= now && due.length < reviewLimit) {
-          due.add(CardRef(id: c.id, base: c.base, target: c.target, isNew: false));
+          due.add(
+            CardRef(id: c.id, base: c.base, target: c.target, isNew: false),
+          );
         }
       } else if (fresh.length < newLimit) {
-        fresh.add(CardRef(id: c.id, base: c.base, target: c.target, isNew: true));
+        fresh.add(
+          CardRef(id: c.id, base: c.base, target: c.target, isNew: true),
+        );
       }
     }
     // 🔴 СОРТИРОВКА ОБЯЗАНА БЫТЬ УСТОЙЧИВОЙ, И ЭТО НЕ ПРИДИРКА.
@@ -243,7 +286,9 @@ class VocabSrs {
     // в отличие от TS, где такие имена по всему проекту.)
     final slot = {for (var i = 0; i < due.length; i += 1) due[i].id: i};
     due.sort((a, b) {
-      final d = (deck.states[a.id]?.dueAt ?? 0).compareTo(deck.states[b.id]?.dueAt ?? 0);
+      final d = (deck.states[a.id]?.dueAt ?? 0).compareTo(
+        deck.states[b.id]?.dueAt ?? 0,
+      );
       return d != 0 ? d : slot[a.id]!.compareTo(slot[b.id]!);
     });
     return SrsQueue(
@@ -272,7 +317,10 @@ class VocabSrs {
       if (grade == Grade.easy) st.ease += 0.05;
     } else {
       st.reps += 1;
-      st.intervalDays = max(1, _round(st.intervalDays * st.ease * (grade == Grade.easy ? 1.3 : 1)));
+      st.intervalDays = max(
+        1,
+        _round(st.intervalDays * st.ease * (grade == Grade.easy ? 1.3 : 1)),
+      );
       if (grade == Grade.easy) st.ease += 0.05;
     }
     st.dueAt = _now() + st.intervalDays * 86400000;
@@ -319,7 +367,8 @@ class VocabSrs {
   Future<int> addCustomWords(String rawText) async {
     final deck = await _load();
     final existing = <String>{
-      for (final c in deck.custom) '${c.base.toLowerCase()}|${c.target.toLowerCase()}',
+      for (final c in deck.custom)
+        '${c.base.toLowerCase()}|${c.target.toLowerCase()}',
     };
     final sep = RegExp(r'\s*(?:=|—|–|\t| - )\s*');
     var added = 0;
@@ -332,7 +381,9 @@ class VocabSrs {
       final sig = '${base.toLowerCase()}|${target.toLowerCase()}';
       if (existing.contains(sig)) continue;
       existing.add(sig);
-      deck.custom.add(CustomWord(id: 'c:${_now()}_$added', base: base, target: target));
+      deck.custom.add(
+        CustomWord(id: 'c:${_now()}_$added', base: base, target: target),
+      );
       added += 1;
     }
     if (added > 0) await _save(deck);

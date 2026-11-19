@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
@@ -27,8 +28,8 @@ const double simonPassAccuracy = 0.8;
 /// Партия начинается сама (флаг сборки AUTOSTART) — нужен замеру отклика.
 const bool simonAutostart = bool.fromEnvironment('AUTOSTART');
 
-/// Пауза на отклик между пробами, мс — то же число, что в веб-версии.
-const int simonFeedbackMs = 350;
+/// Пауза на общий отклик между пробами.
+const int simonFeedbackMs = 600;
 
 class SimonScreen extends StatefulWidget {
   const SimonScreen({super.key, required this.state, this.clock, this.rnd});
@@ -47,6 +48,7 @@ class SimonScreen extends StatefulWidget {
 
 class _SimonScreenState extends State<SimonScreen> {
   late LevelLadder _ladder;
+  late final _feedback = AnswerFeedback(widget.state);
   SimonGame? _game;
   SimonPhase _phase = SimonPhase.ready;
   SimonOutcome? _flash;
@@ -57,13 +59,17 @@ class _SimonScreenState extends State<SimonScreen> {
   @override
   void initState() {
     super.initState();
-    _ladder = LevelLadder(gameId: 'simon', store: SharedLevelStore(widget.state));
+    _ladder = LevelLadder(
+      gameId: 'simon',
+      store: SharedLevelStore(widget.state),
+    );
     _boot();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_feedback.dispose());
     super.dispose();
   }
 
@@ -85,7 +91,12 @@ class _SimonScreenState extends State<SimonScreen> {
 
   void _reset() {
     _timer?.cancel();
-    _game = SimonGame(level: _ladder.level, nowMs: widget.clock, rnd: widget.rnd);
+    _feedback.clear();
+    _game = SimonGame(
+      level: _ladder.level,
+      nowMs: widget.clock,
+      rnd: widget.rnd,
+    );
     _phase = SimonPhase.ready;
     _flash = null;
     _passed = false;
@@ -103,14 +114,16 @@ class _SimonScreenState extends State<SimonScreen> {
   /// Примеры разбора: согласованная проба и конфликтная — обе рисуются ТЕМ ЖЕ
   /// полем, что в партии, иначе помеха позиции из задачи исчезнет.
   List<DemoTrial> _demoTrials() => [
-        for (final t in simonDemoTrials())
-          DemoTrial(
-            text: '',
-            art: SimonStimulus(trial: t),
-            answer: correctSide(t.color) == SimonSide.left ? L.t('a11yLeft') : L.t('a11yRight'),
-            ruleKey: 'hint_simon_color_rule',
-          ),
-      ];
+    for (final t in simonDemoTrials())
+      DemoTrial(
+        text: '',
+        art: SimonStimulus(trial: t),
+        answer: correctSide(t.color) == SimonSide.left
+            ? L.t('a11yLeft')
+            : L.t('a11yRight'),
+        ruleKey: 'hint_simon_color_rule',
+      ),
+  ];
 
   void _nextTrial() {
     final g = _game!;
@@ -136,18 +149,26 @@ class _SimonScreenState extends State<SimonScreen> {
     // `finished` — партия уже сдана в `_finish`, а фаза ещё «игра»: пока лестница пишет
     // победу и открывается бой, последний квадрат на экране, и нажатие сдало бы партию
     // второй раз.
-    if (g == null || _phase != SimonPhase.playing || !g.stimulusShown || g.finished) return;
-    _after(g.answer(side));
+    if (g == null ||
+        _phase != SimonPhase.playing ||
+        !g.stimulusShown ||
+        g.finished ||
+        _feedback.busy) {
+      return;
+    }
+    _after(g.answer(side), side);
   }
 
-  void _after(SimonOutcome outcome) {
+  Future<void> _after(SimonOutcome outcome, [SimonSide? picked]) async {
+    final game = _game!;
+    final trial = game.trial;
+    final correct = trial == null ? null : correctSide(trial.color);
     _timer?.cancel();
     setState(() => _flash = outcome);
-    _timer = Timer(const Duration(milliseconds: simonFeedbackMs), () {
-      if (!mounted) return;
-      setState(() => _flash = null);
-      _nextTrial();
-    });
+    await _feedback.show(picked, correct, right: outcome == SimonOutcome.hit);
+    if (!mounted || !identical(game, _game)) return;
+    setState(() => _flash = null);
+    _nextTrial();
   }
 
   Future<void> _finish() async {
@@ -157,8 +178,12 @@ class _SimonScreenState extends State<SimonScreen> {
     // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «жми / не жми», потом итог.
     bool? boss;
     if (passed) {
-      boss = await BossRound.winThenBoss(context, _ladder,
-          type: BossType.gonogo, color: const Color(0xFF1E3A8A));
+      boss = await BossRound.winThenBoss(
+        context,
+        _ladder,
+        type: BossType.gonogo,
+        color: const Color(0xFF1E3A8A),
+      );
     } else {
       await _ladder.fail();
     }
@@ -173,20 +198,44 @@ class _SimonScreenState extends State<SimonScreen> {
   @override
   Widget build(BuildContext context) {
     final g = _game;
-    if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (g == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return GameShell(
       // Тексты — из общего словаря теми же ключами, что зовёт веб-версия игры.
       title: L.t('simon'),
       hud: [
-        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: L.t('round'), value: '${g.round}/${g.trialsTotal}', icon: Icons.numbers),
-        HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
-        HudItem(label: L.t('reaction'), value: '${g.meanRtMs ?? 0}', icon: Icons.bolt),
+        HudItem(
+          label: L.t('level'),
+          value: '${_ladder.level}',
+          icon: Icons.flag_outlined,
+        ),
+        HudItem(
+          label: L.t('round'),
+          value: '${g.round}/${g.trialsTotal}',
+          icon: Icons.numbers,
+        ),
+        HudItem(
+          label: L.t('hud_correct'),
+          value: '${g.hits}',
+          icon: Icons.check,
+        ),
+        HudItem(
+          label: L.t('reaction'),
+          value: '${g.meanRtMs ?? 0}',
+          icon: Icons.bolt,
+        ),
       ],
       onLesson: _game == null
           ? null
-          : () => openDemoLesson(context, title: L.t('simon'), trials: _demoTrials()),
-      suiteSwitch: _phase == SimonPhase.ready ? SuiteSwitch(route: '/games/simon', state: widget.state) : null,
+          : () => openDemoLesson(
+              context,
+              title: L.t('simon'),
+              trials: _demoTrials(),
+            ),
+      suiteSwitch: _phase == SimonPhase.ready
+          ? SuiteSwitch(route: '/games/simon', state: widget.state)
+          : null,
       field: (context, h) => _Field(
         game: g,
         phase: _phase,
@@ -202,12 +251,15 @@ class _SimonScreenState extends State<SimonScreen> {
           _start();
         },
       ),
-      toolbar: _phase == SimonPhase.playing ? _Answers(onPick: _answer) : null,
+      toolbar: _phase == SimonPhase.playing
+          ? _Answers(feedback: _feedback, onPick: _answer)
+          : null,
     );
   }
 }
 
-Color _hex(String hex) => Color(int.parse(hex.substring(1), radix: 16) | 0xFF000000);
+Color _hex(String hex) =>
+    Color(int.parse(hex.substring(1), radix: 16) | 0xFF000000);
 
 const Color _good = Color(0xFF22C55E);
 const Color _bad = Color(0xFFEF4444);
@@ -232,49 +284,56 @@ class SimonStimulus extends StatelessWidget {
   final bool thick;
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(builder: (context, c) => Container(
-        // Ширина — явно во всю строку. Без неё рамка между пробами сжималась до крестика
-        // и раздувалась со вспышкой: «зачем сужает рамку цели» (отзыв 2ceb3684). Где ширина
-        // не ограничена (карточка разбора под FittedBox) — постоянные 320: «во всю строку»
-        // там бесконечность, и раскладка падает.
-        width: c.hasBoundedWidth ? double.infinity : 320,
-        height: 160,
-        margin: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: border ?? Theme.of(context).dividerColor,
-            width: thick ? 3 : 1,
-          ),
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, c) => Container(
+      // Ширина — явно во всю строку. Без неё рамка между пробами сжималась до крестика
+      // и раздувалась со вспышкой: «зачем сужает рамку цели» (отзыв 2ceb3684). Где ширина
+      // не ограничена (карточка разбора под FittedBox) — постоянные 320: «во всю строку»
+      // там бесконечность, и раскладка падает.
+      width: c.hasBoundedWidth ? double.infinity : 320,
+      height: 160,
+      margin: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: border ?? Theme.of(context).dividerColor,
+          width: thick ? 3 : 1,
         ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Крестик фиксации: человек знает, куда смотреть до стимула.
-            Opacity(
-              opacity: 0.4,
-              child: Text('+', style: Theme.of(context).textTheme.headlineSmall),
-            ),
-            if (shown)
-              Align(
-                alignment:
-                    trial.position == SimonSide.left ? Alignment.centerLeft : Alignment.centerRight,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
-                  child: Container(
-                    key: Key('simon-stimulus-${trial.position.name}'),
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: _hex(trial.color == SimonColor.blue ? simonBlueHex : simonRedHex),
-                      borderRadius: BorderRadius.circular(10),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Крестик фиксации: человек знает, куда смотреть до стимула.
+          Opacity(
+            opacity: 0.4,
+            child: Text('+', style: Theme.of(context).textTheme.headlineSmall),
+          ),
+          if (shown)
+            Align(
+              alignment: trial.position == SimonSide.left
+                  ? Alignment.centerLeft
+                  : Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Container(
+                  key: Key('simon-stimulus-${trial.position.name}'),
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: _hex(
+                      trial.color == SimonColor.blue
+                          ? simonBlueHex
+                          : simonRedHex,
                     ),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
-          ],
-        ),
-      ));
+            ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _Field extends StatelessWidget {
@@ -313,15 +372,22 @@ class _Field extends StatelessWidget {
         return _Centered(
           height: height,
           children: [
-            Text('${L.t('level')} ${game.level}', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              '${L.t('level')} ${game.level}',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 8),
             Text(L.t('hint_simon_color_rule'), textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
-              L.t('simonLvlParams')
+              L
+                  .t('simonLvlParams')
                   .replaceAll('{n}', '${game.trialsTotal}')
                   .replaceAll('{p}', '${(simonIncongruentProb * 100).round()}')
-                  .replaceAll('{w}', (game.params.windowMs / 1000).toStringAsFixed(1)),
+                  .replaceAll(
+                    '{w}',
+                    (game.params.windowMs / 1000).toStringAsFixed(1),
+                  ),
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
@@ -342,21 +408,29 @@ class _Field extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            Text('${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal} · '
-                '${L.t('hud_errors')}: ${game.errors}'),
-            Text(game.meanRtMs == null
-                ? '${L.t('meanReaction')}: —'
-                : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}'),
-            Text(effect == null
-                ? '${L.t('hud_interference')}: —'
-                : '${L.t('hud_interference')}: $effect ${L.t('msShort')}'),
+            Text(
+              '${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal} · '
+              '${L.t('hud_errors')}: ${game.errors}',
+            ),
+            Text(
+              game.meanRtMs == null
+                  ? '${L.t('meanReaction')}: —'
+                  : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}',
+            ),
+            Text(
+              effect == null
+                  ? '${L.t('hud_interference')}: —'
+                  : '${L.t('hud_interference')}: $effect ${L.t('msShort')}',
+            ),
             BossOutcomeLine(boss),
             const SizedBox(height: 16),
             if (nextLevel != null)
               FilledButton(
                 key: const Key('level-next'),
                 onPressed: onContinue,
-                child: Text(L.t('nextLevelBtn').replaceAll('{n}', '$nextLevel')),
+                child: Text(
+                  L.t('nextLevelBtn').replaceAll('{n}', '$nextLevel'),
+                ),
               )
             else
               FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
@@ -389,9 +463,21 @@ class _Field extends StatelessWidget {
               SizedBox(
                 height: 28,
                 child: switch (flash) {
-                  SimonOutcome.hit => const Icon(Icons.check_circle, color: _good, key: Key('simon-hit')),
-                  SimonOutcome.wrong => const Icon(Icons.cancel, color: _bad, key: Key('simon-wrong')),
-                  SimonOutcome.miss => const Icon(Icons.timer_off, color: _bad, key: Key('simon-miss')),
+                  SimonOutcome.hit => const Icon(
+                    Icons.check_circle,
+                    color: _good,
+                    key: Key('simon-hit'),
+                  ),
+                  SimonOutcome.wrong => const Icon(
+                    Icons.cancel,
+                    color: _bad,
+                    key: Key('simon-wrong'),
+                  ),
+                  SimonOutcome.miss => const Icon(
+                    Icons.timer_off,
+                    color: _bad,
+                    key: Key('simon-miss'),
+                  ),
                   null => const SizedBox.shrink(),
                 },
               ),
@@ -409,14 +495,14 @@ class _Centered extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        height: height,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: children),
-          ),
-        ),
-      );
+    height: height,
+    child: Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(mainAxisSize: MainAxisSize.min, children: children),
+      ),
+    ),
+  );
 }
 
 /// Кнопки ответа: синяя слева, красная справа.
@@ -425,42 +511,51 @@ class _Centered extends StatelessWidget {
 /// кнопки обязаны остаться физически на своих местах: зеркальная раскладка
 /// ИНВЕРТИРОВАЛА БЫ согласованность проб — конфликтные стали бы согласованными.
 class _Answers extends StatelessWidget {
-  const _Answers({required this.onPick});
+  const _Answers({required this.feedback, required this.onPick});
+  final AnswerFeedback feedback;
   final void Function(SimonSide) onPick;
 
   @override
   Widget build(BuildContext context) => Directionality(
-        textDirection: TextDirection.ltr,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-          child: Row(
-            children: [
-              for (final side in SimonSide.values)
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: TapLatency(
-                      where: 'Flutter/Simon',
-                      child: SizedBox(
-                        height: 56,
-                        child: FilledButton(
-                          key: Key('simon-answer-${side.name}'),
-                          onPressed: () => onPick(side),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: _hex(side == SimonSide.left ? simonBlueHex : simonRedHex),
-                            foregroundColor: Colors.white,
+    textDirection: TextDirection.ltr,
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+      child: Row(
+        children: [
+          for (final side in SimonSide.values)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: AnswerMark(
+                  feedback: feedback,
+                  value: side,
+                  child: TapLatency(
+                    where: 'Flutter/Simon',
+                    child: SizedBox(
+                      height: 56,
+                      child: FilledButton(
+                        key: Key('simon-answer-${side.name}'),
+                        onPressed: () => onPick(side),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: _hex(
+                            side == SimonSide.left ? simonBlueHex : simonRedHex,
                           ),
-                          child: Icon(
-                            side == SimonSide.left ? Icons.arrow_back : Icons.arrow_forward,
-                            size: 32,
-                          ),
+                          foregroundColor: Colors.white,
+                        ),
+                        child: Icon(
+                          side == SimonSide.left
+                              ? Icons.arrow_back
+                              : Icons.arrow_forward,
+                          size: 32,
                         ),
                       ),
                     ),
                   ),
                 ),
-            ],
-          ),
-        ),
-      );
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
 }
