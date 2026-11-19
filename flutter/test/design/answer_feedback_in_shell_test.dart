@@ -60,6 +60,8 @@ const coveredRoutes = <String>{
   '/games/nut-sort',
   '/games/cake-sort',
   '/games/pizza-sort',
+  '/games/hanoi',
+  '/games/tower-london',
   '/games/sudoku',
   '/games/sudoku?mode=towers',
   '/games/sudoku?mode=unequal',
