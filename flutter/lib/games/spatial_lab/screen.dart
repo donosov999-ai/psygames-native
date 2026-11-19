@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
@@ -75,6 +77,7 @@ class SpatialLabScreen extends StatefulWidget {
 }
 
 class _SpatialLabScreenState extends State<SpatialLabScreen> {
+  late final _feedback = AnswerFeedback(widget.state);
   final Map<LabMode, LevelLadder> _ladders = {};
   LabBanks _banks = LabBanks.empty;
   bool _ready = false;
@@ -108,6 +111,12 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
       );
     }
     _boot();
+  }
+
+  @override
+  void dispose() {
+    unawaited(_feedback.dispose());
+    super.dispose();
   }
 
   Future<void> _boot() async {
@@ -147,6 +156,7 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
 
   /// Новая раздача. `level == 0` — свободная игра: лестницу она не двигает.
   void _request(int level, {int? seed}) {
+    _feedback.clear();
     seed ??= widget.seed ?? _random.nextInt(0xffffffff);
     final deal = createDeal(_mode, seed, level: level, banks: _banks);
     setState(() {
@@ -166,7 +176,11 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
   void _move(Command command) {
     final deal = _deal;
     if (deal == null || _won) return;
-    if (deal.task?.locked.contains(_selection) ?? false) return;
+    if (deal.task?.locked.contains(_selection) ?? false) {
+      unawaited(_feedback.show('board', null, right: false));
+      return;
+    }
+    unawaited(_feedback.show('board', 'board'));
     setState(() {
       deal.state.commit(command);
       _won = labWon(_mode, deal.state.present);
@@ -287,13 +301,17 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
       field: (context, h) => playing && _won
           ? SizedBox(height: h, child: _result(level))
           : playing
-          ? _PlayField(
-              mode: _mode,
-              deal: deal,
-              selection: _selection,
-              won: _won,
-              height: h,
-              onPick: _pick,
+          ? AnswerMark(
+              feedback: _feedback,
+              value: 'board',
+              child: _PlayField(
+                mode: _mode,
+                deal: deal,
+                selection: _selection,
+                won: _won,
+                height: h,
+                onPick: _pick,
+              ),
             )
           : _config(context),
       auxRow: playing
