@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -50,6 +51,7 @@ class _Snapshot {
 }
 
 class _CakeSortScreenState extends State<CakeSortScreen> {
+  late final _feedback = AnswerFeedback(widget.state);
   /// 🔴 СЛЕДУЮЩИЙ УРОВЕНЬ ЕДЕТ САМ (Денис 24.09.2026: «не переходит на
   /// следующий уровень сам»).
   ///
@@ -101,6 +103,7 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
   void dispose() {
     // Открытый таймер после ухода с экрана валит весь прогон проб молча.
     _cancelNext();
+    unawaited(_feedback.dispose());
     super.dispose();
   }
 
@@ -140,6 +143,7 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
 
   void _start(CakeLevel level) {
     _generation += 1;
+    _feedback.clear();
     _resultFuture = null;
     _nextPending = false;
     _level = level;
@@ -217,7 +221,11 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
     final board = _board!;
     final after = moveType(board, from, type, to);
     // Ошибка выбора цели не должна молча ронять выбранный кусок.
-    if (after == null) return;
+    if (after == null) {
+      unawaited(_feedback.show('board', null, right: false));
+      return;
+    }
+    unawaited(_feedback.show('board', 'board'));
     _sel = null;
     _selType = null;
     _history.add(_Snapshot(board.copy(), _moves));
@@ -314,32 +322,36 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
       ],
       // Разбор — проигрывание записанного решения этого уровня.
       onLesson: (_solutions[_ladder.level] == null) ? null : _openLesson,
-      field: (context, h) => Stack(
-        children: [
-          CakeTable(
-            board: board,
-            fieldHeight: h,
-            skin: widget.skin,
-            selected: _sel,
-            selectedType: _selType,
-            canDrop: _canDrop,
-            onTapPlate: _tapPlate,
-            onDrop: (pick, to) => setState(() => _move(pick.from, pick.type, to)),
-          ),
-          if (_zoom != null)
-            Positioned.fill(
-              child: LayoutBuilder(
-                builder: (context, c) => CakeZoom(
-                  plate: board.plates[_zoom!],
-                  skin: widget.skin,
-                  dishIndex: _zoom!,
-                  size: zoomSize(c.maxWidth, c.maxHeight),
-                  onPick: _pickSlice,
-                  onClose: () => setState(() => _zoom = null),
+      field: (context, h) => AnswerMark(
+        feedback: _feedback,
+        value: 'board',
+        child: Stack(
+          children: [
+            CakeTable(
+              board: board,
+              fieldHeight: h,
+              skin: widget.skin,
+              selected: _sel,
+              selectedType: _selType,
+              canDrop: _canDrop,
+              onTapPlate: _tapPlate,
+              onDrop: (pick, to) => setState(() => _move(pick.from, pick.type, to)),
+            ),
+            if (_zoom != null)
+              Positioned.fill(
+                child: LayoutBuilder(
+                  builder: (context, c) => CakeZoom(
+                    plate: board.plates[_zoom!],
+                    skin: widget.skin,
+                    dishIndex: _zoom!,
+                    size: zoomSize(c.maxWidth, c.maxHeight),
+                    onPick: _pickSlice,
+                    onClose: () => setState(() => _zoom = null),
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
       auxRow: AuxBar(children: [
         AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _history.isEmpty ? null : _undo),

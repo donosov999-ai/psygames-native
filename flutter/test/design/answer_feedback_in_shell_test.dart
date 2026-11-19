@@ -57,6 +57,8 @@ const coveredRoutes = <String>{
   '/games/water-sort',
   '/games/ball-sort',
   '/games/nut-sort',
+  '/games/cake-sort',
+  '/games/pizza-sort',
   '/games/semantic-sort',
   '/games/simon',
   '/games/stroop',
