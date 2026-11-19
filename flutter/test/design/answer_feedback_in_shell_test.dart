@@ -54,6 +54,8 @@ const coveredRoutes = <String>{
   '/games/puzzles?mode=Palisade',
   '/games/puzzles?mode=Guess',
   '/games/quick-count',
+  '/games/math-sprint',
+  '/games/pattern',
   '/games/goods-sort',
   '/games/water-sort',
   '/games/ball-sort',

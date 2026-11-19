@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
@@ -46,6 +47,7 @@ enum _Phase { ready, playing, result }
 
 class _MathSprintScreenState extends State<MathSprintScreen> {
   late LevelLadder _ladder;
+  late final _feedback = AnswerFeedback(widget.state);
   late Rng _rng;
 
   SprintProblem? _problem;
@@ -88,6 +90,7 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
   @override
   void dispose() {
     _tick?.cancel();
+    unawaited(_feedback.dispose());
     super.dispose();
   }
 
@@ -108,6 +111,7 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
     // сброса один открытый разбор выключал бы рост уровня во всех играх.
     LessonUsed.reset();
     _tick?.cancel();
+    _feedback.clear();
     _phase = _Phase.ready;
     _typed = '';
     _correct = 0;
@@ -138,7 +142,7 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
   }
 
   void _press(String key) {
-    if (_phase != _Phase.playing) return;
+    if (_phase != _Phase.playing || _feedback.busy) return;
     setState(() {
       if (key == '⌫') {
         _typed = _typed.isEmpty ? _typed : _typed.substring(0, _typed.length - 1);
@@ -152,9 +156,10 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
     if (int.tryParse(_typed) == _problem!.answer) _submit();
   }
 
-  void _submit() {
-    if (_phase != _Phase.playing || _typed.isEmpty) return;
-    final right = int.tryParse(_typed) == _problem!.answer;
+  Future<void> _submit() async {
+    if (_phase != _Phase.playing || _typed.isEmpty || _feedback.busy) return;
+    final problem = _problem!;
+    final right = int.tryParse(_typed) == problem.answer;
     setState(() {
       if (right) {
         _streak += 1;
@@ -166,6 +171,10 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
         _streak = 0;
         _score = math.max(0, _score - sprintPenalty);
       }
+    });
+    await _feedback.show('answer', right ? 'answer' : null, right: right);
+    if (!mounted || !identical(problem, _problem)) return;
+    setState(() {
       _typed = '';
       _problem = generateSprintProblem(_ladder.level, _rng);
     });
@@ -236,7 +245,11 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
                 },
               ),
             )
-          : _Field(problem: _problem!, typed: _typed, height: h),
+          : AnswerMark(
+              feedback: _feedback,
+              value: 'answer',
+              child: _Field(problem: _problem!, typed: _typed, height: h),
+            ),
       auxRow: AuxBar(children: [
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
