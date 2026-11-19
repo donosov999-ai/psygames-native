@@ -10,7 +10,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 const coveredRoutes = <String>{
   '/games/cloze',
   '/games/flanker',
+  '/games/lexical-decision',
   '/games/quick-count',
+  '/games/semantic-sort',
   '/games/simon',
   '/games/stroop',
   '/games/vocab-srs',

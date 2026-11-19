@@ -87,7 +87,9 @@ void main() {
       final real = isReal(shown(tester));
       if (real) words += 1;
       await tester.tap(find.byKey(Key(real ? 'ld-yes' : 'ld-no')));
-      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump();
+      expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 650));
     }
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.byKey(const Key('level-result-score')), findsOneWidget, reason: 'итог — общий каркаса');
@@ -118,6 +120,11 @@ void main() {
       if (isReal(shown(tester))) words += 1;
       now += p.windowMs + 10;
       await tester.pump(Duration(milliseconds: p.windowMs + 10));
+      if (i == 0) {
+        await tester.pump();
+        expect(find.byKey(const Key('answer-mark-bad')), findsOneWidget);
+        expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
+      }
       await tester.pump(const Duration(milliseconds: 850));
     }
     await tester.pump(const Duration(milliseconds: 100));
@@ -152,7 +159,7 @@ void main() {
     expect(find.text('English'), findsOneWidget);
     now += 500;
     await tester.tap(find.byKey(Key(isReal(shown(tester)) ? 'ld-yes' : 'ld-no')));
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 650));
     expect(find.text('2/6'), findsOneWidget);
     expect(find.text('→ Español'), findsOneWidget, reason: 'переход на второй язык');
     expect(find.text('ES·en'), findsOneWidget, reason: 'пилюля в шапке: текущий прописными');
@@ -163,7 +170,7 @@ void main() {
     // Выбор — выпадающей строкой: состав пунктов виден в открытом списке.
     await tester.tap(find.byKey(const Key('ld-lang')));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 650));
     expect(find.byKey(const Key('ld-lang-en')), findsWidgets);
     expect(find.byKey(const Key('ld-lang-es')), findsWidgets);
     expect(find.byKey(const Key('ld-lang-fr')), findsNothing, reason: 'у французского генератора нет');
@@ -178,9 +185,9 @@ void main() {
     await boot(tester, () => now);
     await tester.tap(find.byKey(const Key('ld-lang')));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 650));
     await tester.tap(find.byKey(const Key('ld-lang-ru')).last);
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 650));
     await tester.tap(find.byKey(const Key('ld-start')));
     await tester.pump();
     final total = ldLevelParams(1).trials;
@@ -190,7 +197,7 @@ void main() {
       final w = shown(tester);
       expect(cyrillic.hasMatch(w), isTrue, reason: 'проба ${i + 1} «$w» — не русская');
       await tester.tap(find.byKey(Key(isReal(w) ? 'ld-yes' : 'ld-no')));
-      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 650));
     }
     await tester.pump(const Duration(milliseconds: 100));
     expect(sent.single['difficulty'], 'ru · $total');
@@ -212,9 +219,9 @@ void main() {
   Future<void> pickTarget(WidgetTester tester, String lang) async {
     await tester.tap(find.byKey(const Key('ld-lang')));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 650));
     await tester.tap(find.byKey(Key('ld-lang-$lang')).last);
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 650));
   }
 
   /// Партия «По норме?» целиком: [wrongOn] — номер пробы, где ответить неверно (разбор на ошибке).
@@ -314,7 +321,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.byKey(const Key('game-lesson')));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 650));
     final first = ns['ru']!.firstWhere((x) => x.tier == 1);
     expect(find.text(first.form), findsWidgets, reason: 'первая карточка — ненормативная форма');
     expect(find.textContaining(first.norm), findsWidgets, reason: 'и её норма');

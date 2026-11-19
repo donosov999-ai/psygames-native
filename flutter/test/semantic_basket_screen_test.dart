@@ -75,6 +75,7 @@ void main() {
       final p = party(t);
       final anchor = t.getRect(find.byKey(const Key('semantic-card-1')));
       await place(t, 0, p.rounds[0].correctCat);
+      expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
       expect(t.getRect(find.byKey(const Key('semantic-card-1'))), anchor);
       expect(find.byKey(const Key('semantic-card-0')), findsNothing);
       for (var i = 1; i < p.rounds.length; i++) {
@@ -103,6 +104,8 @@ void main() {
           p.rounds[id].cats.firstWhere((c) => c != p.rounds[id].correctCat),
         );
         expect(p.placed(id), isFalse);
+        expect(find.byKey(const Key('answer-mark-bad')), findsOneWidget);
+        expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
         expect(find.byKey(Key('semantic-card-$id')), findsOneWidget);
         // The wrong card remains selected; tap the correct basket directly.
         await t.tap(
