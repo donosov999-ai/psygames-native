@@ -160,11 +160,10 @@ describe('развилки в профилях', () => {
       .toBe('длина исходника: true · делегат подтянут: true · второй этаж: true');
   });
 
-  it('проба не зелена вслепую: подменный профиль без этих игр ловится', () => {
+  it('полный доступ не оставляет пустую развилку даже у узкого подменного профиля', () => {
     const пустой = { id: 'проба', allowed_games: ['sudoku'], allow_sandbox: false } as any;
     const можно = new Set(filterAllowedGames(пустой).map((g: any) => g.route));
-    // Развилка закрыта — первый тест её пропустит; проверяем, что состав действительно считается.
-    expect(visibleHubCards('/games/spatial-hub', new Set(['/games/spatial-hub']), (k: string) => k).length).toBe(0);
-    expect(можно.has('/games/spatial-hub')).toBe(true);   // ← ALWAYS_ALLOWED открывает её и здесь
+    expect(visibleHubCards('/games/spatial-hub', new Set(['/games/spatial-hub']), (k: string) => k).length).toBeGreaterThan(0);
+    expect(можно.has('/games/spatial-hub')).toBe(true);
   });
 });

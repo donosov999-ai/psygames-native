@@ -127,17 +127,13 @@ void main() {
     expect(r.replace, isTrue, reason: '«назад» должно вести в развилку, а не по плашкам');
   });
 
-  testWidgets('только открытое профилю: режимы из allowed_games профиля, а не все', (tester) async {
+  testWidgets('все режимы открыты во всех профилях', (tester) async {
     final json = jsonDecode(File('assets/profiles.json').readAsStringSync()) as Map<String, dynamic>;
     final suites = await GameSuites.load();
     var checked = 0;
     for (final p in (json['profiles'] as List).cast<Map<String, dynamic>>()) {
-      final allowed = p['allowed_games'] is List ? (p['allowed_games'] as List).cast<String>().toSet() : null;
       final suite = GameSuites.of('/games/prl', suites)!;
-      final expected = [
-        for (final m in suite.modes)
-          if (allowed == null || allowed.contains(m.route.split('/').last.replaceAll('-', '_'))) m.route
-      ];
+      final expected = [for (final m in suite.modes) m.route];
       final s = await stateFor(p['id'] as String);
       final got = [for (final m in GameSuites.openModes(s, suite)) m.route];
       expect(got, expected, reason: 'профиль ${p['id']}');

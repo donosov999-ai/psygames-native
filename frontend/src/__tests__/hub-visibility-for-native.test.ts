@@ -29,17 +29,17 @@ describe('состав развилок для нативной половины
     expect(hubVisibility(p).catalog).toEqual(visibleInCatalog(filterAllowedGames(p), p.id).map((g) => g.id));
   });
 
-  it('каталог тоже режется профилем: хоть у одного профиля он короче соседнего', () => {
+  it('каталог полный во всех профилях', () => {
     const lens = new Set(PROFILES.map((p) => hubVisibility(p).catalog.length));
-    expect(lens.size).toBeGreaterThan(1);
+    expect(lens.size).toBe(1);
   });
 
-  it('правило профиля РЕАЛЬНО режет: хоть у одного профиля развилка короче заводской', () => {
-    const cut = PROFILES.some((p) => {
+  it('каждый профиль получает полный заводской состав развилок', () => {
+    const full = PROFILES.every((p) => {
       const v = hubVisibility(p);
-      return hubs.some((r) => (v.hubs[r]?.length ?? 0) < (HUB_CONTENTS[r]?.length ?? 0));
+      return hubs.every((r) => (v.hubs[r]?.length ?? 0) >= (HUB_CONTENTS[r]?.length ?? 0));
     });
-    expect(cut).toBe(true);
+    expect(full).toBe(true);
   });
   /*
    * 🔴 РЕЖИМЫ НАБОРОВ — ТОЖЕ ДЛЯ НАТИВА (02.10.2026). Нативные развилки не знали наборов: у каждого
@@ -55,10 +55,8 @@ describe('состав развилок для нативной половины
     }
   });
 
-  it('«Позиции» режутся профилем: детям — «Матрица», chess — «Корси», odv999 — все три', () => {
-    const at = (id: string) => hubVisibility(PROFILES.find((p) => p.id === id)!).suites.suite_positions;
-    expect(at('kids')).toEqual(['/games/memory-matrix']);
-    expect(at('chess')).toEqual(['/games/corsi']);
-    expect(at('odv999')).toEqual(['/games/memory-matrix', '/games/corsi', '/games/spatial-span']);
+  it('«Позиции» открыты полностью во всех профилях', () => {
+    const all = ['/games/memory-matrix', '/games/corsi', '/games/spatial-span'];
+    for (const p of PROFILES) expect(hubVisibility(p).suites.suite_positions).toEqual(all);
   });
 });

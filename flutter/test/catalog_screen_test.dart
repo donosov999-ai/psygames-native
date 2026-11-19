@@ -246,7 +246,11 @@ void main() {
       await _open(t, CatalogScreen(state: state, embedded: true));
       final span = find.byKey(const ValueKey('catalog-tile-/games/span'));
       expect(find.descendant(of: span, matching: find.byKey(const ValueKey('tile-hubcount'))), findsOneWidget);
-      expect(find.descendant(of: span, matching: find.text('2')), findsOneWidget, reason: 'число — состав профиля');
+      final count = t.widget<Text>(find.descendant(
+        of: find.descendant(of: span, matching: find.byKey(const ValueKey('tile-hubcount'))),
+        matching: find.byType(Text),
+      ).first).data;
+      expect(int.tryParse(count ?? ''), greaterThanOrEqualTo(2), reason: 'число — полный состав развилки');
       final schulte = find.byKey(const ValueKey('catalog-tile-/games/schulte'));
       expect(find.descendant(of: schulte, matching: find.text('⭐ 2/15')), findsOneWidget,
           reason: 'useAllLevelStars: уровни со звёздами > 0');

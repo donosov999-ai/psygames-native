@@ -86,9 +86,9 @@ describe('правило «новое — во все профили» в сам
     expect(routes).toContain(новая.route);
   });
 
-  it('известную карточку файл по-прежнему убирает пропуском — договор редактора состава', () => {
+  it('известные карточки тоже остаются видимыми при полном доступе', () => {
     установитьХабыИзФайла({ [ХАБ]: [known[0]] });
     const routes = visibleHubCards(ХАБ, new Set([...known, новая.route].map((r) => r.split('?')[0])), t).map((c) => c.route);
-    expect(routes).not.toContain(known[1]);
+    expect(routes).toContain(known[1]);
   });
 });

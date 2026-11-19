@@ -14,6 +14,8 @@
  * Legacy categories 'control', 'math', 'speed' are removed; their games
  * have been re-categorised to 'logic' or 'action' below.
  */
+import { ALL_PROFILES_ALL_GAMES } from '@/src/constants/accessPolicy';
+
 export type GameCategory =
   | 'memory'
   | 'attention'
@@ -1475,10 +1477,10 @@ export const GAMES: GameConfig[] = [
  */
 export function visibleInCatalog(list: GameConfig[], profileId: string | undefined): GameConfig[] {
   const живые = new Set(
-    list.filter((g) => g.hub && (!g.previewIn || (profileId && g.previewIn.includes(profileId)))).map((g) => g.id),
+    list.filter((g) => g.hub && (ALL_PROFILES_ALL_GAMES || !g.previewIn || (profileId && g.previewIn.includes(profileId)))).map((g) => g.id),
   );
   return list.filter((g) => {
-    if (g.hub && g.previewIn && !(profileId && g.previewIn.includes(profileId))) return false;
+    if (!ALL_PROFILES_ALL_GAMES && g.hub && g.previewIn && !(profileId && g.previewIn.includes(profileId))) return false;
     if (g.hideFromMenu) return false;
     if (g.mergedInto && живые.has(g.mergedInto)) return false;
     return true;

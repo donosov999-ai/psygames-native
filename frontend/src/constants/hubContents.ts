@@ -33,6 +33,7 @@
 import type React from 'react';
 import type { Ionicons } from '@expo/vector-icons';
 import { visibleSuiteCards } from './gameSuites';
+import { ALL_PROFILES_ALL_GAMES } from './accessPolicy';
 
 import { NATIVE_ONLY_ROUTES } from '@/src/constants/nativeOnlyGames';
 
@@ -489,6 +490,7 @@ export function заводскиеКарточкиХаба(hubRoute: string): Hu
  * берут из реестра целиком — дописывать туда нечего; карточка, которую курируемая развилка не
  * упоминает нигде, появилась ПОСЛЕ выгрузки файла — она и есть «новая».
  */
+const ЗАВОДСКОЙ_ФАЙЛ = require('@/src/constants/defaultPlaylists.json');
 const КУРИРУЕТ_ЗАВОДСКОЙ_ФАЙЛ = new Set<string>();
 const УПОМЯНУТО_ЗАВОДСКИМ_ФАЙЛОМ: ReadonlySet<string> = (() => {
   const все = new Set<string>();
@@ -507,8 +509,7 @@ const УПОМЯНУТО_ЗАВОДСКИМ_ФАЙЛОМ: ReadonlySet<string> = 
       } else обойти(значение);
     }
   };
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  обойти(require('@/src/constants/defaultPlaylists.json'));
+  обойти(ЗАВОДСКОЙ_ФАЙЛ);
   return все;
 })();
 
@@ -545,18 +546,34 @@ export function visibleHubCards(
   }
   /* Порядок берётся из файла; карточка, которой нет в заводском реестре, просто
      не находится — придумать её файлом нельзя (см. шапку выше). */
-  const карточки = списокИзФайла
-    ? списокИзФайла
-        .map((э): HubSubGame | undefined => {
-          if (typeof э === 'string') return заводские.find((c) => c.route === э);
-          /* Описанная файлом карточка: значок по умолчанию — общий, чтобы забытое
-             поле не делало пустое место на экране. */
-          return { route: э.маршрут, icon: (э.значок ?? 'extension-puzzle') as HubSubGame['icon'],
-                   nameKey: э.имя, descKey: э.описание ?? э.имя } as HubSubGame;
-        })
-        .filter((c): c is HubSubGame => Boolean(c))
-        .concat(КУРИРУЕТ_ЗАВОДСКОЙ_ФАЙЛ.has(hubRoute) ? заводские.filter((c) => !упомянутоФайлом.has(c.route)) : [])
-    : заводские;
+  const разобрать = (э: ЭлементХаба): HubSubGame | undefined => {
+    if (typeof э === 'string') return заводские.find((c) => c.route === э);
+    return { route: э.маршрут, icon: (э.значок ?? 'extension-puzzle') as HubSubGame['icon'],
+             nameKey: э.имя, descKey: э.описание ?? э.имя } as HubSubGame;
+  };
+  const карточки = ALL_PROFILES_ALL_GAMES
+    ? (() => {
+        const out: HubSubGame[] = [];
+        const seen = new Set<string>();
+        const addCards = (cards: readonly HubSubGame[]) => {
+          for (const card of cards) if (seen.add(card.route)) out.push(card);
+        };
+        const addItems = (items: readonly ЭлементХаба[]) => {
+          addCards(items.map(разобрать).filter((c): c is HubSubGame => Boolean(c)));
+        };
+        addItems(списокИзФайла ?? []);
+        for (const profile of Object.values(ЗАВОДСКОЙ_ФАЙЛ.профили ?? {})) {
+          addItems((profile as { хабы?: Record<string, ЭлементХаба[]> }).хабы?.[hubRoute] ?? []);
+        }
+        addCards(заводские);
+        return out;
+      })()
+    : списокИзФайла
+      ? списокИзФайла
+          .map(разобрать)
+          .filter((c): c is HubSubGame => Boolean(c))
+          .concat(КУРИРУЕТ_ЗАВОДСКОЙ_ФАЙЛ.has(hubRoute) ? заводские.filter((c) => !упомянутоФайлом.has(c.route)) : [])
+      : заводские;
   /**
    * ⚠️ РЕЖИМ ДОСКИ ОТКРЫТ ВМЕСТЕ С САМОЙ ДОСКОЙ. «Небоскрёбы» живут по адресу
    * `/games/sudoku?mode=towers` — своей карточки в каталоге у них нет и быть не

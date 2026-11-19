@@ -93,10 +93,10 @@ describe('раздел «Языки» в языковом профиле', () =>
     expect(богаче).toEqual([]);
   });
 
-  it('проба не зелена вслепую: профиль без этих игр ловится', () => {
+  it('полный доступ открывает слуховой раздел и узкому подменному профилю', () => {
     const пустой = { id: 'проба', allowed_games: ['vocab_srs'], allow_sandbox: false } as any;
     const можно = new Set(filterAllowedGames(пустой).map((g: any) => g.route));
     const открыто = visibleHubCards('/games/hearing-hub', можно, (k: string) => k).length;
-    expect(`слуха у подменного профиля: ${открыто}`).toBe('слуха у подменного профиля: 0');
+    expect(открыто).toBeGreaterThan(0);
   });
 });

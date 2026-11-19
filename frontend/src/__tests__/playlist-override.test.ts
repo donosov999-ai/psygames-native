@@ -193,11 +193,13 @@ describe('состав хабов из файла', () => {
 
   afterEach(() => установитьХабыИзФайла(null));
 
-  it('🔴 файл убирает карточку из хаба — «фасовать без пересборки»', () => {
+  it('🔴 сохранённый порядок первый, полный доступ дополняет остальные карточки', () => {
     const r = разобрать(файл({}, undefined, { [ХАБ]: [ВСЕ[0]] }));
     expect(r.хабы?.[ХАБ]).toEqual([ВСЕ[0]]);
     установитьХабыИзФайла(r.хабы);
-    expect(visibleHubCards(ХАБ, РАЗРЕШЕНО, t).map((x) => x.card.route)).toEqual([ВСЕ[0]]);
+    const shown = visibleHubCards(ХАБ, РАЗРЕШЕНО, t).map((x) => x.card.route);
+    expect(shown[0]).toBe(ВСЕ[0]);
+    expect(shown).toEqual(expect.arrayContaining(ВСЕ));
   });
 
   it('🔴 порядок карточек берётся из файла', () => {

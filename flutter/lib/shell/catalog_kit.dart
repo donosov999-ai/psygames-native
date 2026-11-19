@@ -10,6 +10,7 @@ import 'game_tile.dart';
 import 'hub_screen.dart';
 import 'ionicons.g.dart';
 import 'l10n.dart';
+import 'profiles.dart';
 import 'shared_state.dart';
 import 'web_theme.dart';
 
@@ -53,6 +54,7 @@ class CatalogKit {
     final counts = <String, int>{
       for (final e in ((hubs['hubs'] as Map<String, dynamic>?) ?? const {}).entries) e.key: (e.value as List).length,
     };
+    if (Profiles.allProfilesAllGames) return (games: null, hubCount: counts);
     final raw = state.get(HubScreen.visibleKey);
     if (raw == null || raw.isEmpty) return (games: null, hubCount: counts);
     try {

@@ -25,7 +25,11 @@ class Profile {
   String? get color => raw['color'] as String?;
 
   /// `null` — вся библиотека (`allowed_games: 'all'`).
-  List<String>? get games => raw['allowed_games'] is List ? (raw['allowed_games'] as List).cast<String>() : null;
+  List<String>? get games => Profiles.allProfilesAllGames
+      ? null
+      : raw['allowed_games'] is List
+          ? (raw['allowed_games'] as List).cast<String>()
+          : null;
   String? get sessionMinutes => raw['session_minutes'] as String?;
   bool get warmup => raw['warmup_enabled'] == true;
   bool get financialDay => raw['financial_brain_day_enabled'] == true;
@@ -38,6 +42,8 @@ class Profile {
 }
 
 class Profiles {
+  static bool allProfilesAllGames = true;
+
   Profiles._(this.list, this.games, this.flags);
 
   final List<Profile> list;

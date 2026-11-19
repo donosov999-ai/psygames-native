@@ -109,9 +109,9 @@ void main() {
         reason: 'нативная развилка снова показывает заводской список, а не состав профиля');
   });
 
-  testWidgets('🔴 сохранённый на устройстве состав ГЛАВНЕЕ выгруженного', (tester) async {
-    // Так устроен веб: `профили[id].хабы` из сохранённого состава — первое звено.
-    // Без этого правка состава редактором плейлистов до натива не доезжала бы.
+  testWidgets('🔴 сохранённый порядок первый, полный доступ дополняет каталог', (tester) async {
+    // Активный пользовательский порядок сохраняется, а временный полный доступ
+    // добавляет остальные карточки вместо их скрытия.
     SharedPreferences.setMockInitialValues({
       'psygames_active_profile': 'nzt48',
       'psygames_playlists_override': jsonEncode({
@@ -126,9 +126,8 @@ void main() {
     });
     final state = await SharedState.open();
     await bootHub(tester, state);
-    // Сохранённый состав оставил ровно две карточки — значит его и взяли.
     expect(find.byKey(const ValueKey('hub-card-/games/hanoi'), skipOffstage: false), findsOneWidget);
-    expect(find.byKey(const ValueKey('hub-card-/games/goods-sort'), skipOffstage: false), findsNothing,
-        reason: 'взяли не сохранённый состав, а какой-то другой');
+    expect(find.byKey(const ValueKey('hub-card-/games/goods-sort'), skipOffstage: false), findsOneWidget,
+        reason: 'полный доступ не должен оставлять только две сохранённые карточки');
   });
 }
