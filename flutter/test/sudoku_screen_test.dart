@@ -109,6 +109,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.byKey(Key('digit${solution[er][ec]}')));
     await tester.pump();
+    expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
     expect(digitAt(tester, er, ec), solution[er][ec]);
     // Ступень 5 — лимит 4 (цена ошибки по ступеням, levelConfig.lives, задача 1fa57de3).
     expect(find.text('0/4'), findsOneWidget, reason: 'верный ход — не ошибка');
@@ -126,6 +127,8 @@ void main() {
     await tester.pump();
     await tester.tap(find.byKey(Key('digit$wrong')));
     await tester.pump();
+    expect(find.byKey(const Key('answer-mark-bad')), findsOneWidget);
+    expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
     expect(find.text('1/4'), findsOneWidget, reason: 'digit мимо решения — ошибка');
   });
 

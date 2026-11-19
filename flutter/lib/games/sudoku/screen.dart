@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/design_template.dart';
 import '../../shell/ability_wallet.dart';
@@ -130,6 +131,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   bool get _onRoad => widget.mode == null && !widget.junior && !_pilot;
 
   late LevelLadder _ladder;
+  late final _feedback = AnswerFeedback(widget.state);
   SudokuLevels? _levels;
   SudokuBoard? _board;
 
@@ -467,6 +469,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   @override
   void dispose() {
     _persist();   // уход с экрана — с живым временем, а не с тем, что было на прошлом ходу
+    unawaited(_feedback.dispose());
     super.dispose();
   }
 
@@ -735,6 +738,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
   }
 
   void _deal() {
+    _feedback.clear();
     if (widget.junior) {
       _dealJunior();
       return;
@@ -1109,6 +1113,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
       return;
     }
 
+    final correct = solution[sel.r][sel.c];
+    final right = value == 0 || value == correct;
+    unawaited(_feedback.show(value, value == 0 ? 0 : correct, right: right));
     setState(() {
       final was = _grid[sel.r][sel.c];
       if (was != 0 && was != value) _backtracks += 1;
@@ -1132,11 +1139,13 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final was = _grid[sel.r][sel.c];
     final next = value == 0 ? 0 : schroToggle(was, value);
     if (next == was) return;
+    final added = schroDigits(next).length > schroDigits(was).length;
+    final wrong = added && schroWrong(next, solution[sel.r][sel.c]);
+    unawaited(_feedback.show(value, wrong ? null : value, right: !wrong));
     setState(() {
       _history.add(_Step(_StepKind.digit, sel.r, sel.c, was, next));
       _grid[sel.r][sel.c] = next;
-      final added = schroDigits(next).length > schroDigits(was).length;
-      if (added && schroWrong(next, solution[sel.r][sel.c])) {
+      if (wrong) {
         final d = value % 10;
         _whyKey = schroConflict(_grid, sel.r, sel.c, d) ? null : 'sudokuWhyNotLocal';
         _errors += 1;
@@ -2018,6 +2027,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       toolbar: (board == null && _sideBoard == null)
           ? null
           : _Toolbar(
+              feedback: _feedback,
               why: _whyKey == null ? null : L.t(_whyKey!),
               n: _n,
               zero: _isSchro,
@@ -2662,6 +2672,7 @@ class _Cell extends StatelessWidget {
 /// сделана в веб-версии 23.09 (отзывы Дениса «почему цифры не в два ряда»).
 class _Toolbar extends StatelessWidget {
   const _Toolbar({
+    required this.feedback,
     this.why,
     this.zero = false,
     required this.n,
@@ -2683,6 +2694,7 @@ class _Toolbar extends StatelessWidget {
     this.lostNote,
   });
 
+  final AnswerFeedback feedback;
   final int n;
 
   /// Клавиша «0» — у клеток Шрёдингера.
@@ -2778,7 +2790,8 @@ class _Toolbar extends StatelessWidget {
       );
     }
     final keys = SudokuKeys(
-        n: n, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint, label: label, icon: icon, zero: zero);
+        n: n, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint, label: label, icon: icon, zero: zero,
+        feedback: feedback);
     final w = why, life = lifeNote;
     if (w == null && life == null) return keys;
     return Column(mainAxisSize: MainAxisSize.min, children: [
