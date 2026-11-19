@@ -59,6 +59,7 @@ const coveredRoutes = <String>{
   '/games/pattern',
   '/games/number-bonds',
   '/games/counter',
+  '/games/number-run',
   '/games/goods-sort',
   '/games/water-sort',
   '/games/ball-sort',
