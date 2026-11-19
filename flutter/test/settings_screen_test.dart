@@ -254,9 +254,7 @@ void main() {
       await t.longPress(find.byKey(const Key('profile-kids')));
       await t.pumpAndSettle();
       expect(find.byKey(const Key('profile-details-kids')), findsOneWidget);
-      final kids = Profiles.current.byId('kids')!;
-      final first = Profiles.current.games[kids.games!.first]!;
-      expect(find.text(L.t('${first['nameKey']}')), findsWidgets, reason: 'в листе нет игр профиля');
+      expect(find.text(L.t('desc_full_library')), findsOneWidget, reason: 'в листе указан полный каталог');
       await t.ensureVisible(find.byKey(const Key('profile-switch-kids')));
       await t.tap(find.byKey(const Key('profile-switch-kids')));
       await t.pumpAndSettle();

@@ -295,7 +295,7 @@ describe('«Прогресс» — образцы модели для Dart', () 
     expect(m.scope.isAll).toBe(true);
   });
 
-  it('en: файл состава закрывает игру профилю — ни карточки, ни истории; итог её считает', async () => {
+  it('en: состав профиля сохраняет игры и историю при полном доступе; итог их считает', async () => {
     const m = await снять('en', {
       profile: 'vasilyeva',
       prep: async () => {
@@ -307,7 +307,7 @@ describe('«Прогресс» — образцы модели для Dart', () 
         await очки('vasilyeva', 4321);
       },
     });
-    expect(m.games.some((g: any) => g.id === 'corsi')).toBe(false);
+    expect(m.games.some((g: any) => g.id === 'corsi')).toBe(true);
     expect(/[А-Яа-яЁё]/.test(JSON.stringify({ ...m, history: null }))).toBe(false);
   });
 

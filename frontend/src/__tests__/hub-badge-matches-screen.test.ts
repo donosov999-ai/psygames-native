@@ -103,10 +103,10 @@ describe('значок развилки не врёт', () => {
    * 80eb49c9, 4dce5eb9, 81486a4a, 8f0b0428, 43bc1ca2). Порог остаётся ЛИТЕРАЛОМ
    * и стоит НИЖЕ нынешнего числа: он ловит обвал реестра, а не считает развилки.
    */
-  it('есть что проверять: развилок ≥ 12, профилей ≥ 10, и они различаются доступом', () => {
+  it('есть что проверять: развилок ≥ 12, профилей ≥ 10, доступ у всех полный', () => {
     expect(ХАБЫ.length).toBeGreaterThanOrEqual(12);
     expect(PROFILES.length).toBeGreaterThanOrEqual(10);
-    expect(new Set(PROFILES.map((p) => filterAllowedGames(p).length)).size).toBeGreaterThan(1);
+    expect(new Set(PROFILES.map((p) => filterAllowedGames(p).length)).size).toBe(1);
   });
 
   /**

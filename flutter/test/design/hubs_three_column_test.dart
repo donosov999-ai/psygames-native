@@ -254,7 +254,7 @@ void main() {
   });
 
   testWidgets(
-    'profile visibility still controls grid, details do not start game',
+    'all profiles keep the full grid, details do not start game',
     (t) async {
       String? selected;
       await boot(
@@ -270,7 +270,7 @@ void main() {
           }),
         },
       );
-      expect(find.byKey(const ValueKey('hub-card-/games/hanoi')), findsNothing);
+      expect(find.byKey(const ValueKey('hub-card-/games/hanoi')), findsOneWidget);
       await t.tap(find.byKey(const ValueKey('hub-info-/games/goods-sort')));
       await t.pumpAndSettle();
       expect(find.byType(BottomSheet), findsOneWidget);

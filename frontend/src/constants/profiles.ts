@@ -15,11 +15,12 @@
 
 import { GAMES, isHubGame } from '@/src/constants/games';
 import { ALL_PROFILES_ALL_GAMES } from '@/src/constants/accessPolicy';
-export { ALL_PROFILES_ALL_GAMES } from '@/src/constants/accessPolicy';
 import { NATIVE_ONLY_GAMES } from '@/src/constants/nativeOnlyGames';
 import { ВСЕ_РЕЖИМЫ } from '@/src/games/tatham-bridge/names';
 import type { PlaylistStep, Weekday } from '@/src/services/warmup';
 import { freshGameIds, freshEntries } from '@/src/constants/freshGames';
+
+export { ALL_PROFILES_ALL_GAMES } from '@/src/constants/accessPolicy';
 
 export type ProfileId =
   | 'odv999'                                              // owner (Денис, full access, locked by master code)

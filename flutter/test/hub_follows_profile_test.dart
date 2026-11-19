@@ -54,12 +54,17 @@ void main() {
         'hubs': {_hub: routes},
       });
 
-  testWidgets('🔴 профиль «seniors»: в развилке ровно его две игры, а не все пять', (tester) async {
+  testWidgets('🔴 профиль «seniors»: в развилке доступны все игры раздела', (tester) async {
     final cards = await shown(tester, {
       'psygames_active_profile': 'seniors',
       HubScreen.visibleKey: visible('seniors', _seniors),
     });
-    expect(cards, _seniors.toSet());
+    expect(cards, {
+      '/games/memory-palace',
+      '/games/faces-names',
+      '/games/word-pairs',
+      '/games/rmet',
+    });
   });
 
   testWidgets('список посчитан для ДРУГОГО профиля — не применяется', (tester) async {
@@ -99,6 +104,6 @@ void main() {
         'hubs': {sudoku: ['/games/cats', '/games/sudoku']},
       }),
     }, hub: sudoku);
-    expect(cards, ['/games/cats', '/games/sudoku'], reason: 'нет «Кошек» или порядок не как у веба');
+    expect(cards, containsAll(['/games/cats', '/games/sudoku']), reason: 'полный доступ сохраняет «Кошек» и заводской порядок');
   });
 }

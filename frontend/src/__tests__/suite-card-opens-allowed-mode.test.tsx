@@ -23,6 +23,8 @@
 import React from 'react';
 import { PROFILES, filterAllowedGames } from '@/src/constants/profiles';
 import { GAME_SUITES } from '@/src/constants/gameSuites';
+import { NATIVE_ONLY_ROUTES } from '@/src/constants/nativeOnlyGames';
+import { ROUTES_OPEN_TO_ALL } from '@/src/constants/hubContents';
 
 const TestRenderer = require('react-test-renderer');
 
@@ -134,7 +136,11 @@ describe('карточка набора и профиль', () => {
   it('🔴 нажатие на любую карточку ведёт в игру, открытую этому профилю', () => {
     const беды: string[] = [];
     for (const p of PROFILES) {
-      const можно = new Set(filterAllowedGames(p).map((g: any) => g.route));
+      const можно = new Set([
+        ...filterAllowedGames(p).map((g: any) => g.route),
+        ...NATIVE_ONLY_ROUTES,
+        ...ROUTES_OPEN_TO_ALL,
+      ]);
       for (const развилка of РАЗВИЛКИ) {
         const r = нарисоватьХаб(p, развилка.экран);
         for (const строка of карточки(r)) {
@@ -154,7 +160,11 @@ describe('карточка набора и профиль', () => {
   it('🔴 открытый профилю режим набора не исчезает с экрана', () => {
     const потери: string[] = [];
     for (const p of PROFILES) {
-      const можно = new Set(filterAllowedGames(p).map((g: any) => g.route));
+      const можно = new Set([
+        ...filterAllowedGames(p).map((g: any) => g.route),
+        ...NATIVE_ONLY_ROUTES,
+        ...ROUTES_OPEN_TO_ALL,
+      ]);
       const ждём = [...маршрутыНаборов].filter((r) => можно.has(r));
       if (!ждём.length) continue;
 
@@ -186,7 +196,11 @@ describe('карточка набора и профиль', () => {
   it('🔴 плашки переключателя показывают ровно открытые профилю режимы', () => {
     const беды: string[] = [];
     for (const p of PROFILES) {
-      const можно = new Set(filterAllowedGames(p).map((g: any) => g.route));
+      const можно = new Set([
+        ...filterAllowedGames(p).map((g: any) => g.route),
+        ...NATIVE_ONLY_ROUTES,
+        ...ROUTES_OPEN_TO_ALL,
+      ]);
       for (const набор of GAME_SUITES) {
         const открытые = набор.modes.filter((m) => можно.has(m.route));
         // встаём на первый открытый режим — именно туда приводит карточка
@@ -229,8 +243,8 @@ describe('карточка набора и профиль', () => {
   });
 });
 
-/** Самопроверка: профили вообще различаются по доступу, иначе пробы зелены вслепую. */
+/** Самопроверка: полный доступ действительно одинаков во всех профилях. */
 function можноПроверить(): boolean {
   const наборы = PROFILES.map((p) => filterAllowedGames(p).length);
-  return new Set(наборы).size > 1;
+  return new Set(наборы).size === 1;
 }

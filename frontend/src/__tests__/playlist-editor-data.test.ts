@@ -18,6 +18,7 @@
  * файл ложится во временную папку раннера и никуда не едет.
  */
 import { PROFILES, isGameAllowed, filterAllowedGames } from '@/src/constants/profiles';
+import { ALL_PROFILES_ALL_GAMES } from '@/src/constants/accessPolicy';
 import { GAMES } from '@/src/constants/games';
 import { HUB_CONTENTS } from '@/src/constants/hubContents';
 import { GAME_SUITES, suiteEntryRoute } from '@/src/constants/gameSuites';
@@ -229,8 +230,8 @@ describe('снимок состава для редактора плейлист
       id: p.id,
       имя: p.display_name,
       витрина: p.id === 'whatsnew',
-      игры: p.allowed_games,
-      песочница: (p as unknown as { allow_sandbox?: boolean }).allow_sandbox === true,
+      игры: ALL_PROFILES_ALL_GAMES ? 'all' : p.allowed_games,
+      песочница: ALL_PROFILES_ALL_GAMES || (p as unknown as { allow_sandbox?: boolean }).allow_sandbox === true,
       зарядка_включена: p.warmup_enabled,
       /**
        * 🔴 «НЕ ВИЖУ, ЧТО ВХОДИТ СЕЙЧАС» — вопрос Дениса 13.09.2026, глядя на профиль
@@ -430,8 +431,8 @@ describe('снимок состава для редактора плейлист
         }
       }
       const ред = счётИгрПрофиля(снимок, {
-        игры: p.allowed_games as 'all' | string[],
-        песочница: (p as unknown as { allow_sandbox?: boolean }).allow_sandbox === true,
+        игры: ALL_PROFILES_ALL_GAMES ? 'all' : p.allowed_games as 'all' | string[],
+        песочница: ALL_PROFILES_ALL_GAMES || (p as unknown as { allow_sandbox?: boolean }).allow_sandbox === true,
       }, [], состав);
       return `${p.id}: редактор ${ред.игр} + ${ред.головоломок}, приложение ${игр} + ${головоломки.size}`;
     });

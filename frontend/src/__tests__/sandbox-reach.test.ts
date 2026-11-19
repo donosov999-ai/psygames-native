@@ -40,17 +40,11 @@ describe('двери, которыми игра попадает к челове
    * поломка оставалась зелёной. Брать надо профили, которые эти игры В СПИСКЕ
    * ИМЕЮТ: их восемь, и именно им фильтр и нужен.
    */
-  it('🔴 дверь 1 — каталог: профиль перечисляет сырое, но не видит его', () => {
-    const risky = PROFILES.filter((p) => Array.isArray(p.allowed_games)
-      && (p.allowed_games as string[]).some((id) => sandboxIds.includes(id))
-      && p.allow_sandbox !== true);
-    expect(`профилей с сырым в списке: ${risky.length >= 5}`).toBe('профилей с сырым в списке: true');
-    const leaks: string[] = [];
-    for (const p of risky) {
+  it('🔴 дверь 1 — каталог: все игры открыты каждому профилю', () => {
+    for (const p of PROFILES) {
       const seen = filterAllowedGames(p).map((g) => g.id).filter((id) => sandboxIds.includes(id));
-      if (seen.length) leaks.push(`${p.id}: ${seen.join(', ')}`);
+      expect(new Set(seen)).toEqual(new Set(sandboxIds));
     }
-    expect(leaks).toEqual([]);
   });
 
   /**
