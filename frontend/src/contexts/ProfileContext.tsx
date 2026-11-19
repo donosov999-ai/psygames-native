@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ProfileId, ProfileDef, PROFILE_BY_ID, PROFILES } from '@/src/constants/profiles';
+import { ProfileId, ProfileDef, PROFILE_BY_ID, PROFILES, profileWithAllGames } from '@/src/constants/profiles';
 import { загрузить as загрузитьСостав, наложить, поПорядку, вСеткуЗарядки, type СохранённыйСостав } from '@/src/services/playlistOverride';
 import { установитьХабыИзФайла } from '@/src/constants/hubContents';
 import { hubVisibility, HUB_VISIBLE_KEY } from '@/src/services/hubVisibility';
@@ -132,7 +132,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
   /* Наложенные профили считаются один раз на смену состава, а не каждый рендер:
      новый объект профиля на каждом кадре перерисовывал бы весь каталог. */
-  const профильСоСоставом = React.useMemo(() => наложить(profile, состав?.профили ?? null), [profile, состав]);
+  const профильСоСоставом = React.useMemo(() => profileWithAllGames(наложить(profile, состав?.профили ?? null)), [profile, состав]);
 
   /**
    * 🔴 СОСТАВ РАЗВИЛОК СТАВИТСЯ ПОД АКТИВНЫЙ ПРОФИЛЬ, А НЕ ОДИН НА ВСЕХ.
@@ -187,7 +187,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   /* Порядок из файла применяется ЗДЕСЬ же: список профилей расходится по экранам
      отсюда, и сортировать его на каждом экране отдельно значило бы разойтись. */
   const всеСоСоставом = React.useMemo(
-    () => поПорядку(PROFILES.map((p) => наложить(p, состав?.профили ?? null)), состав?.порядок ?? null),
+    () => поПорядку(PROFILES.map((p) => profileWithAllGames(наложить(p, состав?.профили ?? null))), состав?.порядок ?? null),
     [состав],
   );
 

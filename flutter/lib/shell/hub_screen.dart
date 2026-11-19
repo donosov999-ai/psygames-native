@@ -12,6 +12,7 @@ import 'tab_chrome.dart';
 import 'level_ladder.dart';
 import 'shared_level_store.dart';
 import 'l10n.dart';
+import 'profiles.dart';
 import 'shared_state.dart';
 import 'suite_switch.dart';
 import 'web_theme.dart';
@@ -291,6 +292,7 @@ class _HubScreenState extends State<HubScreen> {
   /// раскладка их не содержит — пересечение выкидывало их, и «Кошки», шахматные задачи и режимы
   /// Тэтхэма не показывались нигде. Карточку ищем по всему реестру (`hubs`, `extra`, описанные файлом).
   List<HubCard> _visibleFor(List<HubCard> cards, Map<String, dynamic> bundle) {
+    if (Profiles.allProfilesAllGames) return cards;
     final raw = widget.state.get(HubScreen.visibleKey);
     if (raw == null || raw.isEmpty) return cards;
     try {
@@ -346,11 +348,21 @@ class _HubScreenState extends State<HubScreen> {
       }
     }
     // 2. Раскладки, выгруженные из заводского файла состава (`layouts`).
+    final layouts = bundle['layouts'] as Map<String, dynamic>?;
     if (items == null) {
-      final layouts = bundle['layouts'] as Map<String, dynamic>?;
       final mine =
           layouts?[widget.state.activeProfile] as Map<String, dynamic>?;
       items = mine?[widget.hubRoute] as List?;
+    }
+    if (Profiles.allProfilesAllGames) {
+      items = <dynamic>[
+        ...?items,
+        for (final entry in (layouts ?? const <String, dynamic>{}).entries)
+          if (entry.value is Map &&
+              (entry.value as Map)[widget.hubRoute] is List)
+            ...((entry.value as Map)[widget.hubRoute] as List),
+        for (final card in factory_) card.route,
+      ];
     }
     if (items == null) return factory_;
 
@@ -375,10 +387,11 @@ class _HubScreenState extends State<HubScreen> {
     }
 
     final out = <HubCard>[];
+    final seen = <String>{};
     for (final e in items) {
       if (e is String) {
         final c = byRoute[e];
-        if (c != null) out.add(c);
+        if (c != null && seen.add(c.route)) out.add(c);
         continue;
       }
       if (e is! Map) continue;
@@ -388,7 +401,7 @@ class _HubScreenState extends State<HubScreen> {
       final m = e.cast<String, dynamic>();
       final route = m['маршрут'] ?? m['route'];
       final nameKey = m['имя'] ?? m['nameKey'];
-      if (route is! String || nameKey is! String) continue;
+      if (route is! String || nameKey is! String || !seen.add(route)) continue;
       out.add(
         HubCard(
           route: route,

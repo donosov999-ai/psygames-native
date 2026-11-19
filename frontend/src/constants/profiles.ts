@@ -14,6 +14,8 @@
  */
 
 import { GAMES, isHubGame } from '@/src/constants/games';
+import { ALL_PROFILES_ALL_GAMES } from '@/src/constants/accessPolicy';
+export { ALL_PROFILES_ALL_GAMES } from '@/src/constants/accessPolicy';
 import { NATIVE_ONLY_GAMES } from '@/src/constants/nativeOnlyGames';
 import { ВСЕ_РЕЖИМЫ } from '@/src/games/tatham-bridge/names';
 import type { PlaylistStep, Weekday } from '@/src/services/warmup';
@@ -1122,7 +1124,13 @@ export const ALWAYS_ALLOWED: ReadonlySet<string> = new Set<string>([
   'eye_gym',
 ]);
 
+export function profileWithAllGames(profile: ProfileDef): ProfileDef {
+  if (!ALL_PROFILES_ALL_GAMES) return profile;
+  return { ...profile, allowed_games: 'all', closed_games: [] };
+}
+
 export function isGameAllowed(profile: ProfileDef, gameId: string): boolean {
+  if (ALL_PROFILES_ALL_GAMES) return true;
   /* Закрытое файлом не открывает ничто — ни `all`, ни общий список. */
   if (profile.closed_games?.includes(gameId)) return false;
   if (profile.allowed_games === 'all') return true;
@@ -1131,6 +1139,7 @@ export function isGameAllowed(profile: ProfileDef, gameId: string): boolean {
 }
 
 export function filterAllowedGames(profile: ProfileDef) {
+  if (ALL_PROFILES_ALL_GAMES) return GAMES;
   if (profile.allowed_games === 'all') return GAMES;
   const allowed = new Set(profile.allowed_games as string[]);
   /**
