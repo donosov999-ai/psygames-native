@@ -441,10 +441,11 @@ void main() {
       await tapAll(tester, [lit.first]);
       expect(buzz.length, on ? 1 : 0, reason: 'тумблер ${on ? 'включён' : 'выключен'}: $buzz');
       if (on) {
-        // Клетка — лёгкий щелчок, собранный раунд — отклик сильнее (у веба — двойной импульс успеха).
+        // Общий AnswerFeedback использует одинаковый лёгкий щелчок для каждого верного шага.
         await tapAll(tester, lit.skip(1));
         expect(buzz.first, 'HapticFeedbackType.selectionClick');
-        expect(buzz.last, 'HapticFeedbackType.mediumImpact', reason: 'раунд собран: $buzz');
+        expect(buzz.last, 'HapticFeedbackType.selectionClick', reason: 'раунд собран: $buzz');
+        expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
       }
       await tester.tap(find.byTooltip(L.t('restart')));
       await tester.pump();

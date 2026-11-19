@@ -3,7 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
@@ -37,8 +37,7 @@ class SpatialSpanScreen extends StatefulWidget {
 }
 
 class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
 
   /// «Пробный заход» (веб `practice_run`): партия, которая не записывается никуда.
@@ -70,6 +69,7 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
     _flash?.cancel();
     _hold?.cancel();
     _after?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -90,6 +90,7 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
     _flash?.cancel();
     _hold?.cancel();
     _after?.cancel();
+    _answerFeedback.clear();
     setState(() {
       _game = SpatialSpanGame(level: _ladder.level, random: widget.random);
       _phase = Phase.ready;
@@ -152,7 +153,8 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
     final result = g.tap(cell);
     if (result == Tap.ignored) return;
     setState(() {});
-    result == Tap.ok ? _haptics.hit() : (result == Tap.done ? _haptics.win() : _haptics.miss());
+    final right = result == Tap.ok || result == Tap.done;
+    unawaited(_answerFeedback.show('board', right ? 'board' : null, right: right));
     if (result == Tap.ok) return;
 
     setState(() => _lastAnswer = result == Tap.done);
@@ -231,13 +233,17 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
       ],
       field: (context, h) => _phase == Phase.done
           ? SizedBox(height: h, child: _result(g))
-          : _Field(
-              game: g,
-              phase: _phase,
-              lit: _lit,
-              lastAnswer: _lastAnswer,
-              height: h,
-              onTap: _tap,
+          : AnswerMark(
+              feedback: _answerFeedback,
+              value: 'board',
+              child: _Field(
+                game: g,
+                phase: _phase,
+                lit: _lit,
+                lastAnswer: _lastAnswer,
+                height: h,
+                onTap: _tap,
+              ),
             ),
       auxRow: AuxBar(
         children: [

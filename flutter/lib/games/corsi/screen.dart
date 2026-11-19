@@ -1,8 +1,9 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
@@ -76,8 +77,7 @@ class _CorsiScreenState extends State<CorsiScreen> {
   /// Рекорд размаха; null — рекорда ещё нет.
   int? _bestSpan;
 
-  /// Вибрация — через общий выключатель «Вибрация» (веб `psygames_haptic_enabled`).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
 
   @override
   void initState() {
@@ -90,6 +90,7 @@ class _CorsiScreenState extends State<CorsiScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -103,6 +104,7 @@ class _CorsiScreenState extends State<CorsiScreen> {
 
   void _reset() {
     _timer?.cancel();
+    _answerFeedback.clear();
     // В шаге зарядки и «Оценки» правила задаёт шаг: длина ряда, темп и направление
     // (см. LevelParams.preset). Уровень человека — только потолок длины.
     _game = GamePreset.isPreset
@@ -176,21 +178,19 @@ class _CorsiScreenState extends State<CorsiScreen> {
     if (_phase != Phase.recall || _feedback != Feedback.none) return;
     final outcome = g.tap(block);
     if (outcome == TapOutcome.progress || outcome == TapOutcome.ignored) {
-      if (outcome == TapOutcome.progress) _haptics.hit();   // верный блок — щелчок, как в «Матрице»
+      if (outcome == TapOutcome.progress) unawaited(_answerFeedback.show('board', 'board'));
       setState(() {});
       return;
     }
     final won = outcome == TapOutcome.roundWon;
+    unawaited(_answerFeedback.show('board', won ? 'board' : null, right: won));
     if (won) {
-      _haptics.medium();
       // Рекорд — по ходу, как веб `bumpPersonalBest`: «дошёл дальше, чем когда-либо» видно сразу.
       // Пробный заход в рекорд не идёт (веб: `roundCounts` = … && !practiceRef): партия не записывается никуда.
       if (!_practice.now && g.span > (_bestSpan ?? 0)) {
         _bestSpan = g.span;
         widget.state.set(corsiBestSpanKey, '${g.span}');
       }
-    } else {
-      _haptics.heavy();
     }
     setState(() => _feedback = won ? Feedback.right : Feedback.wrong);
     // Паузы взяты из веб-версии: после промаха человек успевает понять, где сбился.
@@ -304,18 +304,22 @@ class _CorsiScreenState extends State<CorsiScreen> {
       ],
       field: (context, h) => _phase == Phase.done
           ? _result(g, h)
-          : _Board(
-              game: g,
-              phase: _phase,
-              feedback: _feedback,
-              lit: _lit,
-              revealed: _revealed,
-              height: h,
-              onStart: _start,
-              onTap: _tap,
-              // Набор «Позиции»: плашки Матрица · Корси · Наоборот (веб GameSuiteSwitch).
-              suiteSwitch: SuiteSwitch(route: '/games/corsi', state: widget.state),
-              practice: GamePreset.isPreset ? null : _practice,
+          : AnswerMark(
+              feedback: _answerFeedback,
+              value: 'board',
+              child: _Board(
+                game: g,
+                phase: _phase,
+                feedback: _feedback,
+                lit: _lit,
+                revealed: _revealed,
+                height: h,
+                onStart: _start,
+                onTap: _tap,
+                // Набор «Позиции»: плашки Матрица · Корси · Наоборот (веб GameSuiteSwitch).
+                suiteSwitch: SuiteSwitch(route: '/games/corsi', state: widget.state),
+                practice: GamePreset.isPreset ? null : _practice,
+              ),
             ),
       auxRow: AuxBar(children: [
         AuxAction(
