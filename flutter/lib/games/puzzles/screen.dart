@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_clock.dart';
@@ -80,6 +81,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   PuzzleMode? _modeOrNull;
   PuzzleMode get _mode => _modeOrNull!;
   late LevelLadder _ladder;
+  late final _feedback = AnswerFeedback(widget.state);
   TathamEngine? _engine;
   int _gameIndex = -1;
 
@@ -241,6 +243,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   void _deal() {
     final engine = _engine;
     if (engine == null) return;
+    _feedback.clear();
     LessonUsed.reset();   // новая доска — партия снова зачётная
     final at = (_ladder.level - 1).clamp(0, _steps.length - 1);
     final step = _steps[at];
@@ -294,6 +297,10 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     if (mounted) setState(() => _lessonSteps = steps);
   }
 
+  void _showAnswer(bool right) {
+    unawaited(_feedback.show('board', right ? 'board' : null, right: right));
+  }
+
   /// Снять кадр у движка. Дёргается после КАЖДОГО действия: промежуточные кадры нам
   /// не нужны, нужен последний.
   void _refresh() {
@@ -311,7 +318,10 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       _lost = status == -1 || puzzleNeedsRecovery(_mode.engineName, status, engine.statusText);
       if (finished) _resultRecorded = true;
     });
-    if (finished) _finish(won: status == 1);
+    if (finished) {
+      _showAnswer(status == 1);
+      _finish(won: status == 1);
+    }
   }
 
   /// Конец партии: одна запись на исход — с тем, что в вебе (`puzzles.tsx`): тип
@@ -364,6 +374,8 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
 
   /// Позиция истории движка сразу после раздачи: ход сделан, когда `statePos` ушёл дальше.
   int _dealPos = 0;
+  int _gesturePos = 0;
+  String _gestureFrame = '';
   int _button = 0;
   ({int x, int y})? _last;
 
@@ -392,6 +404,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   @override
   void dispose() {
     _holdTimer?.cancel();
+    unawaited(_feedback.dispose());
     super.dispose();
   }
 
@@ -474,6 +487,8 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     final engine = _engine;
     if (engine == null || _won || _lost || _pointer != null) return;
     _pointer = pointer;
+    _gesturePos = engine.statePos;
+    _gestureFrame = engine.draw().join('\n');
     final right = _second || (mouseButtons & kSecondaryMouseButton) != 0;
     _button = right ? 3 : 0;
     final p = _at(at, widgetSize);
@@ -501,38 +516,39 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     final p = at == null ? _last : _at(at, widgetSize);
     if (p == null) return;
     engine.pointer(p.x, p.y, _button + 2);
+    final accepted = engine.statePos != _gesturePos || engine.status != 0 || engine.draw().join('\n') != _gestureFrame;
     _refresh();
+    _showAnswer(accepted);
+  }
+
+  void _answerAction(void Function(TathamEngine engine) action) {
+    final engine = _engine;
+    if (engine == null || _won || _lost) return;
+    final before = engine.statePos;
+    final frame = engine.draw().join('\n');
+    action(engine);
+    final accepted = engine.statePos != before || engine.status != 0 || engine.draw().join('\n') != frame;
+    _refresh();
+    _showAnswer(accepted);
   }
 
   void _digit(int v) {
-    final engine = _engine;
-    if (engine == null || _won || _lost) return;
-    engine.key('0'.codeUnitAt(0) + v);
-    _refresh();
+    _answerAction((engine) => engine.key('0'.codeUnitAt(0) + v));
   }
 
   /// Стрелка курсора: 0 вверх · 1 вниз · 2 влево · 3 вправо.
   void _arrow(int side) {
-    final engine = _engine;
-    if (engine == null || _won || _lost) return;
-    engine.cursor(side);
-    _refresh();
+    _answerAction((engine) => engine.cursor(side));
   }
 
   /// Диагональ «Инерции»: '7' ↖ · '9' ↗ · '1' ↙ · '3' ↘ (цифровой блок, как у автора).
   void _diagonal(String digit) {
-    final engine = _engine;
-    if (engine == null || _won || _lost) return;
-    engine.diagonal(digit);
-    _refresh();
+    _answerAction((engine) => engine.diagonal(digit));
   }
 
   /// «Взять» под курсором — CURSOR_SELECT, второй выбор — CURSOR_SELECT2.
   void _pick({bool second = false}) {
-    final engine = _engine;
-    if (engine == null || _won || _lost) return;
-    engine.select(second: second);
-    _refresh();
+    _answerAction((engine) => engine.select(second: second));
   }
 
   void _undo() {
@@ -641,30 +657,35 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
               });
             }
             return Center(
-              child: Listener(
-                key: const Key('board'),
-                behavior: HitTestBehavior.opaque,
-                onPointerDown: (e) => _down(e, size),
-                onPointerMove: (e) => _moved(e, size),
-                onPointerUp: (e) => _up(e.pointer, e.localPosition, size),
-                // Жест отобрали (системный жест) — отпускаем там, где был последний кадр,
-                // чтобы движок не остался с «нажатой» кнопкой.
-                onPointerCancel: (e) => _up(e.pointer, null, size),
-                // Увеличенная доска режется по коробке: соседние кнопки она не накрывает.
-                child: ClipRect(
-                  child: SizedBox.fromSize(
-                    size: size,
-                    child: Transform(
-                      key: const Key('board-zoom'),
-                      transform: Matrix4.translationValues(_zoom.offset.dx, _zoom.offset.dy, 0)
-                        ..scaleByDouble(_zoom.scale, _zoom.scale, 1.0, 1.0),
-                      child: CustomPaint(
-                        size: size,
-                        painter: PuzzlePainter(
-                          frame: _frame,
-                          palette: _palette,
-                          engineSize: _size,
-                          background: Theme.of(context).colorScheme.surface,
+              child: AnswerMark(
+                feedback: _feedback,
+                value: 'board',
+                radius: 8,
+                child: Listener(
+                  key: const Key('board'),
+                  behavior: HitTestBehavior.opaque,
+                  onPointerDown: (e) => _down(e, size),
+                  onPointerMove: (e) => _moved(e, size),
+                  onPointerUp: (e) => _up(e.pointer, e.localPosition, size),
+                  // Жест отобрали (системный жест) — отпускаем там, где был последний кадр,
+                  // чтобы движок не остался с «нажатой» кнопкой.
+                  onPointerCancel: (e) => _up(e.pointer, null, size),
+                  // Увеличенная доска режется по коробке: соседние кнопки она не накрывает.
+                  child: ClipRect(
+                    child: SizedBox.fromSize(
+                      size: size,
+                      child: Transform(
+                        key: const Key('board-zoom'),
+                        transform: Matrix4.translationValues(_zoom.offset.dx, _zoom.offset.dy, 0)
+                          ..scaleByDouble(_zoom.scale, _zoom.scale, 1.0, 1.0),
+                        child: CustomPaint(
+                          size: size,
+                          painter: PuzzlePainter(
+                            frame: _frame,
+                            palette: _palette,
+                            engineSize: _size,
+                            background: Theme.of(context).colorScheme.surface,
+                          ),
                         ),
                       ),
                     ),

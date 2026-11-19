@@ -97,10 +97,12 @@ void main() {
     await tester.tapAt(at(tester, tray.$1, tray.$2));
     await tester.pump();
     expect(digest(tester), before, reason: 'тычок по ячейке и по лотку цвета не ставит');
+    expect(find.byKey(const Key('answer-mark-bad')), findsOneWidget);
 
     final from = at(tester, tray.$1, tray.$2);
     await tester.dragFrom(from, at(tester, slot.$1, slot.$2) - from);
     await tester.pump();
+    expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
     final placed = fillAt(tester, slot.$1, slot.$2);
     expect(placed, isNot(empty), reason: 'протяжка из лотка в ячейку ставит цвет');
 
