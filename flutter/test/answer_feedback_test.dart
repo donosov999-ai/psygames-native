@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/answer_feedback.dart';
 import 'package:psygames_flutter/shell/game_effect_audio.dart';
+import 'package:psygames_flutter/shell/game_shell.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -40,8 +41,9 @@ void main() {
     final f = AnswerFeedback(state, backend: sound);
     await t.pumpWidget(
       MaterialApp(
-        home: Scaffold(
-          body: Row(
+        home: GameShell(
+          title: 'Test',
+          field: (context, _) => Row(
             children: [
               for (final v in [3, 4, 5])
                 AnswerMark(
@@ -69,7 +71,10 @@ void main() {
     await t.pump();
     expect(markOn(4, 'good'), findsOneWidget);
     expect(find.byKey(const Key('answer-mark-bad')), findsNothing);
-    expect(find.byIcon(Icons.check_rounded), findsOneWidget, reason: 'не только цвет — значок');
+    final center = find.byKey(const Key('answer-feedback-center-good'));
+    expect(center, findsOneWidget, reason: 'не только цвет — большой значок по центру экрана');
+    expect(t.getCenter(center), const Offset(400, 300));
+    expect(find.byIcon(Icons.check_rounded), findsOneWidget);
     expect(f.busy, isTrue, reason: 'пока горит — новые ответы не принимаются');
     expect(haptics, ['HapticFeedbackType.selectionClick']);
     await t.pump(const Duration(milliseconds: 590));
@@ -88,6 +93,9 @@ void main() {
     await t.pump();
     expect(markOn(3, 'bad'), findsOneWidget);
     expect(markOn(5, 'good'), findsOneWidget, reason: 'при ошибке верный вариант тоже виден');
+    final center = find.byKey(const Key('answer-feedback-center-bad'));
+    expect(center, findsOneWidget, reason: 'ошибка — большой красный крест по центру экрана');
+    expect(t.getCenter(center), const Offset(400, 300));
     expect(find.byIcon(Icons.close_rounded), findsOneWidget);
     expect(haptics, ['HapticFeedbackType.heavyImpact']);
     await t.pump(AnswerFeedback.hold);
