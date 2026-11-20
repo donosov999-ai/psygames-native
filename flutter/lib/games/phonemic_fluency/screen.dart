@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -40,6 +41,7 @@ class PhonemicFluencyScreen extends StatefulWidget {
 }
 
 class _PhonemicFluencyScreenState extends State<PhonemicFluencyScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _runs;
   PhonemicData? _data;
   LangNames _names = LangNames.empty;
@@ -75,6 +77,7 @@ class _PhonemicFluencyScreenState extends State<PhonemicFluencyScreen> {
   void dispose() {
     _tick?.cancel();
     _input.dispose();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -144,6 +147,7 @@ class _PhonemicFluencyScreenState extends State<PhonemicFluencyScreen> {
     if (raw.isEmpty || _phase != PhonemicPhase.playing) return;
     final script = _data!.scripts[phonemicScriptFor(_wordLang)]!;
     final v = phonemicJudge(raw, _letter, script, _said);
+    unawaited(_answerFeedback.show('answer', v.valid ? 'answer' : null, right: v.valid));
     setState(() => _said.add(PhonemicSaid(raw, _now, v.valid, v.reason)));
   }
 
@@ -203,11 +207,15 @@ class _PhonemicFluencyScreenState extends State<PhonemicFluencyScreen> {
               HudItem(label: L.t('hud_words'), value: '$valid', icon: Icons.text_fields),
             ]
           : const [],
-      field: (context, h) => switch (_phase) {
-        PhonemicPhase.config => _config(context, h),
-        PhonemicPhase.playing => _playing(context, h),
-        PhonemicPhase.result => _result(context, h, valid),
-      },
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: switch (_phase) {
+          PhonemicPhase.config => _config(context, h),
+          PhonemicPhase.playing => _playing(context, h),
+          PhonemicPhase.result => _result(context, h, valid),
+        },
+      ),
       toolbar: _phase == PhonemicPhase.playing ? _answer() : null,
     );
   }

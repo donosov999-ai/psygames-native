@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -44,8 +44,7 @@ class AnagramsScreen extends StatefulWidget {
 }
 
 class _AnagramsScreenState extends State<AnagramsScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   late final String _lang = widget.locale ?? anagramWordLang(widget.state, AnagramMode.classic);
   WordBank? _bank;
@@ -80,6 +79,7 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
   @override
   void dispose() {
     _tick?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -197,12 +197,11 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
     final correct = _bilingualActive
         ? _assembled.toUpperCase() == _round!.target.toUpperCase()
         : g.accepts(_assembled);
+    unawaited(_answerFeedback.show('answer', correct ? 'answer' : null, right: correct));
     if (correct) {
-      _haptics.hit();
       _solved++;
       _advance();
     } else {
-      _haptics.miss();
       setState(() => _wrong = true);
     }
   }
@@ -365,14 +364,18 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
         if (_level.wordSec > 0 && !_bilingualActive)
           HudItem(label: L.t('timeLeftLabel'), value: '$_secLeft${L.t('secShort')}', icon: Icons.timer_outlined),
       ],
-      field: (context, h) => AnagramBoard(
-        target: round.target,
-        letters: round.letters,
-        picked: _picked,
-        fieldHeight: h,
-        revealed: _revealed,
-        wrong: _wrong,
-        onPick: _pick,
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: AnagramBoard(
+          target: round.target,
+          letters: round.letters,
+          picked: _picked,
+          fieldHeight: h,
+          revealed: _revealed,
+          wrong: _wrong,
+          onPick: _pick,
+        ),
       ),
       // Служебное — значками под полем: подсказка тратит ресурс, перемешивание
       // трогает игру. Ответ игрока живёт ниже, в липком низу.

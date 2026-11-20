@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/audio_host.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
@@ -58,6 +59,7 @@ class RhythmPitchScreen extends StatefulWidget {
 }
 
 class _RhythmPitchScreenState extends State<RhythmPitchScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late final LevelLadder _ladder = LevelLadder(
     gameId: 'rhythm_pitch',
     store: SharedLevelStore(widget.state),
@@ -121,6 +123,7 @@ class _RhythmPitchScreenState extends State<RhythmPitchScreen> {
     _life.dispose();
     _focus.dispose();
     unawaited(_engine.dispose());
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -236,6 +239,7 @@ class _RhythmPitchScreenState extends State<RhythmPitchScreen> {
 
   Future<void> _complete(RpMetrics m) async {
     final passed = rpPassed(m);
+    unawaited(_answerFeedback.show('answer', passed ? 'answer' : null, right: passed));
     final level = _levelPlayed;
     setState(() {
       _last = m;
@@ -404,13 +408,17 @@ class _RhythmPitchScreenState extends State<RhythmPitchScreen> {
                 ),
               ]
             : const [],
-        field: (context, h) => SizedBox(
-          height: h,
-          child: switch (_phase) {
-            RpScreenPhase.config => _config(context),
-            RpScreenPhase.playing => _playing(context, s!),
-            RpScreenPhase.done => _done(context),
-          },
+        field: (context, h) => AnswerMark(
+          feedback: _answerFeedback,
+          value: 'answer',
+          child: SizedBox(
+            height: h,
+            child: switch (_phase) {
+              RpScreenPhase.config => _config(context),
+              RpScreenPhase.playing => _playing(context, s!),
+              RpScreenPhase.done => _done(context),
+            },
+          ),
         ),
         toolbar: _toolbar(context),
       ),

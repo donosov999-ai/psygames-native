@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/audio_host.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
@@ -47,6 +48,7 @@ class PhonemePairsScreen extends StatefulWidget {
 }
 
 class _PhonemePairsScreenState extends State<PhonemePairsScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   PhData? _data;
   LangNames _names = LangNames.empty;
@@ -87,6 +89,7 @@ class _PhonemePairsScreenState extends State<PhonemePairsScreen> {
     _sayLater?.cancel();
     _voice?.cancel();
     _noise?.stop();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -166,6 +169,7 @@ class _PhonemePairsScreenState extends State<PhonemePairsScreen> {
   void _answer(int choice) {
     if (_phase != PhPhase.playing || _answered != null) return;
     final ok = choice == _trials[_idx].correctIdx;
+    unawaited(_answerFeedback.show('answer', ok ? 'answer' : null, right: ok));
     setState(() {
       _answered = choice;
       if (ok) {
@@ -290,11 +294,15 @@ class _PhonemePairsScreenState extends State<PhonemePairsScreen> {
               ),
               HudItem(label: L.t('hud_correct'), value: '$_hits', icon: Icons.check),
             ],
-      field: (context, h) => switch (_phase) {
-        PhPhase.config => _config(context, h),
-        PhPhase.playing => _playing(context, h, t!),
-        PhPhase.result => _result(context, h),
-      },
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: switch (_phase) {
+          PhPhase.config => _config(context, h),
+          PhPhase.playing => _playing(context, h, t!),
+          PhPhase.result => _result(context, h),
+        },
+      ),
       // «Повторить звук» — в нижнем тулбаре каркаса, не кнопкой в центре поля: Денис 31.10 — «управление,
       // если тулбар позволяет, идёт в него: тянуться в низ экрана проще, чем в центр» (CHATS_RULES.md §1в).
       auxRow: t == null
