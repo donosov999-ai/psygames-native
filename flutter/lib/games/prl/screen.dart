@@ -16,6 +16,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -55,6 +56,7 @@ class PrlScreen extends StatefulWidget {
 }
 
 class _PrlScreenState extends State<PrlScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   PrlGame? _game;
   PrlPhase _phase = PrlPhase.ready;
@@ -73,6 +75,7 @@ class _PrlScreenState extends State<PrlScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -108,6 +111,8 @@ class _PrlScreenState extends State<PrlScreen> {
     _timer = Timer(Duration(milliseconds: g.params.feedbackDelayMs), () {
       if (!mounted) return;
       setState(g.revealPending);
+      final right = g.pending?.rewarded == true;
+      unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
       _timer = Timer(const Duration(milliseconds: prlFeedbackMs), () {
         if (!mounted) return;
         setState(g.closeTrial);
@@ -199,7 +204,10 @@ class _PrlScreenState extends State<PrlScreen> {
         HudItem(label: L.t('hud_reversals'), value: '${g.blockIndex}', icon: Icons.swap_horiz),
       ],
       suiteSwitch: _phase == PrlPhase.ready ? SuiteSwitch(route: '/games/prl', state: widget.state) : null,
-      field: (context, h) => _Field(
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _Field(
         game: g,
         classic: _classic,
         phase: _phase,
@@ -211,6 +219,7 @@ class _PrlScreenState extends State<PrlScreen> {
         onFree: _pickFree,
         onDiff: _pickDiff,
       ),
+        ),
       toolbar: _phase == PrlPhase.playing ? _Choices(onPick: _choose) : null,
     );
   }

@@ -14,6 +14,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -47,6 +48,7 @@ class IowaScreen extends StatefulWidget {
 }
 
 class _IowaScreenState extends State<IowaScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _runs;
   IowaGame? _game;
   IowaPhase _phase = IowaPhase.ready;
@@ -64,6 +66,7 @@ class _IowaScreenState extends State<IowaScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -94,6 +97,8 @@ class _IowaScreenState extends State<IowaScreen> {
     _timer = Timer(Duration(milliseconds: g.params.feedbackDelayMs), () {
       if (!mounted) return;
       setState(g.revealPending);
+      final right = (g.pending?.net ?? 0) >= 0;
+      unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
       _timer = Timer(const Duration(milliseconds: iowaFeedbackMs), () {
         if (!mounted) return;
         setState(g.closeTrial);
@@ -131,13 +136,17 @@ class _IowaScreenState extends State<IowaScreen> {
         HudItem(label: L.t('hud_badDecks'), value: '${g.result.disadvantageous}', icon: Icons.thumb_down_outlined),
       ],
       suiteSwitch: _phase == IowaPhase.ready ? SuiteSwitch(route: '/games/iowa', state: widget.state) : null,
-      field: (context, h) => _Field(
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _Field(
         game: g,
         phase: _phase,
         height: h,
         onStart: _start,
         onAgain: () => setState(_reset),
       ),
+        ),
       toolbar: _phase == IowaPhase.playing ? _Decks(onPick: _pick, locked: g.locked) : null,
     );
   }

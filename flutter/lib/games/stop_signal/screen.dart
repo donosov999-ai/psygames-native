@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
@@ -47,6 +48,7 @@ class StopSignalScreen extends StatefulWidget {
 }
 
 class _StopSignalScreenState extends State<StopSignalScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   StopSignalGame? _game;
   StopSignalPhase _phase = StopSignalPhase.ready;
@@ -72,6 +74,7 @@ class _StopSignalScreenState extends State<StopSignalScreen> {
   void dispose() {
     _timer?.cancel();
     _stopTimer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -158,6 +161,8 @@ class _StopSignalScreenState extends State<StopSignalScreen> {
 
   void _after(StopOutcome outcome) {
     _timer?.cancel();
+    final right = outcome == StopOutcome.go || outcome == StopOutcome.inhibited;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     _stopTimer?.cancel();
     setState(() => _flash = outcome);
     _timer = Timer(Duration(milliseconds: stopSignalFeedbackMs + _game!.params.interTrialMs), () {
@@ -231,7 +236,10 @@ class _StopSignalScreenState extends State<StopSignalScreen> {
       ],
       onLesson: () => openDemoLesson(context, title: L.t('stopSignal'), trials: _demoTrials()),
       suiteSwitch: _phase == StopSignalPhase.ready ? SuiteSwitch(route: '/games/stop-signal', state: widget.state) : null,
-      field: (context, h) => _Field(
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _Field(
         game: g,
         text: text,
         estimate: _estimate,
@@ -250,6 +258,7 @@ class _StopSignalScreenState extends State<StopSignalScreen> {
         },
         onPress: _press,
       ),
+        ),
       toolbar: _phase == StopSignalPhase.playing
           ? TapLatency(
               where: 'Flutter/StopSignal',

@@ -14,6 +14,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -68,6 +69,7 @@ class BartScreen extends StatefulWidget {
 }
 
 class _BartScreenState extends State<BartScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   BartGame? _game;
   BartPhase _phase = BartPhase.ready;
@@ -83,6 +85,7 @@ class _BartScreenState extends State<BartScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -122,6 +125,8 @@ class _BartScreenState extends State<BartScreen> {
     final g = _game!;
     final out = g.pump();
     if (out == null) return;
+    final right = out != PumpOutcome.popped;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     setState(() {});
     if (out == PumpOutcome.popped) _afterBalloon(bartPopMs);
   }
@@ -129,6 +134,7 @@ class _BartScreenState extends State<BartScreen> {
   void _cash() {
     if (_phase != BartPhase.playing) return;
     if (!_game!.cashOut()) return;
+    unawaited(_answerFeedback.show('answer', 'answer'));
     setState(() {});
     _afterBalloon(bartCashMs);
   }
@@ -186,7 +192,10 @@ class _BartScreenState extends State<BartScreen> {
         HudItem(label: L.t('hud_pops'), value: '${g.metrics.popped}', icon: Icons.local_fire_department_outlined),
       ],
       suiteSwitch: _phase == BartPhase.ready ? SuiteSwitch(route: '/games/bart', state: widget.state) : null,
-      field: (context, h) => _Field(
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _Field(
         game: g,
         classic: widget.classic != null,
         phase: _phase,
@@ -194,6 +203,7 @@ class _BartScreenState extends State<BartScreen> {
         onStart: _start,
         onAgain: () => setState(_reset),
       ),
+        ),
       toolbar: _phase == BartPhase.playing ? _Buttons(onPump: _pump, onCash: _cash) : null,
     );
   }

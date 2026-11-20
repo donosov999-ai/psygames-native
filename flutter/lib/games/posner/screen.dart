@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
@@ -67,6 +68,7 @@ class PosnerScreen extends StatefulWidget {
 }
 
 class _PosnerScreenState extends State<PosnerScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   PosnerGame? _game;
   PosnerPhase _phase = PosnerPhase.ready;
@@ -85,6 +87,7 @@ class _PosnerScreenState extends State<PosnerScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -180,6 +183,8 @@ class _PosnerScreenState extends State<PosnerScreen> {
 
   void _after(PosnerOutcome outcome) {
     _timer?.cancel();
+    final right = outcome == PosnerOutcome.hit;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     setState(() => _flash = outcome);
     _timer = Timer(const Duration(milliseconds: posnerFeedbackMs), () {
       if (!mounted) return;
@@ -225,7 +230,10 @@ class _PosnerScreenState extends State<PosnerScreen> {
       onLesson: _game == null
           ? null
           : () => openDemoLesson(context, title: L.t('posner'), trials: _demoTrials()),
-      field: (context, h) => _Field(
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _Field(
         game: g,
         phase: _phase,
         flash: _flash,
@@ -240,6 +248,7 @@ class _PosnerScreenState extends State<PosnerScreen> {
           _start();
         },
       ),
+        ),
       toolbar: _phase == PosnerPhase.playing ? _Answers(onPick: _answer) : null,
     );
   }
