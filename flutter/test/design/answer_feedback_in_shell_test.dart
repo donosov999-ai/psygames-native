@@ -9,6 +9,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const coveredRoutes = <String>{
   '/games/cloze',
+  '/games/digit-span',
+  '/games/n-back',
+  '/games/picture-pairs',
   '/games/memory-matrix',
   '/games/corsi',
   '/games/spatial-span',

@@ -5,7 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/audio_host.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
@@ -93,8 +93,7 @@ class DigitSpanScreen extends StatefulWidget {
 }
 
 class _DigitSpanScreenState extends State<DigitSpanScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late double Function() _rng;
   /// «Пробный заход» (веб `practice_run`): партия, которая не записывается никуда. Решение — на старте.
   late final PracticeRun _practice = PracticeRun(widget.state);
@@ -147,6 +146,7 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
     _runId++;
     _cancelTimers();
     _voice?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -216,6 +216,7 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
     _runId++;
     _cancelTimers();
     _voice?.cancel();
+    _answerFeedback.clear();
     _s = null;
     _phase = DsPhase.ready;
     _showIdx = -2;
@@ -347,8 +348,8 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
     final s = _s!;
     final correct = s.rowCorrect;
     final over = s.submit();
-    // Клавиши — не вердикт; отзывается проверка ряда: собран — сильнее, ошибка — тяжело.
-    correct ? _haptics.win() : _haptics.miss();
+    // Проверка ряда даёт общий видимый, звуковой и тактильный результат.
+    unawaited(_answerFeedback.show('answer', correct ? 'answer' : null, right: correct));
     setState(() => _feedback = correct);
     if (over) {
       unawaited(_finish());
@@ -489,7 +490,11 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
       ]),
       // Низ — ОТВЕТ: ряд клавиш стоит всю партию и гаснет вне ввода (веб `bottom="answer"`).
       toolbar: playing
-          ? _Keypad(on: _canType, onDigit: _press, onErase: _erase)
+          ? AnswerMark(
+              feedback: _answerFeedback,
+              value: 'answer',
+              child: _Keypad(on: _canType, onDigit: _press, onErase: _erase),
+            )
           : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
