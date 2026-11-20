@@ -28,6 +28,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:practice_kit/practice_kit.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/audio_host.dart' show appSoundOn;
 import '../../shell/aux_action.dart';
@@ -117,6 +118,7 @@ class PauseScreen extends StatefulWidget {
 enum PausePhase { loading, config, playing, done }
 
 class PauseScreenState extends State<PauseScreen> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   Practices? _engine;
   Json _copy = const {};
   PausePhase phase = PausePhase.loading;
@@ -729,6 +731,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
       difficulty: plan['context'] as String? ?? _context,
       details: {'sets': done, 'interrupted': result['interruptedCount'], 'plan_id': plan['id']},
     ));
+    unawaited(_answerFeedback.show('answer', 'answer'));
     setState(() => phase = PausePhase.done);
   }
 
@@ -767,6 +770,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
         'level': run,
       },
     ));
+    unawaited(_answerFeedback.show('answer', 'answer'));
     setState(() => phase = PausePhase.done);
   }
 
@@ -803,6 +807,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
           ? {'duration_sec': e.totalSec, 'steps': e.steps.length, 'level': done}
           : {'duration_sec': e.totalSec, 'steps': e.steps.length},
     ));
+    unawaited(_answerFeedback.show('answer', 'answer'));
     setState(() => phase = PausePhase.done);
   }
 
@@ -913,6 +918,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     _haptics.dispose();
     unawaited(_breathCues.dispose());
     unawaited(_voice.cancel());
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -978,7 +984,10 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
             icon: Icons.timer_outlined,
           ),
       ],
-      field: (context, h) => switch (phase) {
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: switch (phase) {
         PausePhase.loading => const Center(child: CircularProgressIndicator()),
         PausePhase.config => _eyes
             ? _EyeConfig(screen: this, height: h)
@@ -1006,6 +1015,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
         // У Вима Хофа сессии ядра нет — итог берётся из его раундов.
         PausePhase.done => _Done(screen: this, session: s ?? const <String, dynamic>{}),
       },
+        ),
       // «Начать» — в липком низу: панель длинная, и кнопка под ней уезжала за край
       // телефона (поймала проба нажатиями на 390×844).
       toolbar: phase == PausePhase.config
