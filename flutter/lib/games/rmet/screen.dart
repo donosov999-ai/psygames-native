@@ -8,9 +8,12 @@
 /// прочтёт так же неверно.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
@@ -39,6 +42,7 @@ class RmetScreen extends StatefulWidget {
 }
 
 class _RmetScreenState extends State<RmetScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _runs;
   RmetContent? _content;
   RmetSession? _session;
@@ -86,6 +90,7 @@ class _RmetScreenState extends State<RmetScreen> {
     if (c == null) return;
     _advance?.cancel();
     _advance = null;
+    _answerFeedback.clear();
     setState(() {
       _session = RmetSession.start(c, _locale, widget.trials);
       _shownAt = _now;
@@ -96,6 +101,8 @@ class _RmetScreenState extends State<RmetScreen> {
     final s = _session;
     if (s == null || s.feedback != null) return;
     setState(() => s.answer(choice, _now - _shownAt));
+    final right = s.feedback!.correct;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     _advance?.cancel();
     _advance = gameTimeout(advanceAfter, () {
       _advance = null;
@@ -106,6 +113,7 @@ class _RmetScreenState extends State<RmetScreen> {
   @override
   void dispose() {
     _advance?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -260,7 +268,11 @@ class _RmetScreenState extends State<RmetScreen> {
           icon: Icons.visibility_outlined,
         ),
       ],
-      field: (context, h) => _field(context, c, s, h),
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _field(context, c, s, h),
+      ),
       auxRow: AuxBar(children: [
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _start),
       ]),

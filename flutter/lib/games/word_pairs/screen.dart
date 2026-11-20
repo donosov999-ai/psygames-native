@@ -15,6 +15,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -44,6 +45,7 @@ class WordPairsScreen extends StatefulWidget {
 }
 
 class _WordPairsScreenState extends State<WordPairsScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   WordPairsContent? _content;
   WordPairsSession? _session;
@@ -81,6 +83,7 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -115,6 +118,7 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
   Future<void> _start() async {
     final c = _content;
     if (c == null) return;
+    _answerFeedback.clear();
     final level = _ladder.level;
     final preset = GamePreset.isPreset;
     final built = WordPairsSession.build(
@@ -172,7 +176,13 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
   void _tap(void Function(WordPairsSession s) action) {
     final s = _session;
     if (s == null) return;
+    final matched = s.matched.length;
+    final errors = s.errors;
     setState(() => action(s));
+    if (s.matched.length > matched || s.errors > errors) {
+      final right = s.matched.length > matched;
+      unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
+    }
     if (s.phase == WordPairsPhase.result) _finish(s);
   }
 
@@ -292,7 +302,11 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
           icon: Icons.timer_outlined,
         ),
       ],
-      field: (context, h) => _field(context, s, h),
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _field(context, s, h),
+      ),
       auxRow: AuxBar(children: [
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _start),
       ]),

@@ -23,7 +23,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
@@ -63,8 +63,7 @@ class MnemonicsScreen extends StatefulWidget {
 }
 
 class MnemonicsScreenState extends State<MnemonicsScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   late Random _random;
   MnemonicsContent? _content;
@@ -128,6 +127,7 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
   void dispose() {
     _clock?.cancel();
     _feedbackTimer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -191,6 +191,7 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
     final c = _content;
     if (c == null) return;
     _feedbackTimer?.cancel();
+    _answerFeedback.clear();
     final level = _ladder.level;
     final preset = GamePreset.isPreset;
     setState(() {
@@ -243,7 +244,7 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
   void _answerExample(int v) {
     final e = _example;
     if (e == null) return;
-    v == e.answer ? _haptics.hit() : _haptics.miss();
+    unawaited(_answerFeedback.show('answer', v == e.answer ? 'answer' : null, right: v == e.answer));
     setState(() {
       if (v != e.answer) {
         _example = newExample(_rnd);
@@ -266,11 +267,11 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
     if (_phase != MnemoPhase.check || _picked.contains(item)) return;
     final expected = _items[_picked.length];
     if (item != expected) {
-      _haptics.miss();
+      unawaited(_answerFeedback.show('answer', null, right: false));
       setState(() => _errors += 1);
       return;
     }
-    _haptics.hit();
+    unawaited(_answerFeedback.show('answer', 'answer'));
     setState(() => _picked.add(item));
     if (_picked.length < _items.length) return;
     final passed = _errors == 0;
@@ -284,7 +285,7 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
     final pegs = _pegs;
     if (q == null || pegs == null || _feedback != null) return;
     final right = option == q.answer;
-    right ? _haptics.hit() : _haptics.miss();
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     setState(() {
       if (!right) _errors += 1;
       _feedback = (right: right, answer: q.answer);
@@ -482,7 +483,11 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
       title: L.t('mnemonics'),
       onLesson: _lessonAvailable ? _openLesson : null,
       hud: _hud(),
-      field: (context, h) => _Pad(height: h, child: _field(context, c)),
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _Pad(height: h, child: _field(context, c)),
+      ),
       auxRow: running
           ? AuxBar(children: [
               AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => _start(byLevel: _levelRun)),
