@@ -7,6 +7,14 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.74.1",
+   "date": "2026-11-20",
+   "items": [
+    "Games no longer appear twice outside their hubs",
+    "A large green check or red cross now appears in the centre of the game screen"
+   ]
+  },
+  {
    "version": "v2.74.0",
    "date": "2026-11-20",
    "items": [
