@@ -75,7 +75,8 @@ console.log(`Сборка: ${VERSION} (${BUILD_NUMBER}), ${build.attributes.proc
 const versions = await call('GET', `/apps/${app.id}/appStoreVersions?limit=50`);
 let version = versions.data.find((candidate) => candidate.attributes.versionString === VERSION);
 console.log(`Версия App Store: ${version ? version.attributes.appStoreState : 'ещё не создана'}`);
-if (version && version.attributes.appStoreState !== 'PREPARE_FOR_SUBMISSION') {
+const editableStates = new Set(['PREPARE_FOR_SUBMISSION', 'READY_FOR_REVIEW']);
+if (version && !editableStates.has(version.attributes.appStoreState)) {
   console.log(`Изменение не требуется: ${VERSION} уже ${version.attributes.appStoreState}`);
   process.exit(0);
 }
@@ -84,58 +85,71 @@ if (CONFIRM !== `submit-${VERSION}`) {
   process.exit(0);
 }
 
-if (!version) {
-  const created = await call('POST', '/appStoreVersions', { data: {
-    type: 'appStoreVersions',
-    attributes: { platform: 'IOS', versionString: VERSION, releaseType: 'MANUAL' },
-    relationships: { app: { data: { type: 'apps', id: app.id } } },
-  } });
-  version = created.data;
-  console.log(`Создана версия ${VERSION}, выпуск после одобрения — вручную`);
+let submissionId;
+if (version?.attributes.appStoreState === 'READY_FOR_REVIEW') {
+  const submissions = await call('GET', `/reviewSubmissions?filter[app]=${app.id}&filter[state]=READY_FOR_REVIEW&limit=10`);
+  const submission = submissions.data.find((candidate) => candidate.attributes.platform === 'IOS');
+  if (!submission) throw new Error(`${VERSION}: нет открытого пакета проверки`);
+  submissionId = submission.id;
 } else {
-  await call('PATCH', `/appStoreVersions/${version.id}`, { data: {
-    type: 'appStoreVersions', id: version.id, attributes: { releaseType: 'MANUAL' },
-  } });
-}
-
-await call('PATCH', `/appStoreVersions/${version.id}/relationships/build`, { data: {
-  type: 'builds', id: build.id,
-} });
-console.log(`К версии прикреплена сборка ${BUILD_NUMBER}`);
-
-const localizations = await call('GET', `/appStoreVersions/${version.id}/appStoreVersionLocalizations?limit=50`);
-const existing = new Map(localizations.data.map((item) => [item.attributes.locale, item]));
-for (const [locale, whatsNew] of Object.entries(notes)) {
-  const localization = existing.get(locale);
-  if (localization) {
-    await call('PATCH', `/appStoreVersionLocalizations/${localization.id}`, { data: {
-      type: 'appStoreVersionLocalizations', id: localization.id, attributes: { whatsNew },
+  if (!version) {
+    const created = await call('POST', '/appStoreVersions', { data: {
+      type: 'appStoreVersions',
+      attributes: { platform: 'IOS', versionString: VERSION, releaseType: 'MANUAL' },
+      relationships: { app: { data: { type: 'apps', id: app.id } } },
     } });
+    version = created.data;
+    console.log(`Создана версия ${VERSION}, выпуск после одобрения — вручную`);
   } else {
-    await call('POST', '/appStoreVersionLocalizations', { data: {
-      type: 'appStoreVersionLocalizations',
-      attributes: { locale, whatsNew },
-      relationships: { appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } } },
+    await call('PATCH', `/appStoreVersions/${version.id}`, { data: {
+      type: 'appStoreVersions', id: version.id, attributes: { releaseType: 'MANUAL' },
     } });
   }
-  console.log(`Примечания ${locale} записаны`);
+
+  await call('PATCH', `/appStoreVersions/${version.id}/relationships/build`, { data: {
+    type: 'builds', id: build.id,
+  } });
+  console.log(`К версии прикреплена сборка ${BUILD_NUMBER}`);
+
+  const localizations = await call('GET', `/appStoreVersions/${version.id}/appStoreVersionLocalizations?limit=50`);
+  const existing = new Map(localizations.data.map((item) => [item.attributes.locale, item]));
+  for (const [locale, whatsNew] of Object.entries(notes)) {
+    const localization = existing.get(locale);
+    if (localization) {
+      await call('PATCH', `/appStoreVersionLocalizations/${localization.id}`, { data: {
+        type: 'appStoreVersionLocalizations', id: localization.id, attributes: { whatsNew },
+      } });
+    } else {
+      await call('POST', '/appStoreVersionLocalizations', { data: {
+        type: 'appStoreVersionLocalizations',
+        attributes: { locale, whatsNew },
+        relationships: { appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } } },
+      } });
+    }
+    console.log(`Примечания ${locale} записаны`);
+  }
+
+  const submission = await call('POST', '/reviewSubmissions', { data: {
+    type: 'reviewSubmissions',
+    attributes: { platform: 'IOS' },
+    relationships: { app: { data: { type: 'apps', id: app.id } } },
+  } });
+  submissionId = submission.data.id;
+  try {
+    await call('POST', '/reviewSubmissionItems', { data: {
+      type: 'reviewSubmissionItems',
+      relationships: {
+        appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } },
+        reviewSubmission: { data: { type: 'reviewSubmissions', id: submissionId } },
+      },
+    } });
+  } catch (error) {
+    await call('DELETE', `/reviewSubmissions/${submissionId}`).catch(() => {});
+    throw error;
+  }
 }
 
-const submission = await call('POST', '/reviewSubmissions', { data: {
-  type: 'reviewSubmissions',
-  attributes: { platform: 'IOS' },
-  relationships: { app: { data: { type: 'apps', id: app.id } } },
+await call('PATCH', `/reviewSubmissions/${submissionId}`, { data: {
+  type: 'reviewSubmissions', id: submissionId, attributes: { submitted: true },
 } });
-try {
-  await call('POST', '/reviewSubmissionItems', { data: {
-    type: 'reviewSubmissionItems',
-    relationships: {
-      appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } },
-      reviewSubmission: { data: { type: 'reviewSubmissions', id: submission.data.id } },
-    },
-  } });
-  console.log(`✅ ${VERSION} (${BUILD_NUMBER}) отправлена на проверку App Store`);
-} catch (error) {
-  await call('DELETE', `/reviewSubmissions/${submission.data.id}`).catch(() => {});
-  throw error;
-}
+console.log(`✅ ${VERSION} (${BUILD_NUMBER}) отправлена на проверку App Store`);
