@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/board_puzzle.dart';
 import '../../shell/board_solver.dart';
@@ -66,6 +68,7 @@ class TrafficJamPuzzle extends BoardPuzzle<TjBoard, TjMove> {
 }
 
 class _TrafficJamScreenState extends State<TrafficJamScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   LevelLadder? _ladder;
   List<TjLevel> _bank = const [];
   TjLevel? _level;
@@ -115,7 +118,11 @@ class _TrafficJamScreenState extends State<TrafficJamScreen> {
     final board = _board;
     if (board == null || _won) return;
     final next = board.apply(TjMove(car, to));
-    if (next == null) return;
+    if (next == null) {
+      unawaited(_answerFeedback.show('answer', null, right: false));
+      return;
+    }
+    unawaited(_answerFeedback.show('answer', 'answer'));
     setState(() {
       _history.add(board);
       _board = next;
@@ -200,6 +207,12 @@ class _TrafficJamScreenState extends State<TrafficJamScreen> {
   }
 
   @override
+  void dispose() {
+    unawaited(_answerFeedback.dispose());
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final board = _board;
     final ladder = _ladder;
@@ -214,7 +227,10 @@ class _TrafficJamScreenState extends State<TrafficJamScreen> {
         // Ходы ПРОТИВ МИНИМУМА: без этого числа человек не знает, хорошо ли решил.
         HudItem(label: L.t('trafficJamMoves'), value: '$_moves/${_level!.minMoves}', icon: Icons.swap_horiz),
       ],
-      field: (context, h) => _won
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _won
           ? SizedBox(height: h, child: _result())
           : LayoutBuilder(
               builder: (context, c) {
@@ -229,6 +245,7 @@ class _TrafficJamScreenState extends State<TrafficJamScreen> {
                 );
               },
             ),
+        ),
       auxRow: AuxBar(children: [
         AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _history.isEmpty || _won ? null : _undo),
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),

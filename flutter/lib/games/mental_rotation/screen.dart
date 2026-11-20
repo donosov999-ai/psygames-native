@@ -6,7 +6,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart' hide Axis;
 import 'package:flutter/material.dart' as ui show Axis;
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
@@ -68,8 +68,7 @@ class MentalRotationScreen extends StatefulWidget {
 }
 
 class _MentalRotationScreenState extends State<MentalRotationScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   bool _ready = false;
 
@@ -122,6 +121,7 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
     _expose?.cancel();
     _advance?.cancel();
     _replay?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -227,7 +227,7 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
       ),
     );
     setState(() => _feedback = (idx: idx, ok: ok));
-    ok ? _haptics.hit() : _haptics.miss();
+    unawaited(_answerFeedback.show('answer', ok ? 'answer' : null, right: ok));
     if (ok) {
       _advance = Timer(const Duration(milliseconds: 650), () {
         if (mounted) _nextTrial();
@@ -345,21 +345,25 @@ class _MentalRotationScreenState extends State<MentalRotationScreen> {
                 icon: Icons.emoji_events_outlined,
               ),
             ],
-      field: (context, h) => switch (_phase) {
-        Phase.config => _config(context, h),
-        Phase.playing =>
-          task == null
-              ? const SizedBox.shrink()
-              : _TaskField(
-                  task: task,
-                  height: h,
-                  studying: _studying,
-                  reviewing: _reviewing,
-                  reviewStep: _reviewStep,
-                  frames: _frames,
-                ),
-        Phase.result => _result(context, h),
-      },
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: switch (_phase) {
+          Phase.config => _config(context, h),
+          Phase.playing =>
+            task == null
+                ? const SizedBox.shrink()
+                : _TaskField(
+                    task: task,
+                    height: h,
+                    studying: _studying,
+                    reviewing: _reviewing,
+                    reviewStep: _reviewStep,
+                    frames: _frames,
+                  ),
+          Phase.result => _result(context, h),
+        },
+      ),
       auxRow: _phase == Phase.playing
           ? AuxBar(
               children: [

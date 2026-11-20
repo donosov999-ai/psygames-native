@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -26,6 +29,7 @@ class DotsConnectScreen extends StatefulWidget {
 }
 
 class _DotsConnectScreenState extends State<DotsConnectScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   DotsLevelSet? _set;
   late LevelLadder _ladder;
 
@@ -78,7 +82,10 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
   }
 
   void _check() {
-    if (_game!.isWon && !_won) setState(() => _won = true);
+    if (_game!.isWon && !_won) {
+      unawaited(_answerFeedback.show('answer', 'answer'));
+      setState(() => _won = true);
+    }
   }
 
   /// ⚠️ Название одной строкой: второй литерал — второе место переводить.
@@ -118,6 +125,12 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
   }
 
   @override
+  void dispose() {
+    unawaited(_answerFeedback.dispose());
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final set = _set;
     final game = _game;
@@ -141,7 +154,10 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
       ],
       // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень. Решённая
       // доска остаётся под итогом — только смотреть. Победа в лестницу пишется, как и раньше, при переходе.
-      field: (context, h) => _won
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _won
           ? SizedBox(
               height: h,
               child: LevelResult(
@@ -163,6 +179,7 @@ class _DotsConnectScreenState extends State<DotsConnectScreen> {
               fieldHeight: h,
               onChanged: _check,
             ),
+        ),
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.undo,

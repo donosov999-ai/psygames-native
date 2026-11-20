@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
@@ -53,6 +55,7 @@ class NavigatorScreen extends StatefulWidget {
 }
 
 class _NavigatorScreenState extends State<NavigatorScreen> with WidgetsBindingObserver {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late final LevelLadder _ladder =
       LevelLadder(gameId: 'navigator', store: SharedLevelStore(widget.state), maxLevel: navigatorLevels);
   final Stopwatch _clock = Stopwatch()..start();
@@ -77,6 +80,7 @@ class _NavigatorScreenState extends State<NavigatorScreen> with WidgetsBindingOb
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _keys.dispose();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -124,6 +128,7 @@ class _NavigatorScreenState extends State<NavigatorScreen> with WidgetsBindingOb
   /// Итог уходит в лестницу, а лестница отдаёт партию веб-половине (`SessionReport`).
   Future<void> _report(NavigatorMetrics m) async {
     _passed = isPassed(m);
+    unawaited(_answerFeedback.show('answer', _passed ? 'answer' : null, right: _passed));
     final seconds = jsRound(m.durationMs / 1000).toInt();
     if (_passed) {
       await _ladder.win(score: m.score, timeSeconds: seconds, errors: m.errors, mode: m.mode.wire);
@@ -180,7 +185,11 @@ class _NavigatorScreenState extends State<NavigatorScreen> with WidgetsBindingOb
         title: L.t('navigator'),
         onLesson: () => openDemoLesson(context, title: L.t('navigator'), trials: navigatorLessonTrials(s)),
         hud: [HudItem(label: L.t('level'), value: '$_level', icon: Icons.flag_outlined)],
-        field: (context, h) => _field(context, h, s, session),
+        field: (context, h) => AnswerMark(
+          feedback: _answerFeedback,
+          value: 'answer',
+          child: _field(context, h, s, session),
+        ),
         auxRow: AuxBar(children: [
           AuxAction(inPause: true, icon: Icons.refresh, label: s.t('restart'), onPressed: done ? null : _restart),
         ]),
