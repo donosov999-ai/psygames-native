@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
@@ -48,6 +49,7 @@ class ChoiceRtScreen extends StatefulWidget {
 }
 
 class _ChoiceRtScreenState extends State<ChoiceRtScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   ChoiceRtGame? _game;
   ChoiceRtPhase _phase = ChoiceRtPhase.ready;
@@ -66,6 +68,7 @@ class _ChoiceRtScreenState extends State<ChoiceRtScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -158,6 +161,8 @@ class _ChoiceRtScreenState extends State<ChoiceRtScreen> {
 
   void _after(ChoiceOutcome outcome) {
     _timer?.cancel();
+    final right = outcome == ChoiceOutcome.hit || outcome == ChoiceOutcome.heldOnNeutral;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     setState(() => _flash = outcome);
     _timer = Timer(const Duration(milliseconds: choiceRtFeedbackMs), () {
       if (!mounted) return;
@@ -203,7 +208,10 @@ class _ChoiceRtScreenState extends State<ChoiceRtScreen> {
           ? null
           : () => openDemoLesson(context, title: L.t('choiceRt'), trials: _demoTrials(context)),
       suiteSwitch: _phase == ChoiceRtPhase.ready ? SuiteSwitch(route: '/games/choice-rt', state: widget.state) : null,
-      field: (context, h) => _Field(
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _Field(
         game: g,
         phase: _phase,
         flash: _flash,
@@ -218,6 +226,7 @@ class _ChoiceRtScreenState extends State<ChoiceRtScreen> {
           _start();
         },
       ),
+        ),
       toolbar: _phase == ChoiceRtPhase.playing ? _Pad(game: g, onPick: _answer) : null,
     );
   }

@@ -11,7 +11,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
@@ -55,8 +55,7 @@ class WcstScreen extends StatefulWidget {
 }
 
 class _WcstScreenState extends State<WcstScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   WcstGame? _game;
   WcstPhase _phase = WcstPhase.ready;
@@ -75,6 +74,7 @@ class _WcstScreenState extends State<WcstScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -111,7 +111,8 @@ class _WcstScreenState extends State<WcstScreen> {
     final wasJustChanged = g.awaitingCatch;
     final out = g.pick(idx);
     if (out == null) return;
-    out == WcstOutcome.hit ? _haptics.hit() : _haptics.miss();
+    final right = out == WcstOutcome.hit;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     setState(() {
       _flashIdx = idx;
       _flashOk = out == WcstOutcome.hit;
@@ -169,7 +170,10 @@ class _WcstScreenState extends State<WcstScreen> {
         // «Повторы» — персеверативные ошибки, главная мера пробы.
         HudItem(label: L.t('hud_repeats'), value: '${g.perseverative}', icon: Icons.replay),
       ],
-      field: (context, h) => _Field(
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _Field(
         game: g,
         classic: widget.classic,
         phase: _phase,
@@ -181,6 +185,7 @@ class _WcstScreenState extends State<WcstScreen> {
         onAgain: () => setState(_reset),
         onPick: _pick,
       ),
+        ),
     );
   }
 }

@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
@@ -44,6 +45,7 @@ class EmoStroopScreen extends StatefulWidget {
 }
 
 class _EmoStroopScreenState extends State<EmoStroopScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   EmoStroopGame? _game;
   EmoWords? _words;
@@ -63,6 +65,7 @@ class _EmoStroopScreenState extends State<EmoStroopScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -178,6 +181,8 @@ class _EmoStroopScreenState extends State<EmoStroopScreen> {
 
   void _after(EmoOutcome outcome) {
     _timer?.cancel();
+    final right = outcome == EmoOutcome.hit;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     setState(() => _flash = outcome);
     _timer = Timer(const Duration(milliseconds: emoFeedbackMs), () {
       if (!mounted) return;
@@ -225,7 +230,10 @@ class _EmoStroopScreenState extends State<EmoStroopScreen> {
           ? null
           : () => openDemoLesson(context, title: L.t('stroopEmotional'), trials: _demoTrials()),
       suiteSwitch: _phase == EmoPhase.ready ? SuiteSwitch(route: '/games/stroop-emotional', state: widget.state) : null,
-      field: (context, h) => _Field(
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _Field(
         game: g,
         words: w,
         phase: _phase,
@@ -241,6 +249,7 @@ class _EmoStroopScreenState extends State<EmoStroopScreen> {
           _start();
         },
       ),
+        ),
       toolbar: _phase == EmoPhase.playing ? _Answers(onPick: _answer) : null,
     );
   }

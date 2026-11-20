@@ -17,7 +17,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/setup_scroll.dart';
@@ -63,8 +63,7 @@ class TargetsScreen extends StatefulWidget {
 }
 
 class _TargetsScreenState extends State<TargetsScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   TargetsGame? _game;
   TargetsPhase _phase = TargetsPhase.ready;
@@ -83,6 +82,7 @@ class _TargetsScreenState extends State<TargetsScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -181,7 +181,8 @@ class _TargetsScreenState extends State<TargetsScreen> {
       return;
     }
     // Верное торможение (выше) отклика не получает — за бездействие ни галочки, ни толчка.
-    outcome == TargetsOutcome.hit ? _haptics.hit() : _haptics.miss();
+    final right = outcome == TargetsOutcome.hit;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     setState(() => _flash = outcome);
     _timer = Timer(const Duration(milliseconds: targetsFeedbackMs), () {
       if (!mounted) return;
@@ -247,7 +248,10 @@ class _TargetsScreenState extends State<TargetsScreen> {
         HudItem(label: L.t('label_lives'), value: '${g.lives}', icon: Icons.favorite_outline),
       ],
       onLesson: () => openDemoLesson(context, title: L.t('targets'), trials: _demoTrials()),
-      field: (context, h) => _Field(
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _Field(
         game: g,
         mode: _mode,
         phase: _phase,
@@ -258,6 +262,7 @@ class _TargetsScreenState extends State<TargetsScreen> {
         onAgain: () => setState(_reset),
         onMode: _pickMode,
       ),
+        ),
       toolbar: _phase == TargetsPhase.playing ? _TargetButton(onTap: _tap) : null,
     );
   }

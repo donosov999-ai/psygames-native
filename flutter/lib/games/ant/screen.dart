@@ -17,6 +17,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
@@ -55,6 +56,7 @@ class AntScreen extends StatefulWidget {
 }
 
 class _AntScreenState extends State<AntScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   AntGame? _game;
   AntPhase _phase = AntPhase.ready;
@@ -74,6 +76,7 @@ class _AntScreenState extends State<AntScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -172,6 +175,8 @@ class _AntScreenState extends State<AntScreen> {
 
   void _after(AntOutcome outcome) {
     _timer?.cancel();
+    final right = outcome == AntOutcome.hit;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     setState(() => _flash = outcome);
     _timer = Timer(const Duration(milliseconds: antFeedbackMs), () {
       if (!mounted) return;
@@ -219,7 +224,10 @@ class _AntScreenState extends State<AntScreen> {
           ? null
           : () => openDemoLesson(context, title: L.t('ant'), trials: _demoTrials()),
       suiteSwitch: _phase == AntPhase.ready ? SuiteSwitch(route: '/games/ant', state: widget.state) : null,
-      field: (context, h) => _Field(
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _Field(
         game: g,
         phase: _phase,
         flash: _flash,
@@ -235,6 +243,7 @@ class _AntScreenState extends State<AntScreen> {
           _start();
         },
       ),
+        ),
       toolbar: _phase == AntPhase.playing ? _Answers(onPick: _answer) : null,
     );
   }
