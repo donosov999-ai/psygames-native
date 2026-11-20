@@ -131,16 +131,78 @@ class AnswerMark extends StatelessWidget {
       if (!good && !bad) return child;
       final roles = GameColors.of(context);
       final color = good ? roles.correct : roles.wrong;
-      return DecoratedBox(
-        key: Key(good ? 'answer-mark-good' : 'answer-mark-bad'),
-        position: DecorationPosition.foreground,
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.28),
-          border: Border.all(color: color, width: 3),
-          borderRadius: BorderRadius.circular(radius),
+      return Stack(children: [
+        DecoratedBox(
+          key: Key(good ? 'answer-mark-good' : 'answer-mark-bad'),
+          position: DecorationPosition.foreground,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.28),
+            border: Border.all(color: color, width: 3),
+            borderRadius: BorderRadius.circular(radius),
+          ),
+          child: child,
         ),
-        child: child,
-      );
+      ]);
     },
+  );
+}
+
+/// Paints the central mark above the game body without affecting input or layout.
+class AnswerFeedbackOverlay extends StatelessWidget {
+  const AnswerFeedbackOverlay({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Stack(
+    fit: StackFit.passthrough,
+    children: [
+      child,
+      Positioned.fill(child: _buildOverlay()),
+    ],
+  );
+
+  // Keep this layer separate from the game's semantics. OverlayPortal groups
+  // its child and overlay into traversal nodes even when the mark is hidden.
+  Widget _buildOverlay() => ExcludeSemantics(
+    child: IgnorePointer(
+      child: ValueListenableBuilder<AnswerFeedback?>(
+        valueListenable: AnswerFeedback.current,
+        builder: (context, feedback, _) {
+          if (feedback == null) return const SizedBox.shrink();
+          return ValueListenableBuilder<AnswerMarkState?>(
+            valueListenable: feedback.mark,
+            builder: (context, mark, _) {
+              if (mark == null) return const SizedBox.shrink();
+              final roles = GameColors.of(context);
+              final color = mark.right ? roles.correct : roles.wrong;
+              return Center(
+                child: Container(
+                  key: Key(
+                    mark.right
+                        ? 'answer-feedback-center-good'
+                        : 'answer-feedback-center-bad',
+                  ),
+                  width: 136,
+                  height: 136,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(color: color.withValues(alpha: 0.35), blurRadius: 24),
+                    ],
+                  ),
+                  child: Icon(
+                    mark.right ? Icons.check_rounded : Icons.close_rounded,
+                    size: 96,
+                    color: roles.onStrong,
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    ),
   );
 }

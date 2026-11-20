@@ -85,6 +85,16 @@ if (CONFIRM !== `submit-${VERSION}`) {
   process.exit(0);
 }
 
+if (version?.attributes.appStoreState !== 'READY_FOR_REVIEW') {
+  for (const state of ['READY_FOR_REVIEW', 'WAITING_FOR_REVIEW']) {
+    const previous = await call('GET', `/reviewSubmissions?filter[app]=${app.id}&filter[state]=${state}&limit=10`);
+    for (const submission of previous.data.filter((candidate) => candidate.attributes.platform === 'IOS')) {
+      await call('DELETE', `/reviewSubmissions/${submission.id}`);
+      console.log(`Прежняя проверка iOS снята: ${state}`);
+    }
+  }
+}
+
 let submissionId;
 if (version?.attributes.appStoreState === 'READY_FOR_REVIEW') {
   const submissions = await call('GET', `/reviewSubmissions?filter[app]=${app.id}&filter[state]=READY_FOR_REVIEW&limit=10`);

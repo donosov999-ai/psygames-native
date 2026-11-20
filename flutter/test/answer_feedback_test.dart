@@ -74,7 +74,9 @@ void main() {
     final center = find.byKey(const Key('answer-feedback-center-good'));
     expect(center, findsOneWidget, reason: 'не только цвет — большой значок по центру экрана');
     expect(t.getCenter(center), const Offset(400, 300));
-    expect(find.byIcon(Icons.check_rounded), findsOneWidget);
+    expect(t.getSize(center), const Size.square(136));
+    final check = find.descendant(of: center, matching: find.byIcon(Icons.check_rounded));
+    expect(t.widget<Icon>(check).size, 96);
     expect(f.busy, isTrue, reason: 'пока горит — новые ответы не принимаются');
     expect(haptics, ['HapticFeedbackType.selectionClick']);
     await t.pump(const Duration(milliseconds: 590));
@@ -96,7 +98,9 @@ void main() {
     final center = find.byKey(const Key('answer-feedback-center-bad'));
     expect(center, findsOneWidget, reason: 'ошибка — большой красный крест по центру экрана');
     expect(t.getCenter(center), const Offset(400, 300));
-    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+    expect(t.getSize(center), const Size.square(136));
+    final cross = find.descendant(of: center, matching: find.byIcon(Icons.close_rounded));
+    expect(t.widget<Icon>(cross).size, 96);
     expect(haptics, ['HapticFeedbackType.heavyImpact']);
     await t.pump(AnswerFeedback.hold);
     expect(sound.played, [GameSound.wrong]);
@@ -113,6 +117,67 @@ void main() {
     await t.pump(AnswerFeedback.hold);
     expect(sound.played, isEmpty);
     expect(haptics, isEmpty);
+  });
+
+  testWidgets('центральный знак сохраняет поле, его семантику и жесты', (t) async {
+    t.view.devicePixelRatio = 1;
+    t.view.physicalSize = const Size(390, 844);
+    addTearDown(t.view.resetPhysicalSize);
+    addTearDown(t.view.resetDevicePixelRatio);
+    final semantics = t.ensureSemantics();
+    SharedPreferences.setMockInitialValues({});
+    final f = AnswerFeedback(await SharedState.open(), backend: _Sound());
+    var taps = 0;
+    var dragUpdates = 0;
+    const label = 'Игровая клетка';
+    final target = find.byKey(const Key('feedback-gesture-target'));
+    final level = find.bySemanticsLabel(RegExp(r'(?:^|\n)Уровень: 7(?:\n|$)'));
+    await t.pumpWidget(MaterialApp(
+      home: GameShell(
+        title: 'Test',
+        hud: const [HudItem(label: 'Уровень', value: '7')],
+        field: (_, _) => Align(
+          alignment: Alignment.topLeft,
+          child: Semantics(
+            container: true,
+            label: label,
+            child: GestureDetector(
+              key: const Key('feedback-gesture-target'),
+              behavior: HitTestBehavior.opaque,
+              onTap: () => taps++,
+              onPanUpdate: (_) => dragUpdates++,
+              child: const SizedBox.expand(),
+            ),
+          ),
+        ),
+      ),
+    ));
+    final fieldBefore = t.element(target);
+    expect(find.bySemanticsLabel(label), findsOneWidget);
+    expect(level, findsOneWidget);
+    var completed = false;
+    f.show(1, 1).then((_) => completed = true);
+    await t.pump();
+    final mark = find.byKey(const Key('answer-feedback-center-good'));
+    expect(mark, findsOneWidget);
+    final center = t.getCenter(mark);
+    expect(center, const Offset(195, 422));
+    expect(t.getRect(target).contains(center), isTrue);
+    expect(t.element(target), same(fieldBefore));
+    expect(find.bySemanticsLabel(label), findsOneWidget);
+    expect(level, findsOneWidget);
+    await t.tapAt(center);
+    await t.dragFrom(center, const Offset(72, 0));
+    expect(taps, 1);
+    expect(dragUpdates, greaterThan(0));
+    await t.pump(AnswerFeedback.hold);
+    expect(completed, isTrue);
+    expect(mark, findsNothing);
+    expect(t.element(target), same(fieldBefore));
+    expect(find.bySemanticsLabel(label), findsOneWidget);
+    await t.pumpWidget(const SizedBox());
+    await f.dispose();
+    semantics.dispose();
   });
 
   testWidgets('уход во время подсветки: отложенный таймер не пишет в закрытый экран', (t) async {

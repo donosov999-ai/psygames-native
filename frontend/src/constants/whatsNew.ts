@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.74.1',
+    date: '2026-11-20',
+    en: [
+      'Games no longer appear twice outside their hubs',
+      'A large green check or red cross now appears in the centre of the game screen',
+    ],
+    ru: [
+      'Игры больше не дублируются отдельными плитками вне хабов',
+      'Большой зелёный ✓ или красный ✗ теперь появляется по центру игрового экрана',
+    ],
+  },
+  {
     version: '2.74.0',
     date: '2026-11-20',
     en: [
