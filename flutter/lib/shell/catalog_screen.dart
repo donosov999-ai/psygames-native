@@ -365,10 +365,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   /// Без поиска — разделы веба плитками: развилки первыми, потом одиночные, в порядке `GAMES`.
   Widget _sections(Catalog c) {
     final v = _visible();
-    final shown = [
-      for (final g in c.games)
-        if (v.games?.contains(g.id) ?? !g.hidden) g,
-    ];
+    final shown = c.sectionGames(v.games);
     var entryIndex = 0;
     final entryOrder = <CatalogEntry, int>{
       for (final cat in c.categories)

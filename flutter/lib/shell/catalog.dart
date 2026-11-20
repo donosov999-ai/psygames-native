@@ -39,6 +39,7 @@ class CatalogEntry {
     this.category,
     this.hub = false,
     this.hubRoute,
+    this.mergedInto,
     this.hidden = false,
     this.gradient = const [],
     this.look,
@@ -61,6 +62,7 @@ class CatalogEntry {
 
   /// За какой развилкой лежит карточка.
   final String? hubRoute;
+  final String? mergedInto;
 
   /// Вне меню (`hideFromMenu`) или в песочнице: в разделах по умолчанию не стоит, поиском
   /// находится. Нужен только запасному списку, когда веб ещё не прислал каталог профиля.
@@ -130,6 +132,18 @@ class Catalog {
     return s;
   }
 
+  List<CatalogEntry> sectionGames(Set<String>? allowed) {
+    final visible = [
+      for (final game in games)
+        if (allowed?.contains(game.id) ?? !game.hidden) game,
+    ];
+    final liveHubs = {for (final game in visible) if (game.hub) game.id};
+    return [
+      for (final game in visible)
+        if (game.mergedInto == null || !liveHubs.contains(game.mergedInto)) game,
+    ];
+  }
+
   /// 🔴 ИЩЕМ ПО ТОМУ, ЧТО ЧЕЛОВЕК ВИДИТ, И ПО ДРУГОМУ ЯЗЫКУ ТОЖЕ. Дефект Chess & Go 24.09:
   /// сравнивали русское имя при английском интерфейсе — «no match». Здесь наоборот не
   /// нужно: имя на экране + английское и русское (приёмка f5025027) + адрес.
@@ -170,6 +184,7 @@ class Catalog {
           skillKey: g['skillKey'] as String?,
           category: g['category'] as String?,
           hub: g['hub'] == true,
+          mergedInto: g['mergedInto'] as String?,
           hidden: g['hideFromMenu'] == true || g['sandbox'] == true,
           gradient: [
             for (final h in (g['gradient'] as List? ?? const []).cast<String>())

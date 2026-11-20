@@ -8,6 +8,7 @@ import 'package:psygames_flutter/shell/catalog_screen.dart';
 import 'package:psygames_flutter/shell/game_tile.dart';
 import 'package:psygames_flutter/shell/hub_screen.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/profiles.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -85,6 +86,23 @@ void main() {
       expect(c.entries.map((e) => e.route).toSet(), containsAll(routes));
       expect(c.entries.length, greaterThanOrEqualTo(routes.length));
       expect(routes.length, greaterThan(c.games.length), reason: 'за развилками есть игры, которых нет в GAMES');
+    });
+
+    test('🔴 полный доступ не выносит игры из живых развилок отдельными плитками', () {
+      final c = _catalog();
+      final sections = c.sectionGames(null).map((game) => game.route).toSet();
+      for (final route in [
+        '/games/word-pairs',
+        '/games/vocab-srs',
+        '/games/semantic-sort',
+        '/games/pseudoword-echo',
+        '/games/phoneme-pairs',
+      ]) {
+        expect(sections, isNot(contains(route)), reason: '$route уже доступна внутри развилки');
+        expect(c.find(route, null).map((game) => game.route), contains(route), reason: 'поиск сохраняет прямой вход');
+      }
+      expect(sections, containsAll(['/games/mnemonics-hub', '/games/languages-hub']));
+      expect(sections.length, lessThan(c.games.length));
     });
 
     test('🔴 карточка без своей записи берёт раздел и навык у развилки', () {
@@ -205,6 +223,8 @@ void main() {
     });
 
     testWidgets('🔴 разделы — список ПРОФИЛЯ от веба; поиск — по всем играм', (t) async {
+      Profiles.allProfilesAllGames = false;
+      addTearDown(() => Profiles.allProfilesAllGames = true);
       await state.set(HubScreen.visibleKey,
           jsonEncode({'profile': state.activeProfile, 'hubs': {}, 'catalog': ['schulte_table', 'puzzles_hub']}));
       await _open(t, CatalogScreen(state: state));
@@ -237,6 +257,8 @@ void main() {
     });
 
     testWidgets('🔴 плитка развилки — счётчик игр; звёзды уровней — из общей памяти, как у веба', (t) async {
+      Profiles.allProfilesAllGames = false;
+      addTearDown(() => Profiles.allProfilesAllGames = true);
       await state.set(HubScreen.visibleKey, jsonEncode({
         'profile': state.activeProfile,
         'hubs': {'/games/span': ['/games/digit-span', '/games/corsi']},
