@@ -3,7 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/l10n.dart';
 import '../../shell/boss_round.dart';
@@ -58,8 +58,7 @@ const Map<String, IconData> _icons = {
 };
 
 class _SdmtScreenState extends State<SdmtScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   late Rng _rng;
   late SdmtParams _params;
@@ -96,6 +95,7 @@ class _SdmtScreenState extends State<SdmtScreen> {
   @override
   void dispose() {
     _tick?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -158,7 +158,8 @@ class _SdmtScreenState extends State<SdmtScreen> {
   void _press(int digit) {
     if (_phase != _Phase.playing) return;
     final entry = _keymap.firstWhere((k) => k.sym == _stim);
-    entry.digit == digit ? _haptics.hit() : _haptics.miss();
+    final right = entry.digit == digit;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     setState(() {
       if (entry.digit == digit) {
         _hits += 1;
@@ -268,7 +269,10 @@ class _SdmtScreenState extends State<SdmtScreen> {
         ),
         HudItem(label: L.t('hud_errors'), value: '$_errors', icon: Icons.error_outline),
       ],
-      field: (context, h) => _phase == _Phase.result
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _phase == _Phase.result
           ? SizedBox(height: h, child: _result())
           : _Field(
               keymap: _keymap,
@@ -277,6 +281,7 @@ class _SdmtScreenState extends State<SdmtScreen> {
               playing: _phase == _Phase.playing,
               height: h,
             ),
+        ),
       auxRow: AuxBar(
         children: [
           AuxAction(

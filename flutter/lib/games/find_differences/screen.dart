@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
@@ -50,8 +50,7 @@ const List<IconData> _sprites = [
 ];
 
 class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   late Rng _rng;
   late FdParams _params;
@@ -92,6 +91,7 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
   void dispose() {
     _tick?.cancel();
     _next?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -164,14 +164,18 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
   void _tap(double x, double y) {
     if (_phase != _Phase.playing) return;
     final idx = hitTest(_right, x, y);
-    if (idx == null || _found.contains(idx) || !_diffIdx.contains(idx)) return;
+    if (idx == null || _found.contains(idx)) return;
+    if (!_diffIdx.contains(idx)) {
+      unawaited(_answerFeedback.show('answer', null, right: false));
+      return;
+    }
     setState(() => _found.add(idx));
-    _found.length == _diffIdx.length ? _haptics.win() : _haptics.hit();
+    unawaited(_answerFeedback.show('answer', 'answer'));
     if (_found.length == _diffIdx.length) _endRound(true);
   }
 
   void _endRound(bool cleared) {
-    if (!cleared) _haptics.miss();   // время вышло
+    if (!cleared) unawaited(_answerFeedback.show('answer', null, right: false));   // время вышло
     _tick?.cancel();
     if (cleared) _roundsWon += 1;
     _next?.cancel();
@@ -248,7 +252,10 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
         if (!GamePreset.isCalm)
           HudItem(label: L.t('time'), value: '${_left_.ceil()}', icon: Icons.timer_outlined),
       ],
-      field: (context, h) => LayoutBuilder(builder: (context, c) {
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: LayoutBuilder(builder: (context, c) {
         // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход — сразу новая партия (после
         // победы лестница уже на следующем уровне).
         if (_phase == _Phase.result) {
@@ -299,6 +306,7 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
           ]),
         );
       }),
+        ),
       auxRow: AuxBar(children: [
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
