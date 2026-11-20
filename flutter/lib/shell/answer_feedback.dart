@@ -147,48 +147,50 @@ class AnswerMark extends StatelessWidget {
   );
 }
 
-
-class AnswerFeedbackOverlay extends StatefulWidget {
+/// Paints the central mark above the game body without affecting input or layout.
+class AnswerFeedbackOverlay extends StatelessWidget {
   const AnswerFeedbackOverlay({super.key, required this.child});
 
   final Widget child;
 
   @override
-  State<AnswerFeedbackOverlay> createState() => _AnswerFeedbackOverlayState();
-}
+  Widget build(BuildContext context) => Stack(
+    fit: StackFit.passthrough,
+    children: [
+      child,
+      Positioned.fill(child: _buildOverlay()),
+    ],
+  );
 
-class _AnswerFeedbackOverlayState extends State<AnswerFeedbackOverlay> {
-  final _controller = OverlayPortalController();
-
-  @override
-  void initState() {
-    super.initState();
-    _controller.show();
-  }
-
-  @override
-  Widget build(BuildContext context) => OverlayPortal(
-    controller: _controller,
-    overlayChildBuilder: (_) => ValueListenableBuilder<AnswerFeedback?>(
-      valueListenable: AnswerFeedback.current,
-      builder: (context, feedback, _) {
-        if (feedback == null) return const SizedBox.shrink();
-        return ValueListenableBuilder<AnswerMarkState?>(
-          valueListenable: feedback.mark,
-          builder: (context, mark, _) {
-            if (mark == null) return const SizedBox.shrink();
-            final roles = GameColors.of(context);
-            final color = mark.right ? roles.correct : roles.wrong;
-            return IgnorePointer(
-              child: Center(
+  // Keep this layer separate from the game's semantics. OverlayPortal groups
+  // its child and overlay into traversal nodes even when the mark is hidden.
+  Widget _buildOverlay() => ExcludeSemantics(
+    child: IgnorePointer(
+      child: ValueListenableBuilder<AnswerFeedback?>(
+        valueListenable: AnswerFeedback.current,
+        builder: (context, feedback, _) {
+          if (feedback == null) return const SizedBox.shrink();
+          return ValueListenableBuilder<AnswerMarkState?>(
+            valueListenable: feedback.mark,
+            builder: (context, mark, _) {
+              if (mark == null) return const SizedBox.shrink();
+              final roles = GameColors.of(context);
+              final color = mark.right ? roles.correct : roles.wrong;
+              return Center(
                 child: Container(
-                  key: Key(mark.right ? 'answer-feedback-center-good' : 'answer-feedback-center-bad'),
+                  key: Key(
+                    mark.right
+                        ? 'answer-feedback-center-good'
+                        : 'answer-feedback-center-bad',
+                  ),
                   width: 96,
                   height: 96,
                   decoration: BoxDecoration(
                     color: color,
                     shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: color.withValues(alpha: 0.35), blurRadius: 24)],
+                    boxShadow: [
+                      BoxShadow(color: color.withValues(alpha: 0.35), blurRadius: 24),
+                    ],
                   ),
                   child: Icon(
                     mark.right ? Icons.check_rounded : Icons.close_rounded,
@@ -196,12 +198,11 @@ class _AnswerFeedbackOverlayState extends State<AnswerFeedbackOverlay> {
                     color: roles.onStrong,
                   ),
                 ),
-              ),
-            );
-          },
-        );
-      },
+              );
+            },
+          );
+        },
+      ),
     ),
-    child: widget.child,
   );
 }

@@ -115,6 +115,62 @@ void main() {
     expect(haptics, isEmpty);
   });
 
+  testWidgets('центральный знак сохраняет поле, его семантику и жесты', (t) async {
+    final semantics = t.ensureSemantics();
+    SharedPreferences.setMockInitialValues({});
+    final f = AnswerFeedback(await SharedState.open(), backend: _Sound());
+    var taps = 0;
+    var dragUpdates = 0;
+    const label = 'Игровая клетка';
+    final target = find.byKey(const Key('feedback-gesture-target'));
+    final level = find.bySemanticsLabel(RegExp(r'(?:^|\n)Уровень: 7(?:\n|$)'));
+    await t.pumpWidget(MaterialApp(
+      home: GameShell(
+        title: 'Test',
+        hud: const [HudItem(label: 'Уровень', value: '7')],
+        field: (_, _) => Align(
+          alignment: Alignment.topLeft,
+          child: Semantics(
+            container: true,
+            label: label,
+            child: GestureDetector(
+              key: const Key('feedback-gesture-target'),
+              behavior: HitTestBehavior.opaque,
+              onTap: () => taps++,
+              onPanUpdate: (_) => dragUpdates++,
+              child: const SizedBox.expand(),
+            ),
+          ),
+        ),
+      ),
+    ));
+    final fieldBefore = t.element(target);
+    expect(find.bySemanticsLabel(label), findsOneWidget);
+    expect(level, findsOneWidget);
+    var completed = false;
+    f.show(1, 1).then((_) => completed = true);
+    await t.pump();
+    final mark = find.byKey(const Key('answer-feedback-center-good'));
+    expect(mark, findsOneWidget);
+    final center = t.getCenter(mark);
+    expect(t.getRect(target).contains(center), isTrue);
+    expect(t.element(target), same(fieldBefore));
+    expect(find.bySemanticsLabel(label), findsOneWidget);
+    expect(level, findsOneWidget);
+    await t.tapAt(center);
+    await t.dragFrom(center, const Offset(72, 0));
+    expect(taps, 1);
+    expect(dragUpdates, greaterThan(0));
+    await t.pump(AnswerFeedback.hold);
+    expect(completed, isTrue);
+    expect(mark, findsNothing);
+    expect(t.element(target), same(fieldBefore));
+    expect(find.bySemanticsLabel(label), findsOneWidget);
+    await t.pumpWidget(const SizedBox());
+    await f.dispose();
+    semantics.dispose();
+  });
+
   testWidgets('уход во время подсветки: отложенный таймер не пишет в закрытый экран', (t) async {
     final (f, _) = await pump(t);
     var done = false;
