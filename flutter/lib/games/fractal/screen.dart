@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_colors.dart';
@@ -99,7 +99,7 @@ class _FractalScreenState extends State<FractalScreen> {
   /// Строка под клавишами после хода: что за красная цифра — или что клетка ещё не определена.
   /// Держится до следующего действия (у веба — на таймере; без таймера нет мельтешения).
   _MoveHint _hint = _MoveHint.none;
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
 
   /// 🔴 «ПОКАЗАТЬ РЕШЕНИЕ» — как у веба (сверка 138f7818, строка 34, «высокая»; запрос Дениса
   /// 18.09, отзыв 585fc14c: партия из десяти сеток без выхода к ответу). Показ — это сдача:
@@ -167,6 +167,7 @@ class _FractalScreenState extends State<FractalScreen> {
   @override
   void dispose() {
     _persist();   // уход с экрана — с живым временем, а не с тем, что было на прошлом ходу
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -313,9 +314,11 @@ class _FractalScreenState extends State<FractalScreen> {
       if (provable) {
         _errors++;
         hint = _MoveHint.red;
-        unawaited(_haptics.medium());
+        unawaited(_answerFeedback.show('answer', null, right: false));
       } else if (!right) {
         hint = _MoveHint.undecided;   // не ошибка: задача здесь ещё не определена — говорим прямо
+      } else {
+        unawaited(_answerFeedback.show('answer', 'answer'));
       }
     }
 
@@ -613,27 +616,35 @@ class _FractalScreenState extends State<FractalScreen> {
         if (levels == null) return const Center(child: CircularProgressIndicator());
         if (f == null || p == null) return Center(child: Text(_failure ?? L.t('sdkGameFailed')));
         if (open == null) {
-          return _MapView(
-            puzzle: f,
-            play: p,
-            marks: _marks[0],
-            colors: _colors[0],
-            height: height,
-            selected: _selected,
-            progress: _progress,
-            onRootTap: (r, c) => _select(null, r, c),
-            onTile: _openTile,
+          return AnswerMark(
+            feedback: _answerFeedback,
+            value: 'answer',
+            child: _MapView(
+              puzzle: f,
+              play: p,
+              marks: _marks[0],
+              colors: _colors[0],
+              height: height,
+              selected: _selected,
+              progress: _progress,
+              onRootTap: (r, c) => _select(null, r, c),
+              onTile: _openTile,
+            ),
           );
         }
-        return _ChildView(
-          puzzle: f,
-          play: p,
-          child: open,
-          marks: _marks[open + 1],
-          colors: _colors[open + 1],
-          height: height,
-          selected: _selected,
-          onTap: (r, c) => _select(open, r, c),
+        return AnswerMark(
+          feedback: _answerFeedback,
+          value: 'answer',
+          child: _ChildView(
+            puzzle: f,
+            play: p,
+            child: open,
+            marks: _marks[open + 1],
+            colors: _colors[open + 1],
+            height: height,
+            selected: _selected,
+            onTap: (r, c) => _select(open, r, c),
+          ),
         );
       },
       auxRow: AuxBar(children: [
