@@ -13,7 +13,6 @@ import '../../shell/game_shell.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_effect_audio.dart';
 import '../../shell/reward_effects.dart';
-import '../../shell/app_haptics.dart';
 import '../../shell/audio_host.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
@@ -439,7 +438,6 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
       unawaited(_answerFeedback.show('board', null, right: false));
       return;
     }
-    unawaited(_answerFeedback.show('board', 'board'));
     final board = _board!;
     final level = _level!;
 
@@ -459,11 +457,8 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
       if (report.clearedTypes.isNotEmpty) _audio.emit(GameSound.group, soundToken);
       if (_won) _audio.emit(GameSound.victory, soundToken);
       if (_won && _feedback.rewards) setState(() => _celebrate = true);
-      // A single existing system signal for the accepted move, at landing.
-      // Practice owners keep their own signals. No vibration library/pattern.
-      if (_feedback.haptics && !GamePreset.isPreset) {
-        final haptics = AppHaptics(widget.state);
-        unawaited(_won ? haptics.win() : haptics.hit());
+      if (!GamePreset.isPreset) {
+        unawaited(_answerFeedback.show('board', 'board'));
       }
     }
     final animated = _motion.begin(pick.cell, pick.index, pick.type, to,

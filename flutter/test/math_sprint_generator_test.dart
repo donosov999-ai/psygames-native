@@ -59,6 +59,7 @@ void main() {
       await tester.tap(find.byKey(Key('клавиша$ch')));
       await tester.pump();
     }
+    await tester.pump(const Duration(milliseconds: 600));
   }
 
   /// Партия на победу: двенадцать верных ответов клавишами, потом время выходит само.

@@ -363,8 +363,9 @@ void main() {
       expect(find.byType(VictorySparks), findsOneWidget);
       expect(sound.sounds.where((s) => s == GameSound.victory), hasLength(1));
       expect(
-        vibration.where((s) => s == 'HapticFeedbackType.mediumImpact'),
-        hasLength(1),
+        vibration.where((s) => s == 'HapticFeedbackType.selectionClick'),
+        hasLength(4),
+        reason: 'по одному общему отклику на каждый принятый ход, без дублей',
       );
       await t.pump(const Duration(milliseconds: 1400));
       await t.pumpAndSettle();
