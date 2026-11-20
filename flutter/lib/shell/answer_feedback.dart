@@ -183,8 +183,8 @@ class AnswerFeedbackOverlay extends StatelessWidget {
                         ? 'answer-feedback-center-good'
                         : 'answer-feedback-center-bad',
                   ),
-                  width: 96,
-                  height: 96,
+                  width: 136,
+                  height: 136,
                   decoration: BoxDecoration(
                     color: color,
                     shape: BoxShape.circle,
@@ -194,7 +194,7 @@ class AnswerFeedbackOverlay extends StatelessWidget {
                   ),
                   child: Icon(
                     mark.right ? Icons.check_rounded : Icons.close_rounded,
-                    size: 64,
+                    size: 96,
                     color: roles.onStrong,
                   ),
                 ),

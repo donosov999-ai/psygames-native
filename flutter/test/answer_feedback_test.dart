@@ -74,7 +74,9 @@ void main() {
     final center = find.byKey(const Key('answer-feedback-center-good'));
     expect(center, findsOneWidget, reason: 'не только цвет — большой значок по центру экрана');
     expect(t.getCenter(center), const Offset(400, 300));
-    expect(find.byIcon(Icons.check_rounded), findsOneWidget);
+    expect(t.getSize(center), const Size.square(136));
+    final check = find.descendant(of: center, matching: find.byIcon(Icons.check_rounded));
+    expect(t.widget<Icon>(check).size, 96);
     expect(f.busy, isTrue, reason: 'пока горит — новые ответы не принимаются');
     expect(haptics, ['HapticFeedbackType.selectionClick']);
     await t.pump(const Duration(milliseconds: 590));
@@ -96,7 +98,9 @@ void main() {
     final center = find.byKey(const Key('answer-feedback-center-bad'));
     expect(center, findsOneWidget, reason: 'ошибка — большой красный крест по центру экрана');
     expect(t.getCenter(center), const Offset(400, 300));
-    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+    expect(t.getSize(center), const Size.square(136));
+    final cross = find.descendant(of: center, matching: find.byIcon(Icons.close_rounded));
+    expect(t.widget<Icon>(cross).size, 96);
     expect(haptics, ['HapticFeedbackType.heavyImpact']);
     await t.pump(AnswerFeedback.hold);
     expect(sound.played, [GameSound.wrong]);
@@ -116,6 +120,10 @@ void main() {
   });
 
   testWidgets('центральный знак сохраняет поле, его семантику и жесты', (t) async {
+    t.view.devicePixelRatio = 1;
+    t.view.physicalSize = const Size(390, 844);
+    addTearDown(t.view.resetPhysicalSize);
+    addTearDown(t.view.resetDevicePixelRatio);
     final semantics = t.ensureSemantics();
     SharedPreferences.setMockInitialValues({});
     final f = AnswerFeedback(await SharedState.open(), backend: _Sound());
@@ -153,6 +161,7 @@ void main() {
     final mark = find.byKey(const Key('answer-feedback-center-good'));
     expect(mark, findsOneWidget);
     final center = t.getCenter(mark);
+    expect(center, const Offset(195, 422));
     expect(t.getRect(target).contains(center), isTrue);
     expect(t.element(target), same(fieldBefore));
     expect(find.bySemanticsLabel(label), findsOneWidget);
