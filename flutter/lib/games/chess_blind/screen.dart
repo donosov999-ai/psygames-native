@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -163,6 +164,7 @@ class ChessBlindScreen extends StatefulWidget {
 }
 
 class _ChessBlindScreenState extends State<ChessBlindScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late final LevelLadder _ladder = LevelLadder(
     gameId: 'chess_blind',
     store: SharedLevelStore(widget.state),
@@ -221,6 +223,7 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
   @override
   void dispose() {
     _ticker?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -343,6 +346,7 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
     final q = g.current;
     if (q == null) return;
     final ok = g.answer(square: sq);
+    unawaited(_answerFeedback.show('answer', ok ? 'answer' : null, right: ok));
     setState(() {
       _reveal = _Reveal(
         question: q,
@@ -359,6 +363,7 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
     final q = g.current;
     if (q == null) return;
     final ok = g.answer(piece: c.type, white: c.white);
+    unawaited(_answerFeedback.show('answer', ok ? 'answer' : null, right: ok));
     setState(() {
       _reveal = _Reveal(
         question: q,
@@ -498,14 +503,18 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
             ),
           );
         }
-        return switch (_stage) {
-          _Stage.config => _config(),
-          _Stage.play =>
-            g!.phase == ChessBlindPhase.interference && _reveal == null
-                ? _interference(g)
-                : _play(g, h),
-          _Stage.done => _result(),
-        };
+        return AnswerMark(
+          feedback: _answerFeedback,
+          value: 'answer',
+          child: switch (_stage) {
+            _Stage.config => _config(),
+            _Stage.play =>
+              g!.phase == ChessBlindPhase.interference && _reveal == null
+                  ? _interference(g)
+                  : _play(g, h),
+            _Stage.done => _result(),
+          },
+        );
       },
       toolbar: playing ? _options(g) : null,
       pauseActions: [

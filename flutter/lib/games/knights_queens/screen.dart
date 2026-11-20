@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
@@ -57,6 +58,7 @@ class KnightsQueensScreen extends StatefulWidget {
 enum _Phase { config, playing, done }
 
 class _KnightsQueensScreenState extends State<KnightsQueensScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late KqMode _mode = widget.initialMode;
   late final Map<KqMode, LevelLadder> _ladders = {
     for (final m in KqMode.values)
@@ -109,6 +111,7 @@ class _KnightsQueensScreenState extends State<KnightsQueensScreen> {
   @override
   void dispose() {
     _ticker?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -141,6 +144,16 @@ class _KnightsQueensScreenState extends State<KnightsQueensScreen> {
     });
     _ticker?.cancel();
     _ticker = gameInterval(const Duration(milliseconds: 100), _tick);
+  }
+
+  void _move(KqRun run, VoidCallback action) {
+    final before = run.verdict;
+    setState(action);
+    final verdict = run.verdict;
+    if (before == null && verdict != null) {
+      final right = verdict == KqVerdict.solved;
+      unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
+    }
   }
 
   void _tick() {
@@ -274,11 +287,15 @@ class _KnightsQueensScreenState extends State<KnightsQueensScreen> {
             icon: Icons.check_circle_outline,
           ),
       ],
-      field: (context, h) => switch (_phase) {
-        _Phase.config => _config(),
-        _Phase.playing => run == null ? const SizedBox.shrink() : _play(run, h),
-        _Phase.done => _result(),
-      },
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: switch (_phase) {
+          _Phase.config => _config(),
+          _Phase.playing => run == null ? const SizedBox.shrink() : _play(run, h),
+          _Phase.done => _result(),
+        },
+      ),
       auxRow: playing ? _aux(run) : null,
       pauseActions: [
         if (playing)
@@ -454,7 +471,7 @@ class _KnightsQueensScreenState extends State<KnightsQueensScreen> {
                 highlight: queens.highlight,
                 hint: queens.hintCell,
                 mistake: queens.mistakeCell,
-                onTap: (c) => setState(() => queens.tap(c)),
+                onTap: (c) => _move(queens, () => queens.tap(c)),
               )
             else
               KqBoardView.tour(
@@ -464,7 +481,7 @@ class _KnightsQueensScreenState extends State<KnightsQueensScreen> {
                 targets: tour.targets.toSet(),
                 hint: tour.hintCell,
                 mistake: tour.mistakeCell,
-                onTap: (c) => setState(() => tour.tap(c)),
+                onTap: (c) => _move(tour, () => tour.tap(c)),
               ),
             const SizedBox(height: 8),
             Wrap(

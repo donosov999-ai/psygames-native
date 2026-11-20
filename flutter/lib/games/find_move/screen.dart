@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
@@ -75,6 +76,7 @@ class FindMoveScreen extends StatefulWidget {
 enum _Phase { config, playing, done }
 
 class _FindMoveScreenState extends State<FindMoveScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late final LevelLadder _ladder = LevelLadder(
     gameId: 'find_move',
     store: SharedLevelStore(widget.state),
@@ -123,6 +125,7 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
   @override
   void dispose() {
     _ticker?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -148,6 +151,15 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
     });
     _ticker?.cancel();
     _ticker = gameInterval(const Duration(milliseconds: 100), _tick);
+  }
+
+  void _move(FindMoveRun run, VoidCallback action) {
+    final before = run.verdict;
+    setState(action);
+    final verdict = run.verdict;
+    if (before == null && verdict != null) {
+      unawaited(_answerFeedback.show('answer', verdict.ok ? 'answer' : null, right: verdict.ok));
+    }
   }
 
   void _tick() {
@@ -302,11 +314,15 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
             icon: Icons.check_circle_outline,
           ),
       ],
-      field: (context, h) => switch (_phase) {
-        _Phase.config => _config(),
-        _Phase.playing => run == null ? const SizedBox.shrink() : _play(run, h),
-        _Phase.done => _result(),
-      },
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: switch (_phase) {
+          _Phase.config => _config(),
+          _Phase.playing => run == null ? const SizedBox.shrink() : _play(run, h),
+          _Phase.done => _result(),
+        },
+      ),
       auxRow: playing ? _aux(run) : null,
       pauseActions: [
         if (playing)
@@ -422,7 +438,8 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
               keyPrefix: 'fm',
               // Вердикт называет ход записью («Rc8#») — без подписей полей его не найти глазами.
               cornerCoords: true,
-              onTapSquare: (i) => setState(
+              onTapSquare: (i) => _move(
+                run,
                 () => run.tap(scholarsSquareName(i, whiteBottom: white)),
               ),
               selected: at(run.selected),

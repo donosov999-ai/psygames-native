@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -119,6 +120,7 @@ class ScholarsMateScreen extends StatefulWidget {
 enum _Phase { config, playing, done }
 
 class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late final LevelLadder _ladder = LevelLadder(
     gameId: 'scholars_mate',
     store: SharedLevelStore(widget.state),
@@ -178,6 +180,7 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
   @override
   void dispose() {
     _ticker?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -238,6 +241,15 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
     });
     _ticker?.cancel();
     _ticker = Timer.periodic(const Duration(milliseconds: 100), (_) => _tick());
+  }
+
+  void _move(ScholarsRun run, VoidCallback action) {
+    final before = run.verdict;
+    setState(action);
+    final verdict = run.verdict;
+    if (before == null && verdict != null) {
+      unawaited(_answerFeedback.show('answer', verdict.ok ? 'answer' : null, right: verdict.ok));
+    }
   }
 
   void _tick() {
@@ -423,11 +435,15 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
             icon: Icons.check_circle_outline,
           ),
       ],
-      field: (context, h) => switch (_phase) {
-        _Phase.config => _config(corpus),
-        _Phase.playing => run == null ? const SizedBox.shrink() : _play(run, h),
-        _Phase.done => _result(),
-      },
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: switch (_phase) {
+          _Phase.config => _config(corpus),
+          _Phase.playing => run == null ? const SizedBox.shrink() : _play(run, h),
+          _Phase.done => _result(),
+        },
+      ),
       auxRow: playing ? _aux(run) : null,
       pauseActions: [
         if (playing)
@@ -652,7 +668,8 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
               keyPrefix: 'sm',
               onTapSquare: threat
                   ? null
-                  : (i) => setState(
+                  : (i) => _move(
+                      run,
                       () => run.tap(scholarsSquareName(i, whiteBottom: white)),
                     ),
               selected: run.selected == null
@@ -675,7 +692,7 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
                 children: [
                   OutlinedButton(
                     key: const Key('sm-yes'),
-                    onPressed: () => setState(() => run.answerThreat(true)),
+                    onPressed: () => _move(run, () => run.answerThreat(true)),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(110, 48),
                     ),
@@ -684,7 +701,7 @@ class _ScholarsMateScreenState extends State<ScholarsMateScreen> {
                   const SizedBox(width: 12),
                   OutlinedButton(
                     key: const Key('sm-no'),
-                    onPressed: () => setState(() => run.answerThreat(false)),
+                    onPressed: () => _move(run, () => run.answerThreat(false)),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(110, 48),
                     ),
