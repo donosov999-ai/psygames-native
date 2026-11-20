@@ -5,7 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/audio_host.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
@@ -101,8 +101,7 @@ class NBackScreen extends StatefulWidget {
 }
 
 class _NBackScreenState extends State<NBackScreen> {
-  /// Вибрация — через общий выключатель «Вибрация» (веб `psygames_haptic_enabled`).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
 
   late LevelLadder _ladder;
   late final NbRng _rng = widget.rng ?? Random().nextDouble;
@@ -144,6 +143,7 @@ class _NBackScreenState extends State<NBackScreen> {
   void dispose() {
     _timer?.cancel();
     _voice?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -167,6 +167,7 @@ class _NBackScreenState extends State<NBackScreen> {
   /// Правила партии: по уровню, а в шаге зарядки и «Оценки» — по шагу.
   void _reset() {
     _timer?.cancel();
+    _answerFeedback.clear();
     final level = _ladder.level;
     _playedLevel = level;
     final p = NbLevelParams.of(level);
@@ -251,7 +252,8 @@ class _NBackScreenState extends State<NBackScreen> {
     final r = audio ? g.pressAudio() : g.pressVisual();
     if (r == NbPress.ignored) return;
     if (!audio) _countStreak(r);
-    _haptics.selection();
+    final right = r == NbPress.hit;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     setState(() => audio ? _lastAudio = r : _lastVisual = r);
   }
 
@@ -381,12 +383,16 @@ class _NBackScreenState extends State<NBackScreen> {
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
       ]),
       toolbar: _phase == NbPhase.playing
-          ? _Buttons(
-              game: g,
-              lastVisual: _lastVisual,
-              lastAudio: _lastAudio,
-              onVisual: () => _press(audio: false),
-              onAudio: () => _press(audio: true),
+          ? AnswerMark(
+              feedback: _answerFeedback,
+              value: 'answer',
+              child: _Buttons(
+                game: g,
+                lastVisual: _lastVisual,
+                lastAudio: _lastAudio,
+                onVisual: () => _press(audio: false),
+                onAudio: () => _press(audio: true),
+              ),
             )
           : null,
     );

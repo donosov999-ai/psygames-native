@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/game_rules.dart';
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/session_report.dart';
@@ -87,7 +87,7 @@ class _DeepScreenState extends State<DeepScreen> {
   /// пометки не идут — лента веба хранит только цифры.
   final Map<String, List<List<int>>> _marks = {};
   bool _pencil = false;
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
 
   String _preset = 'scout';
   int _band = 0;
@@ -152,6 +152,12 @@ class _DeepScreenState extends State<DeepScreen> {
     super.initState();
     _sessionLaunch = SessionLaunch.capture();
     _boot();
+  }
+
+  @override
+  void dispose() {
+    unawaited(_answerFeedback.dispose());
+    super.dispose();
   }
 
   Future<void> _boot() async {
@@ -472,9 +478,13 @@ class _DeepScreenState extends State<DeepScreen> {
     }
     final prev = grid[sel.r][sel.c];
     if (prev == v) return;
-    if (v != 0 && _provablyWrong(node, sel.r, sel.c, v)) {
+    final wrong = v != 0 && _provablyWrong(node, sel.r, sel.c, v);
+    final right = v != 0 && node.solution[sel.r][sel.c] == v;
+    if (wrong || right) {
+      unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
+    }
+    if (wrong) {
       _errors++;
-      unawaited(_haptics.medium());   // веб — звук ошибки (sndWrong)
     }
     setState(() {
       grid[sel.r][sel.c] = v;
@@ -751,7 +761,11 @@ class _DeepScreenState extends State<DeepScreen> {
         ),
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('sdkNewGame'), onPressed: _chooseAndStart),
       ]),
-      toolbar: _Toolbar(won: _won, onDigit: _place, onErase: _erase, onNext: _chooseAndStart),
+      toolbar: AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _Toolbar(won: _won, onDigit: _place, onErase: _erase, onNext: _chooseAndStart),
+      ),
       pauseActions: [
         PauseAction(label: L.t('sdkNewGame'), icon: Icons.refresh, onPressed: _chooseAndStart),
       ],

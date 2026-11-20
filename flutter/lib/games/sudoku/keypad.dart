@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/design_template.dart';
 import '../../shell/aurora_glass.dart';
 import '../../shell/game_colors.dart';
@@ -41,8 +42,11 @@ class SudokuKeys extends StatelessWidget {
     required this.onPaint,
     this.label,
     this.icon,
+    this.feedback,
     this.zero = false,
   });
+
+  final AnswerFeedback? feedback;
 
   /// Клавиша «0» (клетки Шрёдингера, цифры 0–9): шлёт код 10 — 0 занят под «Стереть».
   final bool zero;
@@ -72,6 +76,11 @@ class SudokuKeys extends StatelessWidget {
             child: child,
           )
         : child;
+    Widget marked(int value, Widget child) {
+      final f = feedback;
+      if (f == null) return child;
+      return AnswerMark(feedback: f, value: value, radius: 10, child: child);
+    }
     return LayoutBuilder(
       builder: (context, c) {
         const keyWidth = 48.0, gap = 6.0;
@@ -141,34 +150,34 @@ class SudokuKeys extends StatelessWidget {
                     SizedBox(
                       width: keyWidth,
                       height: keyWidth,
-                      child: keySurface(FilledButton(
+                      child: marked(10, keySurface(FilledButton(
                         key: const Key('digit0'),
                         onPressed: () => onDigit(10),
                         style: _auroraKeyStyle(context) ?? FilledButton.styleFrom(padding: EdgeInsets.zero),
                         child: const Text('0', style: TextStyle(fontSize: 20)),
-                      )),
+                      ))),
                     ),
                   for (var v = 1; v <= n; v++)
                     SizedBox(
                       width: keyWidth,
                       height: keyWidth,
-                      child: keySurface(FilledButton(
+                      child: marked(v, keySurface(FilledButton(
                         key: Key('digit$v'),
                         onPressed: () => onDigit(v),
                         style: _auroraKeyStyle(context) ?? FilledButton.styleFrom(padding: EdgeInsets.zero),
                         child: icon?.call(v) ??
                             Text(label?.call(v) ?? '$v', style: const TextStyle(fontSize: 20)),
-                      )),
+                      ))),
                     ),
                   SizedBox(
                     width: keyWidth,
                     height: keyWidth,
-                    child: keySurface(OutlinedButton(
+                    child: marked(0, keySurface(OutlinedButton(
                       key: const Key('erase'),
                       onPressed: onErase,
                       style: _auroraKeyStyle(context) ?? OutlinedButton.styleFrom(padding: EdgeInsets.zero),
                       child: const Icon(Icons.backspace_outlined, size: 18),
-                    )),
+                    ))),
                   ),
                 ],
               ),

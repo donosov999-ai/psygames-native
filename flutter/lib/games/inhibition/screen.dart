@@ -13,6 +13,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
@@ -63,6 +64,7 @@ class InhibitionScreen extends StatefulWidget {
 }
 
 class _InhibitionScreenState extends State<InhibitionScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   InhibitionGame? _game;
   InhibitionPhase _phase = InhibitionPhase.ready;
@@ -85,6 +87,7 @@ class _InhibitionScreenState extends State<InhibitionScreen> {
   void dispose() {
     _timer?.cancel();
     _stopTimer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -176,6 +179,8 @@ class _InhibitionScreenState extends State<InhibitionScreen> {
     if (outcome == null) return;
     _timer?.cancel();
     _stopTimer?.cancel();
+    final right = outcome == InhibitionOutcome.hit || outcome == InhibitionOutcome.correctReject;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     final g = _game!;
     setState(() {
       _flash = outcome;
@@ -277,7 +282,10 @@ class _InhibitionScreenState extends State<InhibitionScreen> {
       ],
       onLesson: () => openDemoLesson(context, title: L.t('inhibition'), trials: _demoTrials()),
       suiteSwitch: _phase == InhibitionPhase.ready ? SuiteSwitch(route: '/games/inhibition', state: widget.state) : null,
-      field: (context, h) => _Field(
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _Field(
         game: g,
         mode: _mode,
         onMode: _pickMode,
@@ -294,6 +302,7 @@ class _InhibitionScreenState extends State<InhibitionScreen> {
           _start();
         },
       ),
+        ),
       toolbar: _phase == InhibitionPhase.playing ? _GoButton(onTap: _press) : null,
     );
   }

@@ -14,6 +14,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
@@ -82,6 +83,7 @@ class CptScreen extends StatefulWidget {
 }
 
 class _CptScreenState extends State<CptScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   CptGame? _game;
   CptPhase _phase = CptPhase.ready;
@@ -104,6 +106,7 @@ class _CptScreenState extends State<CptScreen> {
   @override
   void dispose() {
     _cancelAll();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -193,6 +196,7 @@ class _CptScreenState extends State<CptScreen> {
 
   void _flash(bool right) {
     _flashTimer?.cancel();
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     setState(() {
       _flashRight = right;
       _flashWrong = !right;
@@ -273,7 +277,10 @@ class _CptScreenState extends State<CptScreen> {
           ? null
           : () => openDemoLesson(context, title: L.t('cpt'), trials: _demoTrials()),
       suiteSwitch: _phase == CptPhase.ready ? SuiteSwitch(route: '/games/cpt', state: widget.state) : null,
-      field: (context, h) => _Field(
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _Field(
         game: g,
         phase: _phase,
         letterVisible: _letterVisible,
@@ -284,6 +291,7 @@ class _CptScreenState extends State<CptScreen> {
         onStart: _start,
         onAgain: () => setState(_reset),
       ),
+        ),
       toolbar: _phase == CptPhase.playing ? _TapButton(onTap: _tap) : null,
     );
   }

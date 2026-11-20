@@ -14,9 +14,12 @@
 /// 23.09.2026 показал переполнение 174 px на 360×640.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/lesson.dart';
@@ -45,6 +48,7 @@ class FacesNamesScreen extends StatefulWidget {
 }
 
 class _FacesNamesScreenState extends State<FacesNamesScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   FacesNamesLibrary? _lib;
   FacesNamesSession? _session;
@@ -57,6 +61,12 @@ class _FacesNamesScreenState extends State<FacesNamesScreen> {
     super.initState();
     _ladder = LevelLadder(gameId: 'faces_names', store: SharedLevelStore(widget.state), maxLevel: facesNamesLevels);
     _boot();
+  }
+
+  @override
+  void dispose() {
+    unawaited(_answerFeedback.dispose());
+    super.dispose();
   }
 
   Future<void> _boot() async {
@@ -84,6 +94,7 @@ class _FacesNamesScreenState extends State<FacesNamesScreen> {
   void _newRound() {
     final lib = _lib;
     if (lib == null) return;
+    _answerFeedback.clear();
     final level = _roundLevel;
     _session = FacesNamesSession.create(lib, 'faces-names-$level', level);
   }
@@ -101,7 +112,18 @@ class _FacesNamesScreenState extends State<FacesNamesScreen> {
   void _step(void Function(FacesNamesSession s) action) {
     final s = _session;
     if (s == null) return;
+    final answersBefore = s.answers.length;
+    final interferenceBefore = s.interferenceIndex;
+    final interferenceHits = s.interferenceCorrect;
     setState(() => action(s));
+    if (s.answers.length > answersBefore) {
+      final answer = s.answers.last;
+      final right = answer.factCorrect ?? answer.nameCorrect ?? answer.recognitionCorrect;
+      unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
+    } else if (s.interferenceIndex > interferenceBefore) {
+      final right = s.interferenceCorrect > interferenceHits;
+      unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
+    }
     final r = s.result;
     if (s.phase == FacesNamesPhase.result && r != null) _finish(r);
   }
@@ -227,7 +249,11 @@ class _FacesNamesScreenState extends State<FacesNamesScreen> {
           icon: Icons.checklist_outlined,
         ),
       ],
-      field: (context, h) => _field(context, s, lib, h),
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _field(context, s, lib, h),
+      ),
       auxRow: AuxBar(children: [
         AuxAction(
           // Тот же обработчик, что «Заново» в паузе — под «Авророй» только в паузе.

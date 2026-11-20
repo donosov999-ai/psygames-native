@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
@@ -47,8 +48,8 @@ const double flankerPassAccuracy = 0.8;
 /// Нужен замеру: касания в нативный слой панель симулятора не доставляет.
 const bool flankerAutostart = bool.fromEnvironment('AUTOSTART');
 
-/// Пауза на отклик между пробами, мс. То же число, что в веб-версии (`advance`).
-const int flankerFeedbackMs = 350;
+/// Пауза на общий отклик между пробами.
+const int flankerFeedbackMs = 600;
 
 class FlankerScreen extends StatefulWidget {
   const FlankerScreen({super.key, required this.state, this.clock, this.rnd});
@@ -68,6 +69,7 @@ class FlankerScreen extends StatefulWidget {
 
 class _FlankerScreenState extends State<FlankerScreen> {
   late LevelLadder _ladder;
+  late final _feedback = AnswerFeedback(widget.state);
   FlankerGame? _game;
   FlankerPhase _phase = FlankerPhase.ready;
   FlankerOutcome? _flash;
@@ -78,13 +80,17 @@ class _FlankerScreenState extends State<FlankerScreen> {
   @override
   void initState() {
     super.initState();
-    _ladder = LevelLadder(gameId: 'flanker', store: SharedLevelStore(widget.state));
+    _ladder = LevelLadder(
+      gameId: 'flanker',
+      store: SharedLevelStore(widget.state),
+    );
     _boot();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_feedback.dispose());
     super.dispose();
   }
 
@@ -106,13 +112,15 @@ class _FlankerScreenState extends State<FlankerScreen> {
 
   void _reset() {
     _timer?.cancel();
+    _feedback.clear();
     // Шаг «Оценки» и зарядки задаёт длину партии, как в вебе (`num('trials', 20)`): норма
     // домена снята в условиях шага, а не уровня.
     _game = FlankerGame(
-        level: _ladder.level,
-        nowMs: widget.clock,
-        rnd: widget.rnd,
-        trialsOverride: GamePreset.isPreset ? GamePreset.num('trials', 20) : null);
+      level: _ladder.level,
+      nowMs: widget.clock,
+      rnd: widget.rnd,
+      trialsOverride: GamePreset.isPreset ? GamePreset.num('trials', 20) : null,
+    );
     _phase = FlankerPhase.ready;
     _flash = null;
     _passed = false;
@@ -143,7 +151,9 @@ class _FlankerScreenState extends State<FlankerScreen> {
           // (`tools/embed-l10n.mjs`) видит только `L.t('имя')`, и запись
           // `L.t(условие ? 'a' : 'b')` он молча пропустил бы: замер показал
           // словарь без обоих ключей, а экран показал бы человеку «a11yLeft».
-          answer: flankerCorrect(t) == FlankerDirection.left ? L.t('a11yLeft') : L.t('a11yRight'),
+          answer: flankerCorrect(t) == FlankerDirection.left
+              ? L.t('a11yLeft')
+              : L.t('a11yRight'),
           ruleKey: 'hint_center_arrow',
         ),
     ];
@@ -175,19 +185,29 @@ class _FlankerScreenState extends State<FlankerScreen> {
     // `finished` — партия уже сдана в `_finish`, а фаза ещё «игра»: пока лестница пишет
     // победу и открывается бой, последняя стрелка на экране, и нажатие засчиталось бы
     // второй раз — с повторной сдачей партии.
-    if (g == null || _phase != FlankerPhase.playing || !g.stimulusShown || g.finished) return;
-    _after(g.answer(d));
+    if (g == null ||
+        _phase != FlankerPhase.playing ||
+        !g.stimulusShown ||
+        g.finished ||
+        _feedback.busy) {
+      return;
+    }
+    _after(g.answer(d), d);
   }
 
   /// Общий хвост ответа и просрочки: отклик, пауза на него и следующая проба.
-  void _after(FlankerOutcome outcome) {
+  Future<void> _after(
+    FlankerOutcome outcome, [
+    FlankerDirection? picked,
+  ]) async {
+    final game = _game!;
+    final correct = game.trial?.center;
     _timer?.cancel();
     setState(() => _flash = outcome);
-    _timer = Timer(const Duration(milliseconds: flankerFeedbackMs), () {
-      if (!mounted) return;
-      setState(() => _flash = null);
-      _nextTrial();
-    });
+    await _feedback.show(picked, correct, right: outcome == FlankerOutcome.hit);
+    if (!mounted || !identical(game, _game)) return;
+    setState(() => _flash = null);
+    _nextTrial();
   }
 
   Future<void> _finish() async {
@@ -197,9 +217,13 @@ class _FlankerScreenState extends State<FlankerScreen> {
     // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «жми / не жми», потом итог.
     bool? boss;
     if (passed) {
-      boss = await BossRound.winThenBoss(context, _ladder,
-          type: BossType.gonogo, color: const Color(0xFF16222A),
-          win: () => _ladder.win(details: flankerSessionDetails(g)));
+      boss = await BossRound.winThenBoss(
+        context,
+        _ladder,
+        type: BossType.gonogo,
+        color: const Color(0xFF16222A),
+        win: () => _ladder.win(details: flankerSessionDetails(g)),
+      );
     } else {
       await _ladder.fail(details: flankerSessionDetails(g));
     }
@@ -214,20 +238,44 @@ class _FlankerScreenState extends State<FlankerScreen> {
   @override
   Widget build(BuildContext context) {
     final g = _game;
-    if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (g == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return GameShell(
       // Тексты — из общего словаря теми же ключами, что зовёт веб-версия игры.
       title: L.t('flanker'),
       hud: [
-        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: L.t('round'), value: '${g.round}/${g.trialsTotal}', icon: Icons.numbers),
-        HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
-        HudItem(label: L.t('reaction'), value: '${g.meanRtMs ?? 0}', icon: Icons.bolt),
+        HudItem(
+          label: L.t('level'),
+          value: '${_ladder.level}',
+          icon: Icons.flag_outlined,
+        ),
+        HudItem(
+          label: L.t('round'),
+          value: '${g.round}/${g.trialsTotal}',
+          icon: Icons.numbers,
+        ),
+        HudItem(
+          label: L.t('hud_correct'),
+          value: '${g.hits}',
+          icon: Icons.check,
+        ),
+        HudItem(
+          label: L.t('reaction'),
+          value: '${g.meanRtMs ?? 0}',
+          icon: Icons.bolt,
+        ),
       ],
       onLesson: _game == null
           ? null
-          : () => openDemoLesson(context, title: L.t('flanker'), trials: _demoTrials(context)),
-      suiteSwitch: _phase == FlankerPhase.ready ? SuiteSwitch(route: '/games/flanker', state: widget.state) : null,
+          : () => openDemoLesson(
+              context,
+              title: L.t('flanker'),
+              trials: _demoTrials(context),
+            ),
+      suiteSwitch: _phase == FlankerPhase.ready
+          ? SuiteSwitch(route: '/games/flanker', state: widget.state)
+          : null,
       field: (context, h) => _Field(
         game: g,
         phase: _phase,
@@ -243,7 +291,9 @@ class _FlankerScreenState extends State<FlankerScreen> {
           _start();
         },
       ),
-      toolbar: _phase == FlankerPhase.playing ? _Answers(onPick: _answer) : null,
+      toolbar: _phase == FlankerPhase.playing
+          ? _Answers(feedback: _feedback, onPick: _answer)
+          : null,
     );
   }
 }
@@ -290,14 +340,21 @@ class _Field extends StatelessWidget {
         return _Centered(
           height: height,
           children: [
-            Text('${L.t('level')} ${game.level}', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              '${L.t('level')} ${game.level}',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 8),
             Text(L.t('hint_center_arrow'), textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
-              L.t('flankerLvlParams')
+              L
+                  .t('flankerLvlParams')
                   .replaceAll('{p}', '${(flankerPIncong * 100).round()}')
-                  .replaceAll('{w}', (game.params.windowMs / 1000).toStringAsFixed(1)),
+                  .replaceAll(
+                    '{w}',
+                    (game.params.windowMs / 1000).toStringAsFixed(1),
+                  ),
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
@@ -318,11 +375,15 @@ class _Field extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            Text('${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal} · '
-                '${L.t('hud_errors')}: ${game.errors}'),
-            Text(game.meanRtMs == null
-                ? '${L.t('meanReaction')}: —'
-                : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}'),
+            Text(
+              '${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal} · '
+              '${L.t('hud_errors')}: ${game.errors}',
+            ),
+            Text(
+              game.meanRtMs == null
+                  ? '${L.t('meanReaction')}: —'
+                  : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}',
+            ),
             Text(
               // Прочерк честнее нуля: ноль означал бы «конфликт не мешает».
               effect == null
@@ -335,7 +396,9 @@ class _Field extends StatelessWidget {
               FilledButton(
                 key: const Key('level-next'),
                 onPressed: onContinue,
-                child: Text(L.t('nextLevelBtn').replaceAll('{n}', '$nextLevel')),
+                child: Text(
+                  L.t('nextLevelBtn').replaceAll('{n}', '$nextLevel'),
+                ),
               )
             else
               FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
@@ -355,7 +418,10 @@ class _Field extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 24,
+                  horizontal: 8,
+                ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
@@ -364,11 +430,17 @@ class _Field extends StatelessWidget {
                   ),
                 ),
                 child: game.stimulusShown
-                    ? FlankerRow(trial: t, gapPx: game.params.gapPx, centerColor: fb)
+                    ? FlankerRow(
+                        trial: t,
+                        gapPx: game.params.gapPx,
+                        centerColor: fb,
+                      )
                     // До показа — точка фиксации: человек знает, куда смотреть.
                     : const SizedBox(
                         height: 56,
-                        child: Center(child: Text('•', style: TextStyle(fontSize: 36))),
+                        child: Center(
+                          child: Text('•', style: TextStyle(fontSize: 36)),
+                        ),
                       ),
               ),
               const SizedBox(height: 12),
@@ -377,9 +449,21 @@ class _Field extends StatelessWidget {
               SizedBox(
                 height: 28,
                 child: switch (flash) {
-                  FlankerOutcome.hit => const Icon(Icons.check_circle, color: _good, key: Key('flanker-hit')),
-                  FlankerOutcome.wrong => const Icon(Icons.cancel, color: _bad, key: Key('flanker-wrong')),
-                  FlankerOutcome.miss => const Icon(Icons.timer_off, color: _bad, key: Key('flanker-miss')),
+                  FlankerOutcome.hit => const Icon(
+                    Icons.check_circle,
+                    color: _good,
+                    key: Key('flanker-hit'),
+                  ),
+                  FlankerOutcome.wrong => const Icon(
+                    Icons.cancel,
+                    color: _bad,
+                    key: Key('flanker-wrong'),
+                  ),
+                  FlankerOutcome.miss => const Icon(
+                    Icons.timer_off,
+                    color: _bad,
+                    key: Key('flanker-miss'),
+                  ),
                   null => const SizedBox.shrink(),
                 },
               ),
@@ -394,36 +478,43 @@ class _Field extends StatelessWidget {
 /// как у Эриксена, где знаки расставлены ровно. Свой отступ у центра означал бы
 /// не «разнос цель ↔ фланги», а что-то другое.
 class FlankerRow extends StatelessWidget {
-  const FlankerRow({super.key, required this.trial, required this.gapPx, required this.centerColor});
+  const FlankerRow({
+    super.key,
+    required this.trial,
+    required this.gapPx,
+    required this.centerColor,
+  });
 
   final FlankerTrial trial;
   final double gapPx;
   final Color centerColor;
 
   Widget _arrow(FlankerDirection d, double size, Color color) => Icon(
-        d == FlankerDirection.left ? Icons.arrow_back : Icons.arrow_forward,
-        size: size,
-        color: color,
-      );
+    d == FlankerDirection.left ? Icons.arrow_back : Icons.arrow_forward,
+    size: size,
+    color: color,
+  );
 
   /// Нейтральная проба: вместо стрелок чёрточки — помеха есть, направления нет.
   Widget _dash() => const SizedBox(
-        width: 36,
-        child: Center(child: Text('—', style: TextStyle(fontSize: 36, color: _flankGrey))),
-      );
+    width: 36,
+    child: Center(
+      child: Text('—', style: TextStyle(fontSize: 36, color: _flankGrey)),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
     final f = trial.flankers;
     Widget side(int from) => Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (var i = from; i < from + 2; i++) ...[
-              f == null ? _dash() : _arrow(f[i], 36, _flankGrey),
-              SizedBox(width: gapPx),
-            ],
-          ],
-        );
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = from; i < from + 2; i++) ...[
+          f == null ? _dash() : _arrow(f[i], 36, _flankGrey),
+          SizedBox(width: gapPx),
+        ],
+      ],
+    );
     return Row(
       key: const Key('flanker-row'),
       mainAxisSize: MainAxisSize.min,
@@ -449,14 +540,14 @@ class _Centered extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        height: height,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: children),
-          ),
-        ),
-      );
+    height: height,
+    child: Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(mainAxisSize: MainAxisSize.min, children: children),
+      ),
+    ),
+  );
 }
 
 /// Две кнопки ответа.
@@ -466,38 +557,45 @@ class _Centered extends StatelessWidget {
 /// ещё и перекодировку стороны, а не торможение. В веб-версии это сделано
 /// принудительным `direction: ltr` у ряда.
 class _Answers extends StatelessWidget {
-  const _Answers({required this.onPick});
+  const _Answers({required this.feedback, required this.onPick});
+  final AnswerFeedback feedback;
   final void Function(FlankerDirection) onPick;
 
   @override
   Widget build(BuildContext context) => Directionality(
-        textDirection: TextDirection.ltr,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-          child: Row(
-            children: [
-              for (final d in FlankerDirection.values)
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: TapLatency(
-                      where: 'Flutter/Flanker',
-                      child: SizedBox(
-                        height: 56,
-                        child: FilledButton(
-                          key: Key('flanker-answer-${d.name}'),
-                          onPressed: () => onPick(d),
-                          child: Icon(
-                            d == FlankerDirection.left ? Icons.arrow_back : Icons.arrow_forward,
-                            size: 32,
-                          ),
+    textDirection: TextDirection.ltr,
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+      child: Row(
+        children: [
+          for (final d in FlankerDirection.values)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: AnswerMark(
+                  feedback: feedback,
+                  value: d,
+                  child: TapLatency(
+                    where: 'Flutter/Flanker',
+                    child: SizedBox(
+                      height: 56,
+                      child: FilledButton(
+                        key: Key('flanker-answer-${d.name}'),
+                        onPressed: () => onPick(d),
+                        child: Icon(
+                          d == FlankerDirection.left
+                              ? Icons.arrow_back
+                              : Icons.arrow_forward,
+                          size: 32,
                         ),
                       ),
                     ),
                   ),
                 ),
-            ],
-          ),
-        ),
-      );
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
 }

@@ -14,12 +14,14 @@
 /// общий бой с боссом (`BossRound.winThenBoss`).
 library;
 
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/boss_round.dart';
@@ -62,6 +64,7 @@ class SearchRunnerScreen extends StatefulWidget {
 enum _Phase { ready, running, result }
 
 class _SearchRunnerScreenState extends State<SearchRunnerScreen> with SingleTickerProviderStateMixin {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late final LevelLadder _ladder;
   late final Ticker _ticker;
   final FocusNode _focus = FocusNode();
@@ -99,6 +102,7 @@ class _SearchRunnerScreenState extends State<SearchRunnerScreen> with SingleTick
   void dispose() {
     _ticker.dispose();
     _focus.dispose();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -148,6 +152,7 @@ class _SearchRunnerScreenState extends State<SearchRunnerScreen> with SingleTick
     final answers = {for (final e in s.answers) e.id!: e.ok!};
     final found = lv.found(answers);
     final passed = lv.passed(answers);
+    unawaited(_answerFeedback.show('answer', passed ? 'answer' : null, right: passed));
     final seconds = s.elapsed.round();
     final misses = lv.scored.length - found;
     setState(() {
@@ -204,7 +209,10 @@ class _SearchRunnerScreenState extends State<SearchRunnerScreen> with SingleTick
         HudItem(label: L.t('label_found'), value: '$foundNow/${lv.scored.length}', icon: Icons.search),
         HudItem(label: L.t('goalLabel'), value: '${lv.needed}', icon: Icons.flag_circle_outlined),
       ],
-      field: (context, h) => _phase == _Phase.result && _settled
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _phase == _Phase.result && _settled
           ? SizedBox(height: h, child: _result(lv))
           : KeyboardListener(
             focusNode: _focus,
@@ -233,6 +241,7 @@ class _SearchRunnerScreenState extends State<SearchRunnerScreen> with SingleTick
               ]);
             }),
           ),
+        ),
       toolbar: _toolbar(lv),
       pauseActions: [
         PauseAction(

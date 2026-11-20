@@ -57,6 +57,7 @@ void main() {
   testWidgets('🔴 ход засчитывается ТАПОМ, а незаконный считается ОШИБКОЙ', (tester) async {
     await _boot(tester, state);
     await _tapMove(tester, 0, 2);
+    expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
     expect(_pegs(tester)[2], [1], reason: 'единица обязана переехать');
     /*
      * ⚠️ ОШИБКИ СЧИТАЮТСЯ ОДНОЗНАЧНЫМ ЧИСЛОМ, А НЕ `find.text('1')`: единица
@@ -65,6 +66,7 @@ void main() {
      * незаконных хода: двойка на L1 больше нигде не показывается.
      */
     await _tapMove(tester, 0, 2);   // двойку на единицу — нельзя
+    expect(find.byKey(const Key('answer-mark-bad')), findsOneWidget);
     await _tapMove(tester, 0, 2);   // и ещё раз
     expect(_pegs(tester)[2], [1], reason: 'незаконный ход не меняет доску');
     expect(find.text('1/7'), findsOneWidget, reason: 'ходов по-прежнему один при минимуме семь');

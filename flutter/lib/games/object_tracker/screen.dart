@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/aux_action.dart';
@@ -40,6 +41,7 @@ class ObjectTrackerScreen extends StatefulWidget {
 enum _Phase { preview, moving, selection, result }
 
 class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTickerProviderStateMixin {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   static const double _minBall = 48;
   static const double _fieldMax = 640;
   static const double _fieldPad = 8;
@@ -73,6 +75,7 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
   @override
   void dispose() {
     _ticker.dispose();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -166,7 +169,9 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
       durationMs: _world!.timeMs.round(),
       closeApproaches: _world!.closeApproaches,
     );
-    if (isPassed(metrics)) {
+    final right = isPassed(metrics);
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
+    if (right) {
       await _ladder.win();
     } else {
       await _ladder.fail();
@@ -228,7 +233,10 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
       ],
       // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень, а снимок
       // поля с открытыми целями остаётся в подробностях — правду о круге человек видит, как раньше.
-      field: (context, h) => _phase == _Phase.result
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _phase == _Phase.result
           ? SizedBox(
               height: h,
               child: LevelResult(
@@ -260,6 +268,7 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
               pad: _fieldPad,
               onTap: _submitted ? null : _toggle,
             ),
+        ),
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.slow_motion_video,

@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
@@ -43,7 +43,12 @@ const _nonsense = Color(0xFFF43F5E);
 const _seenPool = 'reading_span';
 
 class ReadingSpanScreen extends StatefulWidget {
-  const ReadingSpanScreen({super.key, required this.state, this.sentences, this.rng});
+  const ReadingSpanScreen({
+    super.key,
+    required this.state,
+    this.sentences,
+    this.rng,
+  });
 
   final SharedState state;
 
@@ -58,8 +63,7 @@ class ReadingSpanScreen extends StatefulWidget {
 }
 
 class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
-  /// Вибрация — через общий выключатель «Вибрация» (веб `psygames_haptic_enabled`).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
 
   late LevelLadder _ladder;
   late final double Function() _rng = widget.rng ?? Random().nextDouble;
@@ -82,7 +86,10 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
   @override
   void initState() {
     super.initState();
-    _ladder = LevelLadder(gameId: 'reading_span', store: SharedLevelStore(widget.state));
+    _ladder = LevelLadder(
+      gameId: 'reading_span',
+      store: SharedLevelStore(widget.state),
+    );
     _boot();
   }
 
@@ -90,6 +97,7 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
   void dispose() {
     _timer?.cancel();
     _input.dispose();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -97,9 +105,12 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
 
   Future<void> _boot() async {
     await _ladder.load();
-    final pool = widget.sentences ??
+    final pool =
+        widget.sentences ??
         [
-          for (final e in await loadJsonAsset('assets/reading_span/sentences.json') as List)
+          for (final e in await loadJsonAsset(
+            'assets/reading_span/sentences.json',
+          ) as List)
             RspanSentence.fromJson((e as Map).cast<String, Object?>()),
         ];
     if (!mounted) return;
@@ -112,6 +123,7 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
   /// но не выше освоенного + 1, правило `capPresetByLevel`; удержания в шаге нет).
   void _reset() {
     _timer?.cancel();
+    _answerFeedback.clear();
     final p = RspanLevelParams.of(_ladder.level, _pool.length);
     if (GamePreset.isPreset) {
       _setSize = capPresetByLevel(
@@ -139,12 +151,19 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
 
   Future<void> _start() async {
     if (_phase != RspanPhase.ready || _pool.isEmpty) return;
-    final deal = rspanDeal(_pool, _setSize, readSeen(widget.state, _seenPool), _rng);
+    final deal = rspanDeal(
+      _pool,
+      _setSize,
+      readSeen(widget.state, _seenPool),
+      _rng,
+    );
     await writeSeen(widget.state, _seenPool, deal.seen);
     if (!mounted) return;
     setState(() {
       _game = ReadingSpanGame(level: _ladder.level, seq: deal.picked);
-      if (GamePreset.isWarmup) _choices = rspanRecallChoices(deal.picked, _pool, _lang, _rng);
+      if (GamePreset.isWarmup) {
+        _choices = rspanRecallChoices(deal.picked, _pool, _lang, _rng);
+      }
       _phase = RspanPhase.judge;
     });
     _startedAt = gameNow();
@@ -153,15 +172,19 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
   void _judge(bool saysSense) {
     final g = _game;
     if (g == null || _phase != RspanPhase.judge) return;
-    g.judge(saysSense);
-    _haptics.selection();
+    final right = g.judge(saysSense);
+    unawaited(
+      _answerFeedback.show('answer', right ? 'answer' : null, right: right),
+    );
     setState(() => _lastJudge = saysSense);
     if (!g.judged) return;
     // Ось 3 — удержание: последние слова надо ещё додержать, прежде чем откроется ввод.
     if (_holdMs > 0) {
       setState(() => _phase = RspanPhase.hold);
       _timer = gameTimeout(Duration(milliseconds: _holdMs), () {
-        if (mounted && _phase == RspanPhase.hold) setState(() => _phase = RspanPhase.recall);
+        if (mounted && _phase == RspanPhase.hold) {
+          setState(() => _phase = RspanPhase.recall);
+        }
       });
     } else {
       setState(() => _phase = RspanPhase.recall);
@@ -173,6 +196,13 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
     if (g == null || _phase != RspanPhase.recall) return;
     g.check(_lang, _input.text);
     final seconds = ((gameNow() - (_startedAt ?? gameNow())) / 1000).round();
+    unawaited(
+      _answerFeedback.show(
+        'answer',
+        g.passed ? 'answer' : null,
+        right: g.passed,
+      ),
+    );
     setState(() => _phase = RspanPhase.done);
     // Метки и details — как пишет веб-экран (`saveSession` в reading-span.tsx).
     final difficulty = rspanDifficulty(_setSize);
@@ -185,10 +215,22 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
     };
     if (g.passed) {
       await _ladder.win(
-          score: g.score, timeSeconds: seconds, errors: g.errors, mode: mode, difficulty: difficulty, details: details);
+        score: g.score,
+        timeSeconds: seconds,
+        errors: g.errors,
+        mode: mode,
+        difficulty: difficulty,
+        details: details,
+      );
     } else {
       await _ladder.fail(
-          score: g.score, timeSeconds: seconds, errors: g.errors, mode: mode, difficulty: difficulty, details: details);
+        score: g.score,
+        timeSeconds: seconds,
+        errors: g.errors,
+        mode: mode,
+        difficulty: difficulty,
+        details: details,
+      );
     }
     if (mounted) setState(() {});
   }
@@ -203,39 +245,77 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
   @override
   Widget build(BuildContext context) {
     final g = _game;
-    if (_pool.isEmpty) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    final calm = _phase == RspanPhase.ready || _phase == RspanPhase.done || _phase == RspanPhase.revealed;
-    final playing = _phase == RspanPhase.judge || _phase == RspanPhase.hold || _phase == RspanPhase.recall;
+    if (_pool.isEmpty) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    final calm =
+        _phase == RspanPhase.ready ||
+        _phase == RspanPhase.done ||
+        _phase == RspanPhase.revealed;
+    final playing =
+        _phase == RspanPhase.judge ||
+        _phase == RspanPhase.hold ||
+        _phase == RspanPhase.recall;
     return GameShell(
-      levelRule: LevelRuleSpot(gameId: 'reading_span', level: _ladder.level, state: widget.state, calm: calm),
+      levelRule: LevelRuleSpot(
+        gameId: 'reading_span',
+        level: _ladder.level,
+        state: widget.state,
+        calm: calm,
+      ),
       title: L.t('readingSpan'),
       onLesson: () {
         // Предложения разбора показаны с ответом — в партию они больше не придут как новые
         // (запас виденного, как у раздачи; иначе разбор портил бы задачу, против чего и запас).
         final shown = readingSpanLessonSentences(_pool).map((s) => s.en);
-        unawaited(writeSeen(widget.state, _seenPool, {...readSeen(widget.state, _seenPool), ...shown}.toList()));
-        openDemoLesson(context, title: L.t('readingSpan'), trials: readingSpanLessonTrials(_pool, _lang));
+        unawaited(
+          writeSeen(
+            widget.state,
+            _seenPool,
+            {...readSeen(widget.state, _seenPool), ...shown}.toList(),
+          ),
+        );
+        openDemoLesson(
+          context,
+          title: L.t('readingSpan'),
+          trials: readingSpanLessonTrials(_pool, _lang),
+        );
       },
       hud: [
-        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(
+          label: L.t('level'),
+          value: '${_ladder.level}',
+          icon: Icons.flag_outlined,
+        ),
         HudItem(
           label: L.t('hud_step'),
-          value: g == null ? '0/$_setSize' : '${min(g.judgments.length + 1, g.seq.length)}/${g.seq.length}',
+          value: g == null
+              ? '0/$_setSize'
+              : '${min(g.judgments.length + 1, g.seq.length)}/${g.seq.length}',
           icon: Icons.notes,
         ),
-        HudItem(label: L.t('hud_correct'), value: '${g?.judgeHits ?? 0}', icon: Icons.check_circle_outline),
+        HudItem(
+          label: L.t('hud_correct'),
+          value: '${g?.judgeHits ?? 0}',
+          icon: Icons.check_circle_outline,
+        ),
       ],
       field: (context, h) => switch (_phase) {
         RspanPhase.ready => _Ready(level: _ladder.level, onStart: _start),
         RspanPhase.judge => _Judge(sentence: g!.current, language: _lang),
         RspanPhase.hold => const _Hold(),
         RspanPhase.recall => _Recall(
-            tiles: _choices == null ? null : _RecallTiles(words: _choices!, controller: _input),
-          ),
+          tiles: _choices == null
+              ? null
+              : _RecallTiles(words: _choices!, controller: _input),
+        ),
         // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход к старту следующего круга;
         // разбор круга (верно, ошибки, ожидаемые слова, заметка об уровне) — в подробностях.
         RspanPhase.done => SizedBox(
-            height: h,
+          height: h,
+          child: AnswerMark(
+            feedback: _answerFeedback,
+            value: 'answer',
             child: LevelResult(
               passed: g!.passed,
               level: g.level,
@@ -243,40 +323,69 @@ class _ReadingSpanScreenState extends State<ReadingSpanScreen> {
               // Сразу в следующий круг; на «Начать» — только если ждёт карточка нового правила уровня.
               onNext: () {
                 setState(_reset);
-                if (!LevelRules.cardDue(widget.state, 'reading_span', _ladder.level)) _start();
+                if (!LevelRules.cardDue(
+                  widget.state,
+                  'reading_span',
+                  _ladder.level,
+                )) {
+                  _start();
+                }
               },
             ),
           ),
-        RspanPhase.revealed => RspanSolution(seq: g?.seq ?? const [], language: _lang),
-      },
-      auxRow: AuxBar(children: [
-        AuxAction(
-          icon: Icons.lightbulb_outline,
-          label: L.t('puzzleShowSolution'),
-          tint: const Color(0xFFB45309),
-          onPressed: playing ? _reveal : null,
         ),
-        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
-      ]),
+        RspanPhase.revealed => RspanSolution(
+          seq: g?.seq ?? const [],
+          language: _lang,
+        ),
+      },
+      auxRow: AuxBar(
+        children: [
+          AuxAction(
+            icon: Icons.lightbulb_outline,
+            label: L.t('puzzleShowSolution'),
+            tint: const Color(0xFFB45309),
+            onPressed: playing ? _reveal : null,
+          ),
+          AuxAction(
+            inPause: true,
+            icon: Icons.refresh,
+            label: L.t('restart'),
+            onPressed: () => setState(_reset),
+          ),
+        ],
+      ),
       toolbar: switch (_phase) {
-        RspanPhase.judge => _JudgeButtons(last: _lastJudge, onJudge: _judge),
-        RspanPhase.recall => _choices == null
-            ? _RecallBar(controller: _input, onSubmit: _check)
-            : _TapRecallBar(controller: _input, onSubmit: _check),
+        RspanPhase.judge => AnswerMark(
+          feedback: _answerFeedback,
+          value: 'answer',
+          child: _JudgeButtons(last: _lastJudge, onJudge: _judge),
+        ),
+        RspanPhase.recall => AnswerMark(
+          feedback: _answerFeedback,
+          value: 'answer',
+          child: _choices == null
+              ? _RecallBar(controller: _input, onSubmit: _check)
+              : _TapRecallBar(controller: _input, onSubmit: _check),
+        ),
         // Раскрытое решение — не итог уровня: решение остаётся на поле, под ним «Ещё раз».
         RspanPhase.revealed => Padding(
-            padding: const EdgeInsets.all(12),
-            child: FilledButton.icon(
-              key: const Key('rspan-again'),
-              onPressed: () => setState(_reset),
-              icon: const Icon(Icons.arrow_forward),
-              label: Text(L.t('retry')),
-            ),
+          padding: const EdgeInsets.all(12),
+          child: FilledButton.icon(
+            key: const Key('rspan-again'),
+            onPressed: () => setState(_reset),
+            icon: const Icon(Icons.arrow_forward),
+            label: Text(L.t('retry')),
           ),
+        ),
         _ => null,
       },
       pauseActions: [
-        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
+        PauseAction(
+          label: L.t('restart'),
+          icon: Icons.refresh,
+          onPressed: () => setState(_reset),
+        ),
       ],
     );
   }
@@ -298,7 +407,11 @@ class _Ready extends StatelessWidget {
         children: [
           const Icon(Icons.menu_book_outlined, size: 48, color: _accent),
           const SizedBox(height: 8),
-          Text(L.t('readingSpanDesc'), textAlign: TextAlign.center, style: text.titleMedium),
+          Text(
+            L.t('readingSpanDesc'),
+            textAlign: TextAlign.center,
+            style: text.titleMedium,
+          ),
           const SizedBox(height: 12),
           Text(
             L.t('rspanLvlAuto').replaceAll('{n}', '$level'),
@@ -307,7 +420,11 @@ class _Ready extends StatelessWidget {
             style: text.bodySmall,
           ),
           const SizedBox(height: 20),
-          FilledButton(key: const Key('rspan-start'), onPressed: onStart, child: Text(L.t('start'))),
+          FilledButton(
+            key: const Key('rspan-start'),
+            onPressed: onStart,
+            child: Text(L.t('start')),
+          ),
         ],
       ),
     );
@@ -316,7 +433,12 @@ class _Ready extends StatelessWidget {
 
 /// Карточка предложения — та же в партии, в решении и в разборе.
 class RspanSentenceCard extends StatelessWidget {
-  const RspanSentenceCard({super.key, required this.sentence, required this.language, this.mark});
+  const RspanSentenceCard({
+    super.key,
+    required this.sentence,
+    required this.language,
+    this.mark,
+  });
 
   final RspanSentence sentence;
   final String language;
@@ -335,24 +457,36 @@ class RspanSentenceCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
-        border: mark == null ? null : Border.all(color: mark! ? _sense : _nonsense, width: 2),
+        border: mark == null
+            ? null
+            : Border.all(color: mark! ? _sense : _nonsense, width: 2),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(sentence.text(language),
-              key: const Key('rspan-sentence'),
-              textAlign: TextAlign.center,
-              style: text.titleLarge?.copyWith(fontWeight: FontWeight.w600, height: 1.35)),
+          Text(
+            sentence.text(language),
+            key: const Key('rspan-sentence'),
+            textAlign: TextAlign.center,
+            style: text.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+              height: 1.35,
+            ),
+          ),
           const SizedBox(height: 14),
           Text.rich(
-            TextSpan(children: [
-              TextSpan(text: '${L.t('rememberLast')}: '),
-              TextSpan(
-                text: sentence.last(language),
-                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
-              ),
-            ]),
+            TextSpan(
+              children: [
+                TextSpan(text: '${L.t('rememberLast')}: '),
+                TextSpan(
+                  text: sentence.last(language),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
             key: const Key('rspan-last-word'),
             style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
@@ -370,21 +504,26 @@ class _Judge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Column(
-          children: [
-            RspanSentenceCard(sentence: sentence, language: language),
-            const SizedBox(height: 16),
-            Text(L.t('readingSpanJudge'), textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
-          ],
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    child: Column(
+      children: [
+        RspanSentenceCard(sentence: sentence, language: language),
+        const SizedBox(height: 16),
+        Text(
+          L.t('readingSpanJudge'),
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall,
         ),
-      );
+      ],
+    ),
+  );
 }
 
 /// Тёмный или белый текст — что читается на этом фоне лучше (порог яркости W3C 0,179, где
 /// контраст с чёрным и с белым равен).
-Color rspanOnColor(Color background) =>
-    background.computeLuminance() > 0.179 ? const Color(0xDD000000) : Colors.white;
+Color rspanOnColor(Color background) => background.computeLuminance() > 0.179
+    ? const Color(0xDD000000)
+    : Colors.white;
 
 /// Подпись кнопки, которая переносится только по пробелам. Слово, не влезающее в строку целиком,
 /// ужимается, а не рвётся по буквам: кадр 2.56.15 на 360 пт (07.10.2026) — «Бессмыслиц|а» на
@@ -396,21 +535,26 @@ class _WholeWordsLabel extends StatelessWidget {
   final String text;
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(builder: (context, c) {
-        final style = DefaultTextStyle.of(context).style;
-        var longest = 0.0;
-        for (final word in text.split(RegExp(r'\s+'))) {
-          final p = TextPainter(
-            text: TextSpan(text: word, style: style),
-            textDirection: Directionality.of(context),
-            textScaler: MediaQuery.textScalerOf(context),
-            maxLines: 1,
-          )..layout();
-          longest = max(longest, p.width);
-        }
-        if (longest <= c.maxWidth) return Text(text, textAlign: TextAlign.center);
-        return FittedBox(fit: BoxFit.scaleDown, child: Text(text, maxLines: 1, softWrap: false));
-      });
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, c) {
+      final style = DefaultTextStyle.of(context).style;
+      var longest = 0.0;
+      for (final word in text.split(RegExp(r'\s+'))) {
+        final p = TextPainter(
+          text: TextSpan(text: word, style: style),
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+          maxLines: 1,
+        )..layout();
+        longest = max(longest, p.width);
+      }
+      if (longest <= c.maxWidth) return Text(text, textAlign: TextAlign.center);
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(text, maxLines: 1, softWrap: false),
+      );
+    },
+  );
 }
 
 /// Кнопки суждения — прибиты к низу, как в вебе (эталон math-sprint).
@@ -422,31 +566,53 @@ class _JudgeButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget button(Key key, bool says, IconData icon, String label, Color color) => Expanded(
-          child: FilledButton.icon(
-            key: key,
-            style: FilledButton.styleFrom(
-              backgroundColor: color,
-              // Цвет текста — по яркости фона, как веб `textOn()`: белый на зелёном #22C55E —
-              // контраст ≈2,3 : 1 при норме 4,5 (сверка веб → натив 02.10.2026).
-              foregroundColor: rspanOnColor(color),
-              minimumSize: const Size(0, 56),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            ),
-            onPressed: () => onJudge(says),
-            icon: Icon(icon, size: 26),
-            // Подпись переносится, а не обрезается: при крупном шрифте «Имеет смысл» не влезала.
-            // Но переносится только по пробелам — слово целиком ([_WholeWordsLabel]).
-            label: _WholeWordsLabel(label),
+    Widget button(
+      Key key,
+      bool says,
+      IconData icon,
+      String label,
+      Color color,
+    ) => Expanded(
+      child: FilledButton.icon(
+        key: key,
+        style: FilledButton.styleFrom(
+          backgroundColor: color,
+          // Цвет текста — по яркости фона, как веб `textOn()`: белый на зелёном #22C55E —
+          // контраст ≈2,3 : 1 при норме 4,5 (сверка веб → натив 02.10.2026).
+          foregroundColor: rspanOnColor(color),
+          minimumSize: const Size(0, 56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-        );
+        ),
+        onPressed: () => onJudge(says),
+        icon: Icon(icon, size: 26),
+        // Подпись переносится, а не обрезается: при крупном шрифте «Имеет смысл» не влезала.
+        // Но переносится только по пробелам — слово целиком ([_WholeWordsLabel]).
+        label: _WholeWordsLabel(label),
+      ),
+    );
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-      child: Row(children: [
-        button(const Key('rspan-sense'), true, Icons.check, L.t('makesSense'), _sense),
-        const SizedBox(width: 12),
-        button(const Key('rspan-nonsense'), false, Icons.close, L.t('nonsense'), _nonsense),
-      ]),
+      child: Row(
+        children: [
+          button(
+            const Key('rspan-sense'),
+            true,
+            Icons.check,
+            L.t('makesSense'),
+            _sense,
+          ),
+          const SizedBox(width: 12),
+          button(
+            const Key('rspan-nonsense'),
+            false,
+            Icons.close,
+            L.t('nonsense'),
+            _nonsense,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -456,17 +622,20 @@ class _Hold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.psychology_outlined, size: 56, color: _accent),
-            const SizedBox(height: 8),
-            Text(L.t('memorize'),
-                key: const Key('rspan-hold'),
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
-          ],
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.psychology_outlined, size: 56, color: _accent),
+        const SizedBox(height: 8),
+        Text(
+          L.t('memorize'),
+          key: const Key('rspan-hold'),
+          style: Theme.of(context).textTheme.titleLarge
+              ?.copyWith(fontWeight: FontWeight.w800),
         ),
-      );
+      ],
+    ),
+  );
 }
 
 class _Recall extends StatelessWidget {
@@ -483,9 +652,17 @@ class _Recall extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
         children: [
-          Text(L.t('recallNow'), textAlign: TextAlign.center, style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+          Text(
+            L.t('recallNow'),
+            textAlign: TextAlign.center,
+            style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 6),
-          Text(tiles != null ? L.t('rspanTapHint') : L.t('recallHint'), textAlign: TextAlign.center, style: text.bodySmall),
+          Text(
+            tiles != null ? L.t('rspanTapHint') : L.t('recallHint'),
+            textAlign: TextAlign.center,
+            style: text.bodySmall,
+          ),
           if (tiles != null) ...[const SizedBox(height: 12), tiles!],
         ],
       ),
@@ -507,49 +684,51 @@ class _RecallBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 460),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TextField(
-                  key: const Key('rspan-input'),
-                  controller: controller,
-                  autofocus: true,
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  textCapitalization: TextCapitalization.none,
-                  minLines: 2,
-                  maxLines: 3,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) => onSubmit(),
-                  decoration: InputDecoration(
-                    hintText: L.t('recallPlaceholder'),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
+    padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+    child: Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 460),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              key: const Key('rspan-input'),
+              controller: controller,
+              autofocus: true,
+              autocorrect: false,
+              enableSuggestions: false,
+              textCapitalization: TextCapitalization.none,
+              minLines: 2,
+              maxLines: 3,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => onSubmit(),
+              decoration: InputDecoration(
+                hintText: L.t('recallPlaceholder'),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(height: 8),
-                FilledButton(
-                  key: const Key('rspan-check'),
-                  onPressed: onSubmit,
-                  style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
-                  child: Text(L.t('check')),
-                ),
-              ],
+              ),
             ),
-          ),
+            const SizedBox(height: 8),
+            FilledButton(
+              key: const Key('rspan-check'),
+              onPressed: onSubmit,
+              style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+              child: Text(L.t('check')),
+            ),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 }
 
 /// Слова ответа, собранного касаниями, — из того же поля, что пишет клавиатура.
 List<String> _pickedWords(TextEditingController c) => [
-      for (final w in c.text.split(' '))
-        if (w.isNotEmpty) w,
-    ];
+  for (final w in c.text.split(' '))
+    if (w.isNotEmpty) w,
+];
 
 /// Вспоминание касанием — в шаге зарядки: плитка дописывает слово в тот же ответ, что и
 /// клавиатура. Проверка и счёт — общие с вводом текстом.
@@ -561,19 +740,22 @@ class _RecallTiles extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Wrap(
-        alignment: WrapAlignment.center,
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (var i = 0; i < words.length; i++)
-            OutlinedButton(
-              key: Key('rspan-word-$i'),
-              onPressed: () => controller.text = [..._pickedWords(controller), words[i]].join(' '),
-              style: OutlinedButton.styleFrom(minimumSize: const Size(48, 48)),
-              child: Text(words[i]),
-            ),
-        ],
-      );
+    alignment: WrapAlignment.center,
+    spacing: 8,
+    runSpacing: 8,
+    children: [
+      for (var i = 0; i < words.length; i++)
+        OutlinedButton(
+          key: Key('rspan-word-$i'),
+          onPressed: () => controller.text = [
+            ..._pickedWords(controller),
+            words[i],
+          ].join(' '),
+          style: OutlinedButton.styleFrom(minimumSize: const Size(48, 48)),
+          child: Text(words[i]),
+        ),
+    ],
+  );
 }
 
 /// Ряд под полем в шаге зарядки: собранный ответ, «Стереть» (снимает последнее слово) и «Проверить».
@@ -585,61 +767,76 @@ class _TapRecallBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-        listenable: controller,
-        builder: (context, _) {
-          final picked = _pickedWords(controller);
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 460),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      constraints: const BoxConstraints(minHeight: 48),
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Theme.of(context).colorScheme.outline),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        picked.isEmpty ? L.t('recallPlaceholder') : picked.join(' · '),
-                        key: const Key('rspan-answer'),
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
+    listenable: controller,
+    builder: (context, _) {
+      final picked = _pickedWords(controller);
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 460),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  constraints: const BoxConstraints(minHeight: 48),
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outline,
                     ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        OutlinedButton.icon(
-                          key: const Key('rspan-erase'),
-                          onPressed: picked.isEmpty ? null : () => controller.text = picked.sublist(0, picked.length - 1).join(' '),
-                          style: OutlinedButton.styleFrom(minimumSize: const Size(48, 48)),
-                          icon: const Icon(Icons.backspace_outlined),
-                          label: Text(L.t('a11yErase')),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    picked.isEmpty
+                        ? L.t('recallPlaceholder')
+                        : picked.join(' · '),
+                    key: const Key('rspan-answer'),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    OutlinedButton.icon(
+                      key: const Key('rspan-erase'),
+                      onPressed: picked.isEmpty
+                          ? null
+                          : () => controller.text = picked
+                                .sublist(0, picked.length - 1)
+                                .join(' '),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(48, 48),
+                      ),
+                      icon: const Icon(Icons.backspace_outlined),
+                      label: Text(L.t('a11yErase')),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FilledButton(
+                        key: const Key('rspan-check'),
+                        onPressed: onSubmit,
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(0, 48),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: FilledButton(
-                            key: const Key('rspan-check'),
-                            onPressed: onSubmit,
-                            style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
-                            child: Text(L.t('check')),
-                          ),
-                        ),
-                      ],
+                        child: Text(L.t('check')),
+                      ),
                     ),
                   ],
                 ),
-              ),
+              ],
             ),
-          );
-        },
+          ),
+        ),
       );
+    },
+  );
 }
 
 class _Done extends StatelessWidget {
@@ -659,21 +856,38 @@ class _Done extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Icon(game.passed ? Icons.check_circle_outline : Icons.replay,
-              key: Key(game.passed ? 'rspan-passed' : 'rspan-failed'),
-              size: 56,
-              color: game.passed ? _sense : _nonsense),
+          Icon(
+            game.passed ? Icons.check_circle_outline : Icons.replay,
+            key: Key(game.passed ? 'rspan-passed' : 'rspan-failed'),
+            size: 56,
+            color: game.passed ? _sense : _nonsense,
+          ),
           const SizedBox(height: 12),
-          Text('${L.t('hud_correct')}: ${game.hits}/${game.seq.length}', key: const Key('rspan-hits'), style: text.titleMedium),
-          Text('${L.t('hud_errors')}: ${game.errors}', key: const Key('rspan-errors'), style: text.titleMedium),
+          Text(
+            '${L.t('hud_correct')}: ${game.hits}/${game.seq.length}',
+            key: const Key('rspan-hits'),
+            style: text.titleMedium,
+          ),
+          Text(
+            '${L.t('hud_errors')}: ${game.errors}',
+            key: const Key('rspan-errors'),
+            style: text.titleMedium,
+          ),
           if (r != null) ...[
             const SizedBox(height: 8),
-            Text(r.expected.join(' · '), key: const Key('rspan-expected'), textAlign: TextAlign.center, style: text.bodyMedium),
+            Text(
+              r.expected.join(' · '),
+              key: const Key('rspan-expected'),
+              textAlign: TextAlign.center,
+              style: text.bodyMedium,
+            ),
           ],
           if (!game.passed) ...[
             const SizedBox(height: 8),
             Text(
-              levelNow < game.level ? L.t('levelDownRetry').replaceAll('{n}', '$levelNow') : L.t('sameLevelRetry'),
+              levelNow < game.level
+                  ? L.t('levelDownRetry').replaceAll('{n}', '$levelNow')
+                  : L.t('sameLevelRetry'),
               key: const Key('rspan-retry-note'),
               style: text.bodySmall,
             ),
@@ -696,34 +910,53 @@ class RspanSolution extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
-        key: const Key('rspan-solution'),
-        padding: const EdgeInsets.all(16),
-        // Набор строится целиком, а не лениво: до 62 строк, и каждая — часть решения.
-        child: Column(children: [
-          for (var i = 0; i < seq.length; i++)
-            Padding(
-              // Ключ — для проб; скринридеру — подпись словами, а не отладочный id (сверка 02.10).
-              key: Key('rspan-sol-$i-${seq[i].ok ? 'sense' : 'nonsense'}'),
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Semantics(
-                label: '${i + 1}. ${seq[i].text(language)} — ${seq[i].ok ? L.t('makesSense') : L.t('nonsense')}',
-                excludeSemantics: true,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(radius: 13, backgroundColor: _accent, child: Text('${i + 1}', style: const TextStyle(fontSize: 12))),
-                    const SizedBox(width: 10),
-                    Expanded(child: RspanSentenceCard(sentence: seq[i], language: language, mark: seq[i].ok)),
-                    const SizedBox(width: 6),
-                    // Смысл — не только цветом рамки: знак виден и тому, кто цвета не различает.
-                    Icon(seq[i].ok ? Icons.check_circle : Icons.cancel,
-                        color: seq[i].ok ? _sense : _nonsense, size: 22),
-                  ],
-                ),
+    key: const Key('rspan-solution'),
+    padding: const EdgeInsets.all(16),
+    // Набор строится целиком, а не лениво: до 62 строк, и каждая — часть решения.
+    child: Column(
+      children: [
+        for (var i = 0; i < seq.length; i++)
+          Padding(
+            // Ключ — для проб; скринридеру — подпись словами, а не отладочный id (сверка 02.10).
+            key: Key('rspan-sol-$i-${seq[i].ok ? 'sense' : 'nonsense'}'),
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Semantics(
+              label:
+                  '${i + 1}. ${seq[i].text(language)} — ${seq[i].ok ? L.t('makesSense') : L.t('nonsense')}',
+              excludeSemantics: true,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 13,
+                    backgroundColor: _accent,
+                    child: Text(
+                      '${i + 1}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: RspanSentenceCard(
+                      sentence: seq[i],
+                      language: language,
+                      mark: seq[i].ok,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  // Смысл — не только цветом рамки: знак виден и тому, кто цвета не различает.
+                  Icon(
+                    seq[i].ok ? Icons.check_circle : Icons.cancel,
+                    color: seq[i].ok ? _sense : _nonsense,
+                    size: 22,
+                  ),
+                ],
               ),
             ),
-        ]),
-      );
+          ),
+      ],
+    ),
+  );
 }
 
 /// РАЗБОР ДО ПАРТИИ — на карточке предложения самой игры и по её правилу засчёта.
@@ -734,12 +967,15 @@ class RspanSolution extends StatelessWidget {
 /// предложения (`ok`), то есть ровно так, как партию засчитывает игра.
 /// Предложения, которые разбор показывает с ответом, — их помечает виденными экран.
 List<RspanSentence> readingSpanLessonSentences(List<RspanSentence> pool) => {
-      pool.firstWhere((s) => s.ok, orElse: () => pool.first),
-      pool.firstWhere((s) => !s.ok, orElse: () => pool.last),
-      ...pool.take(3),
-    }.toList();
+  pool.firstWhere((s) => s.ok, orElse: () => pool.first),
+  pool.firstWhere((s) => !s.ok, orElse: () => pool.last),
+  ...pool.take(3),
+}.toList();
 
-List<DemoTrial> readingSpanLessonTrials(List<RspanSentence> pool, String language) {
+List<DemoTrial> readingSpanLessonTrials(
+  List<RspanSentence> pool,
+  String language,
+) {
   final sense = pool.firstWhere((s) => s.ok, orElse: () => pool.first);
   final nonsense = pool.firstWhere((s) => !s.ok, orElse: () => pool.last);
   final three = pool.take(3).toList();

@@ -1,8 +1,9 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
@@ -66,8 +67,7 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
   late LevelLadder _ladder;
   late double Function() _rng;
 
-  /// Вибрация — через общий выключатель «Вибрация» (веб `psygames_haptic_enabled`).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   bool _loaded = false;
 
   /// Режим партии — «картинкой» (static) или «по порядку» (sequential); в шаге — из шага.
@@ -104,6 +104,7 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
   @override
   void dispose() {
     _cancelTimers();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -139,6 +140,7 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
 
   void _reset() {
     _cancelTimers();
+    _answerFeedback.clear();
     _level = MatrixLevel(level: _ladder.level, mode: _mode, gridSize: _gridSize, preset: GamePreset.isPreset);
     _phase = MmPhase.ready;
     _showingSeries = 0;
@@ -225,10 +227,9 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
     final res = g.tap(cell);
     if (res == MmPress.ignored) return;
     if (res == MmPress.roundLost) {
-      _haptics.heavy();
+      unawaited(_answerFeedback.show('board', null, right: false));
     } else {
-      // Клетка — лёгкий щелчок, собранный раунд — отклик сильнее (у веба успех — двойной импульс).
-      res == MmPress.roundWon ? _haptics.medium() : _haptics.selection();
+      unawaited(_answerFeedback.show('board', 'board'));
       if (g.streak > _bestStreak) {
         // Рекорд празднуем, когда он побит, а не в конце партии (веб: bumpBestStreak).
         if (_bestStreak > 0) _beatBest = true;
@@ -353,17 +354,21 @@ class _MemoryMatrixScreenState extends State<MemoryMatrixScreen> {
                     // веб-версия: считала от окна, и нижний ряд уезжал за экран.
                     final side = (c.maxHeight < c.maxWidth ? c.maxHeight : c.maxWidth) - 16;
                     return Center(
-                      child: MatrixGridView(
-                        gridSize: g.gridSize,
-                        side: side,
-                        stateOf: (i) => _cellState(g, i),
-                        orderOf: _phase == MmPhase.revealed && g.mode == 'sequential'
-                            ? (i) {
-                                final k = g.current?.seq.indexOf(i) ?? -1;
-                                return k >= 0 ? k + 1 : null;
-                              }
-                            : null,
-                        onTap: _phase == MmPhase.input ? _tap : null,
+                      child: AnswerMark(
+                        feedback: _answerFeedback,
+                        value: 'board',
+                        child: MatrixGridView(
+                          gridSize: g.gridSize,
+                          side: side,
+                          stateOf: (i) => _cellState(g, i),
+                          orderOf: _phase == MmPhase.revealed && g.mode == 'sequential'
+                              ? (i) {
+                                  final k = g.current?.seq.indexOf(i) ?? -1;
+                                  return k >= 0 ? k + 1 : null;
+                                }
+                              : null,
+                          onTap: _phase == MmPhase.input ? _tap : null,
+                        ),
                       ),
                     );
                   }),

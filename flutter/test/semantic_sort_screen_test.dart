@@ -81,6 +81,9 @@ void main() {
     }
     await tester.tap(find.byKey(Key('semantic-cat-$cat')));
     await tester.pump();
+    expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
+    expect(find.byKey(const Key('answer-mark-bad')),
+        right ? findsNothing : findsOneWidget);
     await tester.pump(const Duration(milliseconds: 1000));
     await tester.pumpAndSettle();
   }

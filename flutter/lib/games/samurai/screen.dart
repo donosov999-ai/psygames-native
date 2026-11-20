@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../shell/ability_wallet.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/game_clock.dart';
 
 import '../../shell/aux_action.dart';
@@ -56,6 +57,7 @@ class SamuraiScreen extends StatefulWidget {
 }
 
 class _SamuraiScreenState extends State<SamuraiScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   SamuraiLevels? _levels;
   SamuraiBoard? _board;
@@ -122,6 +124,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     _persist();   // уход с экрана — с живым временем, а не с тем, что было на прошлом ходу
     _hCtrl.dispose();
     _vCtrl.dispose();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -330,6 +333,8 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
     final sel = _selected;
     if (board == null || sel == null || _halted) return;
     if (_given[sel.r][sel.c]) return;
+    final right = value == 0 || board.solution[sel.r][sel.c] == value;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
 
     setState(() {
       _history.add((r: sel.r, c: sel.c, was: _grid[sel.r][sel.c], to: value));
@@ -555,16 +560,20 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
       field: (context, height) {
         if (levels == null) return const Center(child: CircularProgressIndicator());
         if (board == null) return Center(child: Text(_failure ?? L.t('sdkBoardFailed')));
-        return SamuraiField(
-          board: board,
-          grid: _grid,
-          given: _given,
-          selected: _selected,
-          zoom: _zoom,
-          height: height,
-          hCtrl: _hCtrl,
-          vCtrl: _vCtrl,
-          onTap: _select,
+        return AnswerMark(
+          feedback: _answerFeedback,
+          value: 'answer',
+          child: SamuraiField(
+            board: board,
+            grid: _grid,
+            given: _given,
+            selected: _selected,
+            zoom: _zoom,
+            height: height,
+            hCtrl: _hCtrl,
+            vCtrl: _vCtrl,
+            onTap: _select,
+          ),
         );
       },
       auxRow: AuxBar(children: [

@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
@@ -70,6 +71,7 @@ class SolitaireChessScreen extends StatefulWidget {
 enum _Phase { config, playing, done }
 
 class _SolitaireChessScreenState extends State<SolitaireChessScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late final LevelLadder _ladder = LevelLadder(
     gameId: 'solitaire_chess',
     store: SharedLevelStore(widget.state),
@@ -112,6 +114,7 @@ class _SolitaireChessScreenState extends State<SolitaireChessScreen> {
   @override
   void dispose() {
     _ticker?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -135,6 +138,16 @@ class _SolitaireChessScreenState extends State<SolitaireChessScreen> {
     });
     _ticker?.cancel();
     _ticker = gameInterval(const Duration(milliseconds: 100), _tick);
+  }
+
+  void _move(SolitaireRun run, VoidCallback action) {
+    final before = run.verdict;
+    setState(action);
+    final verdict = run.verdict;
+    if (before == null && verdict != null) {
+      final right = verdict == SolitaireVerdict.solved;
+      unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
+    }
   }
 
   void _tick() {
@@ -272,11 +285,15 @@ class _SolitaireChessScreenState extends State<SolitaireChessScreen> {
             icon: Icons.check_circle_outline,
           ),
       ],
-      field: (context, h) => switch (_phase) {
-        _Phase.config => _config(),
-        _Phase.playing => run == null ? const SizedBox.shrink() : _play(run, h),
-        _Phase.done => SizedBox(height: h, child: _result()),
-      },
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: switch (_phase) {
+          _Phase.config => _config(),
+          _Phase.playing => run == null ? const SizedBox.shrink() : _play(run, h),
+          _Phase.done => SizedBox(height: h, child: _result()),
+        },
+      ),
       auxRow: playing ? _aux(run) : null,
       pauseActions: [
         if (playing)
@@ -382,7 +399,7 @@ class _SolitaireChessScreenState extends State<SolitaireChessScreen> {
               board: run.board,
               side: side,
               keyPrefix: 'sol',
-              onTapSquare: (i) => setState(() => run.tap(i)),
+              onTapSquare: (i) => _move(run, () => run.tap(i)),
               selected: run.selected,
               targets: run.targets.toSet(),
               hinted: run.hintSquare,

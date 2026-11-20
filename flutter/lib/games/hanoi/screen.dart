@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/game_clock.dart';
@@ -42,8 +42,7 @@ class HanoiScreen extends StatefulWidget {
 }
 
 class _HanoiScreenState extends State<HanoiScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   /// 🔴 СЛЕДУЮЩИЙ УРОВЕНЬ ЕДЕТ САМ (Денис 24.09.2026: «не переходит на
   /// следующий уровень сам»).
   ///
@@ -131,6 +130,7 @@ class _HanoiScreenState extends State<HanoiScreen> {
     // Открытый таймер после ухода с экрана валит весь прогон проб молча.
     _cancelNext();
     _idle?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -169,6 +169,7 @@ class _HanoiScreenState extends State<HanoiScreen> {
 
   void _start({int? level}) {
     _generation += 1;
+    _answerFeedback.clear();
     _resultFuture = null;
     _nextPending = false;
     _playedLevel = level ?? _ladder.level;
@@ -232,7 +233,7 @@ class _HanoiScreenState extends State<HanoiScreen> {
     final board = _board!;
     final after = board.move(from, to);
     if (after == null) {
-      _haptics.miss();
+      unawaited(_answerFeedback.show('board', null, right: false));
       _errors += 1;
       _errorStreak += 1;
       if (_errorStreak >= _errorsForHelp) _help = true;
@@ -240,7 +241,7 @@ class _HanoiScreenState extends State<HanoiScreen> {
     }
     _errorStreak = 0;
     _hint = null;
-    after.solved ? _haptics.win() : _haptics.hit();
+    unawaited(_answerFeedback.show('board', 'board'));
     _history.add(board.copy());
     _moves += 1;
     _board = after;
@@ -426,16 +427,20 @@ class _HanoiScreenState extends State<HanoiScreen> {
                   ),
                 ),
               ),
-            HanoiBoard(
-              state: board,
-              fieldHeight: h - _goalLineH - helpH,
-              selected: _sel,
-              hint: _hint,
-              onTapPeg: _tapPeg,
-              onDrop: (from, to) => setState(() {
-                _sel = null;
-                _move(from, to);
-              }),
+            AnswerMark(
+              feedback: _answerFeedback,
+              value: 'board',
+              child: HanoiBoard(
+                state: board,
+                fieldHeight: h - _goalLineH - helpH,
+                selected: _sel,
+                hint: _hint,
+                onTapPeg: _tapPeg,
+                onDrop: (from, to) => setState(() {
+                  _sel = null;
+                  _move(from, to);
+                }),
+              ),
             ),
           ],
         );

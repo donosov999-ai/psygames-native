@@ -73,8 +73,10 @@ void main() {
   testWidgets('🔴 ход ТАПОМ и отказ ПО ВМЕСТИМОСТИ считаются по-разному', (tester) async {
     await _boot(tester, state);
     await _tapMove(tester, 0, 2);   // третий стержень одноместный
+    expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
     expect(_board(tester).state.pegs[2].length, 1, reason: 'первый шар туда влезает');
     await _tapMove(tester, 0, 2);   // а второй — уже нет
+    expect(find.byKey(const Key('answer-mark-bad')), findsOneWidget);
     expect(_board(tester).state.pegs[2].length, 1, reason: 'вместимость не пускает');
     expect(
       find.byWidgetPredicate((w) => w is Semantics && w.properties.label == 'Ошибки: 1'),

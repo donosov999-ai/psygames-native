@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/setup_scroll.dart';
@@ -39,6 +40,9 @@ const double stroopPassAccuracy = 0.85;
 ///   flutter run --dart-define=AUTOSTART=true
 const bool stroopAutostart = bool.fromEnvironment('AUTOSTART');
 
+/// Пауза на общий отклик между пробами.
+const int stroopFeedbackMs = 600;
+
 /// Базовое правило партии из адреса — как веб (`str('mode', 'ink') === 'word' ? 'word' : 'ink'`):
 /// любое иное имя (шаг зарядки шлёт и `classic`) — цвет чернил. Без параметра — правило экрана.
 String stroopModeFor(String fallback) {
@@ -48,7 +52,12 @@ String stroopModeFor(String fallback) {
 }
 
 class StroopScreen extends StatefulWidget {
-  const StroopScreen({super.key, required this.state, this.mode = 'ink', this.clock});
+  const StroopScreen({
+    super.key,
+    required this.state,
+    this.mode = 'ink',
+    this.clock,
+  });
 
   final SharedState state;
 
@@ -64,6 +73,7 @@ class StroopScreen extends StatefulWidget {
 
 class _StroopScreenState extends State<StroopScreen> {
   late LevelLadder _ladder;
+  late final _feedback = AnswerFeedback(widget.state);
   StroopGame? _game;
   StroopPhase _phase = StroopPhase.ready;
   StroopOutcome? _flash;
@@ -78,13 +88,17 @@ class _StroopScreenState extends State<StroopScreen> {
   void initState() {
     super.initState();
     _mode = stroopModeFor(widget.mode);
-    _ladder = LevelLadder(gameId: 'stroop', store: SharedLevelStore(widget.state));
+    _ladder = LevelLadder(
+      gameId: 'stroop',
+      store: SharedLevelStore(widget.state),
+    );
     _boot();
   }
 
   @override
   void dispose() {
     _window?.cancel();
+    unawaited(_feedback.dispose());
     super.dispose();
   }
 
@@ -98,11 +112,14 @@ class _StroopScreenState extends State<StroopScreen> {
 
   void _reset() {
     _window?.cancel();
+    _feedback.clear();
     _game = StroopGame(
       level: _ladder.level,
       mode: _mode,
       nowMs: widget.clock,
-      trialsOverride: GamePreset.isPreset ? GamePreset.num('trials', StroopLevel.of(_ladder.level).trials) : null,
+      trialsOverride: GamePreset.isPreset
+          ? GamePreset.num('trials', StroopLevel.of(_ladder.level).trials)
+          : null,
     );
     _phase = StroopPhase.ready;
     _flash = null;
@@ -165,20 +182,22 @@ class _StroopScreenState extends State<StroopScreen> {
     // `finished` — партия уже сдана в `_finish`, а фаза ещё «игра»: пока лестница пишет
     // победу и открывается бой, нажатие прошло бы в пустую пробу, и её «мимо» сдало бы
     // партию второй раз — второй подъём уровня.
-    if (_phase != StroopPhase.playing || _game!.finished) return;
-    _after(_game!.answer(c));
+    if (_phase != StroopPhase.playing || _game!.finished || _feedback.busy) {
+      return;
+    }
+    _after(_game!.answer(c), c);
   }
 
   /// Общий хвост ответа и просрочки: отклик, пауза на него и следующая проба.
-  void _after(StroopOutcome outcome) {
+  Future<void> _after(StroopOutcome outcome, [StroopColor? picked]) async {
+    final game = _game!;
+    final correct = game.palette.firstWhere((c) => c.name == game.correctName);
     _window?.cancel();
     setState(() => _flash = outcome);
-    // Короткий отклик, как в веб-версии: человек должен увидеть, что ответ принят.
-    _window = Timer(const Duration(milliseconds: 220), () {
-      if (!mounted) return;
-      setState(() => _flash = null);
-      _nextTrial();
-    });
+    await _feedback.show(picked, correct, right: outcome == StroopOutcome.hit);
+    if (!mounted || !identical(game, _game)) return;
+    setState(() => _flash = null);
+    _nextTrial();
   }
 
   Future<void> _finish() async {
@@ -188,8 +207,12 @@ class _StroopScreenState extends State<StroopScreen> {
     // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «жми / не жми», потом итог.
     bool? boss;
     if (passed) {
-      boss = await BossRound.winThenBoss(context, _ladder,
-          type: BossType.gonogo, color: const Color(0xFFFC466B));
+      boss = await BossRound.winThenBoss(
+        context,
+        _ladder,
+        type: BossType.gonogo,
+        color: const Color(0xFFFC466B),
+      );
     } else {
       await _ladder.fail();
     }
@@ -204,33 +227,76 @@ class _StroopScreenState extends State<StroopScreen> {
   @override
   Widget build(BuildContext context) {
     final g = _game;
-    if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (g == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return GameShell(
       // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
-      levelRule: LevelRuleSpot(gameId: 'stroop', level: g.level, state: widget.state, calm: _phase != StroopPhase.playing),
+      levelRule: LevelRuleSpot(
+        gameId: 'stroop',
+        level: g.level,
+        state: widget.state,
+        calm: _phase != StroopPhase.playing,
+      ),
       // Тексты — из общего словаря теми же ключами, что зовёт веб-версия игры.
       title: L.t('stroop'),
       hud: [
-        HudItem(label: L.t('level'), value: '${g.level}', icon: Icons.flag_outlined),
-        HudItem(label: L.t('round'), value: '${g.round}/${g.trialsTotal}', icon: Icons.numbers),
-        HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
-        HudItem(label: L.t('hud_errors'), value: '${g.errors}', icon: Icons.close),
+        HudItem(
+          label: L.t('level'),
+          value: '${g.level}',
+          icon: Icons.flag_outlined,
+        ),
+        HudItem(
+          label: L.t('round'),
+          value: '${g.round}/${g.trialsTotal}',
+          icon: Icons.numbers,
+        ),
+        HudItem(
+          label: L.t('hud_correct'),
+          value: '${g.hits}',
+          icon: Icons.check,
+        ),
+        HudItem(
+          label: L.t('hud_errors'),
+          value: '${g.errors}',
+          icon: Icons.close,
+        ),
       ],
       onLesson: _game == null
           ? null
-          : () => openDemoLesson(context, title: L.t('stroop'), trials: _demoTrials()),
-      suiteSwitch: _phase == StroopPhase.ready ? SuiteSwitch(route: '/games/stroop', state: widget.state) : null,
+          : () => openDemoLesson(
+              context,
+              title: L.t('stroop'),
+              trials: _demoTrials(),
+            ),
+      suiteSwitch: _phase == StroopPhase.ready
+          ? SuiteSwitch(route: '/games/stroop', state: widget.state)
+          : null,
       field: (context, h) => _Field(
-        game: g, phase: _phase, flash: _flash, passed: _passed, boss: _boss,
-        height: h, onStart: _start, onAgain: () => setState(_reset), onMode: _pickMode,
-        nextLevel: _passed && !GamePreset.isPreset && !GamePreset.isTransit && _ladder.level > g.level
-            ? _ladder.level : null,
+        game: g,
+        phase: _phase,
+        flash: _flash,
+        passed: _passed,
+        boss: _boss,
+        height: h,
+        onStart: _start,
+        onAgain: () => setState(_reset),
+        onMode: _pickMode,
+        nextLevel:
+            _passed &&
+                !GamePreset.isPreset &&
+                !GamePreset.isTransit &&
+                _ladder.level > g.level
+            ? _ladder.level
+            : null,
         onContinue: () {
           setState(_reset);
           _start();
         },
       ),
-      toolbar: _phase == StroopPhase.playing ? _Answers(game: g, onPick: _answer) : null,
+      toolbar: _phase == StroopPhase.playing
+          ? _Answers(game: g, feedback: _feedback, onPick: _answer)
+          : null,
     );
   }
 }
@@ -249,12 +315,17 @@ String stroopWord(StroopColor c) {
     'blue' => L.t('color_blue'),
     'green' => L.t('color_green'),
     'yellow' => L.t('color_yellow'),
-    _ => throw ArgumentError.value(c.name, 'name', 'no dictionary word for this colour'),
+    _ => throw ArgumentError.value(
+      c.name,
+      'name',
+      'no dictionary word for this colour',
+    ),
   };
   return word.toUpperCase();
 }
 
-Color _hex(String hex) => Color(int.parse(hex.substring(1), radix: 16) | 0xFF000000);
+Color _hex(String hex) =>
+    Color(int.parse(hex.substring(1), radix: 16) | 0xFF000000);
 
 class _Field extends StatelessWidget {
   const _Field({
@@ -295,11 +366,17 @@ class _Field extends StatelessWidget {
           height: height,
           onStart: onStart,
           children: [
-            Text('${L.t('level')} ${game.level}', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              '${L.t('level')} ${game.level}',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 8),
             SetupChoice<String>(
               label: L.t('stroopModeLabel'),
-              options: [('ink', L.t('stroopByInk'), 'stroop-mode-ink'), ('word', L.t('stroopByWord'), 'stroop-mode-word')],
+              options: [
+                ('ink', L.t('stroopByInk'), 'stroop-mode-ink'),
+                ('word', L.t('stroopByWord'), 'stroop-mode-word'),
+              ],
               value: game.mode,
               onPick: onMode,
             ),
@@ -310,9 +387,13 @@ class _Field extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              L.t('stroopLvlParams')
+              L
+                  .t('stroopLvlParams')
                   .replaceAll('{n}', '${game.trialsTotal}')
-                  .replaceAll('{w}', (game.params.windowMs / 1000).toStringAsFixed(1))
+                  .replaceAll(
+                    '{w}',
+                    (game.params.windowMs / 1000).toStringAsFixed(1),
+                  )
                   .replaceAll('{p}', '${(incongruentRatio * 100).round()}'),
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
@@ -322,7 +403,12 @@ class _Field extends StatelessWidget {
             if (game.params.switchRate > 0) ...[
               const SizedBox(height: 4),
               Text(
-                L.t('stroopLvlSwitch').replaceAll('{s}', '${(game.params.switchRate * 100).round()}'),
+                L
+                    .t('stroopLvlSwitch')
+                    .replaceAll(
+                      '{s}',
+                      '${(game.params.switchRate * 100).round()}',
+                    ),
                 key: const Key('stroop-switch-line'),
                 style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.center,
@@ -343,11 +429,15 @@ class _Field extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            Text('${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal} · '
-                '${L.t('hud_errors')}: ${game.errors}'),
-            Text(game.meanRtMs == null
-                ? '${L.t('meanReaction')}: —'
-                : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}'),
+            Text(
+              '${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal} · '
+              '${L.t('hud_errors')}: ${game.errors}',
+            ),
+            Text(
+              game.meanRtMs == null
+                  ? '${L.t('meanReaction')}: —'
+                  : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}',
+            ),
             Text(
               // Прочерк честнее нуля: ноль означал бы «интерференции нет».
               interference == null
@@ -360,7 +450,9 @@ class _Field extends StatelessWidget {
               FilledButton(
                 key: const Key('stroop-next-level'),
                 onPressed: onContinue,
-                child: Text(L.t('nextLevelBtn').replaceAll('{n}', '$nextLevel')),
+                child: Text(
+                  L.t('nextLevelBtn').replaceAll('{n}', '$nextLevel'),
+                ),
               )
             else
               FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
@@ -390,7 +482,9 @@ class _Field extends StatelessWidget {
               // Правило пробы — под стимулом: часть проб идёт по другому правилу,
               // и человек узнаёт об этом только отсюда.
               Text(
-                game.trialRule == 'ink' ? L.t('stroopByInk') : L.t('stroopByWord'),
+                game.trialRule == 'ink'
+                    ? L.t('stroopByInk')
+                    : L.t('stroopByWord'),
                 key: const Key('stroop-rule'),
                 style: Theme.of(context).textTheme.labelLarge,
               ),
@@ -400,9 +494,21 @@ class _Field extends StatelessWidget {
               SizedBox(
                 height: 28,
                 child: switch (flash) {
-                  StroopOutcome.hit => const Icon(Icons.check_circle, color: Color(0xFF22C55E), key: Key('stroop-hit')),
-                  StroopOutcome.wrong => const Icon(Icons.cancel, color: Color(0xFFEF4444), key: Key('stroop-wrong')),
-                  StroopOutcome.miss => const Icon(Icons.timer_off, color: Color(0xFFEF4444), key: Key('stroop-miss')),
+                  StroopOutcome.hit => const Icon(
+                    Icons.check_circle,
+                    color: Color(0xFF22C55E),
+                    key: Key('stroop-hit'),
+                  ),
+                  StroopOutcome.wrong => const Icon(
+                    Icons.cancel,
+                    color: Color(0xFFEF4444),
+                    key: Key('stroop-wrong'),
+                  ),
+                  StroopOutcome.miss => const Icon(
+                    Icons.timer_off,
+                    color: Color(0xFFEF4444),
+                    key: Key('stroop-miss'),
+                  ),
                   null => const SizedBox.shrink(),
                 },
               ),
@@ -420,14 +526,14 @@ class _Centered extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        height: height,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: children),
-          ),
-        ),
-      );
+    height: height,
+    child: Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(mainAxisSize: MainAxisSize.min, children: children),
+      ),
+    ),
+  );
 }
 
 class _DecoyRow extends StatelessWidget {
@@ -446,37 +552,49 @@ class _DecoyRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        height: 24,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            for (final g in glyphs)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Icon(_icons[g] ?? Icons.circle_outlined, size: 20, color: Theme.of(context).disabledColor),
-              ),
-          ],
-        ),
-      );
+    height: 24,
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (final g in glyphs)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Icon(
+              _icons[g] ?? Icons.circle_outlined,
+              size: 20,
+              color: Theme.of(context).disabledColor,
+            ),
+          ),
+      ],
+    ),
+  );
 }
 
 class _Answers extends StatelessWidget {
-  const _Answers({required this.game, required this.onPick});
+  const _Answers({
+    required this.game,
+    required this.feedback,
+    required this.onPick,
+  });
   final StroopGame game;
+  final AnswerFeedback feedback;
   final void Function(StroopColor) onPick;
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-        child: Row(
-          children: [
-            for (final c in game.palette)
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: TapLatency(
-                    where: 'Flutter/Stroop',
-                    child: SizedBox(
+    padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+    child: Row(
+      children: [
+        for (final c in game.palette)
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: AnswerMark(
+                feedback: feedback,
+                value: c,
+                child: TapLatency(
+                  where: 'Flutter/Stroop',
+                  child: SizedBox(
                     height: 56,
                     child: FilledButton(
                       key: Key('stroop-answer-${c.name}'),
@@ -487,13 +605,19 @@ class _Answers extends StatelessWidget {
                         foregroundColor: _hex(stroopLabelColor(c.hex)),
                         padding: EdgeInsets.zero,
                       ),
-                      child: FittedBox(child: Text(stroopWord(c), style: const TextStyle(fontWeight: FontWeight.w700))),
+                      child: FittedBox(
+                        child: Text(
+                          stroopWord(c),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
                     ),
-                  ),
                   ),
                 ),
               ),
-          ],
-        ),
-      );
+            ),
+          ),
+      ],
+    ),
+  );
 }

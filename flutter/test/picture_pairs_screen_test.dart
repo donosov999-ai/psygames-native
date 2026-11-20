@@ -162,7 +162,7 @@ void main() {
     await tester.pump();
   });
 
-  testWidgets('🔴 ход отзывается вибрацией: карта — лёгкая, группа — средняя, промах — сильная', (tester) async {
+  testWidgets('🔴 карта — лёгкая вибрация, группа — зелёный отклик, промах — красный', (tester) async {
     final kinds = <String>[];
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
       if (call.method == 'HapticFeedback.vibrate') kinds.add('${call.arguments}');
@@ -179,14 +179,16 @@ void main() {
     final other = List.generate(seen.length, (i) => i).firstWhere((i) => seen[i] != seen[a]);
     await tapCard(tester, a);
     await tapCard(tester, mate);
+    expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 450));
     final oMate = List.generate(seen.length, (i) => i).firstWhere((i) => i != other && seen[i] != seen[other] && seen[i] != seen[a]);
     await tapCard(tester, other);
     await tapCard(tester, oMate);
+    expect(find.byKey(const Key('answer-mark-bad')), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 850));
     expect(kinds, [
       'HapticFeedbackType.selectionClick',
-      'HapticFeedbackType.mediumImpact',
+      'HapticFeedbackType.selectionClick',
       'HapticFeedbackType.selectionClick',
       'HapticFeedbackType.heavyImpact',
     ]);

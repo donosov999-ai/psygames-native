@@ -86,7 +86,7 @@ void main() {
     expect(find.byKey(Key('miss_0_$wrong')), findsOneWidget, reason: 'промах тычком не стирается');
   });
 
-  testWidgets('🔴 вскрытие отзывается вибрацией: в разгадке — средней, мимо — сильной; тумблер выключен — тишина',
+  testWidgets('🔴 вскрытие: верно — зелёный и лёгкий отклик, мимо — красный и сильный; тумблер выключен — тишина',
       (tester) async {
     final calls = <String>[];
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
@@ -101,10 +101,12 @@ void main() {
     await tapCell(tester, 1, 0);
     final afterTap = calls.length;
     await reveal(tester, 0, right);
+    expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
     await reveal(tester, 0, wrong);
-    expect(calls.sublist(afterTap).where((c) => c.contains('Impact')).toList(),
-        ['HapticFeedbackType.mediumImpact', 'HapticFeedbackType.heavyImpact'],
-        reason: 'кошка — средний толчок, промах — сильный');
+    expect(find.byKey(const Key('answer-mark-bad')), findsOneWidget);
+    expect(calls.sublist(afterTap).where((c) => c != 'null'),
+        ['HapticFeedbackType.selectionClick', 'HapticFeedbackType.heavyImpact'],
+        reason: 'кошка — лёгкий щелчок, промах — сильный');
 
     state.set('${SharedState.prefix}haptic_enabled', 'false');
     final before = calls.length;

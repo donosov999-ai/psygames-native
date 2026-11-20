@@ -62,6 +62,7 @@ void main() {
       expect(find.byKey(const Key('клетка-вопрос')), findsOneWidget);
       await tester.tap(find.byKey(Key('ответ${seq.answer}')));
       await tester.pump();
+      expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 800));
     }
     expect(find.textContaining(L.t('nextLabel')), findsOneWidget, reason: 'десять из десяти — уровень взят');
@@ -125,6 +126,10 @@ void main() {
       final wrong = opts.firstWhere((o) => o != seq.answer);
       await tester.tap(find.byKey(Key('ответ${i <= 4 ? wrong : seq.answer}')));
       await tester.pump();
+      if (i == 1) {
+        expect(find.byKey(const Key('answer-mark-bad')), findsOneWidget);
+        expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
+      }
       await tester.pump(const Duration(milliseconds: 800));
     }
     expect(find.text(L.t('retry')), findsOneWidget, reason: '60% — уровень не взят');

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/aux_action.dart';
@@ -43,6 +44,8 @@ class MahjongScreen extends StatefulWidget {
 }
 
 class _MahjongScreenState extends State<MahjongScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
+
   /// Сколько держать подсветку тех, кто держит плитку.
   static const _blockersFor = Duration(milliseconds: 900);
 
@@ -92,6 +95,7 @@ class _MahjongScreenState extends State<MahjongScreen> {
   void dispose() {
     _blockersTimer?.cancel();
     _clock?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -209,6 +213,7 @@ class _MahjongScreenState extends State<MahjongScreen> {
     }
     if (_tiles[_selected!].symbol == _tiles[i].symbol) {
       final a = _selected!;
+      unawaited(_answerFeedback.show('answer', 'answer'));
       setState(() {
         _history.add(List<bool>.from(_alive));
         _alive[a] = false;
@@ -227,6 +232,7 @@ class _MahjongScreenState extends State<MahjongScreen> {
       return;
     }
     // Не совпали — ошибка и перевыбор на новую плитку, как в вебе.
+    unawaited(_answerFeedback.show('answer', null, right: false));
     setState(() {
       _errors += 1;
       _selected = i;
@@ -358,7 +364,10 @@ class _MahjongScreenState extends State<MahjongScreen> {
       ],
       // Итог — общий каркаса ([LevelResult], задача e90a53d5): собрал доску — автопереход на следующий
       // уровень, время вышло — «Ещё раз» на том же. Настройки у маджонга нет.
-      field: (context, h) => _won || _timedOut
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _won || _timedOut
           ? SizedBox(
               height: h,
               child: LevelResult(
@@ -380,6 +389,7 @@ class _MahjongScreenState extends State<MahjongScreen> {
               height: h,
               onTap: _tap,
             ),
+        ),
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.shuffle,

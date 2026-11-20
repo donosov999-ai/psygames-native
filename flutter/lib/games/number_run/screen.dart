@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/demo_lesson.dart';
@@ -208,6 +210,7 @@ bool Function(RoadCourse course, RoadState s)? numberRunAutoApply;
 
 class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProviderStateMixin {
   late final LevelLadder _ladder;
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late final Ticker _ticker;
   final FocusNode _focus = FocusNode();
   NumberRunMode _mode = NumberRunMode.levels;
@@ -252,12 +255,14 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
   void dispose() {
     _ticker.dispose();
     _focus.dispose();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
   /// Новая раздача: разбор показывает приёмы на ЭТОЙ дороге, поэтому она строится до старта.
   void _deal() {
     LessonUsed.reset();
+    _answerFeedback.clear();
     _seed = widget.seed != null ? widget.seed! + _games : math.Random().nextInt(1000000);
     _games += 1;
     final level = _ladder.level;
@@ -301,8 +306,15 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
       final pilot = numberRunAutopilot?.call(course, _s!);
       if (pilot != null) _s = roadSetTarget(_s!, pilot);
       if (numberRunAutoApply?.call(course, _s!) ?? false) _s = roadApplyReserve(_s!, course);
-      final next = roadAdvanceFrame(_s!, dt, course);
+      final previous = _s!;
+      final next = roadAdvanceFrame(previous, dt, course);
       setState(() => _s = next);
+      final wrong = next.hits + next.mistakes > previous.hits + previous.mistakes;
+      final passedRow = next.nextRow > previous.nextRow;
+      if (wrong || passedRow) {
+        final right = !wrong && passedRow;
+        unawaited(_answerFeedback.show('road', right ? 'road' : null, right: right));
+      }
       if (next.status == RoadStatus.failed) {
         _finish();
       } else if (next.status == RoadStatus.won) {
@@ -410,15 +422,19 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
             : HudItem(label: L.t('round'), value: '${s.stage}/$campaignStageCount', icon: Icons.flag_outlined),
         HudItem(label: L.t('errors'), value: '${s.hits + s.mistakes}', icon: Icons.cancel_outlined),
       ],
-      field: (context, h) => KeyboardListener(
-        focusNode: _focus,
-        autofocus: true,
-        onKeyEvent: (e) {
-          if (e is! KeyDownEvent) return;
-          if (e.logicalKey == LogicalKeyboardKey.arrowLeft) _lane(-1);
-          if (e.logicalKey == LogicalKeyboardKey.arrowRight) _lane(1);
-        },
-        child: _phase == _Phase.config ? _config(course) : _play(course, s, h),
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'road',
+        child: KeyboardListener(
+          focusNode: _focus,
+          autofocus: true,
+          onKeyEvent: (e) {
+            if (e is! KeyDownEvent) return;
+            if (e.logicalKey == LogicalKeyboardKey.arrowLeft) _lane(-1);
+            if (e.logicalKey == LogicalKeyboardKey.arrowRight) _lane(1);
+          },
+          child: _phase == _Phase.config ? _config(course) : _play(course, s, h),
+        ),
       ),
       toolbar: _toolbar(course),
       // Забег — во весь экран: шапки, счётчиков и тулбара нет, пауза плавает внизу (Денис 11.11.2026).

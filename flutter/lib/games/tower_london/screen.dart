@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/game_preset.dart';
@@ -38,8 +38,7 @@ class TowerLondonScreen extends StatefulWidget {
 }
 
 class _TowerLondonScreenState extends State<TowerLondonScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   /// 🔴 ПАРТИЯ ПРОДОЛЖАЕТСЯ САМА (Денис 24.09.2026: «во всех играх переход в
   /// конце сломан» — то есть его нет ни в одной). Итог видно 1,8 с — тут он
   /// длиннее, чем у уровневых игр: человеку показывают сумму лишних ходов за
@@ -62,6 +61,7 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
   void dispose() {
     // Открытый таймер после ухода с экрана валит весь прогон проб молча.
     _cancelNext();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -134,6 +134,7 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
   }
 
   void _startRound() {
+    _answerFeedback.clear();
     final level = _level!;
     // Задача берётся по номеру раунда, а не случайно: партия воспроизводима, и
     // «та же доска ещё раз» после перезапуска действительно та же.
@@ -188,11 +189,11 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
     final after = st.move(from, to);
     if (after == null) {
       // Ход запрещён вместимостью стержня — это ошибка, и она идёт в счёт.
-      _haptics.miss();
+      unawaited(_answerFeedback.show('board', null, right: false));
       _errors += 1;
       return;
     }
-    after.key == _puzzle!.goal.key ? _haptics.win() : _haptics.hit();
+    unawaited(_answerFeedback.show('board', 'board'));
     _history.add(st.copy());
     _moves += 1;
     _state = after;
@@ -290,16 +291,20 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
         // отнимает ход, но показывается: молчащий отказ читается как поломка.
         HudItem(label: L.t('errors'), value: '$_errors', icon: Icons.error_outline),
       ],
-      field: (context, h) => TolBoard(
-        state: st,
-        goal: puzzle.goal,
-        fieldHeight: h,
-        selected: _sel,
-        onTapPeg: _tapPeg,
-        onDrop: (from, to) => setState(() {
-          _sel = null;
-          _move(from, to);
-        }),
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'board',
+        child: TolBoard(
+          state: st,
+          goal: puzzle.goal,
+          fieldHeight: h,
+          selected: _sel,
+          onTapPeg: _tapPeg,
+          onDrop: (from, to) => setState(() {
+            _sel = null;
+            _move(from, to);
+          }),
+        ),
       ),
       auxRow: AuxBar(children: [
         AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _history.isEmpty ? null : _undo),

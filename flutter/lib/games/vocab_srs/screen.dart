@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -88,6 +89,7 @@ class VocabSrsScreen extends StatefulWidget {
 
 class _VocabSrsScreenState extends State<VocabSrsScreen> {
   late LevelLadder _runs;
+  late final _feedback = AnswerFeedback(widget.state);
   List<VocabEntry>? _vocab;
   LangNames _names = LangNames.empty;
 
@@ -135,7 +137,8 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   int _reviewsDone = 0;
   final Set<String> _newLearned = {};
 
-  int get _now => (widget.clock ?? () => DateTime.now().millisecondsSinceEpoch)();
+  int get _now =>
+      (widget.clock ?? () => DateTime.now().millisecondsSinceEpoch)();
 
   /// Язык интерфейса — он же базовый язык колоды.
   ///
@@ -148,26 +151,36 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
 
   String get _second => secondNotFirst(_baseLang, _targetLang, _wantedSecond);
 
-  List<String> get _langsInPlay => _bilingual ? [_targetLang, _second] : [_targetLang];
+  List<String> get _langsInPlay =>
+      _bilingual ? [_targetLang, _second] : [_targetLang];
+  bool get _dualRecognition =>
+      _bilingual && _direction == VocabDirection.recognize;
 
   @override
   void initState() {
     super.initState();
-    _runs = LevelLadder(gameId: 'vocab_srs', store: SharedLevelStore(widget.state));
+    _runs = LevelLadder(
+      gameId: 'vocab_srs',
+      store: SharedLevelStore(widget.state),
+    );
     _boot();
   }
 
   @override
   void dispose() {
     _next?.cancel();
+    unawaited(_feedback.dispose());
     super.dispose();
   }
 
   Future<void> _boot() async {
     await _runs.load();
-    final vocab = widget.vocabOverride ??
+    final vocab =
+        widget.vocabOverride ??
         [
-          for (final e in await loadJsonAsset('assets/vocab/translation-vocab.json') as List<dynamic>)
+          for (final e in await loadJsonAsset(
+            'assets/vocab/translation-vocab.json',
+          ) as List<dynamic>)
             (e as Map).map((k, v) => MapEntry('$k', '$v')),
         ];
     final names = await LangNames.load();
@@ -180,7 +193,10 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
       // без этого шаг зарядки открылся бы с настройками по умолчанию, и «два языка
       // вперемешку» молча стали бы одним. Умолчание языка — как в веб-версии:
       // англичанину испанский, остальным английский.
-      _targetLang = GamePreset.str('targetLang', _baseLang == 'en' ? 'es' : 'en');
+      _targetLang = GamePreset.str(
+        'targetLang',
+        _baseLang == 'en' ? 'es' : 'en',
+      );
       _newLimit = GamePreset.num('newLimit', 10);
       _direction = switch (GamePreset.str('direction', 'recognize')) {
         'recall' => VocabDirection.recall,
@@ -206,16 +222,16 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   }
 
   VocabSrs _engineFor(String lang) => _engines.putIfAbsent(
-        lang,
-        () => VocabSrs(
-          vocab: _vocab ?? const [],
-          baseLang: _baseLang,
-          targetLang: lang,
-          store: widget.storeOverride ?? SharedDeckStore(widget.state),
-          nowMs: () => _now,
-          random: widget.random,
-        ),
-      );
+    lang,
+    () => VocabSrs(
+      vocab: _vocab ?? const [],
+      baseLang: _baseLang,
+      targetLang: lang,
+      store: widget.storeOverride ?? SharedDeckStore(widget.state),
+      nowMs: () => _now,
+      random: widget.random,
+    ),
+  );
 
   Future<void> _refreshStats() async {
     final s = await _engineFor(_targetLang).getStats();
@@ -223,6 +239,8 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   }
 
   Future<void> _start() async {
+    _next?.cancel();
+    _feedback.clear();
     _engines.clear();
     final langs = _langsInPlay;
     final byLang = <String, List<CardRef>>{};
@@ -230,12 +248,16 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
     for (final l in langs) {
       final q = await _engineFor(l).buildQueue(_newLimit);
       pools[l] = q.pool;
-      byLang[l] = [for (final c in [...q.due, ...q.fresh]) c.withLang(l)];
+      byLang[l] = [
+        for (final c in [...q.due, ...q.fresh]) c.withLang(l),
+      ];
     }
 
     List<CardRef> cards;
     var switches = 0;
-    if (_bilingual) {
+    if (_dualRecognition) {
+      cards = _combineDual(byLang);
+    } else if (_bilingual) {
       final total = byLang.values.fold<int>(0, (n, v) => n + v.length);
       final spread = spreadByRow(byLang, total, langs);
       cards = [for (final x in spread.items) x.item];
@@ -270,6 +292,46 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
     });
   }
 
+  List<CardRef> _combineDual(Map<String, List<CardRef>> byLang) {
+    final first = byLang[_targetLang] ?? const [];
+    final second = byLang[_second] ?? const [];
+    final firstById = {for (final c in first) c.id: c};
+    final secondById = {for (final c in second) c.id: c};
+    final ids = <String>[
+      ...firstById.keys,
+      ...secondById.keys.where((id) => !firstById.containsKey(id)),
+    ];
+    final out = <CardRef>[];
+    for (final id in ids) {
+      final a = firstById[id], b = secondById[id];
+      final base = a?.base ?? b?.base ?? _wordFor(id, _baseLang) ?? '';
+      final firstTarget = a?.target ?? _wordFor(id, _targetLang) ?? '';
+      final secondTarget = b?.target ?? _wordFor(id, _second) ?? '';
+      if (base.isEmpty || firstTarget.isEmpty || secondTarget.isEmpty) continue;
+      out.add(
+        CardRef(
+          id: id,
+          base: base,
+          target: firstTarget,
+          isNew: (a?.isNew ?? false) || (b?.isNew ?? false),
+          lang: _targetLang,
+          secondTarget: secondTarget,
+          secondLang: _second,
+        ),
+      );
+    }
+    return out;
+  }
+
+  String? _wordFor(String id, String lang) {
+    if (!id.startsWith('v:')) return null;
+    final en = id.substring(2);
+    for (final word in _vocab ?? const <VocabEntry>[]) {
+      if (word['en'] == en) return word[lang];
+    }
+    return null;
+  }
+
   String _langOf(CardRef card) => card.lang ?? _targetLang;
 
   /// Что показать под карточкой: варианты ответа или поле набора.
@@ -286,8 +348,13 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
 
   List<String> _optionsFor(CardRef card) {
     final pool = _pools[_langOf(card)] ?? const [];
-    final right = _direction == VocabDirection.recognize ? card.base : card.target;
-    final words = [for (final p in pool) _direction == VocabDirection.recognize ? p.base : p.target];
+    final right = _direction == VocabDirection.recognize
+        ? card.base
+        : card.target;
+    final words = [
+      for (final p in pool)
+        _direction == VocabDirection.recognize ? p.base : p.target,
+    ];
     return _engineFor(_langOf(card)).buildOptions(right, words);
   }
 
@@ -303,9 +370,13 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   }
 
   Future<void> _pick(String option) async {
-    if (_picked != null || _phase != VocabPhase.playing) return;
+    if (_picked != null || _feedback.busy || _phase != VocabPhase.playing) {
+      return;
+    }
     final card = _queue[_idx];
-    final right = _direction == VocabDirection.recognize ? card.base : card.target;
+    final right = _direction == VocabDirection.recognize
+        ? card.base
+        : card.target;
     final rt = _now - _shownAtMs;
     final correct = option == right;
 
@@ -319,35 +390,43 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
     });
     _countAnswer(card, correct: correct, rt: rt);
 
-    // Оценка уходит в колоду ЯЗЫКА КАРТОЧКИ — в билингво их две.
-    await _engineFor(_langOf(card)).gradeCard(card.id, gradeFromAnswer(correct: correct, rtMs: rt));
-
     var queue = _queue;
     if (!correct) {
-      // Ошибка возвращает карточку через три позиции — один повторный заход в
-      // рамках этой же партии, ровно как в веб-версии.
       queue = [..._queue];
       queue.insert(
         (_idx + vocabRetryOffset).clamp(0, queue.length),
-        CardRef(id: card.id, base: card.base, target: card.target, isNew: card.isNew, lang: card.lang),
+        CardRef(
+          id: card.id,
+          base: card.base,
+          target: card.target,
+          isNew: card.isNew,
+          lang: card.lang,
+          secondTarget: card.secondTarget,
+          secondLang: card.secondLang,
+        ),
       );
       if (mounted) setState(() => _queue = queue);
     }
 
-    _next?.cancel();
-    _next = Timer(Duration(milliseconds: correct ? vocabNextDelayOkMs : vocabNextDelayWrongMs), () {
-      if (!mounted) return;
-      final next = _idx + 1;
-      if (next >= queue.length) {
-        _finish();
-        return;
-      }
-      setState(() {
-        _idx = next;
-        _picked = null;
-        _prepare(queue[next]);
-        _shownAtMs = _now;
-      });
+    final grade = gradeFromAnswer(correct: correct, rtMs: rt);
+    final grading = Future.wait([
+      _engineFor(_langOf(card)).gradeCard(card.id, grade),
+      if (_dualRecognition)
+        _engineFor(card.secondLang!).gradeCard(card.id, grade),
+    ]);
+    await _feedback.show(option, right, right: correct);
+    await grading;
+    if (!mounted || _picked != option) return;
+    final next = _idx + 1;
+    if (next >= queue.length) {
+      _finish();
+      return;
+    }
+    setState(() {
+      _idx = next;
+      _picked = null;
+      _prepare(queue[next]);
+      _shownAtMs = _now;
     });
   }
 
@@ -363,7 +442,12 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   ///     «easy», с опечатками «good».
   Future<void> _type(String ch) async {
     final st = _typing;
-    if (st == null || _picked != null || _phase != VocabPhase.playing) return;
+    if (st == null ||
+        _picked != null ||
+        _feedback.busy ||
+        _phase != VocabPhase.playing) {
+      return;
+    }
     final r = st.pressChar(ch, blockOnError: true);
     if (r.wrong) _typos += 1;
     setState(() {});
@@ -377,25 +461,23 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
     });
     _countAnswer(card, correct: true, rt: rt);
     _typosTotal += _typos;
-    // Порог для печати втрое шире, чем у выбора: набрать слово физически дольше,
-    // чем ткнуть в вариант (веб: rt < EASY_RT_MS * 3).
-    await _engineFor(_langOf(card))
-        .gradeCard(card.id, _typos == 0 && rt < vocabEasyRtMs * 3 ? Grade.easy : Grade.good);
-
-    _next?.cancel();
-    _next = Timer(const Duration(milliseconds: vocabNextDelayOkMs), () {
-      if (!mounted) return;
-      final next = _idx + 1;
-      if (next >= _queue.length) {
-        _finish();
-        return;
-      }
-      setState(() {
-        _idx = next;
-        _picked = null;
-        _prepare(_queue[next]);
-        _shownAtMs = _now;
-      });
+    final grading = _engineFor(_langOf(card)).gradeCard(
+      card.id,
+      _typos == 0 && rt < vocabEasyRtMs * 3 ? Grade.easy : Grade.good,
+    );
+    await _feedback.show('typing', 'typing');
+    await grading;
+    if (!mounted || _picked != card.target) return;
+    final next = _idx + 1;
+    if (next >= _queue.length) {
+      _finish();
+      return;
+    }
+    setState(() {
+      _idx = next;
+      _picked = null;
+      _prepare(_queue[next]);
+      _shownAtMs = _now;
     });
   }
 
@@ -459,14 +541,25 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   List<DemoTrial> _demoTrials() {
     final v = _vocab ?? const <VocabEntry>[];
     final w = v.firstWhere(
-      (e) => (e[_baseLang] ?? '').isNotEmpty && (e[_targetLang] ?? '').isNotEmpty,
+      (e) =>
+          (e[_baseLang] ?? '').isNotEmpty && (e[_targetLang] ?? '').isNotEmpty,
       orElse: () => const <String, String>{},
     );
     final base = w[_baseLang] ?? '';
     final target = w[_targetLang] ?? '';
     return [
-      DemoTrial(text: target, sub: L.t('vocabSrsHint'), answer: base, rule: L.t('vocabSrsIntroDesc')),
-      DemoTrial(text: base, sub: L.t('srsTypingTask'), answer: target, rule: L.t('srsTypingHint')),
+      DemoTrial(
+        text: target,
+        sub: L.t('vocabSrsHint'),
+        answer: base,
+        rule: L.t('vocabSrsIntroDesc'),
+      ),
+      DemoTrial(
+        text: base,
+        sub: L.t('srsTypingTask'),
+        answer: target,
+        rule: L.t('srsTypingHint'),
+      ),
     ];
   }
 
@@ -479,7 +572,11 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
     return GameShell(
       title: L.t('vocabSrs'),
       onBack: () => Navigator.of(context).maybePop(),
-      onLesson: () => openDemoLesson(context, title: L.t('vocabSrs'), trials: _demoTrials()),
+      onLesson: () => openDemoLesson(
+        context,
+        title: L.t('vocabSrs'),
+        trials: _demoTrials(),
+      ),
       hud: card == null
           ? const []
           : [
@@ -488,63 +585,92 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
               if ((_bilingual || GamePreset.isPreset) && card.lang != null)
                 HudItem(
                   label: L.t('bilingualMode'),
-                  value: pairPill(card.lang!, _bilingual ? _langsInPlay : const []),
+                  value: pairPill(
+                    card.lang!,
+                    _bilingual ? _langsInPlay : const [],
+                  ),
                   icon: Icons.translate,
                 ),
-              HudItem(label: L.t('round'), value: '${_idx + 1}/${_queue.length}', icon: Icons.numbers),
-              HudItem(label: L.t('hud_correct'), value: '$_correct', icon: Icons.check),
-              HudItem(label: L.t('hud_errors'), value: '$_wrong', icon: Icons.close),
+              HudItem(
+                label: L.t('round'),
+                value: '${_idx + 1}/${_queue.length}',
+                icon: Icons.numbers,
+              ),
+              HudItem(
+                label: L.t('hud_correct'),
+                value: '$_correct',
+                icon: Icons.check,
+              ),
+              HudItem(
+                label: L.t('hud_errors'),
+                value: '$_wrong',
+                icon: Icons.close,
+              ),
             ],
       field: (context, h) => switch (_phase) {
         VocabPhase.config => _Config(
-            height: h,
-            langs: _langs,
-            targetLang: _targetLang,
-            newLimit: _newLimit,
-            direction: _direction,
-            stats: _stats,
-            runs: _runs.level,
-            bilingual: _bilingual,
-            second: _second,
-            bilingualDesc: _names.bilingualDesc(_targetLang, _second),
-            langLabel: _names.name,
-            secondChoices: [for (final l in _langs) if (l != _targetLang) l],
-            onLang: (l) {
-              setState(() => _targetLang = l);
-              _refreshStats();
-            },
-            onLimit: (n) => setState(() => _newLimit = n),
-            onDirection: (d) => setState(() => _direction = d),
-            onBilingual: (v) => setState(() => _bilingual = v),
-            onSecond: (l) => setState(() => _wantedSecond = l),
-            onStart: _start,
-          ),
+          height: h,
+          langs: _langs,
+          targetLang: _targetLang,
+          newLimit: _newLimit,
+          direction: _direction,
+          stats: _stats,
+          runs: _runs.level,
+          bilingual: _bilingual,
+          second: _second,
+          bilingualDesc: _names.bilingualDesc(_targetLang, _second),
+          langLabel: _names.name,
+          secondChoices: [
+            for (final l in _langs)
+              if (l != _targetLang) l,
+          ],
+          onLang: (l) {
+            setState(() => _targetLang = l);
+            _refreshStats();
+          },
+          onLimit: (n) => setState(() => _newLimit = n),
+          onDirection: (d) => setState(() => _direction = d),
+          onBilingual: (v) => setState(() => _bilingual = v),
+          onSecond: (l) => setState(() => _wantedSecond = l),
+          onStart: _start,
+        ),
         VocabPhase.playing => _Card(
-            height: h,
-            card: card!,
-            direction: _direction,
-            targetLang: _langOf(card),
-          ),
+          height: h,
+          card: card!,
+          direction: _direction,
+          targetLang: _langOf(card),
+        ),
         VocabPhase.result => _Result(
-            height: h,
-            correct: _correct,
-            wrong: _wrong,
-            stats: _stats,
-            // 🔴 Денис 12.11: «Ещё раз» — сразу новая партия; настройки — отдельной кнопкой.
-            onAgain: _start,
-            onSettings: () => setState(() => _phase = VocabPhase.config),
-          ),
+          height: h,
+          correct: _correct,
+          wrong: _wrong,
+          stats: _stats,
+          // 🔴 Денис 12.11: «Ещё раз» — сразу новая партия; настройки — отдельной кнопкой.
+          onAgain: _start,
+          onSettings: () => setState(() => _phase = VocabPhase.config),
+        ),
       },
       toolbar: card == null
           ? null
           : _direction == VocabDirection.typing
-              ? _Typing(state: _typing!, onKey: _type, done: _picked != null)
-              : _Options(
-                  options: _options,
-                  picked: _picked,
-                  right: _direction == VocabDirection.recognize ? card.base : card.target,
-                  onPick: _pick,
-                ),
+          ? AnswerMark(
+              feedback: _feedback,
+              value: 'typing',
+              child: _Typing(
+                state: _typing!,
+                onKey: _type,
+                done: _picked != null,
+              ),
+            )
+          : _Options(
+              options: _options,
+              picked: _picked,
+              right: _direction == VocabDirection.recognize
+                  ? card.base
+                  : card.target,
+              feedback: _feedback,
+              onPick: _pick,
+            ),
     );
   }
 }
@@ -616,14 +742,17 @@ class _Config extends StatelessWidget {
         children: [
           Text(L.t('vocabSrs'), style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 4),
-          Text(L.t('vocabSrsDesc'), style: Theme.of(context).textTheme.bodySmall),
+          Text(
+            L.t('vocabSrsDesc'),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
           const SizedBox(height: 4),
           // Та же строка, что в веб-версии: выучено / к повтору / своих.
           Text(
             s == null
                 ? '…'
                 : '${L.t('srsLearnedLabel')}: ${s.learned}/${s.totalWords} · '
-                    '${L.t('srsDueLabel')}: ${s.dueNow} · ${L.t('srsOwnLabel')}: ${s.customCount}',
+                      '${L.t('srsDueLabel')}: ${s.dueNow} · ${L.t('srsOwnLabel')}: ${s.customCount}',
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 16),
@@ -652,7 +781,10 @@ class _Config extends StatelessWidget {
             key: const Key('vocab-bilingual'),
             contentPadding: EdgeInsets.zero,
             title: Text(L.t('bilingualMode')),
-            subtitle: Text(bilingualDesc, style: Theme.of(context).textTheme.bodySmall),
+            subtitle: Text(
+              bilingualDesc,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             value: bilingual,
             onChanged: onBilingual,
           ),
@@ -723,7 +855,12 @@ class _Config extends StatelessWidget {
 }
 
 class _Card extends StatelessWidget {
-  const _Card({required this.height, required this.card, required this.direction, required this.targetLang});
+  const _Card({
+    required this.height,
+    required this.card,
+    required this.direction,
+    required this.targetLang,
+  });
 
   final double height;
   final CardRef card;
@@ -734,10 +871,14 @@ class _Card extends StatelessWidget {
   Widget build(BuildContext context) {
     // Узнавание: показываем изучаемое слово, спрашиваем родное. Припоминание и
     // печать — наоборот: на экране родное, набрать надо изучаемое.
-    final shown = direction == VocabDirection.recognize ? card.target : card.base;
+    final shown = direction == VocabDirection.recognize
+        ? card.target
+        : card.base;
     // Подпись задания — та же, что в веб-версии (`vocabSrsHint`), а при печати
     // своя (`srsTypingTask`): задание другое, «выбери» там было бы враньём.
-    final hint = direction == VocabDirection.typing ? L.t('srsTypingTask') : L.t('vocabSrsHint');
+    final hint = direction == VocabDirection.typing
+        ? L.t('srsTypingTask')
+        : L.t('vocabSrsHint');
     return SizedBox(
       height: height,
       child: Center(
@@ -749,16 +890,47 @@ class _Card extends StatelessWidget {
               if (card.isNew)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Chip(label: Text(L.t('srsNew')), visualDensity: VisualDensity.compact),
+                  child: Chip(
+                    label: Text(L.t('srsNew')),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              if (card.secondTarget != null)
+                Text(
+                  targetLang.toUpperCase(),
+                  key: const Key('vocab-lang-first'),
                 ),
               Text(
                 shown,
                 key: const Key('vocab-word'),
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w800),
+                style: TextStyle(
+                  fontSize: card.secondTarget == null ? 38 : 30,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
+              if (card.secondTarget != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  card.secondLang!.toUpperCase(),
+                  key: const Key('vocab-lang-second'),
+                ),
+                Text(
+                  card.secondTarget!,
+                  key: const Key('vocab-word-second'),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
               const SizedBox(height: 12),
-              Text(hint, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
+              Text(
+                hint,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ],
           ),
         ),
@@ -801,11 +973,15 @@ class _Result extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               if (correct + wrong > 0)
-                Text('${L.t('hud_correct')}: $correct · ${L.t('hud_errors')}: $wrong'),
+                Text(
+                  '${L.t('hud_correct')}: $correct · ${L.t('hud_errors')}: $wrong',
+                ),
               if (s != null) ...[
                 const SizedBox(height: 4),
-                Text('${L.t('srsLearnedLabel')}: ${s.learned}/${s.totalWords}',
-                    style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  '${L.t('srsLearnedLabel')}: ${s.learned}/${s.totalWords}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
                 Text(
                   // Прочерк честнее нуля: ноль читался бы как «повторять прямо сейчас».
                   '${L.t('srsNextDue')}: ${s.nextDueAt == null ? '—' : _when(s.nextDueAt!)}',
@@ -813,8 +989,17 @@ class _Result extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 20),
-              FilledButton(key: const Key('vocab-again'), onPressed: onAgain, child: Text(L.t('retry'))),
-              if (onSettings != null) TextButton(key: const Key('vocab-to-settings'), onPressed: onSettings, child: Text(L.t('settings'))),
+              FilledButton(
+                key: const Key('vocab-again'),
+                onPressed: onAgain,
+                child: Text(L.t('retry')),
+              ),
+              if (onSettings != null)
+                TextButton(
+                  key: const Key('vocab-to-settings'),
+                  onPressed: onSettings,
+                  child: Text(L.t('settings')),
+                ),
             ],
           ),
         ),
@@ -883,7 +1068,11 @@ class _TypingState extends State<_Typing> {
                   key: Key('vocab-char-$i'),
                   padding: const EdgeInsets.symmetric(horizontal: 1),
                   decoration: i == st.pos && !widget.done
-                      ? BoxDecoration(border: Border(bottom: BorderSide(color: scheme.primary, width: 2)))
+                      ? BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(color: scheme.primary, width: 2),
+                          ),
+                        )
                       : null,
                   child: Text(
                     st.pattern[i],
@@ -912,7 +1101,10 @@ class _TypingState extends State<_Typing> {
               autocorrect: false,
               enableSuggestions: false,
               style: const TextStyle(color: Colors.transparent, fontSize: 1),
-              decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                isDense: true,
+              ),
               onChanged: _changed,
             ),
           ),
@@ -923,16 +1115,22 @@ class _TypingState extends State<_Typing> {
 }
 
 class _Options extends StatelessWidget {
-  const _Options({required this.options, required this.picked, required this.right, required this.onPick});
+  const _Options({
+    required this.options,
+    required this.picked,
+    required this.right,
+    required this.feedback,
+    required this.onPick,
+  });
 
   final List<String> options;
   final String? picked;
   final String right;
+  final AnswerFeedback feedback;
   final void Function(String) onPick;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       child: Wrap(
@@ -941,27 +1139,22 @@ class _Options extends StatelessWidget {
         children: [
           for (final o in options)
             SizedBox(
-              // Две колонки на любой ширине: считаем от ширины САМОЙ полосы, а не
-              // от окна, — иначе на узком экране колонка уезжает за край (ровно
-              // та беда, с которой пришёл отчёт e0ad9f91 на веб-версии).
               width: (MediaQuery.sizeOf(context).width - 24 - 8) / 2,
               height: 56,
-              child: FilledButton(
-                key: Key('vocab-option-$o'),
-                onPressed: picked == null ? () => onPick(o) : null,
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  backgroundColor: picked == null
-                      ? null
-                      : o == right
-                          ? const Color(0xFF22C55E)
-                          : o == picked
-                              ? const Color(0xFFEF4444)
-                              : scheme.surfaceContainerHighest,
-                ),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(o, maxLines: 2, textAlign: TextAlign.center),
+              child: AnswerMark(
+                feedback: feedback,
+                value: o,
+                radius: 16,
+                child: FilledButton(
+                  key: Key('vocab-option-$o'),
+                  onPressed: picked == null ? () => onPick(o) : null,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(o, maxLines: 2, textAlign: TextAlign.center),
+                  ),
                 ),
               ),
             ),

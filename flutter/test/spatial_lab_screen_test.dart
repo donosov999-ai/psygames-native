@@ -67,6 +67,9 @@ void main() {
     };
     await tester.tap(find.byKey(Key(button)));
     await tester.pump();
+    if (find.byKey(const Key('level-result-next')).evaluate().isEmpty) {
+      expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
+    }
   }
 
   /// Пройти ступень упражнения решением ядра.

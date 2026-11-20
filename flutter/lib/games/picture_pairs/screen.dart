@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/app_haptics.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
@@ -160,6 +161,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
   /// Вибрация хода — через общий выключатель «Вибрация», как у веба (FlipCard, haptics.ts):
   /// открыл карту — лёгкая, собрал группу — средняя, промах — сильная.
   late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
 
   late final SessionLaunch _sessionLaunch;
 
@@ -180,6 +182,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
     _timer?.cancel();
     _botTimer?.cancel();
     _tick?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -219,6 +222,7 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
 
   void _reset() {
     _timer?.cancel();
+    _answerFeedback.clear();
     _botTimer?.cancel();
     _botTimer = null;
     _duel = null;
@@ -376,9 +380,9 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
       case TapResult.opened:
         _haptics.selection();
       case TapResult.groupMatched:
-        _haptics.medium();
+        unawaited(_answerFeedback.show('board', 'board'));
       case TapResult.groupMissed:
-        _haptics.heavy();
+        unawaited(_answerFeedback.show('board', null, right: false));
       case TapResult.ignored:
         break;
     }
@@ -454,7 +458,11 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
     final r = duel.tap(i);
     if (r == TapResult.ignored) return;
     setState(() {});
-    if (r != TapResult.opened) _afterDuelMove(duel, r);
+    if (r != TapResult.opened) {
+      final right = r == TapResult.groupMatched;
+      unawaited(_answerFeedback.show('board', right ? 'board' : null, right: right));
+      _afterDuelMove(duel, r);
+    }
   }
 
   /// Группа набрана — показать её и решить, кто ходит дальше. На игровых часах: на паузе
@@ -691,20 +699,24 @@ class _PicturePairsScreenState extends State<PicturePairsScreen> with WidgetsBin
             )
           : _phase == Phase.won
               ? SizedBox(height: h, child: _result(context, g, duel))
-              : _Field(
-              game: g,
-              theme: theme,
-              phase: _phase,
-              swapPair: _swapPair,
-              height: h,
-              onTap: _tap,
-              // Чей ход — главное, что нужно знать в дуэли.
-              caption: duel == null || _phase != Phase.play
-                  ? null
-                  : duel.botTurn
-                      ? L.t('pairsDuelBotTurn')
-                      : L.t('pairsDuelYourTurn'),
-            ),
+              : AnswerMark(
+                  feedback: _answerFeedback,
+                  value: 'board',
+                  child: _Field(
+                    game: g,
+                    theme: theme,
+                    phase: _phase,
+                    swapPair: _swapPair,
+                    height: h,
+                    onTap: _tap,
+                    // Чей ход — главное, что нужно знать в дуэли.
+                    caption: duel == null || _phase != Phase.play
+                        ? null
+                        : duel.botTurn
+                            ? L.t('pairsDuelBotTurn')
+                            : L.t('pairsDuelYourTurn'),
+                  ),
+                ),
       auxRow: AuxBar(children: [
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
         AuxAction(

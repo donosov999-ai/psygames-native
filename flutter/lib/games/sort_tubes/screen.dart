@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -62,8 +62,7 @@ class _Snapshot {
 }
 
 class _SortTubesScreenState extends State<SortTubesScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   /// 🔴 СЛЕДУЮЩИЙ УРОВЕНЬ ЕДЕТ САМ (Денис 24.09.2026: «не переходит на
   /// следующий уровень сам»).
   ///
@@ -117,6 +116,7 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
     // ⚠️ Открытый таймер после ухода с экрана валит весь прогон проб молча —
     // записано в памяти раздела отдельным уроком.
     _refusalTimer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -136,6 +136,7 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
 
   void _start(TubeLevel level) {
     _cancelNext();
+    _answerFeedback.clear();
     _deal += 1;
     _nextPending = false;
     _resultFuture = null;
@@ -190,6 +191,7 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
     setState(() {
       if (_sel == null) {
         if (field.tubes[i].isEmpty || !field.isOpen(i)) {
+          unawaited(_answerFeedback.show('board', null, right: false));
           _showRefusal(field.isOpen(i) ? 'empty' : 'closed');
           return;
         }
@@ -215,7 +217,7 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
     final field = _field!;
     final after = pour(field, from, to);
     if (after == null) {
-      _haptics.miss();
+      unawaited(_answerFeedback.show('board', null, right: false));
       _errors += 1;
       _showRefusal(refusalReason(field, from, to));
       return;
@@ -228,7 +230,7 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
     _field = sealed.field;
     if (sealed.sealed > 0) _hidden = _shiftHidden(_hidden, after, sealed.field);
     _refusal = null;
-    _field!.isSolved ? _haptics.win() : _haptics.hit();
+    unawaited(_answerFeedback.show('board', 'board'));
     if (_field!.isSolved) {
       _won = true;
       _scheduleNext();
@@ -394,18 +396,22 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
             ),
           ),
           Expanded(
-            child: TubesField(
-              field: field,
-              fieldHeight: h - _captionH,
-              skin: widget.skin,
-              palette: _palette,
-              hidden: _hidden,
-              selected: _sel,
-              onTapTube: _tap,
-              onPourTo: (from, to) => setState(() {
-                _sel = null;
-                _pour(from, to);
-              }),
+            child: AnswerMark(
+              feedback: _answerFeedback,
+              value: 'board',
+              child: TubesField(
+                field: field,
+                fieldHeight: h - _captionH,
+                skin: widget.skin,
+                palette: _palette,
+                hidden: _hidden,
+                selected: _sel,
+                onTapTube: _tap,
+                onPourTo: (from, to) => setState(() {
+                  _sel = null;
+                  _pour(from, to);
+                }),
+              ),
             ),
           ),
         ],

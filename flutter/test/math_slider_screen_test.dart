@@ -82,6 +82,7 @@ void main() {
     await dragTo(tester, training.scale, training.answer);
     await tester.tap(find.byKey(const Key('подтвердить')));
     await tester.pump();
+    expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
     expect(find.text(L.t('sliderTrialValue')), findsOneWidget, reason: 'счётчик заданий ещё не начался');
     await tester.tap(find.byKey(const Key('дальше')));
     await tester.pump();
@@ -218,6 +219,7 @@ void main() {
       await dragTo(tester, q.scale, far);
       await tester.tap(find.byKey(const Key('подтвердить')));
       await tester.pump();
+      expect(find.byKey(const Key('answer-mark-bad')), findsOneWidget);
       await tester.tap(find.byKey(const Key('дальше')));
       await tester.pump();
     }

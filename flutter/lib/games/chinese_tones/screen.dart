@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/audio_host.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
@@ -46,8 +46,7 @@ class ChineseTonesScreen extends StatefulWidget {
 }
 
 class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   Map<int, List<ZhSyllable>>? _bank;
 
@@ -86,6 +85,7 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
     _sayLater?.cancel();
     _voice?.cancel();
     _noise?.stop();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -148,7 +148,7 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
   void _answer(int choice) {
     if (_phase != CtPhase.playing || _answered != null) return;
     final ok = choice == _trials[_idx].correctIdx;
-    ok ? _haptics.hit() : _haptics.miss();
+    unawaited(_answerFeedback.show('answer', ok ? 'answer' : null, right: ok));
     setState(() {
       _answered = choice;
       if (ok) {
@@ -264,11 +264,15 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
               ),
               HudItem(label: L.t('hud_correct'), value: '$_hits', icon: Icons.check),
             ],
-      field: (context, h) => switch (_phase) {
-        CtPhase.config => _config(context, h),
-        CtPhase.playing => _playing(context, h, t!),
-        CtPhase.result => _result(context, h),
-      },
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: switch (_phase) {
+          CtPhase.config => _config(context, h),
+          CtPhase.playing => _playing(context, h, t!),
+          CtPhase.result => _result(context, h),
+        },
+      ),
       // «Повторить звук» — в нижнем тулбаре каркаса, не кнопкой в центре поля: Денис 31.10 — «управление,
       // если тулбар позволяет, идёт в него: тянуться в низ экрана проще, чем в центр» (CHATS_RULES.md §1в).
       auxRow: t == null

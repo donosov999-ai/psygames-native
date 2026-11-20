@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -43,6 +44,7 @@ class RollAndBankScreen extends StatefulWidget {
 }
 
 class _RollAndBankScreenState extends State<RollAndBankScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late final LevelLadder _ladder;
   late final math.Random _rnd;
   RollAndBank? _game;
@@ -63,6 +65,7 @@ class _RollAndBankScreenState extends State<RollAndBankScreen> {
   @override
   void dispose() {
     _botTimer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -99,6 +102,7 @@ class _RollAndBankScreenState extends State<RollAndBankScreen> {
     final g = _game;
     if (g == null || !_myTurn) return;
     final v = g.roll();
+    unawaited(_answerFeedback.show('answer', v == 1 ? null : 'answer', right: v != 1));
     setState(() {
       _burnt = v == 1;
       _note = v == 1 ? L.t('rbBust') : L.t('rbYourTurn');
@@ -110,6 +114,7 @@ class _RollAndBankScreenState extends State<RollAndBankScreen> {
   void _bank() {
     final g = _game;
     if (g == null || !_myTurn || g.unbanked(0) <= 0) return;
+    unawaited(_answerFeedback.show('answer', 'answer'));
     setState(() {
       g.bank();
       _burnt = false;
@@ -137,6 +142,7 @@ class _RollAndBankScreenState extends State<RollAndBankScreen> {
       return;
     }
     final v = g.roll();
+    unawaited(_answerFeedback.show('answer', v == 1 ? null : 'answer', right: v != 1));
     setState(() {
       _burnt = v == 1;
       _note = v == 1 ? L.t('rbBotBust') : L.t('rbBotTurn');
@@ -232,7 +238,10 @@ class _RollAndBankScreenState extends State<RollAndBankScreen> {
       ],
       // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход к следующей партии; исход —
       // строкой счёта, конечные позиции обеих дорожек — в подробностях.
-      field: (context, h) => g.over
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: g.over
           ? SizedBox(
               height: h,
               child: LevelResult(
@@ -264,6 +273,7 @@ class _RollAndBankScreenState extends State<RollAndBankScreen> {
           Expanded(child: _Board(game: g, burnt: _burnt)),
         ],
       ),
+        ),
       auxRow: AuxBar(children: [
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_deal)),
       ]),

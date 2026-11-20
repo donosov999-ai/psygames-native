@@ -74,6 +74,7 @@ void main() {
     await _boot(tester, state, TubeSkin.water, 'water_sort');
     expect(tester.widget<TubesField>(find.byType(TubesField)).field.tubes[3], isEmpty);
     await _tapPour(tester, 0, 3);            // верхняя «1» из первого в пустой
+    expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
     final f = tester.widget<TubesField>(find.byType(TubesField)).field;
     expect(f.tubes[3], [1], reason: 'товар обязан оказаться в сосуде-цели');
     expect(f.tubes[0], [2, 0, 2], reason: 'и уйти из источника');
@@ -124,6 +125,7 @@ void main() {
     await _boot(tester, state, TubeSkin.nuts, 'nut_sort');
     await _tapPour(tester, 0, 1);
     await tester.pump();
+    expect(find.byKey(const Key('answer-mark-bad')), findsOneWidget);
     final caption = tester.widget<Text>(find.byKey(const ValueKey('tubes-caption')));
     expect(caption.data, L.t('sortRefuseFull'), reason: 'причина обязана быть названа');
     expect(caption.style?.color, isNot(const Color(0xFF8A8F98)), reason: 'и выделена, а не слита с подсказкой');

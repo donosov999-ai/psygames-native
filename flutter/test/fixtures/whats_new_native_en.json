@@ -7,6 +7,14 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.74.0",
+   "date": "2026-11-20",
+   "items": [
+    "All 131 games and modes now show clear green/red answer feedback with shared sound and haptics",
+    "Vocabulary SRS shows the target and native languages together; every profile can access every game"
+   ]
+  },
+  {
    "version": "v2.73.0",
    "date": "2026-11-18",
    "items": [

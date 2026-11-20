@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_clock.dart';
@@ -25,11 +27,6 @@ import 'basket_field.dart';
 /// Слово на изучаемом языке → к какой категории оно относится. Правила и их
 /// сверка с живым TS — в `model.dart` и `test/semantic_sort_test.dart`.
 enum SemanticPhase { config, playing, result }
-
-/// Пауза перед следующим раундом: на ошибке дольше — верную категорию надо успеть
-/// увидеть, иначе ошибка ничему не учит (числа из веб-версии).
-const int semanticNextOkMs = 350;
-const int semanticNextWrongMs = 900;
 
 /// Имя категории — ЛИТЕРАЛОМ `L.t('…')` на каждую из четырнадцати.
 ///
@@ -79,6 +76,7 @@ class SemanticSortScreen extends StatefulWidget {
 
 class _SemanticSortScreenState extends State<SemanticSortScreen> {
   late LevelLadder _ladder;
+  late final _feedback = AnswerFeedback(widget.state);
   List<Map<String, String>>? _vocab;
   LangNames _names = LangNames.empty;
   Map<String, List<String>> _distractors = const {};
@@ -128,6 +126,7 @@ class _SemanticSortScreenState extends State<SemanticSortScreen> {
   void dispose() {
     _generation++;
     _next?.cancel();
+    unawaited(_feedback.dispose());
     super.dispose();
   }
 
@@ -190,6 +189,7 @@ class _SemanticSortScreenState extends State<SemanticSortScreen> {
     _starting = true;
     final generation = ++_generation;
     _next?.cancel();
+    _feedback.clear();
     try {
       // A shared restart reconstructs the screen. Keep the explicitly started
       // personal mode, but never let a workout overwrite that preference.
@@ -284,13 +284,15 @@ class _SemanticSortScreenState extends State<SemanticSortScreen> {
     }
   }
 
-  void _pick(String cat) {
+  Future<void> _pick(String cat) async {
     if (_picked != null ||
         _phase != SemanticPhase.playing ||
         isGameHeld() ||
-        _finishing) {
+        _finishing ||
+        _feedback.busy) {
       return;
     }
+    final generation = _generation;
     final round = _rounds[_idx];
     _rtSum += _now - _shownAtMs;
     final ok = cat == round.correctCat;
@@ -303,25 +305,21 @@ class _SemanticSortScreenState extends State<SemanticSortScreen> {
       }
     });
     _next?.cancel();
-    _next = gameTimeout(
-      Duration(milliseconds: ok ? semanticNextOkMs : semanticNextWrongMs),
-      () {
-        if (!mounted) return;
-        final next = _idx + 1;
-        if (next >= _rounds.length) {
-          _finish();
-          return;
-        }
-        setState(() {
-          _idx = next;
-          _picked = null;
-          _shownAtMs = _now;
-        });
-      },
-    );
+    await _feedback.show(cat, round.correctCat, right: ok);
+    if (!mounted || generation != _generation) return;
+    final next = _idx + 1;
+    if (next >= _rounds.length) {
+      _finish();
+      return;
+    }
+    setState(() {
+      _idx = next;
+      _picked = null;
+      _shownAtMs = _now;
+    });
   }
 
-  void _placeInBasket(int generation, int id, String cat) {
+  Future<void> _placeInBasket(int generation, int id, String cat) async {
     final party = _basket;
     if (!mounted ||
         generation != _generation ||
@@ -339,19 +337,24 @@ class _SemanticSortScreenState extends State<SemanticSortScreen> {
       _errors = party.errors;
       _idx = min(party.completed, _rounds.length - 1);
     });
-    if (!party.batchComplete) return;
-    setState(() => _changingBatch = true);
+    final batchComplete = party.batchComplete;
+    if (batchComplete) setState(() => _changingBatch = true);
     _next?.cancel();
-    _next = gameTimeout(const Duration(milliseconds: 350), () {
-      if (!mounted || generation != _generation) return;
-      if (party.complete) {
-        _finish();
-        return;
-      }
-      setState(() {
-        party.advance();
-        _changingBatch = false;
-      });
+    final feedback = _feedback.show(cat, party.rounds[id].correctCat,
+        right: outcome == BasketAnswer.placed);
+    if (!batchComplete) {
+      unawaited(feedback);
+      return;
+    }
+    await feedback;
+    if (!mounted || generation != _generation) return;
+    if (party.complete) {
+      _finish();
+      return;
+    }
+    setState(() {
+      party.advance();
+      _changingBatch = false;
     });
   }
 
@@ -496,6 +499,7 @@ class _SemanticSortScreenState extends State<SemanticSortScreen> {
                   height: h,
                   categoryName: semanticCategoryName,
                   enabled: !_changingBatch && !_finishing,
+                  feedback: _feedback,
                   onAnswer: (id, cat) => _placeInBasket(generation, id, cat),
                 ),
         SemanticPhase.result => _result(context, h),
@@ -656,7 +660,6 @@ class _SemanticSortScreenState extends State<SemanticSortScreen> {
   );
 
   Widget _answers(BuildContext context, SemanticRound r) {
-    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       child: LayoutBuilder(
@@ -670,22 +673,19 @@ class _SemanticSortScreenState extends State<SemanticSortScreen> {
               SizedBox(
                 width: (c.maxWidth - 8) / 2,
                 height: 56,
-                child: FilledButton(
-                  key: Key('semantic-cat-$cat'),
-                  onPressed: _picked == null ? () => _pick(cat) : null,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    backgroundColor: _picked == null
-                        ? null
-                        : cat == r.correctCat
-                        ? const Color(0xFF22C55E)
-                        : cat == _picked
-                        ? const Color(0xFFEF4444)
-                        : scheme.surfaceContainerHighest,
-                  ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(semanticCategoryName(cat), maxLines: 2),
+                child: AnswerMark(
+                  feedback: _feedback,
+                  value: cat,
+                  child: FilledButton(
+                    key: Key('semantic-cat-$cat'),
+                    onPressed: _picked == null ? () => _pick(cat) : null,
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(semanticCategoryName(cat), maxLines: 2),
+                    ),
                   ),
                 ),
               ),

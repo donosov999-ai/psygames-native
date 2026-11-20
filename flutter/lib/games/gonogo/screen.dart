@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
@@ -47,6 +48,7 @@ class GoNoGoScreen extends StatefulWidget {
 }
 
 class _GoNoGoScreenState extends State<GoNoGoScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   GoNoGoGame? _game;
   GoNoGoPhase _phase = GoNoGoPhase.ready;
@@ -65,6 +67,7 @@ class _GoNoGoScreenState extends State<GoNoGoScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -125,6 +128,9 @@ class _GoNoGoScreenState extends State<GoNoGoScreen> {
     _timer = Timer(Duration(milliseconds: g.params.windowMs), () {
       if (!mounted || _phase != GoNoGoPhase.playing) return;
       final outcome = g.closeTrial();
+      if (outcome != GoNoGoOutcome.correctRejection) {
+        unawaited(_answerFeedback.show('answer', null, right: false));
+      }
       setState(() {
         // Молча проходит только верное удержание: о нём человеку сообщать нечем.
         _flash = outcome == GoNoGoOutcome.correctRejection ? null : outcome;
@@ -139,6 +145,8 @@ class _GoNoGoScreenState extends State<GoNoGoScreen> {
     if (g == null || _phase != GoNoGoPhase.playing) return;
     final outcome = g.respond();
     if (outcome == null) return;
+    final right = outcome == GoNoGoOutcome.hit;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     setState(() => _flash = outcome);
   }
 
@@ -181,7 +189,10 @@ class _GoNoGoScreenState extends State<GoNoGoScreen> {
           ? null
           : () => openDemoLesson(context, title: L.t('goNoGo'), trials: _demoTrials()),
       suiteSwitch: _phase == GoNoGoPhase.ready ? SuiteSwitch(route: '/games/go-no-go', state: widget.state) : null,
-      field: (context, h) => _Field(
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _Field(
         game: g,
         phase: _phase,
         flash: _flash,
@@ -197,6 +208,7 @@ class _GoNoGoScreenState extends State<GoNoGoScreen> {
         },
         onTap: _respond,
       ),
+        ),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
@@ -109,6 +110,7 @@ class SchulteFreeConfig {
 enum _Phase { ready, playing, done }
 
 class _SchulteScreenState extends State<SchulteScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   static const _levelErrorsAllowed = 2;   // ровно как в вебе: errsArg <= 2 — уровень взят
   static const _ruleRevealDelay = Duration(milliseconds: 1500);
 
@@ -164,6 +166,7 @@ class _SchulteScreenState extends State<SchulteScreen> {
   void dispose() {
     _reveal?.cancel();
     _ticker?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -269,6 +272,8 @@ class _SchulteScreenState extends State<SchulteScreen> {
     if (_phase != _Phase.playing) return;
     final res = g.press(cell, ruleRevealed: _ruleRevealed);
     if (res == PressResult.ignored) return;
+    final right = res != PressResult.miss;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     setState(() {});
     if (res != PressResult.finished) return;
     _clockStop();
@@ -549,7 +554,10 @@ class _SchulteScreenState extends State<SchulteScreen> {
       ],
       field: (context, h) {
         if (_phase != _Phase.done) {
-          return _Field(
+          return AnswerMark(
+            feedback: _answerFeedback,
+            value: 'answer',
+            child: _Field(
             game: g,
             phase: _phase,
             ruleRevealed: _ruleRevealed,
@@ -562,6 +570,7 @@ class _SchulteScreenState extends State<SchulteScreen> {
                 ? null
                 : SchulteSeriesDoor(state: widget.state, ladderSize: g.params.gridSize),
             setup: GamePreset.isPreset ? null : (h) => _setupPanel(h, g),
+            ),
           );
         }
         // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень. Таблица,

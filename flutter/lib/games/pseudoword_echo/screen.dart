@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/audio_host.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
@@ -60,6 +61,7 @@ class PseudowordEchoScreen extends StatefulWidget {
 }
 
 class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   List<Map<String, String>>? _vocab;
   LdLetters _letters = LdLetters.empty;
@@ -104,6 +106,7 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
     _advance?.cancel();
     _voice?.cancel();
     _noise?.stop(); // помеха не переживает выход с экрана
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -188,6 +191,7 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
   void _pick(String option) {
     if (_answered != null || _phase != EchoPhase.playing) return;
     final ok = option == _rounds[_idx].word;
+    unawaited(_answerFeedback.show('answer', ok ? 'answer' : null, right: ok));
     setState(() {
       _answered = option;
       if (ok) {
@@ -330,11 +334,15 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
               HudItem(label: L.t('hud_correct'), value: '$_hits', icon: Icons.check),
               HudItem(label: L.t('label_level_short'), value: '$_levelPlayed', icon: Icons.flag),
             ],
-      field: (context, h) => switch (_phase) {
-        EchoPhase.config => _config(context, h),
-        EchoPhase.playing => _playing(context, h),
-        EchoPhase.result => _result(context, h),
-      },
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: switch (_phase) {
+          EchoPhase.config => _config(context, h),
+          EchoPhase.playing => _playing(context, h),
+          EchoPhase.result => _result(context, h),
+        },
+      ),
       // «Повторить звук» — в нижнем тулбаре каркаса, не кнопкой в центре поля: Денис 31.10 — «управление,
       // если тулбар позволяет, идёт в него: тянуться в низ экрана проще, чем в центр» (CHATS_RULES.md §1в).
       auxRow: r == null

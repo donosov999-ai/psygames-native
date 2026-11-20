@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/drop_baskets.dart';
 import '../../shell/game_shell.dart';
@@ -50,8 +50,7 @@ class KidsSortScreen extends StatefulWidget {
 }
 
 class _KidsSortScreenState extends State<KidsSortScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   late Random _rnd;
   KidsSortSession? _session;
@@ -86,6 +85,7 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
   @override
   void dispose() {
     _flash?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -113,7 +113,7 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
     final card = _card;
     if (s == null || card == null) return;
     final ok = s.answer(_phase, card, box);
-    ok ? _haptics.hit() : _haptics.miss();
+    unawaited(_answerFeedback.show('answer', ok ? 'answer' : null, right: ok));
     _flash?.cancel();
     setState(() {
       _lastOk = ok;
@@ -212,7 +212,10 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
           icon: Icons.style_outlined,
         ),
       ],
-      field: (context, h) => DropBasketsScope<int, int>(
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: DropBasketsScope<int, int>(
         // Ответ принимается, пока на столе есть карточка; карточка одна, поэтому тап по коробке
         // кладёт её сразу (implicitItem), а перетащить можно ту же самую.
         enabled: card != null,
@@ -289,6 +292,7 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
         ],
       ),
       ),
+        ),
       auxRow: AuxBar(children: [
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
       ]),

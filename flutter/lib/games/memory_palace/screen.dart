@@ -26,6 +26,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
@@ -84,6 +85,7 @@ class MemoryPalaceScreen extends StatefulWidget {
 }
 
 class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> with WidgetsBindingObserver {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   MemoryPalaceContent? _content;
   MemoryPalaceSession? _session;
@@ -121,6 +123,7 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> with WidgetsBin
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _flush();   // экран сносят — дописать партию сразу, а не через задержку
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -154,6 +157,7 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> with WidgetsBin
   void _newRound() {
     final c = _content;
     if (c == null) return;
+    _answerFeedback.clear();
     _partyLevel = GamePreset.num('level', _ladder.level).clamp(1, memoryPalaceLevels);
     // Зерно свежее на каждый заход (веб: makeSeed/makeNonce) — повтор раскладки мерил бы узнавание.
     _session = MemoryPalaceSession.create(c, memoryPalaceSeed(_partyLevel, _now, _random.nextDouble()), _partyLevel);
@@ -206,7 +210,18 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> with WidgetsBin
   void _step(void Function(MemoryPalaceSession s) action) {
     final s = _session;
     if (s == null) return;
+    final direction = s.currentDirection;
+    final index = s.recallIndex;
+    final responses = direction == 'reverse' ? s.reverseResponses : s.forwardResponses;
+    final before = responses.length;
+    final expected = direction == null
+        ? null
+        : s.finalizedPlacements?[direction == 'forward' ? index : s.round.lociCount - 1 - index];
     setState(() => action(s));
+    if (direction != null && responses.length > before) {
+      final right = responses.last == expected;
+      unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
+    }
     _changed();
     final r = s.result;
     if (s.phase == MemoryPalacePhase.result && r != null) _finish(r);
@@ -289,7 +304,11 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> with WidgetsBin
         HudItem(label: c.s(L.locale, 'route'), value: '${s.round.lociCount}', icon: Icons.route_outlined),
         HudItem(label: c.s(L.locale, _phaseKey(s.phase)), value: _progress(s), icon: Icons.checklist_outlined),
       ],
-      field: (context, h) => _field(context, s, c, h),
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _field(context, s, c, h),
+      ),
       auxRow: AuxBar(children: [
         AuxAction(
           // Тот же обработчик, что «Заново» в паузе — под «Авророй» только в паузе.

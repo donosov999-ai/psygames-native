@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/audio_host.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
@@ -53,7 +53,14 @@ const _seenPool = 'listening_span';
 const lspanLeadInMs = 1000;
 
 class ListeningSpanScreen extends StatefulWidget {
-  const ListeningSpanScreen({super.key, required this.state, this.voice, this.vocab, this.langNames, this.rng});
+  const ListeningSpanScreen({
+    super.key,
+    required this.state,
+    this.voice,
+    this.vocab,
+    this.langNames,
+    this.rng,
+  });
 
   final SharedState state;
 
@@ -72,8 +79,7 @@ class ListeningSpanScreen extends StatefulWidget {
 }
 
 class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
-  /// Вибрация — через общий выключатель «Вибрация» (веб `psygames_haptic_enabled`).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
 
   late LevelLadder _ladder;
   late final double Function() _rng = widget.rng ?? Random().nextDouble;
@@ -101,7 +107,10 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
   @override
   void initState() {
     super.initState();
-    _ladder = LevelLadder(gameId: 'listening_span', store: SharedLevelStore(widget.state));
+    _ladder = LevelLadder(
+      gameId: 'listening_span',
+      store: SharedLevelStore(widget.state),
+    );
     _boot();
   }
 
@@ -110,6 +119,7 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
     _runId++;
     _timer?.cancel();
     _voice?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -119,21 +129,40 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
   Future<void> _boot() async {
     await _ladder.load();
     final voice = widget.voice ?? await AudioHost.voice(widget.state);
-    final vocab = widget.vocab ??
-        [for (final e in await loadJsonAsset('assets/vocab/translation-vocab.json') as List) (e as Map).cast<String, Object?>()];
-    final names = widget.langNames ??
-        ((await loadJsonAsset('assets/vocab/lang-names.json') as Map)['languages'] as Map).cast<String, String>();
+    final vocab =
+        widget.vocab ??
+        [
+          for (final e in await loadJsonAsset(
+            'assets/vocab/translation-vocab.json',
+          ) as List)
+            (e as Map).cast<String, Object?>(),
+        ];
+    final names =
+        widget.langNames ??
+        ((await loadJsonAsset('assets/vocab/lang-names.json')
+                    as Map)['languages']
+                as Map)
+            .cast<String, String>();
     if (!mounted) return;
     _voice = voice;
     _vocab = vocab;
     _names = names;
     final have = lspanVocabLangs(vocab).toSet();
     // Порядок — как в выборе языка веб-экрана (LANGUAGES); язык приложения не учат.
-    _langs = [for (final code in names.keys) if (code != _appLang && have.contains(code)) code];
+    _langs = [
+      for (final code in names.keys)
+        if (code != _appLang && have.contains(code)) code,
+    ];
     // Шаг зарядки задаёт язык сам; вне шага — сохранённый выбор, если на нём есть словарь.
-    final saved = GamePreset.isPreset ? null : widget.state.get(lspanTargetLangKey);
-    final wanted = GamePreset.isPreset ? GamePreset.str('targetLang', _defaultTarget) : (saved ?? _defaultTarget);
-    _target = _langs.contains(wanted) ? wanted : (_langs.contains(_defaultTarget) ? _defaultTarget : _langs.first);
+    final saved = GamePreset.isPreset
+        ? null
+        : widget.state.get(lspanTargetLangKey);
+    final wanted = GamePreset.isPreset
+        ? GamePreset.str('targetLang', _defaultTarget)
+        : (saved ?? _defaultTarget);
+    _target = _langs.contains(wanted)
+        ? wanted
+        : (_langs.contains(_defaultTarget) ? _defaultTarget : _langs.first);
     await _chooseTarget(_target, remember: false);
     if (!mounted) return;
     setState(_reset);
@@ -142,7 +171,11 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
 
   Future<void> _chooseTarget(String code, {bool remember = true}) async {
     _target = code;
-    _pool = lspanWordPool(_vocab, code, (w) => _voice!.sampleUrl(w, code) != null);
+    _pool = lspanWordPool(
+      _vocab,
+      code,
+      (w) => _voice!.sampleUrl(w, code) != null,
+    );
     if (remember) unawaited(widget.state.set(lspanTargetLangKey, code));
     final block = await _voice!.blockedReason(code);
     if (mounted) setState(() => _block = block);
@@ -152,6 +185,7 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
     _runId++;
     _timer?.cancel();
     _voice?.cancel();
+    _answerFeedback.clear();
     final level = _ladder.level;
     _game = ListeningSpanGame(level: level, params: LspanLevelParams.of(level));
     _phase = LspanPhase.ready;
@@ -186,7 +220,13 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
     final run = ++_runId;
     // Ось 7 — доля похожих отвлекающих; в шаге зарядки её нет, как в вебе.
     final share = GamePreset.isPreset ? 0.0 : g.params.similarShare;
-    final deal = lspanDealRound(_pool, readSeen(widget.state, _seenPool), g.params.span, share, _rng);
+    final deal = lspanDealRound(
+      _pool,
+      readSeen(widget.state, _seenPool),
+      g.params.span,
+      share,
+      _rng,
+    );
     await writeSeen(widget.state, _seenPool, deal.seen);
     if (!_alive(run)) return;
     g.deal(deal.spoken, deal.grid);
@@ -228,19 +268,28 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
     if (_phase != LspanPhase.recall) return;
     final r = g.tap(i);
     if (r == LspanTap.ignored) return;
-    // Как в «Матрице»: верное — щелчок, собранный ряд — сильнее, ошибка — тяжело (было: щелчок на всё).
-    r == LspanTap.progress ? _haptics.hit() : (r == LspanTap.roundWon ? _haptics.win() : _haptics.miss());
+    final right = r != LspanTap.roundLost;
+    unawaited(
+      _answerFeedback.show('answer', right ? 'answer' : null, right: right),
+    );
     setState(() {});
     if (r == LspanTap.progress) return;
-    _timer = gameTimeout(Duration(milliseconds: r == LspanTap.roundWon ? lspanAfterWinMs : lspanAfterMissMs), () {
-      if (!mounted || _phase != LspanPhase.recall) return;
-      if (g.lastRound) {
-        _finish();
-      } else {
-        g.round += 1;
-        _beginRound();
-      }
-    });
+    _timer = gameTimeout(
+      Duration(
+        milliseconds: r == LspanTap.roundWon
+            ? lspanAfterWinMs
+            : lspanAfterMissMs,
+      ),
+      () {
+        if (!mounted || _phase != LspanPhase.recall) return;
+        if (g.lastRound) {
+          _finish();
+        } else {
+          g.round += 1;
+          _beginRound();
+        }
+      },
+    );
   }
 
   Future<void> _finish() async {
@@ -250,13 +299,30 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
     // Метки и details — как пишет веб-экран (`saveSession` в listening-span.tsx).
     final difficulty = 'L${g.level}';
     final mode = '${g.params.span}-span · $_target';
-    final details = <String, Object?>{'level': g.level, 'span': g.params.span, 'errors': g.errors, 'target_lang': _target};
+    final details = <String, Object?>{
+      'level': g.level,
+      'span': g.params.span,
+      'errors': g.errors,
+      'target_lang': _target,
+    };
     if (g.passed) {
       await _ladder.win(
-          score: g.score, timeSeconds: seconds, errors: g.errors, mode: mode, difficulty: difficulty, details: details);
+        score: g.score,
+        timeSeconds: seconds,
+        errors: g.errors,
+        mode: mode,
+        difficulty: difficulty,
+        details: details,
+      );
     } else {
       await _ladder.fail(
-          score: g.score, timeSeconds: seconds, errors: g.errors, mode: mode, difficulty: difficulty, details: details);
+        score: g.score,
+        timeSeconds: seconds,
+        errors: g.errors,
+        mode: mode,
+        difficulty: difficulty,
+        details: details,
+      );
     }
     if (mounted) setState(() => _phase = LspanPhase.done);
   }
@@ -273,51 +339,93 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
   @override
   Widget build(BuildContext context) {
     final g = _game;
-    if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    final calm = _phase == LspanPhase.ready || _phase == LspanPhase.done || _phase == LspanPhase.revealed;
+    if (g == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    final calm =
+        _phase == LspanPhase.ready ||
+        _phase == LspanPhase.done ||
+        _phase == LspanPhase.revealed;
     return GameShell(
-      levelRule: LevelRuleSpot(gameId: 'listening_span', level: _ladder.level, state: widget.state, calm: calm),
+      levelRule: LevelRuleSpot(
+        gameId: 'listening_span',
+        level: _ladder.level,
+        state: widget.state,
+        calm: calm,
+      ),
       title: L.t('listeningSpan'),
-      onLesson: () => openDemoLesson(context, title: L.t('listeningSpan'), trials: listeningSpanLessonTrials(_pool)),
+      onLesson: () => openDemoLesson(
+        context,
+        title: L.t('listeningSpan'),
+        trials: listeningSpanLessonTrials(_pool),
+      ),
       hud: [
-        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: L.t('round'), value: '${g.round}/$lspanRounds', icon: Icons.repeat),
+        HudItem(
+          label: L.t('level'),
+          value: '${_ladder.level}',
+          icon: Icons.flag_outlined,
+        ),
+        HudItem(
+          label: L.t('round'),
+          value: '${g.round}/$lspanRounds',
+          icon: Icons.repeat,
+        ),
       ],
       field: (context, h) => switch (_phase) {
         LspanPhase.ready => _Ready(
-            game: g,
-            langs: _langs,
-            names: _names,
-            target: _target,
-            block: _block,
-            onTarget: (code) => _chooseTarget(code),
-            onStart: _start,
-          ),
-        LspanPhase.listen => _Listen(game: g, spokenIdx: _spokenIdx, holding: _holding),
-        LspanPhase.recall => _Recall(game: g, onTap: _tap),
+          game: g,
+          langs: _langs,
+          names: _names,
+          target: _target,
+          block: _block,
+          onTarget: (code) => _chooseTarget(code),
+          onStart: _start,
+        ),
+        LspanPhase.listen => _Listen(
+          game: g,
+          spokenIdx: _spokenIdx,
+          holding: _holding,
+        ),
+        LspanPhase.recall => AnswerMark(
+          feedback: _answerFeedback,
+          value: 'answer',
+          child: _Recall(game: g, onTap: _tap),
+        ),
         // Итог — общий каркаса ([LevelResult], задача e90a53d5): «дальше» сразу начинает новую партию
         // (раньше кнопка уводила на экран старта); «Настройки» — экран старта с выбором языка.
         LspanPhase.done => LevelResult(
-            passed: g.passed,
-            level: g.level,
-            score: '${L.t('hud_span')}: ${g.params.span} · ${L.t('hud_errors')}: ${g.errors}',
-            onNext: () {
-              setState(_reset);
-              _start();
-            },
-            onSettings: () => setState(_reset),
-          ),
+          passed: g.passed,
+          level: g.level,
+          score:
+              '${L.t('hud_span')}: ${g.params.span} · ${L.t('hud_errors')}: ${g.errors}',
+          onNext: () {
+            setState(_reset);
+            _start();
+          },
+          onSettings: () => setState(_reset),
+        ),
         LspanPhase.revealed => _Recall(game: g, onTap: (_) {}, revealed: true),
       },
-      auxRow: AuxBar(children: [
-        AuxAction(
-          icon: Icons.lightbulb_outline,
-          label: L.t('puzzleShowSolution'),
-          tint: const Color(0xFFB45309),
-          onPressed: (_phase == LspanPhase.listen || _phase == LspanPhase.recall) && !g.locked ? _reveal : null,
-        ),
-        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
-      ]),
+      auxRow: AuxBar(
+        children: [
+          AuxAction(
+            icon: Icons.lightbulb_outline,
+            label: L.t('puzzleShowSolution'),
+            tint: const Color(0xFFB45309),
+            onPressed:
+                (_phase == LspanPhase.listen || _phase == LspanPhase.recall) &&
+                    !g.locked
+                ? _reveal
+                : null,
+          ),
+          AuxAction(
+            inPause: true,
+            icon: Icons.refresh,
+            label: L.t('restart'),
+            onPressed: () => setState(_reset),
+          ),
+        ],
+      ),
       // Показанное решение — не итог уровня: партия без зачёта, только «Ещё раз».
       toolbar: _phase == LspanPhase.revealed
           ? Padding(
@@ -331,7 +439,11 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
             )
           : null,
       pauseActions: [
-        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
+        PauseAction(
+          label: L.t('restart'),
+          icon: Icons.refresh,
+          onPressed: () => setState(_reset),
+        ),
       ],
     );
   }
@@ -364,10 +476,17 @@ class _Ready extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(L.t('lspanConfigDesc'), textAlign: TextAlign.center, style: text.bodyMedium),
+          Text(
+            L.t('lspanConfigDesc'),
+            textAlign: TextAlign.center,
+            style: text.bodyMedium,
+          ),
           const SizedBox(height: 12),
           Text(
-            L.t('lspanLvlAuto').replaceAll('{n}', '${game.level}').replaceAll('{s}', '${game.params.span}'),
+            L
+                .t('lspanLvlAuto')
+                .replaceAll('{n}', '${game.level}')
+                .replaceAll('{s}', '${game.params.span}'),
             key: const Key('lspan-level-params'),
             textAlign: TextAlign.center,
             style: text.bodySmall,
@@ -380,8 +499,14 @@ class _Ready extends StatelessWidget {
           DropdownButtonFormField<String>(
             key: const Key('lspan-lang'),
             initialValue: langs.contains(target) ? target : null,
-            decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
-            items: [for (final l in langs) DropdownMenuItem(value: l, child: Text(names[l] ?? l))],
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+            items: [
+              for (final l in langs)
+                DropdownMenuItem(value: l, child: Text(names[l] ?? l)),
+            ],
             onChanged: (v) => v == null ? null : onTarget(v),
           ),
           if (block != null) ...[
@@ -389,22 +514,40 @@ class _Ready extends StatelessWidget {
             Container(
               key: const Key('lspan-voice-block'),
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: const Color(0xFFFEF3C7), borderRadius: BorderRadius.circular(8)),
-              child: Row(children: [
-                const Icon(Icons.volume_off_outlined, size: 18, color: Color(0xFFB45309)),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    // Каждый ключ — своим L.t('…'): ключ внутри тернарника сборщик словаря не видит.
-                    block == VoiceBlock.soundOff ? L.t('voiceSoundOff') : L.t('voiceMissing'),
-                    style: text.bodySmall?.copyWith(color: const Color(0xFFB45309), fontWeight: FontWeight.w600),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.volume_off_outlined,
+                    size: 18,
+                    color: Color(0xFFB45309),
                   ),
-                ),
-              ]),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      // Каждый ключ — своим L.t('…'): ключ внутри тернарника сборщик словаря не видит.
+                      block == VoiceBlock.soundOff
+                          ? L.t('voiceSoundOff')
+                          : L.t('voiceMissing'),
+                      style: text.bodySmall?.copyWith(
+                        color: const Color(0xFFB45309),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
           const SizedBox(height: 20),
-          FilledButton(key: const Key('lspan-start'), onPressed: onStart, child: Text(L.t('start'))),
+          FilledButton(
+            key: const Key('lspan-start'),
+            onPressed: onStart,
+            child: Text(L.t('start')),
+          ),
         ],
       ),
     );
@@ -412,7 +555,11 @@ class _Ready extends StatelessWidget {
 }
 
 class _Listen extends StatelessWidget {
-  const _Listen({required this.game, required this.spokenIdx, required this.holding});
+  const _Listen({
+    required this.game,
+    required this.spokenIdx,
+    required this.holding,
+  });
 
   final ListeningSpanGame game;
   final int spokenIdx;
@@ -437,13 +584,25 @@ class _Listen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(holding ? Icons.psychology_outlined : Icons.volume_up_outlined, size: 56, color: _accent),
+                Icon(
+                  holding
+                      ? Icons.psychology_outlined
+                      : Icons.volume_up_outlined,
+                  size: 56,
+                  color: _accent,
+                ),
                 const SizedBox(height: 8),
-                Text(holding ? L.t('memorize') : L.t('lspanListening'),
-                    key: const Key('lspan-listen-title'), style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+                Text(
+                  holding ? L.t('memorize') : L.t('lspanListening'),
+                  key: const Key('lspan-listen-title'),
+                  style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                ),
                 const SizedBox(height: 4),
-                Text('${L.t('lspanWord')} ${max(1, spokenIdx)} / $span',
-                    key: const Key('lspan-word-counter'), style: text.bodyMedium),
+                Text(
+                  '${L.t('lspanWord')} ${max(1, spokenIdx)} / $span',
+                  key: const Key('lspan-word-counter'),
+                  style: text.bodyMedium,
+                ),
               ],
             ),
           ),
@@ -466,7 +625,11 @@ class _Listen extends StatelessWidget {
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Text(L.t('lspanMemorizeHint'), textAlign: TextAlign.center, style: text.bodySmall),
+            child: Text(
+              L.t('lspanMemorizeHint'),
+              textAlign: TextAlign.center,
+              style: text.bodySmall,
+            ),
           ),
         ],
       ),
@@ -503,7 +666,8 @@ class LspanWordGrid extends StatelessWidget {
       children: [
         for (var i = 0; i < grid.length; i++)
           Semantics(
-            label: '$keyPrefix$i${order.containsKey(i) ? '-${order[i]}' : ''}${wrongIdx == i ? '-wrong' : ''}',
+            label:
+                '$keyPrefix$i${order.containsKey(i) ? '-${order[i]}' : ''}${wrongIdx == i ? '-wrong' : ''}',
             child: Stack(
               clipBehavior: Clip.none,
               children: [
@@ -511,17 +675,23 @@ class LspanWordGrid extends StatelessWidget {
                   color: wrongIdx == i
                       ? _wrong
                       : order.containsKey(i)
-                          ? _accent
-                          : scheme.surfaceContainerHighest,
+                      ? _accent
+                      : scheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(16),
                   child: InkWell(
                     key: Key('$keyPrefix$i'),
                     borderRadius: BorderRadius.circular(16),
                     onTap: onTap == null ? null : () => onTap!(i),
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(minWidth: 96, minHeight: 48),
+                      constraints: const BoxConstraints(
+                        minWidth: 96,
+                        minHeight: 48,
+                      ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 12,
+                        ),
                         child: Center(
                           widthFactor: 1,
                           child: Text(
@@ -529,7 +699,9 @@ class LspanWordGrid extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              color: wrongIdx == i || order.containsKey(i) ? Colors.white : scheme.onSurface,
+                              color: wrongIdx == i || order.containsKey(i)
+                                  ? Colors.white
+                                  : scheme.onSurface,
                             ),
                           ),
                         ),
@@ -545,9 +717,18 @@ class LspanWordGrid extends StatelessWidget {
                       width: 22,
                       height: 22,
                       alignment: Alignment.center,
-                      decoration: const BoxDecoration(color: Color(0xFF22C55E), shape: BoxShape.circle),
-                      child: Text('${order[i]}',
-                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800)),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF22C55E),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        '${order[i]}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ),
                   ),
               ],
@@ -559,7 +740,11 @@ class LspanWordGrid extends StatelessWidget {
 }
 
 class _Recall extends StatelessWidget {
-  const _Recall({required this.game, required this.onTap, this.revealed = false});
+  const _Recall({
+    required this.game,
+    required this.onTap,
+    this.revealed = false,
+  });
 
   final ListeningSpanGame game;
   final ValueChanged<int> onTap;
@@ -570,19 +755,28 @@ class _Recall extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     // Показанное решение нумерует услышанные в порядке звучания; в партии — нажатые.
     final order = revealed
-        ? {for (var k = 0; k < game.spoken.length; k++) game.grid.indexOf(game.spoken[k]): k + 1}
+        ? {
+            for (var k = 0; k < game.spoken.length; k++)
+              game.grid.indexOf(game.spoken[k]): k + 1,
+          }
         : {for (var k = 0; k < game.picked.length; k++) game.picked[k]: k + 1};
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
         children: [
-          Text(revealed ? L.t('puzzleShowSolution') : L.t('lspanRecallTitle'),
-              style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+          Text(
+            revealed ? L.t('puzzleShowSolution') : L.t('lspanRecallTitle'),
+            style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 6),
           if (!revealed)
             Text(
-              L.t('lspanRecallHint')
-                  .replaceAll('{i}', '${min(game.picked.length + 1, game.spoken.length)}')
+              L
+                  .t('lspanRecallHint')
+                  .replaceAll(
+                    '{i}',
+                    '${min(game.picked.length + 1, game.spoken.length)}',
+                  )
                   .replaceAll('{n}', '${game.spoken.length}'),
               textAlign: TextAlign.center,
               style: text.bodySmall,
@@ -608,13 +802,25 @@ class _Recall extends StatelessWidget {
 /// услышанное, а не созвучное. Слова — из мешка того языка, который человек учит; похожее
 /// подбирает тот же [lspanPickDistractors], что раздаёт партию.
 List<DemoTrial> listeningSpanLessonTrials(List<String> pool) {
-  final words = pool.length >= 8 ? pool : const ['casa', 'agua', 'fuego', 'libro', 'tiempo', 'perro', 'cama', 'mesa'];
+  final words = pool.length >= 8
+      ? pool
+      : const [
+          'casa',
+          'agua',
+          'fuego',
+          'libro',
+          'tiempo',
+          'perro',
+          'cama',
+          'mesa',
+        ];
   // Поток на ЦЕЛОМ состоянии: на дроби он сходится к ≈0,22 и выдаёт почти одно и то же (01.10.2026).
   var st = 4242;
   double rng() {
     st = (st * 9301 + 49297) % 233280;
     return st / 233280;
   }
+
   final heard = words.take(3).toList();
   final others = lspanPickDistractors(words, heard, 3, 0, rng);
   final grid = [others[0], heard[1], heard[0], others[1], heard[2], others[2]];
@@ -624,12 +830,21 @@ List<DemoTrial> listeningSpanLessonTrials(List<String> pool) {
     DemoTrial(
       text: heard.join(' · '),
       rule: L.t('teachLspanOrder'),
-      art: LspanLessonArt(grid: grid, heard: heard, order: {for (var k = 0; k < 3; k++) grid.indexOf(heard[k]): k + 1}),
+      art: LspanLessonArt(
+        grid: grid,
+        heard: heard,
+        order: {for (var k = 0; k < 3; k++) grid.indexOf(heard[k]): k + 1},
+      ),
     ),
     DemoTrial(
       text: heard.join(' · '),
       rule: L.t('teachLspanOrderMiss'),
-      art: LspanLessonArt(grid: grid, heard: heard, order: const {}, wrongIdx: grid.indexOf(heard[1])),
+      art: LspanLessonArt(
+        grid: grid,
+        heard: heard,
+        order: const {},
+        wrongIdx: grid.indexOf(heard[1]),
+      ),
     ),
     DemoTrial(
       text: heard.join(' · '),
@@ -665,9 +880,11 @@ class LspanLessonArt extends StatelessWidget {
 
   /// Верен ли разобранный ответ по правилу игры: нажатые идут ровно в порядке звучания.
   bool get answerFollowsTheRule {
-    final pressed = order.entries.toList()..sort((a, b) => a.value.compareTo(b.value));
+    final pressed = order.entries.toList()
+      ..sort((a, b) => a.value.compareTo(b.value));
     final words = [for (final e in pressed) grid[e.key]];
-    final game = ListeningSpanGame(level: 1, params: LspanLevelParams.of(1))..deal(heard, grid);
+    final game = ListeningSpanGame(level: 1, params: LspanLevelParams.of(1))
+      ..deal(heard, grid);
     for (final w in words) {
       if (game.tap(grid.indexOf(w)) == LspanTap.roundLost) return false;
     }
@@ -675,6 +892,10 @@ class LspanLessonArt extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) =>
-      LspanWordGrid(grid: grid, order: order, wrongIdx: wrongIdx, keyPrefix: 'lesson-word-');
+  Widget build(BuildContext context) => LspanWordGrid(
+    grid: grid,
+    order: order,
+    wrongIdx: wrongIdx,
+    keyPrefix: 'lesson-word-',
+  );
 }

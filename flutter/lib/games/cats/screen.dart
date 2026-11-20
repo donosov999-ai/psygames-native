@@ -18,7 +18,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -58,7 +58,7 @@ class _CatsScreenState extends State<CatsScreen> {
 
   /// Что игрок поставил в каждой клетке.
   final Map<CatCell, CatMark> _marks = {};
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
 
   /// Лента ходов: отмена возвращает клетку в прежнее состояние.
   final List<({CatCell cell, CatMark was})> _history = [];
@@ -80,6 +80,12 @@ class _CatsScreenState extends State<CatsScreen> {
   void initState() {
     super.initState();
     _boot();
+  }
+
+  @override
+  void dispose() {
+    unawaited(_answerFeedback.dispose());
+    super.dispose();
   }
 
   Future<void> _boot() async {
@@ -181,7 +187,7 @@ class _CatsScreenState extends State<CatsScreen> {
     final cell = r * board.n + c;
     if (_revealed(cell)) return;
     final hit = board.solutionCells.contains(cell);
-    unawaited(hit ? _haptics.medium() : _haptics.heavy());
+    unawaited(_answerFeedback.show('answer', hit ? 'answer' : null, right: hit));
     setState(() {
       _marks[cell] = hit ? CatMark.cat : CatMark.miss;
       if (hit) {
@@ -283,25 +289,33 @@ class _CatsScreenState extends State<CatsScreen> {
         // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующую доску. Доска
         // партии остаётся под счётом — видно, где стояли кошки и где были ошибки.
         if (_won || _lost) {
-          return SizedBox(
-            height: height,
-            child: LevelResult(
-              passed: _won,
-              level: _endLevel ?? _ladder.level,
-              score: '${L.t('label_found')}: ${_cats.length}/$n · ${L.t('errors')}: $_errors',
-              details: CatsBoardView(board: board, marks: _marks, height: height * 0.45, onTap: (_, _) {}),
-              onNext: _deal,
+          return AnswerMark(
+            feedback: _answerFeedback,
+            value: 'answer',
+            child: SizedBox(
+              height: height,
+              child: LevelResult(
+                passed: _won,
+                level: _endLevel ?? _ladder.level,
+                score: '${L.t('label_found')}: ${_cats.length}/$n · ${L.t('errors')}: $_errors',
+                details: CatsBoardView(board: board, marks: _marks, height: height * 0.45, onTap: (_, _) {}),
+                onNext: _deal,
+              ),
             ),
           );
         }
-        return CatsBoardView(
-          board: board,
-          marks: _marks,
-          height: height,
-          onTap: _tap,
-          onLongPress: _reveal,
-          onSwipeMark: _swipeMark,
-          onSwipeUnmark: _swipeUnmark,
+        return AnswerMark(
+          feedback: _answerFeedback,
+          value: 'answer',
+          child: CatsBoardView(
+            board: board,
+            marks: _marks,
+            height: height,
+            onTap: _tap,
+            onLongPress: _reveal,
+            onSwipeMark: _swipeMark,
+            onSwipeUnmark: _swipeUnmark,
+          ),
         );
       },
       auxRow: AuxBar(children: [

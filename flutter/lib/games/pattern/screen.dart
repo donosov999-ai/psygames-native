@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/aux_action.dart';
@@ -41,9 +42,8 @@ class PatternScreen extends StatefulWidget {
 enum _Phase { playing, feedback, result }
 
 class _PatternScreenState extends State<PatternScreen> {
-  static const _feedbackDelay = Duration(milliseconds: 700);
-
   late LevelLadder _ladder;
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late Rng _rng;
 
   Sequence? _seq;
@@ -82,6 +82,7 @@ class _PatternScreenState extends State<PatternScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -100,6 +101,7 @@ class _PatternScreenState extends State<PatternScreen> {
     // сброса один открытый разбор выключал бы рост уровня во всех играх.
     LessonUsed.reset();
     _timer?.cancel();
+    _answerFeedback.clear();
     _trials = GamePreset.isPreset ? GamePreset.num('trials', trialsPerRound) : trialsPerRound;
     _round = 1;
     _hits = 0;
@@ -133,8 +135,9 @@ class _PatternScreenState extends State<PatternScreen> {
       };
 
   Future<void> _answer(int value) async {
-    if (_phase != _Phase.playing) return;
-    final correct = value == _seq!.answer;
+    if (_phase != _Phase.playing || _answerFeedback.busy) return;
+    final seq = _seq!;
+    final correct = value == seq.answer;
     setState(() {
       _right = correct;
       _phase = _Phase.feedback;
@@ -144,31 +147,30 @@ class _PatternScreenState extends State<PatternScreen> {
         _errors += 1;
       }
     });
-    _timer = Timer(_feedbackDelay, () async {
-      if (!mounted) return;
-      if (_round >= _trials) {
-        final passed = _hits / _trials >= passHitRate;
-        _shadow.outcome(passed: passed, assisted: _hintUsed, errors: _errors, hints: _hintUsed ? 1 : 0);
-        final details = _details();
-        final played = _ladder.level;
-        if (passed) {
-          await _ladder.win(details: details);
-        } else {
-          await _ladder.fail(details: details);
-        }
-        if (!mounted) return;
-        setState(() {
-          _won = passed;
-          _levelPlayed = played;
-          _phase = _Phase.result;
-        });
-        return;
+    await _answerFeedback.show(value, seq.answer, right: correct);
+    if (!mounted || !identical(seq, _seq)) return;
+    if (_round >= _trials) {
+      final passed = _hits / _trials >= passHitRate;
+      _shadow.outcome(passed: passed, assisted: _hintUsed, errors: _errors, hints: _hintUsed ? 1 : 0);
+      final details = _details();
+      final played = _ladder.level;
+      if (passed) {
+        await _ladder.win(details: details);
+      } else {
+        await _ladder.fail(details: details);
       }
+      if (!mounted) return;
       setState(() {
-        _round += 1;
-        _phase = _Phase.playing;
-        _newRound();
+        _won = passed;
+        _levelPlayed = played;
+        _phase = _Phase.result;
       });
+      return;
+    }
+    setState(() {
+      _round += 1;
+      _phase = _Phase.playing;
+      _newRound();
     });
   }
 
@@ -264,11 +266,15 @@ class _PatternScreenState extends State<PatternScreen> {
           for (final o in _options)
             SizedBox(
               height: 56,
-              child: FilledButton(
-                key: Key('ответ$o'),
-                style: _answerStyle(context),
-                onPressed: _phase == _Phase.playing ? () => _answer(o) : null,
-                child: Text(showNumber(o), style: const TextStyle(fontSize: 18)),
+              child: AnswerMark(
+                feedback: _answerFeedback,
+                value: o,
+                child: FilledButton(
+                  key: Key('ответ$o'),
+                  style: _answerStyle(context),
+                  onPressed: _phase == _Phase.playing ? () => _answer(o) : null,
+                  child: Text(showNumber(o), style: const TextStyle(fontSize: 18)),
+                ),
               ),
             ),
         ],

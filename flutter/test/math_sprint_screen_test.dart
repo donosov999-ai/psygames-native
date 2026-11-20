@@ -47,7 +47,7 @@ void main() {
       tester.widget<Text>(find.byKey(const Key('задача'))).data ?? '';
 
   /// Набирает число клавишами — ровно так, как человек.
-  Future<void> type(WidgetTester tester, int value) async {
+  Future<void> type(WidgetTester tester, int value, {bool settle = true}) async {
     if (value < 0) {
       await tester.tap(find.byKey(const Key('клавиша−')));
       await tester.pump();
@@ -56,6 +56,7 @@ void main() {
       await tester.tap(find.byKey(Key('клавиша$ch')));
       await tester.pump();
     }
+    if (settle) await tester.pump(const Duration(milliseconds: 650));
   }
 
   testWidgets('🔴 партия играется клавишами: двенадцать верных берут уровень', (tester) async {
@@ -68,7 +69,9 @@ void main() {
     for (var i = 0; i < sprintCorrectToPass; i += 1) {
       final p = generateSprintProblem(1, rnd);
       expect(taskOnScreen(tester), p.display, reason: 'задача ${i + 1} — та, что раздал генератор');
-      await type(tester, p.answer);   // верный ответ засчитывается САМ
+      await type(tester, p.answer, settle: false);   // верный ответ засчитывается САМ
+      expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 650));
       expect(find.text('${i + 1}/$sprintCorrectToPass'), findsOneWidget,
           reason: 'после ${i + 1}-го верного счётчик вырос без нажатия «Проверить»');
     }
@@ -97,6 +100,7 @@ void main() {
     await type(tester, wrong);
     await tester.tap(find.byKey(const Key('проверить')));
     await tester.pump();
+    expect(find.byKey(const Key('answer-mark-bad')), findsOneWidget);
     expect(find.text('${scoreAfterThree - sprintPenalty}'), findsOneWidget, reason: 'штраф пять очков');
     expect(find.text('1'), findsWidgets, reason: 'ошибка засчитана');
   });

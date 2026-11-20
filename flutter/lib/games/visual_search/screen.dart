@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
@@ -54,8 +54,7 @@ class VisualSearchScreen extends StatefulWidget {
 enum _Phase { playing, wrong, right, result }
 
 class _VisualSearchScreenState extends State<VisualSearchScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   static const _rightDelay = Duration(milliseconds: 500);
   static const _wrongDelay = Duration(milliseconds: 450);
 
@@ -99,6 +98,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
   @override
   void dispose() {
     _next?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -173,7 +173,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
         it.found = true;
         _found += 1;
       });
-      _found >= _cfg.targetCount ? _haptics.win() : _haptics.hit();
+      unawaited(_answerFeedback.show('answer', 'answer'));
       if (_found >= _cfg.targetCount) {
         setState(() {
           _hits += 1;
@@ -186,7 +186,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
     }
     // Промах — в том числе по ПРИМАНКЕ: она выглядит как цель, и отличить её
     // можно только точкой. Это и есть ось подавления.
-    _haptics.miss();
+    unawaited(_answerFeedback.show('answer', null, right: false));
     setState(() {
       _errors += 1;
       _phase = _Phase.wrong;
@@ -318,7 +318,10 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
         ),
       ],
       // Партия кончилась — итог на поле ([_result]).
-      field: (context, h) => _phase == _Phase.result ? SizedBox(height: h, child: _result()) : LayoutBuilder(
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _phase == _Phase.result ? SizedBox(height: h, child: _result()) : LayoutBuilder(
         builder: (context, c) {
           const headH = 64.0;
           final side = math.max(
@@ -397,6 +400,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
           );
         },
       ),
+        ),
       auxRow: AuxBar(
         children: [
           AuxAction(

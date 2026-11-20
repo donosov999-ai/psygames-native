@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -36,6 +37,7 @@ class StoryRecallScreen extends StatefulWidget {
 }
 
 class _StoryRecallScreenState extends State<StoryRecallScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   List<Story>? _stories;
   late final double Function() _rng = widget.random ?? Random().nextDouble;
@@ -70,6 +72,7 @@ class _StoryRecallScreenState extends State<StoryRecallScreen> {
     _mathInput.dispose();
     _recall1.dispose();
     _recall2.dispose();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -149,7 +152,9 @@ class _StoryRecallScreenState extends State<StoryRecallScreen> {
   }
 
   void _submitMath() {
-    if (int.tryParse(_mathInput.text.trim()) == _math.answer) _mathScore += 1;
+    final right = int.tryParse(_mathInput.text.trim()) == _math.answer;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
+    if (right) _mathScore += 1;
     setState(_nextMath);
   }
 
@@ -161,12 +166,14 @@ class _StoryRecallScreenState extends State<StoryRecallScreen> {
 
   void _submitRecall1() {
     _hits1 = countStoryMatches(_recall1.text, _story!.keywordsFor(_lang));
+    unawaited(_answerFeedback.show('answer', _hits1 > 0 ? 'answer' : null, right: _hits1 > 0));
     _startDistractor2();
   }
 
   Future<void> _submitRecall2() async {
     final kws = _story!.keywordsFor(_lang);
     final hits = countStoryMatches(_recall2.text, kws);
+    unawaited(_answerFeedback.show('answer', hits > 0 ? 'answer' : null, right: hits > 0));
     final total = storyKeys(kws).length;
     final immediate = total > 0 ? _hits1 / total : 0.0;
     final delayed = total > 0 ? hits / total : 0.0;
@@ -240,13 +247,17 @@ class _StoryRecallScreenState extends State<StoryRecallScreen> {
           ],
         _ => const [],
       },
-      field: (context, h) => switch (_phase) {
-        StoryPhase.config => _config(context, h),
-        StoryPhase.reading => _reading(context, h),
-        StoryPhase.distractor1 || StoryPhase.distractor2 => _distractor(context, h),
-        StoryPhase.recall1 || StoryPhase.recall2 => _recallField(context, h),
-        StoryPhase.result => _result(context, h),
-      },
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: switch (_phase) {
+          StoryPhase.config => _config(context, h),
+          StoryPhase.reading => _reading(context, h),
+          StoryPhase.distractor1 || StoryPhase.distractor2 => _distractor(context, h),
+          StoryPhase.recall1 || StoryPhase.recall2 => _recallField(context, h),
+          StoryPhase.result => _result(context, h),
+        },
+      ),
       toolbar: _phase == StoryPhase.reading
           ? _bar([
               FilledButton(key: const Key('story-read-done'), onPressed: _finishReading, child: Text(L.t('storyReadDone'))),

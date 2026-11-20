@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
@@ -43,8 +43,7 @@ class SetGameScreen extends StatefulWidget {
 enum _Phase { playing, result }
 
 class _SetGameScreenState extends State<SetGameScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   late Rng _rng;
   late SetParams _params;
@@ -80,6 +79,7 @@ class _SetGameScreenState extends State<SetGameScreen> {
   void dispose() {
     _tick?.cancel();
     _next?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -145,7 +145,7 @@ class _SetGameScreenState extends State<SetGameScreen> {
   void _judge({bool late = false}) {
     _tick?.cancel();
     final ok = !late && isSet(_board[_picked[0]], _board[_picked[1]], _board[_picked[2]]);
-    ok ? _haptics.hit() : _haptics.miss();
+    unawaited(_answerFeedback.show('answer', ok ? 'answer' : null, right: ok));
     setState(() {
       _right = ok;
       if (ok) {
@@ -246,7 +246,10 @@ class _SetGameScreenState extends State<SetGameScreen> {
         if (_params.timeLimit > 0)
           HudItem(label: L.t('time'), value: '${(_leftMs / 1000).ceil()}', icon: Icons.timer_outlined),
       ],
-      field: (context, h) => _phase == _Phase.result
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _phase == _Phase.result
           ? SizedBox(height: h, child: _result())
           : _Table(
               board: _board,
@@ -255,6 +258,7 @@ class _SetGameScreenState extends State<SetGameScreen> {
               height: h,
               onTap: _tap,
             ),
+        ),
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.backspace_outlined,

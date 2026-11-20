@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/audio_host.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/aux_action.dart';
@@ -67,6 +68,7 @@ class DictationScreen extends StatefulWidget {
 }
 
 class _DictationScreenState extends State<DictationScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   Map<String, List<ClozePhrase>>? _cloze;
   List<Map<String, String>> _vocab = const [];
@@ -127,6 +129,7 @@ class _DictationScreenState extends State<DictationScreen> {
     _openLater?.cancel();
     _voice?.cancel();
     _noise?.stop();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -246,6 +249,8 @@ class _DictationScreenState extends State<DictationScreen> {
     if (st == null || !_inputOpen || _phase != DictationPhase.playing) return;
     final before = st.errors;
     final r = st.pressChar(ch, blockOnError: true, lenient: true);
+    final right = st.errors == before;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     setState(() {
       _errorAt = st.errors > before ? st.pos : null;
       _wrongKey = st.errors > before ? ch : null;
@@ -386,11 +391,15 @@ class _DictationScreenState extends State<DictationScreen> {
               ),
               HudItem(label: L.t('hud_correct'), value: '$_done', icon: Icons.check),
             ],
-      field: (context, h) => switch (_phase) {
-        DictationPhase.config => _config(context, h),
-        DictationPhase.playing => _playing(context, h),
-        DictationPhase.result => _result(context, h),
-      },
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: switch (_phase) {
+          DictationPhase.config => _config(context, h),
+          DictationPhase.playing => _playing(context, h),
+          DictationPhase.result => _result(context, h),
+        },
+      ),
       // «Повторить звук» — в нижнем тулбаре каркаса, не кнопкой в центре поля: Денис 31.10 — «управление,
       // если тулбар позволяет, идёт в него: тянуться в низ экрана проще, чем в центр» (CHATS_RULES.md §1в).
       auxRow: playing

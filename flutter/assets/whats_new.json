@@ -1,6 +1,18 @@
 {
  "entries": [
   {
+   "version": "2.74.0",
+   "date": "2026-11-20",
+   "en": [
+    "All 131 games and modes now show clear green/red answer feedback with shared sound and haptics",
+    "Vocabulary SRS shows the target and native languages together; every profile can access every game"
+   ],
+   "ru": [
+    "Во всех 131 игре и режиме теперь есть понятный зелёный/красный отклик на ответ, общие звук и вибрация",
+    "Словарь SRS показывает оба языка одновременно; во всех профилях доступны все игры"
+   ]
+  },
+  {
    "version": "2.73.0",
    "date": "2026-11-18",
    "en": [

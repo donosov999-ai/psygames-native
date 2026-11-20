@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/l10n.dart';
@@ -12,7 +13,6 @@ import '../../shell/game_shell.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_effect_audio.dart';
 import '../../shell/reward_effects.dart';
-import '../../shell/app_haptics.dart';
 import '../../shell/audio_host.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
@@ -81,6 +81,7 @@ class _Snapshot {
 
 class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingObserver {
   final _motion = GoodsMotion();
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late GameEffectAudio _audio;
   late final GoodsFeedbackOptions _feedback;
   GoodsAudioEngine? _activeEngine;
@@ -195,6 +196,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
     _feedback.removeListener(_feedbackChanged);
     if (widget.feedback == null) _feedback.dispose();
     unawaited(_audio.dispose());
+    unawaited(_answerFeedback.dispose());
     _motion.dispose();
     super.dispose();
   }
@@ -320,6 +322,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
 
   void _start(GoodsLevel level) {
     _motion.cancel();
+    _answerFeedback.clear();
     _audio.reset();
     _celebrate = false;
     _deal += 1;
@@ -431,7 +434,10 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
   /// Ход: взятый товар уезжает в нишу, ядро разбирает тройки, препятствия стареют.
   void _move(GoodsPick pick, int to) {
     if (_won || _lost || _nextPending || _motion.busy || _effectsHeld) return;
-    if (!_canDrop(pick, to)) return;
+    if (!_canDrop(pick, to)) {
+      unawaited(_answerFeedback.show('board', null, right: false));
+      return;
+    }
     final board = _board!;
     final level = _level!;
 
@@ -451,11 +457,8 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
       if (report.clearedTypes.isNotEmpty) _audio.emit(GameSound.group, soundToken);
       if (_won) _audio.emit(GameSound.victory, soundToken);
       if (_won && _feedback.rewards) setState(() => _celebrate = true);
-      // A single existing system signal for the accepted move, at landing.
-      // Practice owners keep their own signals. No vibration library/pattern.
-      if (_feedback.haptics && !GamePreset.isPreset) {
-        final haptics = AppHaptics(widget.state);
-        unawaited(_won ? haptics.win() : haptics.hit());
+      if (!GamePreset.isPreset) {
+        unawaited(_answerFeedback.show('board', 'board'));
       }
     }
     final animated = _motion.begin(pick.cell, pick.index, pick.type, to,
@@ -706,25 +709,29 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
           HudItem(label: L.t('goalLabel'), value: '${progress.done}/${progress.total}', icon: Icons.task_alt),
         HudItem(label: L.t('score'), value: '$_score', icon: Icons.star_outline),
       ],
-      field: (context, h) => Stack(children: [GoodsField(
-        motion: _motion,
-        level: level,
-        board: board,
-        fieldHeight: h,
-        // Шкаф берёт стиль у ПРОФИЛЯ, как в вебе. Зашитая берёза показывала бы
-        // `nzt48` берёзу вместо ореха — и веб с приложением разошлись бы молча.
-        shelf: shelfForProfile(widget.state.activeProfile),
-        obstacles: _obstacles,
-        covered: _covered,
-        frozenRow: _frozenRow,
-        selection: _sel,
-        canDrop: _canDrop,
-        onPickItem: _pick,
-        onTapNiche: _tapNiche,
-        onDrop: (pick, to) => setState(() {
-          _sel = null;
-          _move(pick, to);
-        }),
+      field: (context, h) => Stack(children: [AnswerMark(
+        feedback: _answerFeedback,
+        value: 'board',
+        child: GoodsField(
+          motion: _motion,
+          level: level,
+          board: board,
+          fieldHeight: h,
+          // Шкаф берёт стиль у ПРОФИЛЯ, как в вебе. Зашитая берёза показывала бы
+          // `nzt48` берёзу вместо ореха — и веб с приложением разошлись бы молча.
+          shelf: shelfForProfile(widget.state.activeProfile),
+          obstacles: _obstacles,
+          covered: _covered,
+          frozenRow: _frozenRow,
+          selection: _sel,
+          canDrop: _canDrop,
+          onPickItem: _pick,
+          onTapNiche: _tapNiche,
+          onDrop: (pick, to) => setState(() {
+            _sel = null;
+            _move(pick, to);
+          }),
+        ),
       ),
         if (_won && _celebrate && !_effectsHeld && _feedback.rewards)
           Positioned.fill(child: VictorySparks(key: ValueKey('goods-victory-$_deal'), enabled: true)),

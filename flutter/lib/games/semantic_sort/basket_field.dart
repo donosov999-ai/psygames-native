@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/drop_baskets.dart';
 import 'basket_model.dart';
 
@@ -43,6 +44,7 @@ class SemanticBasketField extends StatelessWidget {
     required this.categoryName,
     required this.onAnswer,
     required this.enabled,
+    required this.feedback,
   });
 
   final SemanticBasketParty party;
@@ -50,6 +52,7 @@ class SemanticBasketField extends StatelessWidget {
   final String Function(String) categoryName;
   final void Function(int id, String category) onAnswer;
   final bool enabled;
+  final AnswerFeedback feedback;
 
   @override
   Widget build(BuildContext context) {
@@ -187,8 +190,10 @@ class SemanticBasketField extends StatelessWidget {
                               key: Key('semantic-basket-$cat'),
                               target: cat,
                               label: categoryName(cat),
-                              builder: (context, highlighted) =>
-                                    Stack(
+                              builder: (context, highlighted) => AnswerMark(
+                                feedback: feedback,
+                                value: cat,
+                                child: Stack(
                                       fit: StackFit.expand,
                                       children: [
                                         Positioned.fill(
@@ -270,6 +275,7 @@ class SemanticBasketField extends StatelessWidget {
                                           ),
                                       ],
                                     ),
+                              ),
                             ),
                           ),
                       ],

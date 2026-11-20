@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -38,6 +39,7 @@ class LexicalDecisionScreen extends StatefulWidget {
 
 class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
   late LevelLadder _ladder;
+  late final _feedback = AnswerFeedback(widget.state);
 
   /// «По норме?» — своя лестница (ключ `lexical_decision_norm`, как у веба), партия — тем же
   /// типом `lexical_decision` с режимом `norm<N>`.
@@ -104,6 +106,7 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
   @override
   void dispose() {
     _clearTimers();
+    unawaited(_feedback.dispose());
     super.dispose();
   }
 
@@ -148,6 +151,7 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
 
   void _start() {
     _clearTimers();
+    _feedback.clear();
     final norm = _norm;
     final ladder = _lad;
     final p = ldLevelParams(ladder.level);
@@ -201,12 +205,11 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
       if (t.isWord) _misses += 1;
       _picked = !t.isWord;
     });
-    // «По норме?»: на ошибке видна норма и правило — время прочитать.
-    _advance = Timer(Duration(milliseconds: _normPlay ? 2400 : 800), _next);
+    _respond(_picked!, t.isWord, ok: false);
   }
 
   void _answer(bool saysWord) {
-    if (_picked != null || _phase != LdPhase.playing) return;
+    if (_picked != null || _phase != LdPhase.playing || _feedback.busy) return;
     _deadline?.cancel();
     final t = _trials[_idx];
     _rtSum += _now - _shownAtMs;
@@ -230,7 +233,21 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
         }
       }
     });
-    _advance = Timer(Duration(milliseconds: ok ? (_normPlay ? 900 : 300) : (_normPlay ? 2400 : 800)), _next);
+    _respond(saysWord, t.isWord, ok: ok);
+  }
+
+  Future<void> _respond(bool picked, bool correct, {required bool ok}) async {
+    final trials = _trials;
+    final index = _idx;
+    await _feedback.show(picked, correct, right: ok);
+    if (!mounted || !identical(trials, _trials) || index != _idx || _picked != picked) return;
+    // В режиме нормы оставляем время прочитать правильную форму и правило после общего отклика.
+    final extra = _normPlay ? (ok ? 300 : 1800) : 0;
+    if (extra == 0) {
+      _next();
+    } else {
+      _advance = Timer(Duration(milliseconds: extra), _next);
+    }
   }
 
   void _next() {
@@ -520,33 +537,39 @@ class _LexicalDecisionScreenState extends State<LexicalDecisionScreen> {
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
         child: Row(children: [
           Expanded(
-              child: _big(const Key('ld-yes'), Icons.check, _normPlay ? L.t('ldNormBtn') : L.t('ldWordBtn'), _good, () => _answer(true))),
+              child: _big(const Key('ld-yes'), Icons.check, _normPlay ? L.t('ldNormBtn') : L.t('ldWordBtn'), _good, true,
+                  () => _answer(true))),
           const SizedBox(width: 10),
           Expanded(
-              child: _big(
-                  const Key('ld-no'), Icons.close, _normPlay ? L.t('ldNotNormBtn') : L.t('ldNonwordBtn'), _bad, () => _answer(false))),
+              child: _big(const Key('ld-no'), Icons.close, _normPlay ? L.t('ldNotNormBtn') : L.t('ldNonwordBtn'), _bad, false,
+                  () => _answer(false))),
         ]),
       );
 
-  Widget _big(Key key, IconData icon, String label, Color color, VoidCallback onTap) => SizedBox(
-        height: 76,
-        child: FilledButton(
-          key: key,
-          style: FilledButton.styleFrom(
-            backgroundColor: color,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          ),
-          // Не выключается на подсветке: выключенная кнопка мигала бы серым между
-          // пробами. Второе нажатие отсекает сам `_answer`.
-          onPressed: onTap,
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(icon, size: 28),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+  Widget _big(Key key, IconData icon, String label, Color color, bool value, VoidCallback onTap) => AnswerMark(
+        feedback: _feedback,
+        value: value,
+        radius: 16,
+        child: SizedBox(
+          height: 76,
+          child: FilledButton(
+            key: key,
+            style: FilledButton.styleFrom(
+              backgroundColor: color,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
-          ]),
+            // Не выключается на подсветке: выключенная кнопка мигала бы серым между
+            // пробами. Второе нажатие отсекает сам `_answer`.
+            onPressed: onTap,
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Icon(icon, size: 28),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              ),
+            ]),
+          ),
         ),
       );
 }

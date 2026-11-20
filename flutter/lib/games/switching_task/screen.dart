@@ -14,6 +14,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
@@ -117,6 +118,7 @@ class SwitchingTaskScreen extends StatefulWidget {
 }
 
 class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   SwitchingGame? _game;
   SwitchPhase _phase = SwitchPhase.ready;
@@ -149,6 +151,7 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -239,6 +242,8 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
 
   void _after(SwitchOutcome outcome) {
     _timer?.cancel();
+    final right = outcome == SwitchOutcome.hit;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     setState(() => _flash = outcome);
     _timer = Timer(const Duration(milliseconds: 220), () {
       if (!mounted) return;
@@ -290,7 +295,10 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
           ? null
           : () => openDemoLesson(context, title: L.t('switchingTask'), trials: _demoTrials()),
       suiteSwitch: _phase == SwitchPhase.ready ? SuiteSwitch(route: '/games/switching-task', state: widget.state) : null,
-      field: (context, h) => _Field(
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _Field(
         game: g,
         mode: _mode,
         phase: _phase,
@@ -307,6 +315,7 @@ class _SwitchingTaskScreenState extends State<SwitchingTaskScreen> {
         },
         onMode: _pickMode,
       ),
+        ),
       toolbar: _phase == SwitchPhase.playing && meta != null ? _Answers(meta: meta, onPick: _answer) : null,
     );
   }

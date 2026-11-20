@@ -81,6 +81,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('plate-3')));
     await tester.pump();
+    expect(find.byKey(const Key('answer-mark-good')), findsOneWidget);
     expect(_plates(tester)[3].length, 1, reason: 'кусок обязан оказаться на пустой тарелке');
     expect(_plates(tester)[0].length, 5, reason: 'и уйти с прежней');
   });
@@ -164,6 +165,7 @@ void main() {
       await tester.pump();
       await tester.tap(find.byKey(const ValueKey('plate-1')));
       await tester.pump();
+      expect(find.byKey(const Key('answer-mark-bad')), findsOneWidget);
       final table = tester.widget<CakeTable>(find.byType(CakeTable));
       expect(table.selected, 0, reason: 'full destination must not clear selection');
       expect(table.selectedType, before.first);
