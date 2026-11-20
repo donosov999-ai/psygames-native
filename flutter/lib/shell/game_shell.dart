@@ -354,44 +354,7 @@ class GameShell extends StatelessWidget {
     },
   );
 
-  Widget _withAnswerFeedback(Widget body) => ValueListenableBuilder<AnswerFeedback?>(
-    valueListenable: AnswerFeedback.current,
-    builder: (context, feedback, _) {
-      if (feedback == null) return body;
-      return ValueListenableBuilder<AnswerMarkState?>(
-        valueListenable: feedback.mark,
-        builder: (context, mark, _) {
-          if (mark == null) return body;
-          final roles = GameColors.of(context);
-          final color = mark.right ? roles.correct : roles.wrong;
-          return Stack(fit: StackFit.expand, children: [
-            body,
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Center(
-                  child: Container(
-                    key: Key(mark.right ? 'answer-feedback-center-good' : 'answer-feedback-center-bad'),
-                    width: 96,
-                    height: 96,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: color.withValues(alpha: 0.35), blurRadius: 24)],
-                    ),
-                    child: Icon(
-                      mark.right ? Icons.check_rounded : Icons.close_rounded,
-                      size: 64,
-                      color: roles.onStrong,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ]);
-        },
-      );
-    },
-  );
+  Widget _withAnswerFeedback(Widget body) => AnswerFeedbackOverlay(child: body);
 
   Widget _withFeedback(Widget body) {
     // HybridApp уже публикует общую память здесь; отдельного хранилища нет.

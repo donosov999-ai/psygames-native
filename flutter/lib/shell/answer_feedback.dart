@@ -131,16 +131,77 @@ class AnswerMark extends StatelessWidget {
       if (!good && !bad) return child;
       final roles = GameColors.of(context);
       final color = good ? roles.correct : roles.wrong;
-      return DecoratedBox(
-        key: Key(good ? 'answer-mark-good' : 'answer-mark-bad'),
-        position: DecorationPosition.foreground,
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.28),
-          border: Border.all(color: color, width: 3),
-          borderRadius: BorderRadius.circular(radius),
+      return Stack(children: [
+        DecoratedBox(
+          key: Key(good ? 'answer-mark-good' : 'answer-mark-bad'),
+          position: DecorationPosition.foreground,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.28),
+            border: Border.all(color: color, width: 3),
+            borderRadius: BorderRadius.circular(radius),
+          ),
+          child: child,
         ),
-        child: child,
-      );
+      ]);
     },
+  );
+}
+
+
+class AnswerFeedbackOverlay extends StatefulWidget {
+  const AnswerFeedbackOverlay({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<AnswerFeedbackOverlay> createState() => _AnswerFeedbackOverlayState();
+}
+
+class _AnswerFeedbackOverlayState extends State<AnswerFeedbackOverlay> {
+  final _controller = OverlayPortalController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.show();
+  }
+
+  @override
+  Widget build(BuildContext context) => OverlayPortal(
+    controller: _controller,
+    overlayChildBuilder: (_) => ValueListenableBuilder<AnswerFeedback?>(
+      valueListenable: AnswerFeedback.current,
+      builder: (context, feedback, _) {
+        if (feedback == null) return const SizedBox.shrink();
+        return ValueListenableBuilder<AnswerMarkState?>(
+          valueListenable: feedback.mark,
+          builder: (context, mark, _) {
+            if (mark == null) return const SizedBox.shrink();
+            final roles = GameColors.of(context);
+            final color = mark.right ? roles.correct : roles.wrong;
+            return IgnorePointer(
+              child: Center(
+                child: Container(
+                  key: Key(mark.right ? 'answer-feedback-center-good' : 'answer-feedback-center-bad'),
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    boxShadow: [BoxShadow(color: color.withValues(alpha: 0.35), blurRadius: 24)],
+                  ),
+                  child: Icon(
+                    mark.right ? Icons.check_rounded : Icons.close_rounded,
+                    size: 64,
+                    color: roles.onStrong,
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    ),
+    child: widget.child,
   );
 }
