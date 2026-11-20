@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/aux_action.dart';
@@ -68,6 +70,7 @@ String questionText(Question q) {
 }
 
 class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late final LevelLadder _ladder;
   late final math.Random _rnd;
   HiddenRound? _round;
@@ -159,6 +162,7 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
     if (r == null || i == null || _over) return;
     final candidates = r.remaining.length;
     final won = r.pick(i);
+    unawaited(_answerFeedback.show('answer', won ? 'answer' : null, right: won));
     setState(() {
       _picked = i;
       _note = won ? L.t('hcRight') : L.t('hcWrong');
@@ -302,6 +306,12 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
   }
 
   @override
+  void dispose() {
+    unawaited(_answerFeedback.dispose());
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final r = _round;
     if (r == null) {
@@ -315,7 +325,10 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
         HudItem(label: L.t('hcQuestions'), value: '${r.asked.length}', icon: Icons.help_outline),
         HudItem(label: L.t('hcLeft'), value: '${r.remaining.length}', icon: Icons.people_outline),
       ],
-      field: (context, h) => _over
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _over
           ? _result(r, h)
           : Column(
         children: [
@@ -344,6 +357,7 @@ class _HiddenCharacterScreenState extends State<HiddenCharacterScreen> {
           ),
         ],
       ),
+        ),
       auxRow: AuxBar(children: [
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_deal)),
       ]),

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
@@ -38,8 +38,7 @@ class KidsFindScreen extends StatefulWidget {
 enum _Phase { playing, right, result }
 
 class _KidsFindScreenState extends State<KidsFindScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late final LevelLadder _ladder;
   late final math.Random _rnd;
   FindBoard? _board;
@@ -72,6 +71,7 @@ class _KidsFindScreenState extends State<KidsFindScreen> {
   void dispose() {
     _tick?.cancel();
     _next?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -101,7 +101,7 @@ class _KidsFindScreenState extends State<KidsFindScreen> {
         setState(() => _left = left);
         if (left <= 1e-9) {
           // Не успел — доска засчитана ошибкой.
-          _haptics.miss();
+          unawaited(_answerFeedback.show('answer', null, right: false));
           _errors += 1;
           _advance();
         }
@@ -113,12 +113,12 @@ class _KidsFindScreenState extends State<KidsFindScreen> {
     final b = _board;
     if (b == null || _phase != _Phase.playing) return;
     if (i == b.target) {
-      _haptics.hit();
+      unawaited(_answerFeedback.show('answer', 'answer'));
       setState(() => _phase = _Phase.right);
       _tick?.cancel();
       _next = gameTimeout(const Duration(milliseconds: 450), _advance);
     } else {
-      _haptics.miss();
+      unawaited(_answerFeedback.show('answer', null, right: false));
       setState(() {
         _errors += 1;
         _wrongAt = i;
@@ -193,7 +193,10 @@ class _KidsFindScreenState extends State<KidsFindScreen> {
         if (_left != null && _phase != _Phase.result)
           HudItem(label: L.t('time'), value: _left!.toStringAsFixed(1), icon: Icons.timer_outlined),
       ],
-      field: (context, h) => LayoutBuilder(builder: (context, c) {
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: LayoutBuilder(builder: (context, c) {
         // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход — новая ступень (после победы
         // лестница уже на следующей), после провала — та же.
         if (_phase == _Phase.result) {
@@ -247,6 +250,7 @@ class _KidsFindScreenState extends State<KidsFindScreen> {
           ),
         );
       }),
+        ),
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_newLevel)),
       ],

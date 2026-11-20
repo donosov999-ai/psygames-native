@@ -22,6 +22,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
@@ -110,6 +111,7 @@ class ProofreadingScreen extends StatefulWidget {
 }
 
 class _ProofreadingScreenState extends State<ProofreadingScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   ProofGame? _game;
   ProofPhase _phase = ProofPhase.ready;
@@ -161,6 +163,7 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
   void dispose() {
     _tick?.cancel();
     _flash?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -353,6 +356,8 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
     final g = _game!;
     final out = g.tap(index);
     if (out == ProofTap.ignored) return;
+    final right = out != ProofTap.wrong;
+    unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
     setState(() {
       // Вспышка на ошибке — оформление, а не партия: гасится обычным таймером.
       _wrongFlash = out == ProofTap.wrong ? index : null;
@@ -371,7 +376,11 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
   void _fwInput(FwOutcome Function(FwRound r) act) {
     final fw = _fw;
     if (fw == null || _phase != ProofPhase.playing) return;
-    act(fw);
+    final out = act(fw);
+    if (out != FwOutcome.none) {
+      final right = out == FwOutcome.hit;
+      unawaited(_answerFeedback.show('answer', right ? 'answer' : null, right: right));
+    }
     setState(() {});
     if (fw.finished && fw.cleared) _finish();
   }
@@ -538,7 +547,10 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
       onLesson: !letters || _demoTrials().isEmpty
           ? null
           : () => openDemoLesson(context, title: L.t('proofreading'), trials: _demoTrials()),
-      field: (context, h) => _phase == ProofPhase.playing && fw != null
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _phase == ProofPhase.playing && fw != null
           ? FwField(
               round: fw,
               showWords: _showWords,
@@ -580,6 +592,7 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
               onAgain: () => setState(_reset),
               onTap: _tap,
             ),
+        ),
       // Подсказка — служебное действие, значком под полем (у веба — в шапке, `GameAuxBar`).
       auxRow: _phase == ProofPhase.playing
           ? AuxBar(children: [

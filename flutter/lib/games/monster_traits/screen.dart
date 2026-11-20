@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
@@ -54,8 +54,7 @@ String traitLabel(Trait t, int v) => switch ((t, v)) {
     };
 
 class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late final LevelLadder _ladder;
   late final math.Random _rnd;
   TraitRound? _round;
@@ -114,6 +113,7 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
   @override
   void dispose() {
     _tick?.cancel();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -142,7 +142,7 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
     final g = round.grade(_selected);
     setState(() => _graded = g);
     final errors = g.missed.length + g.extras.length;
-    errors == 0 ? _haptics.win() : _haptics.miss();
+    unawaited(_answerFeedback.show('answer', errors == 0 ? 'answer' : null, right: errors == 0));
     final seconds = (gameNow() - _startedMs) ~/ 1000;
     final details = <String, Object?>{
       'trait': round.trait.name,
@@ -242,7 +242,10 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
       ],
       // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующую ступень, разбор
       // отметок (пропущенные и лишние карточки) — в подробностях.
-      field: (context, h) => g != null
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: g != null
           ? SizedBox(
               height: h,
               child: LevelResult(
@@ -276,6 +279,7 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
           ),
         ],
       ),
+        ),
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.clear_all,

@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
 import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
@@ -34,8 +35,7 @@ class SubmarinesScreen extends StatefulWidget {
 }
 
 class _SubmarinesScreenState extends State<SubmarinesScreen> {
-  /// Отклик хода — через общий выключатель «Вибрация» (образец «Матрицы памяти», задача 792432f8).
-  late final AppHaptics _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late final LevelLadder _ladder;
   late final math.Random _rnd;
   SubBoard? _board;
@@ -54,6 +54,12 @@ class _SubmarinesScreenState extends State<SubmarinesScreen> {
     _rnd = math.Random(widget.seed);
     _ladder = LevelLadder(gameId: 'submarines', store: SharedLevelStore(widget.state));
     _boot();
+  }
+
+  @override
+  void dispose() {
+    unawaited(_answerFeedback.dispose());
+    super.dispose();
   }
 
   Future<void> _boot() async {
@@ -78,7 +84,9 @@ class _SubmarinesScreenState extends State<SubmarinesScreen> {
     if (b == null || _over || b.sea.shots.containsKey((r, c))) return;
     setState(() => b.sea.fire(r, c));
     // Попадание — щелчок; промах выстрелом не ошибка, а разведка: без толчка.
-    if (b.sea.shots[(r, c)] == true) _haptics.hit();
+    if (b.sea.shots[(r, c)] == true) {
+      unawaited(_answerFeedback.show('answer', 'answer'));
+    }
     final used = b.sea.shots.length;
     if (b.sea.done || used >= b.budget) await _finish();
   }
@@ -99,7 +107,7 @@ class _SubmarinesScreenState extends State<SubmarinesScreen> {
     };
     final score = passed ? math.max(0, (b.budget - b.sea.shots.length) * 10 + 100) : b.sea.sunk.length * 20;
     setState(() => _over = true);
-    passed ? _haptics.win() : _haptics.miss();
+    unawaited(_answerFeedback.show('answer', passed ? 'answer' : null, right: passed));
     if (passed) {
       await _ladder.win(score: score, timeSeconds: seconds, errors: misses, details: details);
     } else {
@@ -144,7 +152,11 @@ class _SubmarinesScreenState extends State<SubmarinesScreen> {
             icon: Icons.directions_boat_outlined),
       ],
       // Партия кончилась — итог на поле, раскрытый флот — в его подробностях.
-      field: (context, h) => _over && _settled ? SizedBox(height: h, child: _result(b, h)) : _sea(b),
+      field: (context, h) => AnswerMark(
+        feedback: _answerFeedback,
+        value: 'answer',
+        child: _over && _settled ? SizedBox(height: h, child: _result(b, h)) : _sea(b),
+      ),
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_newLevel)),
       ],
