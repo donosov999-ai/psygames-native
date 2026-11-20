@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
@@ -37,6 +38,7 @@ class OspanScreen extends StatefulWidget {
 enum _Phase { equation, letter, recall, result }
 
 class _OspanScreenState extends State<OspanScreen> {
+  late final _answerFeedback = AnswerFeedback(widget.state);
   late LevelLadder _ladder;
   late Rng _rng;
   late OspanParams _params;
@@ -48,6 +50,7 @@ class _OspanScreenState extends State<OspanScreen> {
   int _mathErrors = 0;
   int _recallErrors = 0;
   bool _won = false;
+
   /// Сыгранный уровень — для общего итога: после победы лестница уже на следующем.
   int _levelPlayed = 1;
   bool _ready = false;
@@ -58,14 +61,21 @@ class _OspanScreenState extends State<OspanScreen> {
   Timer? _letterTimer;
 
   /// Тень генератора уровней (звено 4, задача 4e584381): раздача с новой партией, исход до лестницы.
-  late final LadderShadow _shadow =
-      LadderShadow(widget.state, gameId: 'ospan', stepKeys: ospanStepKeys);
+  late final LadderShadow _shadow = LadderShadow(
+    widget.state,
+    gameId: 'ospan',
+    stepKeys: ospanStepKeys,
+  );
 
   @override
   void initState() {
     super.initState();
     _rng = widget.rnd ?? math.Random().nextDouble;
-    _ladder = LevelLadder(gameId: 'ospan', store: SharedLevelStore(widget.state), maxLevel: 999);
+    _ladder = LevelLadder(
+      gameId: 'ospan',
+      store: SharedLevelStore(widget.state),
+      maxLevel: 999,
+    );
     _boot();
   }
 
@@ -73,6 +83,7 @@ class _OspanScreenState extends State<OspanScreen> {
   void dispose() {
     _letterTimer?.cancel();
     _input.dispose();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
@@ -87,12 +98,16 @@ class _OspanScreenState extends State<OspanScreen> {
 
   /// Письменность как в вебе: у русского языка кириллица, иначе латиница.
   List<String> get _pool {
-    final lang = widget.state.get('${SharedState.prefix}language') ?? widget.state.get('language') ?? 'ru';
+    final lang =
+        widget.state.get('${SharedState.prefix}language') ??
+        widget.state.get('language') ??
+        'ru';
     return lang.startsWith('ru') ? lettersRu : lettersEn;
   }
 
   void _reset() {
     _attempt += 1;
+    _answerFeedback.clear();
     _submitted = false;
     // Новая партия — снова зачётная (договор shell/lesson.dart: отметку «разбор
     // смотрели» снимает новая раздача). Отметка общая на всё приложение, и без
@@ -114,6 +129,10 @@ class _OspanScreenState extends State<OspanScreen> {
 
   void _answerEquation(bool saidCorrect) {
     if (_phase != _Phase.equation) return;
+    final right = saidCorrect == _eq!.isCorrect;
+    unawaited(
+      _answerFeedback.show('answer', right ? 'answer' : null, right: right),
+    );
     setState(() {
       if (saidCorrect == _eq!.isCorrect) {
         _mathHits += 1;
@@ -145,14 +164,27 @@ class _OspanScreenState extends State<OspanScreen> {
     // Claim before awaiting storage; restart alone opens another attempt.
     setState(() => _submitted = true);
     final attempt = _attempt;
-    final typed = _input.text.toUpperCase().replaceAll(RegExp(r'[^А-ЯЁA-Z]'), '').split('');
+    final typed = _input.text
+        .toUpperCase()
+        .replaceAll(RegExp(r'[^А-ЯЁA-Z]'), '')
+        .split('');
     var errors = 0;
     for (var i = 0; i < _letters.length; i += 1) {
       if (i >= typed.length || typed[i] != _letters[i]) errors += 1;
     }
-    errors += math.max(0, typed.length - _letters.length);   // лишние буквы — тоже промах
+    errors += math.max(
+      0,
+      typed.length - _letters.length,
+    ); // лишние буквы — тоже промах
     final passed = ospanPassed(errors);
     final played = _ladder.level;
+    unawaited(
+      _answerFeedback.show(
+        'answer',
+        passed ? 'answer' : null,
+        right: passed,
+      ),
+    );
     _shadow.outcome(passed: passed, errors: errors + _mathErrors);
     if (passed) {
       await _ladder.win();
@@ -175,24 +207,54 @@ class _OspanScreenState extends State<OspanScreen> {
   /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
   /// а вот чем объём берётся — нет.
   List<DemoTrial> _demoTrials() => [
-        DemoTrial(text: '', rule: L.t('teachOspanOrder')),
-        DemoTrial(text: '', rule: L.t('teachSpanChunks')),
-      ];
+    DemoTrial(text: '', rule: L.t('teachOspanOrder')),
+    DemoTrial(text: '', rule: L.t('teachSpanChunks')),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (!_ready) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return GameShell(
       // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
-      levelRule: LevelRuleSpot(gameId: 'ospan', level: _ladder.level, state: widget.state, calm: (_phase == _Phase.equation && _step == 0) || _phase == _Phase.result),
+      levelRule: LevelRuleSpot(
+        gameId: 'ospan',
+        level: _ladder.level,
+        state: widget.state,
+        calm:
+            (_phase == _Phase.equation && _step == 0) ||
+            _phase == _Phase.result,
+      ),
       title: _title,
-      onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
+      onLesson: () =>
+          openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
-        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
-        HudItem(label: L.t('hud_step'), value: '${math.min(_step + 1, _params.setSize)}/${_params.setSize}', icon: Icons.directions_walk),
-        HudItem(label: L.t('hud_correct'), value: '$_mathHits', icon: Icons.check_circle_outline),
-        HudItem(label: L.t('hud_errors'), value: '$_mathErrors', icon: Icons.error_outline),
+        HudItem(
+          label: L.t('level'),
+          value: '${_ladder.level}',
+          icon: Icons.flag_outlined,
+        ),
+        HudItem(
+          label: L.t('personalBest'),
+          value: '${_ladder.best}',
+          icon: Icons.emoji_events_outlined,
+        ),
+        HudItem(
+          label: L.t('hud_step'),
+          value: '${math.min(_step + 1, _params.setSize)}/${_params.setSize}',
+          icon: Icons.directions_walk,
+        ),
+        HudItem(
+          label: L.t('hud_correct'),
+          value: '$_mathHits',
+          icon: Icons.check_circle_outline,
+        ),
+        HudItem(
+          label: L.t('hud_errors'),
+          value: '$_mathErrors',
+          icon: Icons.error_outline,
+        ),
       ],
       field: (context, h) {
         final field = _Field(
@@ -205,28 +267,49 @@ class _OspanScreenState extends State<OspanScreen> {
           input: _input,
           height: h,
         );
-        if (_phase != _Phase.result) return field;
+        if (_phase != _Phase.result) {
+          return AnswerMark(
+            feedback: _answerFeedback,
+            value: 'answer',
+            child: field,
+          );
+        }
         // Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень, а разбор
         // «какие буквы были и что набрано» остаётся в подробностях.
         return SizedBox(
           height: h,
-          child: LevelResult(
-            passed: _won,
-            level: _levelPlayed,
-            score: _won
-                ? L.f('ospanResultWin', {'n': '${_letters.length}'})
-                : L.f('ospanResultFail', {'n': '$_recallErrors'}),
-            details: field,
-            onNext: () => setState(_reset),
+          child: AnswerMark(
+            feedback: _answerFeedback,
+            value: 'answer',
+            child: LevelResult(
+              passed: _won,
+              level: _levelPlayed,
+              score: _won
+                  ? L.f('ospanResultWin', {'n': '${_letters.length}'})
+                  : L.f('ospanResultFail', {'n': '$_recallErrors'}),
+              details: field,
+              onNext: () => setState(_reset),
+            ),
           ),
         );
       },
-      auxRow: AuxBar(children: [
-        AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
-      ]),
+      auxRow: AuxBar(
+        children: [
+          AuxAction(
+            inPause: true,
+            icon: Icons.refresh,
+            label: L.t('restart'),
+            onPressed: () => setState(_reset),
+          ),
+        ],
+      ),
       toolbar: _toolbar(context),
       pauseActions: [
-        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
+        PauseAction(
+          label: L.t('restart'),
+          icon: Icons.refresh,
+          onPressed: () => setState(_reset),
+        ),
       ],
     );
   }
@@ -236,63 +319,74 @@ class _OspanScreenState extends State<OspanScreen> {
       case _Phase.equation:
         return Padding(
           padding: const EdgeInsets.all(12),
-          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            SizedBox(
-              height: 56,
-              child: FilledButton.icon(
-                key: const Key('верно'),
-                onPressed: () => _answerEquation(true),
-                icon: const Icon(Icons.check),
-                // Короткие подписи, как были: «Правильно / Неправильно» не влезают в ряд на 360 px.
-                label: Text(L.t('hud_correct')),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 56,
+                child: FilledButton.icon(
+                  key: const Key('верно'),
+                  onPressed: () => _answerEquation(true),
+                  icon: const Icon(Icons.check),
+                  // Короткие подписи, как были: «Правильно / Неправильно» не влезают в ряд на 360 px.
+                  label: Text(L.t('hud_correct')),
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            SizedBox(
-              height: 56,
-              child: FilledButton.icon(
-                key: const Key('неверно'),
-                onPressed: () => _answerEquation(false),
-                icon: const Icon(Icons.close),
-                label: Text(L.t('a11yWrong')),
+              const SizedBox(width: 12),
+              SizedBox(
+                height: 56,
+                child: FilledButton.icon(
+                  key: const Key('неверно'),
+                  onPressed: () => _answerEquation(false),
+                  icon: const Icon(Icons.close),
+                  label: Text(L.t('a11yWrong')),
+                ),
               ),
-            ),
-          ]),
+            ],
+          ),
         );
       case _Phase.letter:
         return Padding(
           padding: const EdgeInsets.all(12),
-          child: Text(L.t('ospanRememberLetter'), key: const Key('подсказка'), textAlign: TextAlign.center),
+          child: Text(
+            L.t('ospanRememberLetter'),
+            key: const Key('подсказка'),
+            textAlign: TextAlign.center,
+          ),
         );
       case _Phase.recall:
         return Padding(
           padding: const EdgeInsets.all(12),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            TextField(
-              key: const Key('ввод'),
-              controller: _input,
-              readOnly: _submitted,
-              autofocus: true,
-              textCapitalization: TextCapitalization.characters,
-              // Ответ — набор букв, а не слово: автозамена клавиатуры его переписывает. Отчёт 6589e751
-              // (2.56.24, iPhone): набрал «ЛВБ», Т9 подменил на «ДУБ», ответ ушёл ошибкой.
-              autocorrect: false,
-              enableSuggestions: false,
-              spellCheckConfiguration: const SpellCheckConfiguration.disabled(),
-              decoration: InputDecoration(
-                labelText: L.t('ospanRecallTitle'),
-                // Пример — из букв ТОГО набора, которым идёт игра: «АБВ» по-русски, «ABC» иначе.
-                hintText: L.f('ospanExample', {'x': _pool.take(3).join()}),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                key: const Key('ввод'),
+                controller: _input,
+                readOnly: _submitted,
+                autofocus: true,
+                textCapitalization: TextCapitalization.characters,
+                // Ответ — набор букв, а не слово: автозамена клавиатуры его переписывает. Отчёт 6589e751
+                // (2.56.24, iPhone): набрал «ЛВБ», Т9 подменил на «ДУБ», ответ ушёл ошибкой.
+                autocorrect: false,
+                enableSuggestions: false,
+                spellCheckConfiguration:
+                    const SpellCheckConfiguration.disabled(),
+                decoration: InputDecoration(
+                  labelText: L.t('ospanRecallTitle'),
+                  // Пример — из букв ТОГО набора, которым идёт игра: «АБВ» по-русски, «ABC» иначе.
+                  hintText: L.f('ospanExample', {'x': _pool.take(3).join()}),
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              key: const Key('проверить'),
-              onPressed: _submitted ? null : _checkRecall,
-              icon: const Icon(Icons.check),
-              label: Text(L.t('check')),
-            ),
-          ]),
+              const SizedBox(height: 8),
+              FilledButton.icon(
+                key: const Key('проверить'),
+                onPressed: _submitted ? null : _checkRecall,
+                icon: const Icon(Icons.check),
+                label: Text(L.t('check')),
+              ),
+            ],
+          ),
         );
       case _Phase.result:
         // Итог со счётом и кнопками рисует общий [LevelResult] в поле.
@@ -330,40 +424,46 @@ class _Field extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: switch (phase) {
           _Phase.equation => FittedBox(
-              child: Text(
-                '${eq!.left} = ${eq!.right}',
-                key: const Key('равенство'),
-                style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w700),
-              ),
+            child: Text(
+              '${eq!.left} = ${eq!.right}',
+              key: const Key('равенство'),
+              style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w700),
             ),
+          ),
           _Phase.letter => Text(
-              letter,
-              key: const Key('буква'),
-              style: TextStyle(fontSize: 72, fontWeight: FontWeight.w800, color: scheme.primary),
+            letter,
+            key: const Key('буква'),
+            style: TextStyle(
+              fontSize: 72,
+              fontWeight: FontWeight.w800,
+              color: scheme.primary,
             ),
+          ),
           _Phase.recall => Text(
-              L.f('ospanRecallPrompt', {'n': '${letters.length}'}),
-              key: const Key('спросили'),
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            L.f('ospanRecallPrompt', {'n': '${letters.length}'}),
+            key: const Key('спросили'),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           _Phase.result => Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  letters.join(' '),
-                  key: const Key('правда'),
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w700,
-                    color: won ? const Color(0xFF22C55E) : scheme.onSurface,
-                  ),
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                letters.join(' '),
+                key: const Key('правда'),
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w700,
+                  color: won ? const Color(0xFF22C55E) : scheme.onSurface,
                 ),
-                const SizedBox(height: 8),
-                Text(L.f('ospanYouSaid', {'x': input.text.toUpperCase()}),
-                    style: Theme.of(context).textTheme.bodyMedium),
-              ],
-            ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                L.f('ospanYouSaid', {'x': input.text.toUpperCase()}),
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
         },
       ),
     );
