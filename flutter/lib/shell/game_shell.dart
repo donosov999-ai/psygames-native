@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'answer_feedback.dart';
 import 'aurora_glass.dart';
 import 'aux_action.dart';
 import 'aurora_scope.dart';
@@ -193,7 +194,7 @@ class GameShell extends StatelessWidget {
       // Поле до краёв экрана (раннер: дорога под строкой статуса и полоской «домой»), пауза — в
       // безопасной зоне. Отступы для своих надписей игра берёт из MediaQuery.paddingOf.
       return Scaffold(
-        body: _withFeedback(Stack(children: [
+        body: _withFeedback(_withAnswerFeedback(Stack(children: [
           Positioned.fill(
             child: LayoutBuilder(
               key: const Key('game-field'),
@@ -204,12 +205,12 @@ class GameShell extends StatelessWidget {
             Positioned(top: 8, left: 12, child: _practiceHud(fieldOnly: true)),
             Positioned(left: 16, bottom: 10, child: _fieldOnlyPause(context)),
           ])),
-        ])),
+        ]))),
       );
     }
     if (fieldOnly) {
       return Scaffold(
-        body: _withFeedback(SafeArea(
+        body: _withFeedback(_withAnswerFeedback(SafeArea(
           child: Stack(children: [
             Positioned.fill(
               child: LayoutBuilder(
@@ -223,7 +224,7 @@ class GameShell extends StatelessWidget {
             else
               Positioned(top: 8, right: 12, child: _fieldOnlyPause(context)),
           ]),
-        )),
+        ))),
       );
     }
     final scheme = Theme.of(context).colorScheme;
@@ -249,10 +250,10 @@ class GameShell extends StatelessWidget {
       return Scaffold(
         backgroundColor: auroraToken('background', dark: frame.brightness == Brightness.dark),
         // Тот же фон, что у паузы (стандарт: стекло и золото на глубоком синем).
-        body: DecoratedBox(
+        body: _withAnswerFeedback(DecoratedBox(
           decoration: AuroraGlass.backdrop(frame.brightness == Brightness.dark, lightPilot: auroraTransparentField),
           child: SafeArea(child: spot == null ? body : LevelRuleWatcher(spot: spot, child: body)),
-        ),
+        )),
       );
     }
     final body = Column(
@@ -304,9 +305,9 @@ class GameShell extends StatelessWidget {
     // как в «Авроре»; плавающая здесь была второй (Classic — шаблон по умолчанию). Плавающая
     // остаётся только у экрана «только поле», где шапки нет.
     return Scaffold(
-      body: SafeArea(
+      body: _withAnswerFeedback(SafeArea(
         child: spot == null ? body : LevelRuleWatcher(spot: spot, child: body),
-      ),
+      )),
     );
   }
 
@@ -350,6 +351,45 @@ class GameShell extends StatelessWidget {
         ),
       ];
       return items.isEmpty ? const SizedBox.shrink() : _HudRow(items: items);
+    },
+  );
+
+  Widget _withAnswerFeedback(Widget body) => ValueListenableBuilder<AnswerFeedback?>(
+    valueListenable: AnswerFeedback.current,
+    builder: (context, feedback, _) {
+      if (feedback == null) return body;
+      return ValueListenableBuilder<AnswerMarkState?>(
+        valueListenable: feedback.mark,
+        builder: (context, mark, _) {
+          if (mark == null) return body;
+          final roles = GameColors.of(context);
+          final color = mark.right ? roles.correct : roles.wrong;
+          return Stack(fit: StackFit.expand, children: [
+            body,
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Center(
+                  child: Container(
+                    key: Key(mark.right ? 'answer-feedback-center-good' : 'answer-feedback-center-bad'),
+                    width: 96,
+                    height: 96,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      boxShadow: [BoxShadow(color: color.withValues(alpha: 0.35), blurRadius: 24)],
+                    ),
+                    child: Icon(
+                      mark.right ? Icons.check_rounded : Icons.close_rounded,
+                      size: 64,
+                      color: roles.onStrong,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ]);
+        },
+      );
     },
   );
 

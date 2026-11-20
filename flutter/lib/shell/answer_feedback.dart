@@ -4,8 +4,8 @@
 // подтверждения… я молчу про виброотклик или звук; надо в стандартах прописать». Правило записано в
 // стандарт дизайна каркаса (раздел «отклик на КАЖДЫЙ ответ»); здесь его единственное исполнение:
 //
-//   · видно — выбранный вариант загорается зелёным ✓ или красным ✗, при ошибке верный — зелёным ✓;
-//     цвет И значок (на один цвет не полагаться); держится [hold] (600 мс), только потом следующая проба;
+//   · видно — выбранный вариант загорается зелёным или красным, при ошибке верный — зелёным;
+//     большой ✓/✗ по центру экрана рисует GameShell; держится [hold] (600 мс), потом следующая проба;
 //     при «Уменьшить движение» анимации нет, цвет, значок и пауза остаются;
 //   · ощутимо — только [AppHaptics]: hit() верно, miss() ошибка; глушится тумблером «Вибрация»;
 //   · слышно — короткий звук через общий [GameEffectAudio], только по тумблеру «Звук» ([appSoundOn]).
@@ -46,6 +46,8 @@ class AnswerFeedback {
   /// Сколько держится подсветка (правило: 600 мс, допустимо 500–900).
   static const hold = Duration(milliseconds: 600);
 
+  static final current = ValueNotifier<AnswerFeedback?>(null);
+
   /// Звуковой движок отклика. Пробы подставляют свой (`test/flutter_test_config.dart` — без звука).
   static GameSoundBackend? Function() backendFactory = FlameSoundBackend.new;
 
@@ -75,6 +77,7 @@ class AnswerFeedback {
     _cancelWait();
     final ok = right ?? picked == correct;
     final seq = ++_seq;
+    current.value = this;
     mark.value = (picked: picked, correct: correct, right: ok);
     unawaited(ok ? _haptics.hit() : _haptics.miss());
     _audio.emit(ok ? GameSound.correct : GameSound.wrong, 'answer$seq');
@@ -103,12 +106,13 @@ class AnswerFeedback {
     _seq++;
     _cancelWait();
     mark.value = null;
+    if (identical(current.value, this)) current.value = null;
     mark.dispose();
     await _audio.dispose();
   }
 }
 
-/// Подсветка варианта ответа: зелёный ✓ — выбран и верен или верный при ошибке, красный ✗ — выбран и неверен.
+/// Подсветка варианта: зелёный — выбран и верен или верный при ошибке, красный — выбран и неверен.
 /// Оборачивает любую кнопку или клетку; пока нет отклика — рисует её как есть.
 class AnswerMark extends StatelessWidget {
   const AnswerMark({super.key, required this.feedback, required this.value, required this.child, this.radius = 12});
@@ -127,32 +131,15 @@ class AnswerMark extends StatelessWidget {
       if (!good && !bad) return child;
       final roles = GameColors.of(context);
       final color = good ? roles.correct : roles.wrong;
-      return Stack(
-        clipBehavior: Clip.none,
-        children: [
-          DecoratedBox(
-            key: Key(good ? 'answer-mark-good' : 'answer-mark-bad'),
-            position: DecorationPosition.foreground,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.28),
-              border: Border.all(color: color, width: 3),
-              borderRadius: BorderRadius.circular(radius),
-            ),
-            child: child,
-          ),
-          Positioned(
-            top: -6,
-            right: -6,
-            child: ExcludeSemantics(
-              child: Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                child: Icon(good ? Icons.check_rounded : Icons.close_rounded, size: 16, color: roles.onStrong),
-              ),
-            ),
-          ),
-        ],
+      return DecoratedBox(
+        key: Key(good ? 'answer-mark-good' : 'answer-mark-bad'),
+        position: DecorationPosition.foreground,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.28),
+          border: Border.all(color: color, width: 3),
+          borderRadius: BorderRadius.circular(radius),
+        ),
+        child: child,
       );
     },
   );
