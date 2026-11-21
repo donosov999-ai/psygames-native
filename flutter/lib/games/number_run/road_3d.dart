@@ -25,6 +25,7 @@ import 'package:flutter_scene/scene.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 
 import '../runner/answer_cue.dart';
+import '../runner/answer_feedback_adapter.dart';
 import '../runner/road.dart';
 import '../../shell/js_compat.dart' show jsRound;
 import '../../shell/game_clock.dart' show isGameHeld;
@@ -1033,7 +1034,7 @@ class _Road3dState extends State<Road3d> {
       final lane = e.lane ?? 0;
       double n(String k) => (d[k] as num?)?.toDouble() ?? 0;
       void answerAt(double x, {double height = 1.2}) {
-        final cue = RunnerAnswerCue.fromEvent(e);
+        final cue = runnerAnswerFeedback.cueFor(e);
         if (cue == null) return;
         _popup(cue.label, cue.right ? 0xbbf7d0 : 0xffd6dc, x, compact: true);
         _burst(x, height, 0, cue.right ? 0x22c55e : 0xff2d55, 8, spread: 2, lift: 3);

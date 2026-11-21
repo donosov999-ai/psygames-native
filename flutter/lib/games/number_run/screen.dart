@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
-import '../../shell/app_haptics.dart';
+import '../../shell/answer_feedback.dart';
 import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/demo_lesson.dart';
@@ -21,7 +21,7 @@ import '../../shell/session_report.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../math_slider/model.dart' show numberLocale;
-import '../runner/answer_cue.dart';
+import '../runner/answer_feedback_adapter.dart';
 import '../runner/road.dart';
 import 'campaign.dart';
 import 'level.dart';
@@ -211,7 +211,7 @@ bool Function(RoadCourse course, RoadState s)? numberRunAutoApply;
 
 class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProviderStateMixin {
   late final LevelLadder _ladder;
-  late final _haptics = AppHaptics(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state, adapter: runnerAnswerFeedback);
   late final Ticker _ticker;
   final FocusNode _focus = FocusNode();
   NumberRunMode _mode = NumberRunMode.levels;
@@ -256,12 +256,14 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
   void dispose() {
     _ticker.dispose();
     _focus.dispose();
+    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
   /// Новая раздача: разбор показывает приёмы на ЭТОЙ дороге, поэтому она строится до старта.
   void _deal() {
     LessonUsed.reset();
+    _answerFeedback.clear();
     _seed = widget.seed != null ? widget.seed! + _games : math.Random().nextInt(1000000);
     _games += 1;
     final level = _ladder.level;
@@ -308,11 +310,10 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
       final previous = _s!;
       final next = roadAdvanceFrame(previous, dt, course);
       setState(() => _s = next);
-      // Only actual scoring events react. No wait, global overlay or queued
-      // sound player in the real-time frame loop.
+      // The runner adapter forwards scoring events to the shared service
+      // without an overlay, sound queue or wait in this frame loop.
       for (var i = previous.events.length; i < next.events.length; i++) {
-        final cue = RunnerAnswerCue.fromEvent(next.events[i]);
-        if (cue != null) unawaited(cue.right ? _haptics.hit() : _haptics.miss());
+        runnerAnswerFeedback.emit(_answerFeedback, next.events[i]);
       }
       if (next.status == RoadStatus.failed) {
         _finish();
@@ -757,7 +758,7 @@ class NumberRoadView extends StatelessWidget {
       final lift = jumpHeight(state);
       final carW = math.min(lw * 0.9, lw * 0.5 * numberScale(state.sum)) * (1 + lift / 8);
       final carX = w / 2 + state.x * lw;
-      final feedback = RunnerAnswerCue.recent(state);
+      final feedback = runnerAnswerFeedback.recent(state);
       final colors = GameColors.of(context);
       return ClipRect(
         child: Stack(children: [

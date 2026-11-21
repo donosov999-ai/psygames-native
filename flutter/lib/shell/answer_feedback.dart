@@ -34,16 +34,62 @@ import 'shared_state.dart';
 /// Что сейчас подсвечено: выбранный вариант, верный, верно ли.
 typedef AnswerMarkState = ({Object? picked, Object? correct, bool right});
 
+/// The game emits one answer signal. Only its adapter decides which channels
+/// to forward, substitute or silence; the caller need not change its rules.
+abstract interface class AnswerFeedbackAdapter {
+  AnswerFeedbackDelivery adapt(AnswerMarkState signal);
+}
+
+class AnswerFeedbackDelivery {
+  const AnswerFeedbackDelivery({
+    this.choice,
+    this.center,
+    this.haptic = false,
+    this.sound = false,
+    this.hold = Duration.zero,
+    this.blockInput = false,
+  });
+
+  final AnswerMarkState? choice, center;
+  final bool haptic, sound;
+  final Duration hold;
+  final bool blockInput;
+}
+
+class StandardAnswerFeedbackAdapter implements AnswerFeedbackAdapter {
+  const StandardAnswerFeedbackAdapter({this.sound = true});
+
+  final bool sound;
+
+  @override
+  AnswerFeedbackDelivery adapt(AnswerMarkState signal) => AnswerFeedbackDelivery(
+    choice: signal,
+    center: signal,
+    haptic: true,
+    sound: sound,
+    hold: AnswerFeedback.hold,
+    blockInput: true,
+  );
+}
+
+/// Speech needs exclusive control of its audio session; the answer still
+/// uses the same visual and haptic channels.
+const spokenAnswerFeedback = StandardAnswerFeedbackAdapter(sound: false);
+
 class AnswerFeedback {
-  AnswerFeedback(this.state, {GameSoundBackend? backend, bool playSound = true})
+  AnswerFeedback(
+    this.state, {
+    GameSoundBackend? backend,
+    this.adapter = const StandardAnswerFeedbackAdapter(),
+  })
     : _audio = GameEffectAudio(
-        // Spoken exercises keep the audio session for speech, not the answer chime.
-        backend: playSound ? (backend ?? backendFactory()) : null,
+        backend: backend ?? backendFactory(),
         enabled: () => appSoundOn(state),
       ),
       _haptics = AppHaptics(state);
 
   final SharedState state;
+  final AnswerFeedbackAdapter adapter;
   final GameEffectAudio _audio;
   final AppHaptics _haptics;
 
@@ -57,6 +103,7 @@ class AnswerFeedback {
 
   /// Подсветка для [AnswerMark]; `null` — ничего не подсвечено.
   final mark = ValueNotifier<AnswerMarkState?>(null);
+  final centerMark = ValueNotifier<AnswerMarkState?>(null);
 
   int _seq = 0;
   bool _disposed = false;
@@ -64,7 +111,7 @@ class AnswerFeedback {
   Completer<void>? _waiting;
 
   /// Идёт ли отклик: игра на это время не принимает новые ответы.
-  bool get busy => !_disposed && mark.value != null;
+  bool get busy => !_disposed && _waiting != null;
 
   void _cancelWait() {
     _timer?.cancel();
@@ -81,26 +128,40 @@ class AnswerFeedback {
     _cancelWait();
     final ok = right ?? picked == correct;
     final seq = ++_seq;
-    current.value = this;
-    mark.value = (picked: picked, correct: correct, right: ok);
-    unawaited(ok ? _haptics.hit() : _haptics.miss());
-    _audio.emit(ok ? GameSound.correct : GameSound.wrong, 'answer$seq');
-    final done = Completer<void>();
+    final delivery = adapter.adapt((picked: picked, correct: correct, right: ok));
+    final timed = delivery.hold > Duration.zero;
+    final done = timed && delivery.blockInput ? Completer<void>() : null;
     _waiting = done;
-    _timer = gameTimeout(hold, () {
-      if (!_disposed && seq == _seq) mark.value = null;
+    mark.value = delivery.choice;
+    centerMark.value = delivery.center;
+    if (delivery.center != null) {
+      current.value = this;
+    } else if (identical(current.value, this)) {
+      current.value = null;
+    }
+    if (delivery.haptic) unawaited(ok ? _haptics.hit() : _haptics.miss());
+    if (delivery.sound) _audio.emit(ok ? GameSound.correct : GameSound.wrong, 'answer$seq');
+    if (!timed) return;
+    _timer = gameTimeout(delivery.hold, () {
+      if (!_disposed && seq == _seq) _clearVisuals();
       _timer = null;
       if (identical(_waiting, done)) _waiting = null;
-      if (!done.isCompleted) done.complete();
+      if (done != null && !done.isCompleted) done.complete();
     });
-    return done.future;
+    if (done != null) await done.future;
+  }
+
+  void _clearVisuals() {
+    mark.value = null;
+    centerMark.value = null;
+    if (identical(current.value, this)) current.value = null;
   }
 
   /// Снять подсветку сразу (уход с экрана, новая партия).
   void clear() {
     if (_disposed) return;
     _seq++;
-    mark.value = null;
+    _clearVisuals();
     _cancelWait();
   }
 
@@ -109,9 +170,9 @@ class AnswerFeedback {
     _disposed = true;
     _seq++;
     _cancelWait();
-    mark.value = null;
-    if (identical(current.value, this)) current.value = null;
+    _clearVisuals();
     mark.dispose();
+    centerMark.dispose();
     await _audio.dispose();
   }
 }
@@ -175,7 +236,7 @@ class AnswerFeedbackOverlay extends StatelessWidget {
         builder: (context, feedback, _) {
           if (feedback == null) return const SizedBox.shrink();
           return ValueListenableBuilder<AnswerMarkState?>(
-            valueListenable: feedback.mark,
+            valueListenable: feedback.centerMark,
             builder: (context, mark, _) {
               if (mark == null) return const SizedBox.shrink();
               final roles = GameColors.of(context);

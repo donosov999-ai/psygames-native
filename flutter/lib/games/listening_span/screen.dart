@@ -79,7 +79,7 @@ class ListeningSpanScreen extends StatefulWidget {
 }
 
 class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
-  late final _answerFeedback = AnswerFeedback(widget.state, playSound: false);
+  late final _answerFeedback = AnswerFeedback(widget.state, adapter: spokenAnswerFeedback);
 
   late LevelLadder _ladder;
   late final double Function() _rng = widget.rng ?? Random().nextDouble;

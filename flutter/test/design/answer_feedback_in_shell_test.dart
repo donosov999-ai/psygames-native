@@ -202,14 +202,14 @@ void main() {
         final runner = source(declaration);
         final road3d = source(File('${dir.path}/road_3d.dart'));
         expect(runner, allOf(
-          contains('RunnerAnswerCue.fromEvent('),
-          contains('RunnerAnswerCue.recent('),
+          contains('AnswerFeedback(widget.state, adapter: runnerAnswerFeedback)'),
+          contains('runnerAnswerFeedback.emit('),
+          contains('runnerAnswerFeedback.recent('),
           contains('IgnorePointer('),
-          isNot(contains('AnswerFeedback(')),
           isNot(contains('AnswerMark(')),
         ));
         expect(road3d, allOf(
-          contains('RunnerAnswerCue.fromEvent('),
+          contains('runnerAnswerFeedback.cueFor('),
           contains('compact: true'),
         ));
         actualCovered.add(route);

@@ -102,7 +102,7 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   late final Map<String, String> _preset;
   late final bool _autostart;
   late final bool _temporarySettings;
-  late final _feedback = AnswerFeedback(widget.state, playSound: false);
+  late final _feedback = AnswerFeedback(widget.state, adapter: spokenAnswerFeedback);
   WordBank? _wordBank;
   LangNames _names = LangNames.empty;
 

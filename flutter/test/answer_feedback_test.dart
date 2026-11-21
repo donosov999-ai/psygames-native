@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/games/runner/answer_feedback_adapter.dart';
 import 'package:psygames_flutter/shell/answer_feedback.dart';
 import 'package:psygames_flutter/shell/game_effect_audio.dart';
 import 'package:psygames_flutter/shell/game_shell.dart';
@@ -20,6 +21,16 @@ class _Sound implements GameSoundBackend {
   Future<void> dispose() async {}
 }
 
+class _ReplaceAndSilence implements AnswerFeedbackAdapter {
+  const _ReplaceAndSilence();
+
+  @override
+  AnswerFeedbackDelivery adapt(AnswerMarkState signal) => AnswerFeedbackDelivery(
+    center: (picked: 'rendered', correct: signal.correct, right: signal.right),
+    hold: const Duration(milliseconds: 50),
+  );
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   final haptics = <String>[];
@@ -32,6 +43,45 @@ void main() {
         return null;
       },
     );
+  });
+
+  testWidgets('runner sends the common signal without a center mark or waiting', (t) async {
+    SharedPreferences.setMockInitialValues({});
+    final sound = _Sound();
+    final f = AnswerFeedback(
+      await SharedState.open(),
+      backend: sound,
+      adapter: runnerAnswerFeedback,
+    );
+    await f.show('road event', null, right: false);
+    expect(f.busy, isFalse);
+    expect(f.mark.value, isNull);
+    expect(f.centerMark.value, isNull);
+    expect(AnswerFeedback.current.value, isNot(same(f)));
+    expect(haptics, ['HapticFeedbackType.heavyImpact']);
+    expect(sound.played, isEmpty);
+    await f.dispose();
+  });
+
+  testWidgets('an adapter can replace one visual channel and silence the rest', (t) async {
+    SharedPreferences.setMockInitialValues({});
+    final sound = _Sound();
+    final f = AnswerFeedback(
+      await SharedState.open(),
+      backend: sound,
+      adapter: const _ReplaceAndSilence(),
+    );
+    await f.show('original', 'answer');
+    expect(f.busy, isFalse, reason: 'visual lifetime does not have to block input');
+    expect(f.mark.value, isNull);
+    expect(f.centerMark.value?.picked, 'rendered');
+    expect(AnswerFeedback.current.value, same(f));
+    await t.pump(const Duration(milliseconds: 50));
+    expect(f.busy, isFalse);
+    expect(f.centerMark.value, isNull);
+    expect(haptics, isEmpty);
+    expect(sound.played, isEmpty);
+    await f.dispose();
   });
 
   Future<(AnswerFeedback, _Sound)> pump(WidgetTester t, {Map<String, Object> prefs = const {}}) async {
