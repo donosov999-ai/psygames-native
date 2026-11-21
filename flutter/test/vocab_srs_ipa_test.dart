@@ -12,7 +12,7 @@ void main() {
   test('every expanded SRS word has English and Spanish IPA offline', () async {
     final bank = await loadWordBank();
     final ipa = await loadWordPronunciations();
-    expect(bank.extension, hasLength(423));
+    expect(bank.extension, hasLength(644));
     for (final row in bank.forLanguages({'en', 'es'})) {
       for (final lang in ['en', 'es']) {
         final word = row[lang]!;

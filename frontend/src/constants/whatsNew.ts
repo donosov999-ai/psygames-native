@@ -19,13 +19,13 @@ export const WHATS_NEW: WhatsNewEntry[] = [
     version: '2.74.2',
     date: '2026-11-21',
     en: [
-      'Vocabulary SRS now offers 706 entries across 12 languages and remembers your bilingual settings',
-      'English and Spanish cards include pronunciation and phonetic transcription',
+      'Vocabulary SRS has 927 entries in 12 languages, including modern terms, and remembers your bilingual settings',
+      'New words are mixed; English and Spanish cards include pronunciation and phonetic transcription',
       'Cloze has more English and Spanish sentences and lets you listen to the complete sentence after answering',
     ],
     ru: [
-      'В словаре SRS теперь 706 карточек на 12 языках; настройки билингво сохраняются',
-      'Для английских и испанских карточек доступны озвучка и транскрипция',
+      'В словаре SRS 927 карточек на 12 языках, включая современные термины; настройки билингво сохраняются',
+      'Новые слова перемешаны; для английских и испанских карточек доступны озвучка и транскрипция',
       'В Cloze больше фраз на английском и испанском; после ответа можно прослушать фразу целиком',
     ],
   },

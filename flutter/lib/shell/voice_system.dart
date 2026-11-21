@@ -174,10 +174,64 @@ class SystemVoiceBackend implements VoiceBackend {
 
   final FlutterTts _tts;
   final RecordingClips _clips;
+  _AppleUtterance? _appleUtterance;
+  int _speechTicket = 0;
+  Future<void>? _appleEvents;
+  Future<List<dynamic>>? _appleVoices;
 
   bool get _ios =>
       defaultTargetPlatform == TargetPlatform.iOS ||
       defaultTargetPlatform == TargetPlatform.macOS;
+
+  Future<void> _listenForAppleSpeech() async {
+    // flutter_tts forwards didCancel, but it does not resolve a speak()
+    // waiting for native completion on iOS. Own the wait in Dart instead.
+    _tts.setStartHandler(() => _appleUtterance?.started = true);
+    _tts.setCompletionHandler(() => _finishAppleSpeech(true));
+    _tts.setCancelHandler(() => _finishAppleSpeech(false));
+    _tts.setErrorHandler((_) => _appleUtterance?.finish(false));
+    await _tts.awaitSpeakCompletion(false).timeout(const Duration(seconds: 2));
+  }
+
+  void _finishAppleSpeech(bool spoken) {
+    final speech = _appleUtterance;
+    if (speech != null && speech.started) speech.finish(spoken);
+  }
+
+  Future<List<dynamic>> _readAppleVoices() async {
+    try {
+      final voices = await _tts.getVoices.timeout(const Duration(seconds: 1));
+      return voices is List<dynamic> ? voices : const [];
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<void> _preferAppleVoice(String locale, int ticket) async {
+    final language = locale.split('-').first;
+    if (language != 'en' && language != 'es') return;
+    final voices = await (_appleVoices ??= _readAppleVoices());
+    Map<String, String>? best;
+    var rank = 0;
+    for (final raw in voices.whereType<Map>()) {
+      if (raw['locale'] != locale) continue;
+      final score = switch (raw['quality']?.toString().toLowerCase()) {
+        'premium' => 2,
+        'enhanced' => 1,
+        _ => 0,
+      };
+      if (score <= rank || raw['identifier'] is! String) continue;
+      rank = score;
+      best = {'identifier': raw['identifier'] as String};
+    }
+    if (best != null && ticket == _speechTicket) {
+      try {
+        await _tts.setVoice(best);
+      } catch (_) {
+        // setLanguage already selected a functional default.
+      }
+    }
+  }
 
   // Нет сети, битый файл, чужой формат — это не повод молчать: наверху останется
   // синтез вторым шансом. Здесь просто честное «не прозвучало».
@@ -186,16 +240,64 @@ class SystemVoiceBackend implements VoiceBackend {
 
   @override
   Future<bool> speakSystem(String text, String bcp47, double rate) async {
+    final ticket = ++_speechTicket;
+    _AppleUtterance? speech;
     try {
-      await _tts.setLanguage(bcp47);
+      if (_ios && _appleUtterance != null) await _stopTts();
+      if (ticket != _speechTicket) return false;
+      var locale = bcp47;
+      final selected = await _tts.setLanguage(locale);
+      if (_ios) {
+        if (selected != 1) {
+          // Don't read Spanish in the previous English voice if the requested
+          // region is missing but another region of the same language exists.
+          final language = locale.split('-').first.toLowerCase();
+          final voices = await (_appleVoices ??= _readAppleVoices());
+          final fallback = voices.whereType<Map>()
+              .map((voice) => voice['locale'])
+              .whereType<String>()
+              .where((tag) => tag.split('-').first.toLowerCase() == language)
+              .firstOrNull;
+          if (fallback == null || ticket != _speechTicket ||
+              await _tts.setLanguage(fallback) != 1) return false;
+          locale = fallback;
+        }
+        await _preferAppleVoice(locale, ticket);
+      }
       await _tts.setSpeechRate(platformTtsRate(rate, ios: _ios));
-      // awaitSpeakCompletion нужен последовательностям («слуховой охват»):
-      // без него слова накладываются друг на друга.
+      if (_ios) {
+        final events = _appleEvents ??= _listenForAppleSpeech();
+        try {
+          await events;
+        } catch (_) {
+          if (identical(_appleEvents, events)) _appleEvents = null;
+          rethrow;
+        }
+        if (ticket != _speechTicket) return false;
+        speech = _AppleUtterance();
+        _appleUtterance = speech;
+        if (await _tts.speak(text).timeout(const Duration(seconds: 2)) != 1) {
+          return false;
+        }
+        final limit = (text.length * 180).clamp(5000, 120000);
+        return await speech.result.future.timeout(
+          Duration(milliseconds: limit),
+          onTimeout: () async {
+            if (identical(_appleUtterance, speech)) await _stopTts();
+            return false;
+          },
+        );
+      }
       await _tts.awaitSpeakCompletion(true);
-      final code = await _tts.speak(text);
-      return code == 1;
+      if (ticket != _speechTicket) return false;
+      return await _tts.speak(text) == 1;
     } catch (_) {
+      if (speech != null && identical(_appleUtterance, speech)) {
+        await _stopTts();
+      }
       return false;
+    } finally {
+      if (identical(_appleUtterance, speech)) _appleUtterance = null;
     }
   }
 
@@ -224,11 +326,31 @@ class SystemVoiceBackend implements VoiceBackend {
 
   @override
   Future<void> cancel() async {
+    _speechTicket++;
+    await Future.wait([_stopTts(), _stopClips()]);
+  }
+
+  Future<void> _stopTts() async {
+    final pending = _appleUtterance;
+    _appleUtterance = null;
+    pending?.finish(false);
     try {
-      await _tts.stop();
+      await _tts.stop().timeout(const Duration(milliseconds: 700));
     } catch (_) {/* синтезатор мог не стартовать — прерывать нечего */}
+  }
+
+  Future<void> _stopClips() async {
     try {
       await _clips.stop();
     } catch (_) {/* то же самое для записи */}
+  }
+}
+
+class _AppleUtterance {
+  final result = Completer<bool>();
+  bool started = false;
+
+  void finish(bool spoken) {
+    if (!result.isCompleted) result.complete(spoken);
   }
 }

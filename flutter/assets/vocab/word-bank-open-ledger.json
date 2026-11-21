@@ -1,0 +1,1138 @@
+{
+  "cldrRevision": "7d2b9cb11cec08f4d333ad73209deb3df0711c3b",
+  "ipaRevision": "972cd67dd5f96bc5660e28070cde26e3928abcd7",
+  "ledger": [
+    {
+      "id": "🚿",
+      "source": "cldr",
+      "en": "shower"
+    },
+    {
+      "id": "🪥",
+      "source": "cldr",
+      "en": "toothbrush"
+    },
+    {
+      "id": "🧽",
+      "source": "cldr",
+      "en": "sponge"
+    },
+    {
+      "id": "🧴",
+      "source": "cldr",
+      "en": "lotion bottle"
+    },
+    {
+      "id": "🧯",
+      "source": "cldr",
+      "en": "fire extinguisher"
+    },
+    {
+      "id": "🪜",
+      "source": "cldr",
+      "en": "ladder"
+    },
+    {
+      "id": "🧰",
+      "source": "cldr",
+      "en": "toolbox"
+    },
+    {
+      "id": "🔧",
+      "source": "cldr",
+      "en": "wrench"
+    },
+    {
+      "id": "🔩",
+      "source": "cldr",
+      "en": "nut and bolt"
+    },
+    {
+      "id": "🔨",
+      "source": "cldr",
+      "en": "hammer"
+    },
+    {
+      "id": "🔦",
+      "source": "cldr",
+      "en": "flashlight"
+    },
+    {
+      "id": "🧲",
+      "source": "cldr",
+      "en": "magnet"
+    },
+    {
+      "id": "🪝",
+      "source": "cldr",
+      "en": "hook"
+    },
+    {
+      "id": "🧵",
+      "source": "cldr",
+      "en": "thread"
+    },
+    {
+      "id": "🧶",
+      "source": "cldr",
+      "en": "yarn"
+    },
+    {
+      "id": "🧷",
+      "source": "cldr",
+      "en": "safety pin"
+    },
+    {
+      "id": "🪡",
+      "source": "cldr",
+      "en": "sewing needle"
+    },
+    {
+      "id": "🧤",
+      "source": "cldr",
+      "en": "gloves"
+    },
+    {
+      "id": "🧣",
+      "source": "cldr",
+      "en": "scarf"
+    },
+    {
+      "id": "🧦",
+      "source": "cldr",
+      "en": "socks"
+    },
+    {
+      "id": "👓",
+      "source": "cldr",
+      "en": "glasses"
+    },
+    {
+      "id": "🥽",
+      "source": "cldr",
+      "en": "goggles"
+    },
+    {
+      "id": "👔",
+      "source": "cldr",
+      "en": "necktie"
+    },
+    {
+      "id": "👗",
+      "source": "cldr",
+      "en": "dress"
+    },
+    {
+      "id": "🧳",
+      "source": "cldr",
+      "en": "luggage"
+    },
+    {
+      "id": "👟",
+      "source": "cldr",
+      "en": "running shoe"
+    },
+    {
+      "id": "🥼",
+      "source": "cldr",
+      "en": "lab coat"
+    },
+    {
+      "id": "🦺",
+      "source": "cldr",
+      "en": "safety vest"
+    },
+    {
+      "id": "📏",
+      "source": "cldr",
+      "en": "straight ruler"
+    },
+    {
+      "id": "📐",
+      "source": "cldr",
+      "en": "triangular ruler"
+    },
+    {
+      "id": "✂️",
+      "source": "cldr",
+      "en": "scissors"
+    },
+    {
+      "id": "✏️",
+      "source": "cldr",
+      "en": "pencil"
+    },
+    {
+      "id": "🖊️",
+      "source": "cldr",
+      "en": "pen"
+    },
+    {
+      "id": "📝",
+      "source": "cldr",
+      "en": "memo"
+    },
+    {
+      "id": "📓",
+      "source": "cldr",
+      "en": "notebook"
+    },
+    {
+      "id": "📔",
+      "source": "cldr",
+      "en": "notebook with decorative cover"
+    },
+    {
+      "id": "📒",
+      "source": "cldr",
+      "en": "ledger"
+    },
+    {
+      "id": "📁",
+      "source": "cldr",
+      "en": "file folder"
+    },
+    {
+      "id": "🗄️",
+      "source": "cldr",
+      "en": "file cabinet"
+    },
+    {
+      "id": "🗑️",
+      "source": "cldr",
+      "en": "wastebasket"
+    },
+    {
+      "id": "🔍",
+      "source": "cldr",
+      "en": "magnifying glass tilted left"
+    },
+    {
+      "id": "🔬",
+      "source": "cldr",
+      "en": "microscope"
+    },
+    {
+      "id": "🔭",
+      "source": "cldr",
+      "en": "telescope"
+    },
+    {
+      "id": "🌡️",
+      "source": "cldr",
+      "en": "thermometer"
+    },
+    {
+      "id": "🧪",
+      "source": "cldr",
+      "en": "test tube"
+    },
+    {
+      "id": "🔒",
+      "source": "cldr",
+      "en": "locked"
+    },
+    {
+      "id": "🪪",
+      "source": "cldr",
+      "en": "identification card"
+    },
+    {
+      "id": "🎫",
+      "source": "cldr",
+      "en": "ticket"
+    },
+    {
+      "id": "🏷️",
+      "source": "cldr",
+      "en": "label"
+    },
+    {
+      "id": "🎁",
+      "source": "cldr",
+      "en": "wrapped gift"
+    },
+    {
+      "id": "🎀",
+      "source": "cldr",
+      "en": "ribbon"
+    },
+    {
+      "id": "🎻",
+      "source": "cldr",
+      "en": "violin"
+    },
+    {
+      "id": "🎸",
+      "source": "cldr",
+      "en": "guitar"
+    },
+    {
+      "id": "🎹",
+      "source": "cldr",
+      "en": "musical keyboard"
+    },
+    {
+      "id": "🥁",
+      "source": "cldr",
+      "en": "drum"
+    },
+    {
+      "id": "🎺",
+      "source": "cldr",
+      "en": "trumpet"
+    },
+    {
+      "id": "🎷",
+      "source": "cldr",
+      "en": "saxophone"
+    },
+    {
+      "id": "🪈",
+      "source": "cldr",
+      "en": "flute"
+    },
+    {
+      "id": "🪇",
+      "source": "cldr",
+      "en": "maracas"
+    },
+    {
+      "id": "🎧",
+      "source": "cldr",
+      "en": "headphone"
+    },
+    {
+      "id": "🎤",
+      "source": "cldr",
+      "en": "microphone"
+    },
+    {
+      "id": "🎲",
+      "source": "cldr",
+      "en": "game die"
+    },
+    {
+      "id": "🪁",
+      "source": "cldr",
+      "en": "kite"
+    },
+    {
+      "id": "🛷",
+      "source": "cldr",
+      "en": "sled"
+    },
+    {
+      "id": "⛸️",
+      "source": "cldr",
+      "en": "ice skate"
+    },
+    {
+      "id": "🏓",
+      "source": "cldr",
+      "en": "ping pong"
+    },
+    {
+      "id": "🎾",
+      "source": "cldr",
+      "en": "tennis"
+    },
+    {
+      "id": "🥏",
+      "source": "cldr",
+      "en": "flying disc"
+    },
+    {
+      "id": "⚽",
+      "source": "cldr",
+      "en": "soccer ball"
+    },
+    {
+      "id": "🥅",
+      "source": "cldr",
+      "en": "goal net"
+    },
+    {
+      "id": "🏆",
+      "source": "cldr",
+      "en": "trophy"
+    },
+    {
+      "id": "🏅",
+      "source": "cldr",
+      "en": "sports medal"
+    },
+    {
+      "id": "🏍️",
+      "source": "cldr",
+      "en": "motorcycle"
+    },
+    {
+      "id": "🚕",
+      "source": "cldr",
+      "en": "taxi"
+    },
+    {
+      "id": "🚍",
+      "source": "cldr",
+      "en": "oncoming bus"
+    },
+    {
+      "id": "🚒",
+      "source": "cldr",
+      "en": "fire engine"
+    },
+    {
+      "id": "🚜",
+      "source": "cldr",
+      "en": "tractor"
+    },
+    {
+      "id": "🚚",
+      "source": "cldr",
+      "en": "delivery truck"
+    },
+    {
+      "id": "🚆",
+      "source": "cldr",
+      "en": "train"
+    },
+    {
+      "id": "🚊",
+      "source": "cldr",
+      "en": "tram"
+    },
+    {
+      "id": "🚇",
+      "source": "cldr",
+      "en": "metro"
+    },
+    {
+      "id": "🚁",
+      "source": "cldr",
+      "en": "helicopter"
+    },
+    {
+      "id": "🛩️",
+      "source": "cldr",
+      "en": "small airplane"
+    },
+    {
+      "id": "🪂",
+      "source": "cldr",
+      "en": "parachute"
+    },
+    {
+      "id": "🚀",
+      "source": "cldr",
+      "en": "rocket"
+    },
+    {
+      "id": "🛸",
+      "source": "cldr",
+      "en": "flying saucer"
+    },
+    {
+      "id": "⛵",
+      "source": "cldr",
+      "en": "sailboat"
+    },
+    {
+      "id": "🚤",
+      "source": "cldr",
+      "en": "speedboat"
+    },
+    {
+      "id": "🛟",
+      "source": "cldr",
+      "en": "ring buoy"
+    },
+    {
+      "id": "🚦",
+      "source": "cldr",
+      "en": "vertical traffic light"
+    },
+    {
+      "id": "⛽",
+      "source": "cldr",
+      "en": "fuel pump"
+    },
+    {
+      "id": "🛞",
+      "source": "cldr",
+      "en": "wheel"
+    },
+    {
+      "id": "🗺️",
+      "source": "cldr",
+      "en": "world map"
+    },
+    {
+      "id": "🏡",
+      "source": "cldr",
+      "en": "house with garden"
+    },
+    {
+      "id": "🏢",
+      "source": "cldr",
+      "en": "office building"
+    },
+    {
+      "id": "🏨",
+      "source": "cldr",
+      "en": "hotel"
+    },
+    {
+      "id": "🏭",
+      "source": "cldr",
+      "en": "factory"
+    },
+    {
+      "id": "🏟️",
+      "source": "cldr",
+      "en": "stadium"
+    },
+    {
+      "id": "⛲",
+      "source": "cldr",
+      "en": "fountain"
+    },
+    {
+      "id": "🎡",
+      "source": "cldr",
+      "en": "ferris wheel"
+    },
+    {
+      "id": "🎢",
+      "source": "cldr",
+      "en": "roller coaster"
+    },
+    {
+      "id": "⛺",
+      "source": "cldr",
+      "en": "tent"
+    },
+    {
+      "id": "⛱️",
+      "source": "cldr",
+      "en": "umbrella on ground"
+    },
+    {
+      "id": "🏝️",
+      "source": "cldr",
+      "en": "desert island"
+    },
+    {
+      "id": "🏔️",
+      "source": "cldr",
+      "en": "snow-capped mountain"
+    },
+    {
+      "id": "🌋",
+      "source": "cldr",
+      "en": "volcano"
+    },
+    {
+      "id": "🏜️",
+      "source": "cldr",
+      "en": "desert"
+    },
+    {
+      "id": "🌁",
+      "source": "cldr",
+      "en": "foggy"
+    },
+    {
+      "id": "💧",
+      "source": "cldr",
+      "en": "droplet"
+    },
+    {
+      "id": "❄️",
+      "source": "cldr",
+      "en": "snowflake"
+    },
+    {
+      "id": "🌪️",
+      "source": "cldr",
+      "en": "tornado"
+    },
+    {
+      "id": "🌊",
+      "source": "cldr",
+      "en": "water wave"
+    },
+    {
+      "id": "🦊",
+      "source": "cldr",
+      "en": "fox"
+    },
+    {
+      "id": "🦝",
+      "source": "cldr",
+      "en": "raccoon"
+    },
+    {
+      "id": "🐯",
+      "source": "cldr",
+      "en": "tiger face"
+    },
+    {
+      "id": "🐆",
+      "source": "cldr",
+      "en": "leopard"
+    },
+    {
+      "id": "🐴",
+      "source": "cldr",
+      "en": "horse face"
+    },
+    {
+      "id": "🫎",
+      "source": "cldr",
+      "en": "moose"
+    },
+    {
+      "id": "🫏",
+      "source": "cldr",
+      "en": "donkey"
+    },
+    {
+      "id": "🦄",
+      "source": "cldr",
+      "en": "unicorn"
+    },
+    {
+      "id": "🦓",
+      "source": "cldr",
+      "en": "zebra"
+    },
+    {
+      "id": "🦌",
+      "source": "cldr",
+      "en": "deer"
+    },
+    {
+      "id": "🐏",
+      "source": "cldr",
+      "en": "ram"
+    },
+    {
+      "id": "🐑",
+      "source": "cldr",
+      "en": "ewe"
+    },
+    {
+      "id": "🦙",
+      "source": "cldr",
+      "en": "llama"
+    },
+    {
+      "id": "🦒",
+      "source": "cldr",
+      "en": "giraffe"
+    },
+    {
+      "id": "🦣",
+      "source": "cldr",
+      "en": "mammoth"
+    },
+    {
+      "id": "🦏",
+      "source": "cldr",
+      "en": "rhinoceros"
+    },
+    {
+      "id": "🦛",
+      "source": "cldr",
+      "en": "hippopotamus"
+    },
+    {
+      "id": "🐀",
+      "source": "cldr",
+      "en": "rat"
+    },
+    {
+      "id": "🐇",
+      "source": "cldr",
+      "en": "rabbit"
+    },
+    {
+      "id": "🦔",
+      "source": "cldr",
+      "en": "hedgehog"
+    },
+    {
+      "id": "🐼",
+      "source": "cldr",
+      "en": "panda"
+    },
+    {
+      "id": "🦥",
+      "source": "cldr",
+      "en": "sloth"
+    },
+    {
+      "id": "🦦",
+      "source": "cldr",
+      "en": "otter"
+    },
+    {
+      "id": "🦨",
+      "source": "cldr",
+      "en": "skunk"
+    },
+    {
+      "id": "🦘",
+      "source": "cldr",
+      "en": "kangaroo"
+    },
+    {
+      "id": "🦃",
+      "source": "cldr",
+      "en": "turkey"
+    },
+    {
+      "id": "🐓",
+      "source": "cldr",
+      "en": "rooster"
+    },
+    {
+      "id": "🐣",
+      "source": "cldr",
+      "en": "hatching chick"
+    },
+    {
+      "id": "🐧",
+      "source": "cldr",
+      "en": "penguin"
+    },
+    {
+      "id": "🕊️",
+      "source": "cldr",
+      "en": "dove"
+    },
+    {
+      "id": "🦅",
+      "source": "cldr",
+      "en": "eagle"
+    },
+    {
+      "id": "🦢",
+      "source": "cldr",
+      "en": "swan"
+    },
+    {
+      "id": "🦉",
+      "source": "cldr",
+      "en": "owl"
+    },
+    {
+      "id": "🦩",
+      "source": "cldr",
+      "en": "flamingo"
+    },
+    {
+      "id": "🦚",
+      "source": "cldr",
+      "en": "peacock"
+    },
+    {
+      "id": "🦜",
+      "source": "cldr",
+      "en": "parrot"
+    },
+    {
+      "id": "🐢",
+      "source": "cldr",
+      "en": "turtle"
+    },
+    {
+      "id": "🦎",
+      "source": "cldr",
+      "en": "lizard"
+    },
+    {
+      "id": "🐳",
+      "source": "cldr",
+      "en": "spouting whale"
+    },
+    {
+      "id": "🐬",
+      "source": "cldr",
+      "en": "dolphin"
+    },
+    {
+      "id": "🦭",
+      "source": "cldr",
+      "en": "seal"
+    },
+    {
+      "id": "🦈",
+      "source": "cldr",
+      "en": "shark"
+    },
+    {
+      "id": "🐙",
+      "source": "cldr",
+      "en": "octopus"
+    },
+    {
+      "id": "🐌",
+      "source": "cldr",
+      "en": "snail"
+    },
+    {
+      "id": "🐝",
+      "source": "cldr",
+      "en": "honeybee"
+    },
+    {
+      "id": "🐞",
+      "source": "cldr",
+      "en": "lady beetle"
+    },
+    {
+      "id": "🕷️",
+      "source": "cldr",
+      "en": "spider"
+    },
+    {
+      "id": "🦂",
+      "source": "cldr",
+      "en": "scorpion"
+    },
+    {
+      "id": "🦟",
+      "source": "cldr",
+      "en": "mosquito"
+    },
+    {
+      "id": "🪰",
+      "source": "cldr",
+      "en": "fly"
+    },
+    {
+      "id": "🪱",
+      "source": "cldr",
+      "en": "worm"
+    },
+    {
+      "id": "🍇",
+      "source": "cldr",
+      "en": "grapes"
+    },
+    {
+      "id": "🍈",
+      "source": "cldr",
+      "en": "melon"
+    },
+    {
+      "id": "🍉",
+      "source": "cldr",
+      "en": "watermelon"
+    },
+    {
+      "id": "🍊",
+      "source": "cldr",
+      "en": "tangerine"
+    },
+    {
+      "id": "🍋",
+      "source": "cldr",
+      "en": "lemon"
+    },
+    {
+      "id": "🍍",
+      "source": "cldr",
+      "en": "pineapple"
+    },
+    {
+      "id": "🥭",
+      "source": "cldr",
+      "en": "mango"
+    },
+    {
+      "id": "🍎",
+      "source": "cldr",
+      "en": "red apple"
+    },
+    {
+      "id": "🍐",
+      "source": "cldr",
+      "en": "pear"
+    },
+    {
+      "id": "🍑",
+      "source": "cldr",
+      "en": "peach"
+    },
+    {
+      "id": "🍓",
+      "source": "cldr",
+      "en": "strawberry"
+    },
+    {
+      "id": "🍅",
+      "source": "cldr",
+      "en": "tomato"
+    },
+    {
+      "id": "🫒",
+      "source": "cldr",
+      "en": "olive"
+    },
+    {
+      "id": "🍆",
+      "source": "cldr",
+      "en": "eggplant"
+    },
+    {
+      "id": "🌽",
+      "source": "cldr",
+      "en": "ear of corn"
+    },
+    {
+      "id": "🥬",
+      "source": "cldr",
+      "en": "leafy green"
+    },
+    {
+      "id": "🧄",
+      "source": "cldr",
+      "en": "garlic"
+    },
+    {
+      "id": "🥜",
+      "source": "cldr",
+      "en": "peanuts"
+    },
+    {
+      "id": "🫚",
+      "source": "cldr",
+      "en": "ginger root"
+    },
+    {
+      "id": "🍔",
+      "source": "cldr",
+      "en": "hamburger"
+    },
+    {
+      "id": "🍟",
+      "source": "cldr",
+      "en": "french fries"
+    },
+    {
+      "id": "🌭",
+      "source": "cldr",
+      "en": "hot dog"
+    },
+    {
+      "id": "🌮",
+      "source": "cldr",
+      "en": "taco"
+    },
+    {
+      "id": "🥗",
+      "source": "cldr",
+      "en": "green salad"
+    },
+    {
+      "id": "🍿",
+      "source": "cldr",
+      "en": "popcorn"
+    },
+    {
+      "id": "🍦",
+      "source": "cldr",
+      "en": "soft ice cream"
+    },
+    {
+      "id": "🥧",
+      "source": "cldr",
+      "en": "pie"
+    },
+    {
+      "id": "🍯",
+      "source": "cldr",
+      "en": "honey pot"
+    },
+    {
+      "id": "🥛",
+      "source": "cldr",
+      "en": "glass of milk"
+    },
+    {
+      "id": "🫖",
+      "source": "cldr",
+      "en": "teapot"
+    },
+    {
+      "id": "☕",
+      "source": "cldr",
+      "en": "hot beverage"
+    },
+    {
+      "id": "Q11660",
+      "source": "wikidata",
+      "revision": 2569958782,
+      "en": "artificial intelligence"
+    },
+    {
+      "id": "Q117246174",
+      "source": "wikidata",
+      "revision": 2566309303,
+      "en": "generative artificial intelligence"
+    },
+    {
+      "id": "Q115305900",
+      "source": "wikidata",
+      "revision": 2565465572,
+      "en": "large language model"
+    },
+    {
+      "id": "Q2539",
+      "source": "wikidata",
+      "revision": 2570835532,
+      "en": "machine learning"
+    },
+    {
+      "id": "Q192776",
+      "source": "wikidata",
+      "revision": 2567631746,
+      "en": "artificial neural network"
+    },
+    {
+      "id": "Q870780",
+      "source": "wikidata",
+      "revision": 2561563224,
+      "en": "chatbot"
+    },
+    {
+      "id": "Q49473179",
+      "source": "wikidata",
+      "revision": 2566945732,
+      "en": "deepfake"
+    },
+    {
+      "id": "Q1281199",
+      "source": "wikidata",
+      "revision": 2560643630,
+      "en": "password manager"
+    },
+    {
+      "id": "Q12203",
+      "source": "wikidata",
+      "revision": 2564408731,
+      "en": "QR code"
+    },
+    {
+      "id": "Q483639",
+      "source": "wikidata",
+      "revision": 2572545662,
+      "en": "cloud computing"
+    },
+    {
+      "id": "Q914359",
+      "source": "wikidata",
+      "revision": 2556316569,
+      "en": "cloud storage"
+    },
+    {
+      "id": "Q238354",
+      "source": "wikidata",
+      "revision": 2535906804,
+      "en": "video conference"
+    },
+    {
+      "id": "Q20899",
+      "source": "wikidata",
+      "revision": 2572435397,
+      "en": "podcast"
+    },
+    {
+      "id": "Q5362345",
+      "source": "wikidata",
+      "revision": 2567600050,
+      "en": "smartwatch"
+    },
+    {
+      "id": "Q22645",
+      "source": "wikidata",
+      "revision": 2532804358,
+      "en": "smartphone"
+    },
+    {
+      "id": "Q170519",
+      "source": "wikidata",
+      "revision": 2567824864,
+      "en": "virtual reality"
+    },
+    {
+      "id": "Q254183",
+      "source": "wikidata",
+      "revision": 2558496403,
+      "en": "augmented reality"
+    },
+    {
+      "id": "Q1130645",
+      "source": "wikidata",
+      "revision": 2573014038,
+      "en": "open-source software"
+    },
+    {
+      "id": "Q202833",
+      "source": "wikidata",
+      "revision": 2569932244,
+      "en": "social media"
+    },
+    {
+      "id": "Q625903",
+      "source": "wikidata",
+      "revision": 2566226816,
+      "en": "contactless payment"
+    },
+    {
+      "id": "Q170963",
+      "source": "wikidata",
+      "revision": 2561619262,
+      "en": "virtual private network"
+    },
+    {
+      "id": "Q13629441",
+      "source": "wikidata",
+      "revision": 2567692716,
+      "en": "electric vehicle"
+    },
+    {
+      "id": "Q12705",
+      "source": "wikidata",
+      "revision": 2570767203,
+      "en": "renewable energy"
+    },
+    {
+      "id": "Q132580",
+      "source": "wikidata",
+      "revision": 2565985623,
+      "en": "recycling"
+    },
+    {
+      "id": "Q1049294",
+      "source": "wikidata",
+      "revision": 2559981772,
+      "en": "emoji"
+    },
+    {
+      "id": "Q17086335",
+      "source": "wikidata",
+      "revision": 2545082421,
+      "en": "two-factor authentication"
+    },
+    {
+      "id": "Q212930",
+      "source": "wikidata",
+      "revision": 2567808722,
+      "en": "online shopping"
+    }
+  ]
+}

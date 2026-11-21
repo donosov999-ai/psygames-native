@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'json_asset.dart';
 
 typedef WordBankEntry = Map<String, String>;
@@ -58,9 +60,23 @@ class WordBank {
     final original = core.where(covers).toList();
     final added = extension.where(covers).toList();
     if (!interleave) return [...original, ...added];
-    // Keep the old relative order and IDs, but don't make a new pack wait until
-    // every original card has been learned.
-    return _interleave(original, added);
+    // Asset order is alphabetical for editing, not a learning order. Keep a
+    // stable mix of new words across languages/reopens and preserve card IDs.
+    added.shuffle(Random(0x505359));
+    final groups = <String, List<WordBankEntry>>{};
+    for (final row in added) {
+      final initial = row['en']!.trim()[0].toLowerCase();
+      (groups[initial] ??= []).add(row);
+    }
+    // Older packs contain mostly A–C. Give each initial a turn before using
+    // the next word from a large letter bucket.
+    final rounds = groups.values.fold(0, (n, bucket) => max(n, bucket.length));
+    final mixed = [
+      for (var i = 0; i < rounds; i++)
+        for (final bucket in groups.values)
+          if (i < bucket.length) bucket[i],
+    ];
+    return _interleave(original, mixed);
   }
 }
 
@@ -81,9 +97,13 @@ Future<WordBank> loadWordBank() async {
   ];
   return WordBank(
     core: await read('assets/vocab/translation-vocab.json'),
-    extension: _interleave(
-      await read('assets/vocab/word-bank-expansion.json'),
-      await read('assets/vocab/word-bank-shestov-reviewed.json'),
-    ),
+    extension: [
+      ..._interleave(
+        await read('assets/vocab/word-bank-expansion.json'),
+        await read('assets/vocab/word-bank-shestov-reviewed.json'),
+      ),
+      ...await read('assets/vocab/word-bank-cldr.json'),
+      ...await read('assets/vocab/word-bank-modern.json'),
+    ],
   );
 }

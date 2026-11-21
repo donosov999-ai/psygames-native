@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/vocab_srs/model.dart';
 import 'package:psygames_flutter/games/languages/bilingual.dart';
+import 'package:psygames_flutter/games/languages/word_bank.dart';
 import 'package:psygames_flutter/games/vocab_srs/screen.dart';
 import 'package:psygames_flutter/shell/app_theme.dart';
 import 'package:psygames_flutter/shell/aurora_scope.dart';
@@ -721,7 +722,7 @@ void main() {
       await answerRight(tester, () {});
       expect(find.text('2/5'), findsOneWidget);
       expect(find.text(L.t('voiceSoundOff')), findsNothing);
-      expect(backend.cancels, greaterThan(0));
+      expect(backend.cancels, 0, reason: 'completed audio needs no stop');
     },
   );
 
@@ -740,31 +741,22 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.textContaining('/706'), findsOneWidget);
+      expect(find.textContaining('/927'), findsOneWidget);
       await tester.tap(find.byKey(const Key('vocab-start')));
       await tester.pumpAndSettle();
-      await answerRight(tester, () {});
-      expect(find.text('ability'), findsOneWidget);
-      expect(find.text('capacidad'), findsOneWidget);
-      await tester.tap(find.byKey(const Key('vocab-option-способность')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 610));
-      await tester.pumpAndSettle();
-      expect(stateOf('v:ability')?.reps, 1);
-      expect(stateOf('v:ability', target: 'es')?.reps, 1);
-      expect(find.text('water'), findsOneWidget);
-      await tester.tap(find.byKey(const Key('vocab-option-вода')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 610));
-      await tester.pumpAndSettle();
-      expect(find.text('abandon'), findsOneWidget);
-      expect(find.text('abandonar'), findsOneWidget);
-      await tester.tap(find.byKey(const Key('vocab-option-оставлять')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 610));
-      await tester.pumpAndSettle();
-      expect(stateOf('v:abandon')?.reps, 1);
-      expect(stateOf('v:abandon', target: 'es')?.reps, 1);
+      final bank = (await tester.runAsync(loadWordBank))!;
+      final mix = bank.forLanguages({'ru', 'en', 'es'}, interleave: true);
+      for (final row in mix.take(4)) {
+        final english = row['en']!;
+        expect(find.text(english), findsOneWidget);
+        expect(find.text(row['es']!), findsOneWidget);
+        await tester.tap(find.byKey(Key("vocab-option-${row['ru']}")));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 610));
+        await tester.pumpAndSettle();
+        expect(stateOf('v:$english')?.reps, 1);
+        expect(stateOf('v:$english', target: 'es')?.reps, 1);
+      }
     },
   );
 
@@ -873,11 +865,13 @@ void main() {
         (word('vocab-word'), 'en-US'),
         (word('vocab-word-second'), 'es-ES'),
       ]);
-      await answerRight(tester, () {});
-      expect(backend.words.skip(2), [
-        (word('vocab-word'), 'en-US'),
-        (word('vocab-word-second'), 'es-ES'),
-      ]);
+      for (var i = 1; i < 4; i++) {
+        await answerRight(tester, () {});
+        expect(backend.words.skip(2 * i), [
+          (word('vocab-word'), 'en-US'),
+          (word('vocab-word-second'), 'es-ES'),
+        ]);
+      }
 
       backend.words.clear();
       GamePreset.set({'wu': '1', 'quiet': '1', 'bilingual': '1'});

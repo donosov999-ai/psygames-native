@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:just_audio/just_audio.dart';
@@ -79,6 +81,7 @@ class _NoTts implements FlutterTts {
 /// Записи с 02.10 качаются один раз и повторяются перемоткой — проба идёт обоими путями:
 /// новая запись (загрузка) и та же запись ещё раз (перемотка).
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   Future<void> settle() async {
     for (var i = 0; i < 5; i++) {
       await Future<void>.delayed(Duration.zero);
@@ -107,5 +110,64 @@ void main() {
     expect(waited, ['a ждёт', 'b ждёт', 'b ждёт', 'c ждёт']);
     expect(player.steps, ['https://x/a.opus', 'https://x/b.opus', 'seek', 'https://x/c.opus'],
         reason: 'новая запись — загрузка, та же ещё раз — перемотка без новой загрузки');
+  });
+
+  test('iOS: отмена слова освобождает очередь, следующая пара доигрывает', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    const channel = MethodChannel('flutter_tts');
+    final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    addTearDown(() {
+      messenger.setMockMethodCallHandler(channel, null);
+      debugDefaultTargetPlatformOverride = null;
+    });
+    final spoken = <String>[];
+    final selected = <String>[];
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      switch (call.method) {
+        case 'getVoices':
+          return [
+            {'locale': 'en-US', 'quality': 'default', 'identifier': 'standard-en'},
+            {'locale': 'en-GB', 'quality': 'premium', 'identifier': 'different-accent'},
+            {'locale': 'en-US', 'quality': 'enhanced', 'identifier': 'enhanced-en'},
+            {'locale': 'en-US', 'quality': 'premium', 'identifier': 'premium-en'},
+            {'locale': 'es-MX', 'quality': 'enhanced', 'identifier': 'enhanced-es'},
+          ];
+        case 'setLanguage':
+          if (call.arguments == 'es-ES') return 0;
+        case 'setVoice':
+          selected.add((call.arguments as Map)['identifier'] as String);
+        case 'speak':
+          spoken.add(call.arguments as String);
+        case 'awaitSpeakCompletion':
+          expect(call.arguments, isFalse);
+      }
+      return 1;
+    });
+    final tts = FlutterTts();
+    final backend = SystemVoiceBackend(tts: tts, player: _JustAudioLike());
+    Future<void> event(String name) async {
+      await tts.platformCallHandler(MethodCall('speak.on$name'));
+    }
+    final interrupted = backend.speakSystem('house', 'en-US', 0.9);
+    await settle();
+    await event('Start');
+    await backend.cancel();
+    expect(await interrupted, isFalse);
+
+    for (final pair in [('water', 'en-US'), ('agua', 'es-ES'), ('book', 'en-US')]) {
+      var done = false;
+      final playback = backend.speakSystem(pair.$1, pair.$2, 0.9).then((value) {
+        done = true;
+        return value;
+      });
+      await settle();
+      await event('Cancel'); // delayed callback for the old word, before start
+      await event('Start');
+      expect(done, isFalse);
+      await event('Complete');
+      expect(await playback, isTrue);
+    }
+    expect(spoken, ['house', 'water', 'agua', 'book']);
+    expect(selected, ['premium-en', 'premium-en', 'enhanced-es', 'premium-en']);
   });
 }

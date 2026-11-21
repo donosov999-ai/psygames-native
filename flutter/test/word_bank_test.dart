@@ -10,7 +10,7 @@ void main() {
     () async {
       final bank = await loadWordBank();
       expect(bank.core, hasLength(283));
-      expect(bank.extension, hasLength(423));
+      expect(bank.extension, hasLength(644));
       for (final row in bank.extension) {
         expect(row.keys, unorderedEquals(wordBankLanguages));
         for (final lang in wordBankLanguages) {
@@ -18,10 +18,10 @@ void main() {
         }
       }
       final all = bank.forLanguages(wordBankLanguages);
-      expect(all, hasLength(706));
+      expect(all, hasLength(927));
       expect(
         all.map((row) => row['en']?.toLowerCase()).toSet(),
-        hasLength(706),
+        hasLength(927),
       );
     },
   );
@@ -103,13 +103,36 @@ void main() {
         bank.forLanguages({'ru', 'en'}, interleave: true),
       );
       final stats = await extended.getStats();
-      expect(stats.totalWords, 706);
+      expect(stats.totalWords, 927);
       expect(stats.learned, 1);
       expect(await deck.read(base.deckKey), oldState);
       final fresh = (await extended.buildQueue(5)).fresh;
-      expect(fresh.first.id, 'v:ability');
-      expect(fresh.map((card) => card.id), contains('v:abandon'));
+      final originalIds = {for (final row in bank.core) 'v:${row['en']}'};
+      expect(fresh.where((card) => !originalIds.contains(card.id)), hasLength(3));
       expect(fresh.every((card) => card.id != 'v:house'), isTrue);
     },
   );
+
+  test('SRS mixes new initials while preserving original and bilingual order', () async {
+    final bank = await loadWordBank();
+    final mixed = bank.forLanguages({'ru', 'en', 'es'}, interleave: true);
+    final original = bank.core.toSet();
+    final fresh = mixed.where((row) => !original.contains(row)).take(20)
+        .map((row) => row['en']!).toList();
+    expect(fresh.map((word) => word[0].toLowerCase()).toSet().length, greaterThan(5));
+    expect(fresh, isNot(equals([...fresh]..sort())));
+    expect(mixed.where(original.contains), orderedEquals(bank.core));
+    expect(
+      bank.forLanguages({'ru', 'en'}, interleave: true),
+      orderedEquals(mixed),
+    );
+  });
+
+  test('the shared bank contains ordinary words and modern terms', () async {
+    final bank = await loadWordBank();
+    final rows = {for (final row in bank.extension) row['en']: row};
+    expect(rows['toothbrush']?['es'], 'cepillo de dientes');
+    expect(rows['chatbot']?['ru'], 'чат-бот');
+    expect(rows['two-factor authentication']?['hi'], 'दो-कारक प्रमाणीकरण');
+  });
 }

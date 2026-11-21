@@ -21,6 +21,7 @@ Future<WordPronunciations> loadWordPronunciations() async {
     }
   }
 
+  await readTier('assets/vocab/srs-ipa-open-sources.json');
   await readTier('assets/vocab/srs-ipa-expansion-en-es.json');
   await readTier('assets/vocab/srs-ipa-en-es.json');
   return result;

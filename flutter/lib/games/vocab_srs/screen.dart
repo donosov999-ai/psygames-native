@@ -136,6 +136,7 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   WordPronunciations _ipa = const {};
   VoiceLayer? _voice;
   int _voiceTicket = 0;
+  int? _speakingTicket;
   Future<void>? _voiceStop;
   String? _voiceMessage;
   bool _reviewReady = false;
@@ -274,8 +275,10 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
 
   void _stopVoice() {
     _voiceTicket++;
+    final wasSpeaking = _speakingTicket != null;
+    _speakingTicket = null;
     final voice = _voice;
-    if (voice != null) {
+    if (wasSpeaking && voice != null) {
       final previous = _voiceStop;
       _voiceStop = _cancelVoice(voice, previous);
     }
@@ -284,7 +287,7 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   Future<void> _cancelVoice(VoiceLayer voice, Future<void>? previous) async {
     try {
       await previous;
-      await voice.cancel();
+      await voice.cancel().timeout(const Duration(milliseconds: 750));
     } catch (_) {
       // Cancelling an optional audio aid must not stop a round.
     }
@@ -306,6 +309,7 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
       if (!current()) return;
       await _voiceStop;
       if (!current()) return;
+      _speakingTicket = ticket;
       var missed = false;
       for (final word in words) {
         if (!current()) return;
@@ -328,6 +332,8 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
       if (current()) {
         setState(() => _voiceMessage = L.t('srsPronunciationUnavailable'));
       }
+    } finally {
+      if (_speakingTicket == ticket) _speakingTicket = null;
     }
   }
 
@@ -351,6 +357,7 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
       if (mounted &&
           ticket == _voiceTicket &&
           _phase == VocabPhase.playing &&
+          _idx < _queue.length &&
           identical(_queue[_idx], card) &&
           (ModalRoute.of(context)?.isCurrent ?? true)) {
         unawaited(_speakWords(words));
