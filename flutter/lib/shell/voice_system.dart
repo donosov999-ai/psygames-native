@@ -259,7 +259,9 @@ class SystemVoiceBackend implements VoiceBackend {
               .where((tag) => tag.split('-').first.toLowerCase() == language)
               .firstOrNull;
           if (fallback == null || ticket != _speechTicket ||
-              await _tts.setLanguage(fallback) != 1) return false;
+              await _tts.setLanguage(fallback) != 1) {
+            return false;
+          }
           locale = fallback;
         }
         await _preferAppleVoice(locale, ticket);
