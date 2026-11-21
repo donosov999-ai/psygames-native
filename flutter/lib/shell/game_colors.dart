@@ -33,6 +33,15 @@ import 'package:flutter/material.dart';
 /// «Аврору» (обёртка classic-темы), остаётся прежним.
 @immutable
 class GameColors extends ThemeExtension<GameColors> {
+  // Изумрудная грань общей круглой кнопки «Начать».
+  static const startFace = [
+    Color(0xFF0F725F),
+    Color(0xFF084839),
+    Color(0xFF062E28),
+  ];
+  static const startRim = Color(0xFF1F8C76);
+  static const startShadow = Color(0x46043126);
+
   /// Судоку в «Авроре» (пилот Codex 31.10): поле прозрачное на фоне рамки — свои клетки и золотые
   /// толстые линии; роли других игр не меняет.
   static GameColors sudokuGlass(GameColors base, Brightness brightness) => brightness == Brightness.dark

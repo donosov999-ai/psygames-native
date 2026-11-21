@@ -22,13 +22,27 @@ const _ownMeaning = <String, String>{
 };
 
 final _pattern = RegExp(r"L\.t\('(nextLabel|nextNow)'\)");
+// These buttons advance a card after feedback, not a level after a result.
+// Strip just the keyed action; any other match in either game still fails.
+final _nextCard = {
+  'lib/games/cloze/screen.dart': RegExp(
+    r"key: const Key\('cloze-next'\),\s*onPressed: _finishing \? null : _continueAfterReview,\s*child: Text\(L\.t\('nextLabel'\)\)",
+  ),
+  'lib/games/vocab_srs/screen.dart': RegExp(
+    r"key: const Key\('vocab-next-card'\),\s*onPressed: _advanceCard,\s*child: Text\(L\.t\('nextLabel'\)\)",
+  ),
+};
 
 void main() {
   test('🔴 своего экрана итога со «Следующий» нет ни у одной игры вне храповика', () {
     final own = <String>{};
     for (final f in Directory('lib/games').listSync(recursive: true).whereType<File>()) {
       if (!f.path.endsWith('.dart')) continue;
-      if (_pattern.hasMatch(f.readAsStringSync())) own.add(f.path.split('/')[2]);
+      final p = f.path.replaceAll(r'\', '/');
+      final src = f.readAsStringSync();
+      final roundAction = _nextCard[p];
+      final results = roundAction == null ? src : src.replaceFirst(roundAction, '');
+      if (_pattern.hasMatch(results)) own.add(p.split('/')[2]);
     }
     final fresh = own.difference(remaining).difference(_ownMeaning.keys.toSet());
     expect(fresh, isEmpty, reason: 'итог уровня — LevelResult каркаса, не свой экран со «Следующий»');

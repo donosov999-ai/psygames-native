@@ -13,7 +13,8 @@ import 'package:flutter_test/flutter_test.dart';
 /// ⚠️ РАЗБОР — ТОТ ЖЕ, ЧТО У СКРИПТА ЗАМЕРА (`words-chat/measure/2026-10-07_web-params-native.py`):
 /// маршруты — из карты нативных экранов `hybrid_app.dart`; параметры веба — `bool|str|num('x')` в
 /// `frontend/app/games/<имя>.tsx`; «натив читает» — ЧТЕНИЕ параметра в `lib/games/<имя_с_подчёркиванием>/`
-/// (`GamePreset.str|num|flag('x'` или `GamePreset.params['x']`) или ключ СВОЕГО маршрута в карте
+/// (`GamePreset.str|num|flag('x'` или чтение `GamePreset.params`, в том числе из снимка)
+/// или ключ СВОЕГО маршрута в карте
 /// (`'/games/<имя>?…x=…'`). Натив мог читать параметр под другим именем — тогда назвать так же.
 ///
 /// 🔴 СТРОЖЕ С 07.10.2026 (замер «Внимания» по «Корректуре»): раньше «читает» засчитывалось по ЛЮБОЙ
@@ -67,6 +68,25 @@ const lostWithReason = <String, Map<String, String>>{
   },
 };
 
+bool _readsPreset(String source, String parameter) {
+  final key = RegExp.escape(parameter);
+  if (RegExp("GamePreset\\.(?:str|num|flag)\\(\\s*'$key'").hasMatch(source)) {
+    return true;
+  }
+  final snapshots = {
+    'GamePreset.params',
+    for (final match in RegExp(
+      r'\b([A-Za-z_]\w*)\s*=\s*GamePreset\.params\s*;',
+    ).allMatches(source))
+      match.group(1)!,
+  };
+  return snapshots.any(
+    (name) => RegExp(
+      "\\b${RegExp.escape(name)}\\s*\\[\\s*'$key'\\s*\\]",
+    ).hasMatch(source),
+  );
+}
+
 /// Замер: маршрут → параметры, которые веб читает, а натив — нет.
 Map<String, Set<String>> measureLost() {
   final hybrid = File('lib/shell/hybrid_app.dart').readAsStringSync();
@@ -90,10 +110,7 @@ Map<String, Set<String>> measureLost() {
       for (final k in RegExp("'${RegExp.escape(route)}\\?([^']*)'").allMatches(hybrid))
         for (final pair in k.group(1)!.split('&')) pair.split('=').first,
     };
-    bool reads(String p) =>
-        RegExp("GamePreset\\.(?:str|num|flag)\\(\\s*'${RegExp.escape(p)}'").hasMatch(text) ||
-        text.contains("GamePreset.params['$p']") ||
-        own.contains(p);
+    bool reads(String p) => _readsPreset(text, p) || own.contains(p);
     final miss = {for (final p in params) if (!reads(p)) p};
     if (miss.isNotEmpty) lost[route] = miss;
   }
@@ -102,6 +119,13 @@ Map<String, Set<String>> measureLost() {
 
 void main() {
   final lost = measureLost();
+
+  test('чтение снимка пресета считается, обычный словарь и один захват — нет', () {
+    const assignment = '_preset = GamePreset.params;';
+    expect(_readsPreset("$assignment _preset['targetLang']", 'targetLang'), isTrue);
+    expect(_readsPreset("$assignment _saved['targetLang']", 'targetLang'), isFalse);
+    expect(_readsPreset(assignment, 'targetLang'), isFalse);
+  });
 
   test('замер не пустой: маршруты с веб-двойником и параметрами найдены', () {
     final hybrid = File('lib/shell/hybrid_app.dart').readAsStringSync();

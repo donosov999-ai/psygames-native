@@ -7,6 +7,15 @@
  "check": "Check for updates · v0.0.0",
  "entries": [
   {
+   "version": "v2.74.2",
+   "date": "2026-11-21",
+   "items": [
+    "Vocabulary SRS now offers 706 entries across 12 languages and remembers your bilingual settings",
+    "English and Spanish cards include pronunciation and phonetic transcription",
+    "Cloze has more English and Spanish sentences and lets you listen to the complete sentence after answering"
+   ]
+  },
+  {
    "version": "v2.74.1",
    "date": "2026-11-20",
    "items": [

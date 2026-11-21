@@ -92,7 +92,6 @@ const _baseline = <String, int>{
   'switching_task/screen.dart': 3,
   'targets/model.dart': 1,
   'targets/screen.dart': 6,
-  'tower_london/screen.dart': 1,
   'visual_search/screen.dart': 2,
   'vocab_srs/model.dart': 1,
   'vocab_srs/screen.dart': 1,

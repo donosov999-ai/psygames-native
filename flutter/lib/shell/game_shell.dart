@@ -1710,14 +1710,14 @@ class _GameStartTile extends StatelessWidget {
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [Color(0xFF0F725F), Color(0xFF084839), Color(0xFF062E28)],
+                      colors: GameColors.startFace,
                     ),
                     border: Border.all(
-                      color: aurora ? palette.goldSoft : const Color(0xFF1F8C76),
+                      color: aurora ? palette.goldSoft : GameColors.startRim,
                       width: aurora ? 2 : 1,
                     ),
                     boxShadow: const [
-                      BoxShadow(color: Color(0x46043126), offset: Offset(0, 2), blurRadius: 5),
+                      BoxShadow(color: GameColors.startShadow, offset: Offset(0, 2), blurRadius: 5),
                     ],
                   ),
                   child: Icon(Icons.play_arrow_rounded, size: size * 0.56, color: Colors.white),

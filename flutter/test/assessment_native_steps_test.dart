@@ -15,8 +15,10 @@ import 'package:psygames_flutter/shell/session_report.dart';
 /// батареи слали `difficulty` = уровень, без `mode` и без `details` — 9 доменов из 12
 /// у любого человека выходили средними, а отчёт выглядел как измерение.
 ///
-/// Шаги и домены проба читает из живого `assessment.ts`, а не из копии.
+/// Домены — из `assessment.ts`, шаги — из живого заводского плейлиста.
 final _assessment = File('../frontend/src/services/assessment.ts');
+final _warmupData = File('../frontend/src/services/warmupData.ts');
+final _playlist = File('../frontend/src/constants/defaultPlaylists.json');
 
 class _Step {
   _Step(this.gameId, this.route, this.difficulty, this.mode, this.trials);
@@ -24,13 +26,19 @@ class _Step {
   final String? difficulty, mode, trials;
 }
 
-List<_Step> _steps(String src) {
-  final body = src.substring(src.indexOf('export const ASSESSMENT_PLAYLIST'));
-  String? f(String obj, String k) => RegExp("$k:\\s*'([^']*)'").firstMatch(obj)?.group(1);
+List<_Step> _steps() {
+  final data = jsonDecode(_playlist.readAsStringSync()) as Map<String, dynamic>;
+  final rows = (data['зарядки']['запас']['оценка'] as List)
+      .cast<Map<String, dynamic>>();
   return [
-    for (final m in RegExp(r"\{\s*game_id:\s*'(\w+)'[^}]*\}").allMatches(body))
-      _Step(m.group(1)!, f(m.group(0)!, 'game_route')!, f(m.group(0)!, 'difficulty'), f(m.group(0)!, 'mode'),
-          RegExp(r'trials:\s*(\d+)').firstMatch(m.group(0)!)?.group(1)),
+    for (final row in rows)
+      _Step(
+        row['game_id'] as String,
+        row['game_route'] as String,
+        row['difficulty'] as String?,
+        row['mode'] as String?,
+        (row['trials'] as int?)?.toString(),
+      ),
   ];
 }
 
@@ -53,7 +61,7 @@ void main() {
 
   setUpAll(() {
     final src = _assessment.readAsStringSync();
-    steps = _steps(src);
+    steps = _steps();
     metrics = _metrics(src);
   });
   setUp(() {
@@ -73,8 +81,16 @@ void main() {
         if (s.trials != null) 'trials': s.trials!,
       });
 
-  test('шаги батареи прочитаны из живого assessment.ts', () {
-    expect(steps.length, greaterThanOrEqualTo(12), reason: 'разбор ASSESSMENT_PLAYLIST сломался');
+  test('шаги батареи взяты из того же плейлиста, что в вебе', () {
+    expect(
+      _assessment.readAsStringSync(),
+      contains('ASSESSMENT_PLAYLIST: PlaylistStep[] = заводскиеЗарядки.запас.оценка'),
+    );
+    expect(_warmupData.readAsStringSync(), allOf(
+      contains("require('@/src/constants/defaultPlaylists.json')"),
+      contains('заводскойФайл.зарядки'),
+    ));
+    expect(steps.length, greaterThanOrEqualTo(12));
     expect(steps.where((s) => s.difficulty != null || s.mode != null), isNotEmpty);
   });
 
