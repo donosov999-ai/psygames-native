@@ -18,6 +18,8 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../shell/l10n.dart';
+
 /// Строка авторства для экрана «О приложении».
 const String piecesNotice =
     'Chess piece images © Colin M.L. Burnett, BSD 3-Clause (via Wikimedia Commons)';
@@ -73,6 +75,7 @@ class ChessBoardView extends StatelessWidget {
     this.sideDiscs = false,
     this.cornerCoords = false,
     this.dim = 8,
+    this.squareName,
   });
 
   /// Клетка → фигура. Пустые клетки просто отсутствуют.
@@ -121,6 +124,12 @@ class ChessBoardView extends StatelessWidget {
   /// Клетка — `ряд * dim + столбец`, ряд 0 — верхний, как и у 8×8.
   final int dim;
 
+  /// 🔴 ИМЯ ПОЛЯ ДЛЯ ЭКРАННОГО ЧТЕЦА (VoiceOver/TalkBack): веб подписывал каждую клетку
+  /// (`accessibilityLabel={squareName(…)}`), в нативе доска была немой. По умолчанию — белые
+  /// внизу (клетка 0 = a8); доска, перевёрнутая к чёрным («Детский мат», «Найди ход»), даёт
+  /// своё имя, иначе чтец назвал бы клетку не тем полем.
+  final String Function(int index)? squareName;
+
   static const _light = Color(0xFFE8C48A);
   static const _dark = Color(0xFFC8A06A);
 
@@ -150,6 +159,7 @@ class ChessBoardView extends StatelessWidget {
                     masked: masked,
                     keyPrefix: keyPrefix,
                     onTap: onTapSquare,
+                    spokenSquare: (squareName ?? (i) => '${'abcdefgh'[i % dim]}${dim - i ~/ dim}')(row * dim + col),
                     hinted: hinted == row * dim + col,
                     outline: outlines[row * dim + col],
                     strong: strong == row * dim + col,
@@ -182,6 +192,7 @@ class _Square extends StatelessWidget {
     required this.masked,
     required this.keyPrefix,
     required this.onTap,
+    required this.spokenSquare,
     this.hinted = false,
     this.outline,
     this.strong = false,
@@ -203,6 +214,7 @@ class _Square extends StatelessWidget {
   final bool masked;
   final String keyPrefix;
   final void Function(int square)? onTap;
+  final String spokenSquare;
   final bool hinted;
   final Color? outline;
   final bool strong;
@@ -214,7 +226,16 @@ class _Square extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = piece;
-    return GestureDetector(
+    // Скрытую маской фигуру чтец НЕ называет — иначе «Доска в уме» теряет смысл вслепую.
+    final spoken = p == null || (masked && !revealed)
+        ? spokenSquare
+        : '$spokenSquare, ${L.t('chessPc${p.white ? 'W' : 'B'}${p.type.toUpperCase()}')}';
+    return Semantics(
+      label: spoken,
+      button: onTap != null,
+      selected: selected,
+      excludeSemantics: true,
+      child: GestureDetector(
       key: Key('$keyPrefix-$index'),
       onTap: onTap == null ? null : () => onTap!(index),
       child: Container(
@@ -316,6 +337,7 @@ class _Square extends StatelessWidget {
                     ),
           ],
         ),
+      ),
       ),
     );
   }

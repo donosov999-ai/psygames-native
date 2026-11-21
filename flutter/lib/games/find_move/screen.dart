@@ -436,6 +436,7 @@ class _FindMoveScreenState extends State<FindMoveScreen> {
               pieces: scholarsPieces(run.fen, whiteBottom: white),
               side: side,
               keyPrefix: 'fm',
+              squareName: (i) => scholarsSquareName(i, whiteBottom: white),
               // Вердикт называет ход записью («Rc8#») — без подписей полей его не найти глазами.
               cornerCoords: true,
               onTapSquare: (i) => _move(
@@ -533,6 +534,7 @@ class FindMoveLessonBoard extends StatelessWidget {
       pieces: scholarsPieces(frame.fen, whiteBottom: white),
       side: side,
       keyPrefix: 'fml',
+      squareName: (i) => scholarsSquareName(i, whiteBottom: white),
       cornerCoords: true,
       selected: at(frame.from),
       targets: {?at(frame.to)},
