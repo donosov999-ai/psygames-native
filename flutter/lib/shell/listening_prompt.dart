@@ -93,6 +93,7 @@ class ListeningPromptController {
 
   void resume({required bool needsPrompt}) {
     _suspended = false;
+    onChange();
     if (needsPrompt && !unlocked) _schedule();
   }
 

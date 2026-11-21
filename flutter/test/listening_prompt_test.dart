@@ -4,6 +4,39 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/listening_prompt.dart';
 
 void main() {
+  testWidgets(
+    'returning to a heard prompt re-enables its buttons without replay',
+    (tester) async {
+      var changes = 0;
+      var attempts = 0;
+      final controller = ListeningPromptController(
+        isVisible: () => true,
+        onChange: () => changes++,
+      );
+      addTearDown(controller.dispose);
+      controller.present(
+        ListeningPrompt(
+          play: (_) async {
+            attempts++;
+            return true;
+          },
+        ),
+      );
+      await tester.pump();
+      controller.suspend();
+      expect(controller.canAnswer, isFalse);
+      final before = changes;
+      controller.resume(needsPrompt: true);
+      expect(
+        changes,
+        before + 1,
+        reason: 'rebuild the controls even if no new audio is needed',
+      );
+      expect(controller.canAnswer, isTrue);
+      expect(attempts, 1);
+    },
+  );
+
   testWidgets('timeout opens retry; late success cannot unlock a new attempt', (
     tester,
   ) async {
