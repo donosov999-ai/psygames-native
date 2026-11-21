@@ -6,7 +6,7 @@ import { установитьХабыИзФайла } from '@/src/constants/hubC
 import { hubVisibility, HUB_VISIBLE_KEY } from '@/src/services/hubVisibility';
 import { установитьЗамкиИзФайла } from '@/src/services/featureLadder';
 import { установитьПорогиФигурок } from '@/src/services/collection';
-import { установитьПравилоУровня, установитьНаборыДняИНочи, установитьЯвноеНазначение, установитьСеткуИзФайла } from '@/src/services/warmup';
+import { установитьПравилоУровня, установитьНаборыДняИНочи, установитьЯвноеНазначение, установитьСеткуИзФайла, type SlotPlaylistSource } from '@/src/services/warmup';
 
 const ACTIVE_PROFILE_KEY = 'psygames_active_profile';
 
@@ -30,6 +30,7 @@ interface ProfileCtx {
 
   /** Наложенный файлом состав (null = заводской из сборки). Для экрана настроек. */
   составИзФайла: СохранённыйСостав | null;
+  warmupSource: SlotPlaylistSource;
   /** Перечитать файл состава после загрузки или сброса — без перезапуска приложения. */
   перечитатьСостав: () => Promise<void>;
 }
@@ -133,6 +134,10 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   /* Наложенные профили считаются один раз на смену состава, а не каждый рендер:
      новый объект профиля на каждом кадре перерисовывал бы весь каталог. */
   const профильСоСоставом = React.useMemo(() => profileWithAllGames(наложить(profile, состав?.профили ?? null)), [profile, состав]);
+  const warmupSource = React.useMemo((): SlotPlaylistSource => {
+    const cfg = состав?.профили[profile.id];
+    return { grid: вСеткуЗарядки(cfg?.сетка), day: cfg?.день, night: cfg?.ночь };
+  }, [profile.id, состав]);
 
   /**
    * 🔴 СОСТАВ РАЗВИЛОК СТАВИТСЯ ПОД АКТИВНЫЙ ПРОФИЛЬ, А НЕ ОДИН НА ВСЕХ.
@@ -179,11 +184,11 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     установитьНаборыДняИНочи(мой?.день ?? null, мой?.ночь ?? null);
     /* Сетка «день × слот × длина» — самая точная форма назначения; она перекрывает
        и заводское, и наборы слотов выше, но только в названных клетках. */
-    установитьСеткуИзФайла(вСеткуЗарядки(мой?.сетка));
+    установитьСеткуИзФайла(warmupSource.grid);
     /* Есть свой набор хотя бы на один слот — значит наборы назначены осознанно,
        и профильный срез к ним не применяется. */
     установитьЯвноеНазначение(Boolean(мой?.утро || мой?.день || мой?.вечер || мой?.ночь || мой?.сетка));
-  }, [profile.id, состав]);
+  }, [profile.id, состав, warmupSource]);
   /* Порядок из файла применяется ЗДЕСЬ же: список профилей расходится по экранам
      отсюда, и сортировать его на каждом экране отдельно значило бы разойтись. */
   const всеСоСоставом = React.useMemo(
@@ -194,7 +199,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   return (
     <Ctx.Provider value={{
       profile: профильСоСоставом, switchProfile, ready, allProfiles: всеСоСоставом,
-      составИзФайла: состав, перечитатьСостав,
+      составИзФайла: состав, перечитатьСостав, warmupSource,
       isFirstRun, completeFirstRun,
     }}>
       {children}

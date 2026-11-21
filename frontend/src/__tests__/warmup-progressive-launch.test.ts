@@ -10,7 +10,7 @@ afterEach(() => установитьПравилоУровня(null, 'default'))
 
 test('training launches a full progressive round, not permanently easy abbreviated trials', () => {
   const p = stepToParams(step, 'morning', 'training');
-  expect(p).toEqual({ wu: '1', progress: '1', auto: '1' });
+  expect(p).toEqual({ wu: '1', progress: '1', auto: '1', quiet: '1', delivery: 'screen' });
   expect(isProgressiveWarmup(p)).toBe(true);
   expect(trainingLevelId('digit_span_audio', true)).toBe('digit_span_audio_warmup');
   expect(trainingLevelId('digit_span_audio', false)).toBe('digit_span_audio');

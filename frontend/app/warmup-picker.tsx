@@ -31,8 +31,7 @@ import { isGameAllowed } from '@/src/constants/profiles';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import {
   WarmupSlot, currentSlot, isTrainingSlot,
-  buildDayPlaylist, buildNightPlaylist, buildEveningWarmupPlaylist,
-  buildFixedPlaylist, buildMorningWarmupPlaylist, getCurrentWeekday,
+  resolveSlotPlaylist, prepareWarmup, изСетки, getCurrentWeekday,
   getFinancialCooldown, длинаВлияет, buildСвояСерия, потокиНаборов, type Длительность,
 } from '@/src/services/warmup';
 import { getAssessmentStatus } from '@/src/services/assessment';
@@ -120,7 +119,7 @@ const КЛЮЧ_ДЛИНЫ: Record<WarmupSlot, string> = {
 export default function WarmupPicker() {
   const { colors } = useTheme();
   const { t } = useLanguage();
-  const { profile, составИзФайла } = useProfile();
+  const { profile, составИзФайла, warmupSource } = useProfile();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -236,39 +235,18 @@ export default function WarmupPicker() {
   const metaFor = React.useCallback((slot: PickKey) => {
     const н = своя(slot);
     if (н) return buildСвояСерия(н.название, н.шаги, wd);
-    switch (slot) {
-      case 'assessment':
-      case 'financial':  return seriesPlaylist(slot)!;
-      case 'day':   return buildDayPlaylist(wd, (g: string) => isGameAllowed(profile, g), dur.day);
-      case 'night': return buildNightPlaylist(wd, dur.night);
-      case 'evening': {
-        const morning = profile.morning_playlist?.length
-          ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd, (g: string) => isGameAllowed(profile, g))
-          : buildMorningWarmupPlaylist({ duration: 15, weekday: wd, profilePlaylists: profile.custom_playlists, allow: (g: string) => isGameAllowed(profile, g) });
-        return buildEveningWarmupPlaylist({
-          weekday: wd,
-          excludeGameIds: morning.steps.map((s) => s.game_id),
-          profileEvening: profile.evening_playlist,
-          duration: dur.evening,
-          // ⚠️ Фильтр был потерян ИМЕННО ЗДЕСЬ, в предпросмотре: сам запуск
-          // (WarmupContext) его передаёт. Карточка обещала пять шагов, набор
-          // шёл из трёх — расхождение читается как поломка счётчика.
-          allow: (g: string) => isGameAllowed(profile, g),
-        });
-      }
-      default:
-        return profile.morning_playlist?.length
-          ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd, (g: string) => isGameAllowed(profile, g))
-          : buildMorningWarmupPlaylist({ duration: dur.morning, weekday: wd, profilePlaylists: profile.custom_playlists, allow: (g: string) => isGameAllowed(profile, g) });
-    }
-  }, [wd, profile, dur, своя]);
+    if (slot === 'assessment' || slot === 'financial') return prepareWarmup(seriesPlaylist(slot)!, profile.id);
+    const when = isСвоя(slot) || isSeries(slot) ? 'morning' : slot;
+    return resolveSlotPlaylist(profile, when, wd, dur[when], g => isGameAllowed(profile, g), warmupSource);
+  }, [wd, profile, dur, своя, warmupSource]);
 
   /** Назван ли состав слота профилем целиком — тогда длина ничего не меняет. */
   const слотЗафиксирован = React.useCallback((slot: WarmupSlot) => (
-    slot === 'morning' ? !!profile.morning_playlist?.length
-      : slot === 'evening' ? !!profile.evening_playlist?.length
+    изСетки(wd, slot, dur[slot], warmupSource?.grid) ? false
+    : slot === 'morning' ? profile.morning_playlist !== undefined
+      : slot === 'evening' ? profile.evening_playlist !== undefined
         : false
-  ), [profile]);
+  ), [profile, wd, dur, warmupSource]);
 
   // Пустой набор — не выбор. Среда у нас день отдыха, и утренний плейлист в этот
   // день пуст; предвыбранное по часам «Утро» показывало бы «0 игр», а «Начать»
@@ -374,7 +352,7 @@ export default function WarmupPicker() {
         : null;
     // Длительность — чипы прямо на карточке, у ВСЕХ четырёх слотов. Там, где состав
     // назван целиком, три длины дали бы один и тот же список — чипов нет (`длинаВлияет`).
-    const durs = !series && !isСвоя(slot) && on && длинаВлияет(wd, slot as WarmupSlot, слотЗафиксирован(slot as WarmupSlot))
+    const durs = !series && !isСвоя(slot) && on && длинаВлияет(wd, slot as WarmupSlot, слотЗафиксирован(slot as WarmupSlot), warmupSource)
       ? ([5, 10, 15] as const).map((d) => ({ value: d, label: `${d} ${t('unitMin')}`, selected: dur[slot as WarmupSlot] === d }))
       : null;
     // Длина ПОТОКА — те же чипы, но выбирают вариант набора, а не длину слота.

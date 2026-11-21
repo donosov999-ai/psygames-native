@@ -39,10 +39,10 @@ import { chestState, earnedTotal, фигурки } from '@/src/services/collecti
 import { sndToken, sndLevelUp, sndStreak } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
 import { GAMES, visibleInCatalog, GameConfig } from '@/src/constants/games';
-import { filterAllowedGames } from '@/src/constants/profiles';
+import { filterAllowedGames, isGameAllowed } from '@/src/constants/profiles';
 import { loadWeakSkill, gameForWeakSkill } from '@/src/services/weakSkill';
 import {
-  buildMorningWarmupPlaylist, buildEveningWarmupPlaylist, buildFixedPlaylist, getCurrentWeekday, loadWarmupHistory, computeStreak, WarmupHistoryEntry,
+  resolveSlotPlaylist, getCurrentWeekday, loadWarmupHistory, computeStreak, WarmupHistoryEntry,
   currentSlot, WarmupSlot,
 } from '@/src/services/warmup';
 import { checkForUpdateDaily, updateUrl } from '@/src/services/appUpdates';
@@ -122,7 +122,7 @@ function FullHome() {
   const { t, language } = useLanguage();
   const router = useRouter();
   const warmup = useWarmup();
-  const { profile, ready: profileReady, составИзФайла } = useProfile();
+  const { profile, ready: profileReady, составИзФайла, warmupSource } = useProfile();
   /**
    * Какие блоки главной показывать у этого профиля — из файла настроек.
    * `null` = файл про главную ничего не сказал, показываем всё, как в сборке.
@@ -141,7 +141,7 @@ function FullHome() {
    * Таблица и разбор — в `profileLogos.ts`.
    */
   const logoPlateBg = LOGO_PLATE_BG[logoPlateFor(profile?.id)];
-  const eveningMeta = buildEveningWarmupPlaylist({ weekday: getCurrentWeekday(), profileEvening: profile.evening_playlist });   // вечер: ротация по дню (или профильный фикс)
+  const eveningMeta = resolveSlotPlaylist(profile, 'evening', getCurrentWeekday(), 5, id => isGameAllowed(profile, id), warmupSource);
   const [duration, setDuration] = useState<5 | 10 | 15>(5);
   // З1: длительность выбирается в пикере и запоминается — превью на главной
   // обязано считаться той же цифрой, иначе карточка обещает не тот набор.
@@ -542,13 +542,7 @@ function FullHome() {
   const доЗамка = useMemo(() => levelsToNextLock(уровеньИгрока), [уровеньИгрока]);
 
   // Preview the playlist for current weekday
-  const todayPreview = useMemo(() => {
-    // Фиксированный утренний набор профиля (полиглот и др.) — иначе превью врёт (показывает дефолтный weekday).
-    if (profile.morning_playlist && profile.morning_playlist.length > 0) {
-      return buildFixedPlaylist(profile.morning_playlist, 'morning', getCurrentWeekday());
-    }
-    return buildMorningWarmupPlaylist({ duration, weekday: getCurrentWeekday(), profilePlaylists: profile.custom_playlists });
-  }, [duration, profile]);
+  const todayPreview = resolveSlotPlaylist(profile, 'morning', getCurrentWeekday(), duration, id => isGameAllowed(profile, id), warmupSource);
 
   const lastScore = history.length > 0 ? history[history.length - 1].total_score : 0;
   const bestScore = history.length > 0 ? Math.max(...history.map((h) => h.total_score)) : 0;

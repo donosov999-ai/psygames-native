@@ -12,6 +12,7 @@
 import { Vibration, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { startMusic as musicStart, stopMusic as musicStop, setMusicGain } from '@/src/services/music';
+import { quietWarmupActive } from '@/src/services/warmupAudio';
 
 const SOUND_KEY = 'psygames_sound_enabled';
 const HAPTIC_KEY = 'psygames_haptic_enabled';
@@ -79,7 +80,7 @@ export function setCalmHush(v: boolean) { _calmHush = v; }
 export function calmHushNow(): boolean { return _calmHush; }
 
 /** Единственная проверка «звучать ли»: и тумблер человека, и тихий режим. */
-export function soundOn(): boolean { return _soundEnabled && !_calmHush; }
+export function soundOn(): boolean { return _soundEnabled && !_calmHush && !quietWarmupActive(); }
 
 export async function getSoundEnabled(): Promise<boolean> {
   await loadPrefs();
@@ -183,6 +184,7 @@ if (typeof window !== 'undefined' && (window as any).addEventListener) {
  */
 export function masterGain(): number { return clampVolume(_volume) / 100; }
 function beep(frequency: number, duration_ms: number, volume: number = 0.1) {
+  if (quietWarmupActive()) return; // also covers already scheduled notes
   const ctx = getAudioCtx();
   if (!ctx) return;
   try {

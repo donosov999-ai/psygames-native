@@ -1019,6 +1019,8 @@ const translations: Translations = {
   srsDueLabel: { ru: 'К повтору', en: 'Due' },
   srsOwnLabel: { ru: 'Своих', en: 'Own' },
   srsAllDone: { ru: 'На сегодня всё!', en: 'All done for today!' },
+  srsListen: { ru: 'Прослушать', en: 'Listen' },
+  srsPronunciationUnavailable: { ru: 'Озвучка недоступна на этом устройстве.', en: 'Pronunciation is unavailable on this device.' },
   srsNextDue: { ru: 'Следующий повтор', en: 'Next review' },
   srsNew: { ru: 'новое', en: 'new' },
   // v1.105.0 «Слепые шахматы» — держи позицию в голове (идея Дениса, подготовка к слепой игре)

@@ -614,6 +614,8 @@ const t: Record<string, string> = {
   "srsDueLabel": "مستحقة",
   "srsOwnLabel": "خاصتي",
   "srsAllDone": "أنجزت كل شيء اليوم!",
+  "srsListen": "استمع",
+  "srsPronunciationUnavailable": "النطق غير متاح على هذا الجهاز.",
   "srsNextDue": "المراجعة التالية",
   "srsNew": "جديدة",
   "chessBlind": "الشطرنج الأعمى",

@@ -104,6 +104,28 @@ void main() {
     ]);
   });
 
+  test('fallback order is human recording, generated clip, then the right system locale', () async {
+    final b = FakeBackend(samplePlays: false);
+    final voice = layer(
+      b,
+      live: {'es': {'casa': 'human.opus'}},
+      samples: {'es': {'casa': 'generated.opus'}},
+    );
+    expect(await voice.speak('casa', 'es'), isTrue);
+    expect(b.steps, [
+      'запись https://psy-games.pro/voice-live/es/human.opus @0.9',
+      'запись https://psy-games.pro/voice/es/generated.opus @0.9',
+      'синтез casa/es-ES @0.9',
+    ]);
+  });
+
+  test('a stale word never falls back to a recording or system voice', () async {
+    final b = FakeBackend(samplePlays: false);
+    final voice = layer(b, live: {'en': {'house': 'human.opus'}});
+    expect(await voice.speak('house', 'en', stillCurrent: () => b.steps.isEmpty), isFalse);
+    expect(b.steps, ['запись https://psy-games.pro/voice-live/en/human.opus @0.9']);
+  });
+
   test('🔴 не молчать беззвучно: нечем сказать — честное «не прозвучало»', () async {
     final b = FakeBackend(systemSpeaks: false, systemHasVoice: false);
     final l = layer(b);

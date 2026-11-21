@@ -134,17 +134,21 @@ function шаг(маршрут, хабКлюч) {
 
 /* ── сборка ─────────────────────────────────────────────────────────────── */
 const наборы = файл.наборы ?? [];
+const alias = файл.зарядки?.переименования_наборов ?? {};
+const запрет = new Set(Object.keys(файл.зарядки?.политика?.замены ?? {}));
 const итоги = [];
 const пропущено = [];
 for (const [ключ, хаб] of Object.entries(РАЗВИЛКА_ПОТОКА)) {
   const id = `серия-хаб-${ключ}`;
+  if (alias[id]) continue; // this hub's workout was replaced by a visual named set
   const было = наборы.findIndex((н) => н.id === id);
   if (было >= 0 && !ЗАНОВО) { итоги.push(`${id}: есть в файле — оставлена как есть (${наборы[было].шаги.length} шагов)`); continue; }
   const экраны = экраныХаба(хаб);
   const шаги = [];
   for (const э of экраны) {
     const ш = шаг(э, ключ);
-    if (ш) шаги.push(ш); else пропущено.push(`${ключ}: ${э}`);
+    if (!ш) пропущено.push(`${ключ}: ${э}`);
+    else if (!запрет.has(ш.game_id)) шаги.push(ш);
   }
   const набор = { id, название: `Все игры · ${ИМЯ_ПО_ПУТИ.get(хаб) ?? хаб}`, шаги };
   if (было >= 0) наборы[было] = набор; else наборы.push(набор);
@@ -159,6 +163,7 @@ for (const пр of Object.values(файл.профили ?? {})) {
   if (!Array.isArray(пр.наборы)) continue;
   for (const ключ of Object.keys(РАЗВИЛКА_ПОТОКА)) {
     const id = `серия-хаб-${ключ}`;
+    if (alias[id]) continue;
     if (пр.наборы.includes(id)) continue;
     const последний = пр.наборы.map((x, i) => (x.startsWith(`поток-хаб-${ключ}-`) ? i : -1)).filter((i) => i >= 0).pop();
     if (последний === undefined) continue;

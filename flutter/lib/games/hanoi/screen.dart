@@ -19,6 +19,7 @@ import 'board.dart';
 import 'puzzle.dart';
 import 'model.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 
 /// ЭКРАН «ХАНОЙСКОЙ БАШНИ».
 ///
@@ -450,30 +451,18 @@ class _HanoiScreenState extends State<HanoiScreen> {
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
       ]),
       toolbar: _won
-          ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 📍 «Непонятно, что ты молодец»: говорим числом — сколько
-                  // ходов против минимума, сколько звёзд и какой уровень дальше.
-                  Text(
-                    _moves == min
-                        ? L.f('hanoiWonMin', {'m': '$_moves', 's': '$stars'})
-                        : L.f('hanoiWon', {'m': '$_moves', 'min': '$min', 's': '$stars'}),
-                    key: const ValueKey('hanoi-result'),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 8),
-                  FilledButton.icon(
-                    onPressed: _nextPending ? null : _next,
-                    icon: const Icon(Icons.arrow_forward),
-                    label: Text(L.f('nextLevelBtn', {'n': '${_ladder.level + (_resultFuture == null ? 1 : 0)}'})),
-                  ),
-                ],
+          ? LevelResult.adapt(ReportOutcomeAdapter(
+              layout: GameOutcomeLayout.inline,
+              title: _moves == min
+                  ? L.f('hanoiWonMin', {'m': '$_moves', 's': '$stars'})
+                  : L.f('hanoiWon', {'m': '$_moves', 'min': '$min', 's': '$stars'}),
+              titleKey: const ValueKey('hanoi-result'),
+              action: GameResultAction(
+                onTap: _nextPending ? null : _next,
+                icon: Icons.arrow_forward,
+                label: L.f('nextLevelBtn', {'n': '${_ladder.level + (_resultFuture == null ? 1 : 0)}'}),
               ),
-            )
+            ))
           : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),

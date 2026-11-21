@@ -7,6 +7,7 @@ import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
@@ -65,6 +66,8 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
   bool _wrong = false;
   int _secLeft = 0;
   Timer? _tick;
+  bool _finishing = false;
+  ({int played, int total, bool passed})? _roundOutcome;
 
   static const _hintsPerGame = 3;
   int _hintsLeft = _hintsPerGame;
@@ -130,10 +133,17 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
       triples: (_level.trials / 3).ceil(),
       rnd: _game!.rnd,
     );
+    if (!mounted) return;
     _bilingualSteps = game.steps;
     if (!_bilingualActive) {
-      setState(() => _started = true);
-      _startTimer();
+      setState(() {
+        _trial = 0;
+        _solved = 0;
+        _hintsLeft = _hintsPerGame;
+        _game = _classicGame();
+        _started = true;
+      });
+      _nextWord();
       return;
     }
     _trial = 0;
@@ -180,7 +190,7 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
   }
 
   void _pick(int i) {
-    if (_picked.contains(i)) return;
+    if (_finishing || _roundOutcome != null || _picked.contains(i)) return;
     setState(() {
       _picked.add(i);
       _wrong = false;
@@ -193,6 +203,7 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
   /// Сдача слова. Принимается ЛЮБОЕ слово банка этой длины, а не только
   /// загаданное: из тех же букв часто складывается другое верное слово.
   void _check() {
+    if (_finishing || _roundOutcome != null) return;
     final g = _game!;
     final correct = _bilingualActive
         ? _assembled.toUpperCase() == _round!.target.toUpperCase()
@@ -209,34 +220,79 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
   void _giveUp() => _advance();
 
   Future<void> _advance() async {
+    if (_finishing || _roundOutcome != null) return;
     _tick?.cancel();
+    final total = _trialsTotal;
     _trial++;
-    if (_trial >= _trialsTotal) {
+    if (_trial >= total) {
+      final played = _ladder.level;
+      final passed = _solved * 2 >= total;
+      setState(() => _finishing = true);
       // Партия сыграна: половина слов и больше — уровень засчитан.
-      if (_solved * 2 >= _trialsTotal) {
+      if (passed) {
         await _ladder.win();
       } else {
         await _ladder.fail();
       }
       if (!mounted) return;
-      // Новая партия — отметка разбора снимается: следующая снова зачётная.
-      LessonUsed.reset();
-      if (_bilingualActive) {
-        await _startBilingual();
-        return;
-      }
       setState(() {
-        _trial = 0;
-        _solved = 0;
-        _hintsLeft = _hintsPerGame;
-        _game = _classicGame();
+        _finishing = false;
+        _roundOutcome = (played: played, total: total, passed: passed);
       });
+      return;
     }
     if (_bilingualActive) {
       _nextBilingualStep();
     } else {
       _nextWord();
     }
+  }
+
+  Future<void> _continueAfterOutcome() async {
+    if (_finishing || _roundOutcome == null) return;
+    LessonUsed.reset();
+    if (_bilingualActive) {
+      setState(() => _finishing = true);
+      try {
+        await _startBilingual();
+      } finally {
+        if (mounted) {
+          setState(() {
+            _roundOutcome = null;
+            _finishing = false;
+          });
+        }
+      }
+      return;
+    }
+    setState(() {
+      _roundOutcome = null;
+      _trial = 0;
+      _solved = 0;
+      _hintsLeft = _hintsPerGame;
+      _game = _classicGame();
+    });
+    _nextWord();
+  }
+
+  Widget _outcomeView() {
+    final result = _roundOutcome;
+    if (_finishing || result == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final score = '${L.t('hud_correct')}: $_solved/${result.total}';
+    if (GamePreset.isWarmup) {
+      return LevelResult.adapt(ReportOutcomeAdapter(title: L.t('done'), score: score));
+    }
+    final advanced = result.passed && _ladder.level > result.played;
+    return LevelResult.adapt(LevelOutcomeAdapter(
+      passed: result.passed,
+      playedLevel: result.played,
+      score: score,
+      playNext: _continueAfterOutcome,
+      nextLabel: advanced ? L.f('nextLevelBtn', {'n': '${_ladder.level}'}) : L.t('retry'),
+      auto: advanced || !result.passed,
+    ));
   }
 
   void _reset() => setState(() {
@@ -351,6 +407,9 @@ class _AnagramsScreenState extends State<AnagramsScreen> {
           onStart: _start,
         ),
       );
+    }
+    if (_roundOutcome != null || _finishing) {
+      return GameShell(title: L.t('anagrams'), field: (_, _) => _outcomeView());
     }
     return GameShell(
       title: L.t('anagrams'),

@@ -14,6 +14,8 @@ import '../../shell/session_report.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/l10n.dart';
+import '../../shell/game_preset.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
@@ -764,7 +766,7 @@ class _DeepScreenState extends State<DeepScreen> {
       toolbar: AnswerMark(
         feedback: _answerFeedback,
         value: 'answer',
-        child: _Toolbar(won: _won, onDigit: _place, onErase: _erase, onNext: _chooseAndStart),
+        child: _Toolbar(won: _won, playedLevel: _level, onDigit: _place, onErase: _erase, onNext: _chooseAndStart),
       ),
       pauseActions: [
         PauseAction(label: L.t('sdkNewGame'), icon: Icons.refresh, onPressed: _chooseAndStart),
@@ -942,25 +944,27 @@ class _Toolbar extends StatelessWidget {
     required this.onDigit,
     required this.onErase,
     required this.onNext,
+    this.playedLevel,
   });
 
   final bool won;
   final void Function(int) onDigit;
   final VoidCallback onErase;
   final VoidCallback onNext;
+  final int? playedLevel;
 
   @override
   Widget build(BuildContext context) {
     if (won) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: FilledButton.icon(
-          key: const Key('next'),
-          onPressed: onNext,
-          icon: const Icon(Icons.arrow_forward),
-          label: Text(L.t('sdkNewGame')),
-        ),
-      );
+      return LevelResult.adapt(playedLevel != null && !GamePreset.isWarmup
+          ? LevelOutcomeAdapter(
+              passed: true, playedLevel: playedLevel, layout: GameOutcomeLayout.inline,
+              playNext: onNext, nextKey: const Key('next'), nextLabel: L.t('sdkNewGame'), auto: false,
+            )
+          : ReportOutcomeAdapter(
+              title: L.t('done'), layout: GameOutcomeLayout.inline,
+              action: GameResultAction(key: const Key('next'), label: L.t('sdkNewGame'), icon: Icons.arrow_forward, onTap: onNext),
+            ));
     }
     return LayoutBuilder(
       builder: (context, c) {

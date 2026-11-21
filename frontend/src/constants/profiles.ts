@@ -244,17 +244,8 @@ const CHESS: ProfileDef = {
     'pseudoword_echo',
     'dictation'
   ],
-  morning_playlist: [
-    { game_id: 'mental_rotation', game_route: '/games/mental-rotation', difficulty: 'medium', settings: { trials: 10 }, est_duration_sec: 120 },
-    { game_id: 'pattern',         game_route: '/games/pattern',         difficulty: 'medium', settings: { trials: 10 }, est_duration_sec: 120 },
-    { game_id: 'tower_london',    game_route: '/games/tower-london',    difficulty: 'medium', settings: { trials: 5 },  est_duration_sec: 150 },
-    { game_id: 'set_game',        game_route: '/games/set-game',        difficulty: 'medium', settings: { trials: 6 },  est_duration_sec: 120 },
-  ],
-  evening_playlist: [
-    { game_id: 'sudoku',        game_route: '/games/sudoku',        difficulty: 'easy',   est_duration_sec: 120 },
-    { game_id: 'hanoi',         game_route: '/games/hanoi',         difficulty: 'medium', settings: { discs: 5 }, est_duration_sec: 150 },
-    { game_id: 'memory_matrix', game_route: '/games/memory-matrix', difficulty: 'medium', mode: 'static', settings: { size: 4 }, est_duration_sec: 120 },
-  ],
+
+
   warmup_enabled: true,
   financial_brain_day_enabled: false,
   assessment_enabled: true,
@@ -333,37 +324,10 @@ const KIDS: ProfileDef = {
     'dictation'
   ],
   // kids: только утро. Вечер (экран перед сном ребёнку) намеренно ВЫКЛ — добавить по решению Дениса.
-  morning_playlist: [
-    { game_id: 'schulte_table',    game_route: '/games/schulte',          difficulty: 'easy', settings: { size: 5 }, est_duration_sec: 60 },
-    { game_id: 'find_differences', game_route: '/games/find-differences', difficulty: 'easy', settings: { diffCount: 3 }, est_duration_sec: 100 },
-    { game_id: 'number_bonds',     game_route: '/games/number-bonds',     difficulty: 'easy', settings: { trials: 8 }, est_duration_sec: 80 },
-    { game_id: 'pattern',          game_route: '/games/pattern',          difficulty: 'easy', settings: { trials: 5 }, est_duration_sec: 90 },
-  ],
+
   // v1.30.0 — вечерний комплекс для детей: спокойные игры перед сном, без гонок на время
   // (НЕ targets/math_sprint/counter — возбуждают). Дольше preview в парах (детям нужно время).
-  evening_playlist: [
-    { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy', settings: { pairsCount: 6, previewMs: 3000 }, est_duration_sec: 100 },
-    { game_id: 'memory_matrix', game_route: '/games/memory-matrix', difficulty: 'easy', settings: { size: 3 }, est_duration_sec: 80 },
-    { game_id: 'hanoi',         game_route: '/games/hanoi',         difficulty: 'easy', settings: { discs: 3 }, est_duration_sec: 80 },
-    /**
-     * 🔴 «СОЕДИНИ ТОЧКИ» — ПО ПРОСЬБЕ САМОГО РЕБЁНКА (отчёт f6464438, 05.09.2026):
-     * «надо добавить в детский профиль соединение точек, которые идут игры, они
-     * как раз для детского уровня подходят».
-     *
-     * ⚠️ Игра в СПИСКЕ профиля лежала с 19.08.2026 — но список это каталог, а
-     * ребёнок открывает зарядку. Пока игры нет в комплексе, её как бы и нет:
-     * найти её можно только пролистав каталог, чего дети не делают. Отсюда и
-     * просьба «добавить» о том, что формально уже добавлено.
-     *
-     * В вечерний, а не в утренний: тихая головоломка без таймера — ровно то, чем
-     * этот комплекс и задуман («НЕ targets/math_sprint — возбуждают»).
-     */
-    // ⚠️ БЕЗ `settings`: гейт `preset-cap-coverage` требует, чтобы игра с
-    // заданным размером ограничивала пресет ОСВОЕННЫМ уровнем, иначе зарядка
-    // выдаст доску сложнее пройденного. У «точек» такого ограничителя нет —
-    // значит, размер задаёт сама игра по тропинке, и это правильнее.
-    { game_id: 'dots_connect',  game_route: '/games/dots-connect',  difficulty: 'easy', est_duration_sec: 100 },
-  ],
+
   warmup_enabled: true,
   financial_brain_day_enabled: false,
   assessment_enabled: false,
@@ -423,17 +387,8 @@ const VASILYEVA: ProfileDef = {
     // `filterAllowedGames`. Открывает развилку та игра, что реально доедет.
     'scholars_mate',  // 06.09.2026 — развилка «Шахматы»: узнавание матового узора — считать не нужно, нужно УВИДЕТЬ
   ],
-  morning_playlist: [
-    { game_id: 'schulte_table', game_route: '/games/schulte',       difficulty: 'medium', settings: { size: 6 }, est_duration_sec: 90 },
-    { game_id: 'visual_search', game_route: '/games/visual-search', difficulty: 'medium', settings: { trials: 8 }, est_duration_sec: 90 },
-    { game_id: 'sdmt',          game_route: '/games/sdmt',          difficulty: 'medium', settings: { duration: 60 }, est_duration_sec: 65 },
-    { game_id: 'proofreading',  game_route: '/games/proofreading',  difficulty: 'medium', mode: 'cyrillic', settings: { rows: 12, cols: 10 }, est_duration_sec: 120 },
-  ],
-  evening_playlist: [
-    { game_id: 'reading_span',  game_route: '/games/reading-span',  difficulty: 'medium', settings: { setSize: 4 }, est_duration_sec: 100 },
-    { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy',   settings: { pairsCount: 8 }, est_duration_sec: 120 },
-    { game_id: 'anagrams',      game_route: '/games/anagrams',      difficulty: 'medium', settings: { length: 6 }, est_duration_sec: 110 },
-  ],
+
+
   warmup_enabled: true,
   financial_brain_day_enabled: false,
   assessment_enabled: true,
@@ -460,12 +415,7 @@ const NZT48: ProfileDef = {
   //  switching_task/bart/sdmt/phonemic_fluency; теперь доступны все 48).
   allowed_games: 'all',
   // nzt48: утро = дефолтный weekday-плейлист (полная батарея). v1.23 — добавлен вечер.
-  evening_playlist: [
-    { game_id: 'mnemonics',     game_route: '/games/mnemonics',     difficulty: 'easy',   mode: 'words', settings: { itemCount: 20 }, est_duration_sec: 120 },
-    { game_id: 'sudoku',        game_route: '/games/sudoku',        difficulty: 'medium', est_duration_sec: 150 },
-    { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy',   settings: { pairsCount: 10 }, est_duration_sec: 140 },
-    { game_id: 'reading_span',  game_route: '/games/reading-span',  difficulty: 'medium', settings: { setSize: 4 }, est_duration_sec: 100 },
-  ],
+
   warmup_enabled: true,
   financial_brain_day_enabled: true,
   assessment_enabled: true,
@@ -565,17 +515,8 @@ const DRIVERS: ProfileDef = {
     'anagrams',  // 06.09.2026 — развилка «Языки»: буквенные пазлы — вход в словарь без чтения текстов
     'scholars_mate',  // 06.09.2026 — развилка «Шахматы»: узнавание матового узора — считать не нужно, нужно УВИДЕТЬ
   ],
-  morning_playlist: [
-    { game_id: 'choice_rt', game_route: '/games/choice-rt', difficulty: 'medium', mode: '4dir', settings: { trials: 20 }, est_duration_sec: 70 },
-    { game_id: 'go_no_go',  game_route: '/games/go-no-go',  difficulty: 'medium', settings: { trials: 30 }, est_duration_sec: 80 },
-    { game_id: 'flanker',   game_route: '/games/flanker',   difficulty: 'medium', settings: { trials: 20 }, est_duration_sec: 90 },
-    { game_id: 'targets',   game_route: '/games/targets',   difficulty: 'medium', settings: { level: 3 }, est_duration_sec: 90 },
-  ],
-  evening_playlist: [
-    { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy', settings: { pairsCount: 8 }, est_duration_sec: 120 },
-    { game_id: 'sudoku',        game_route: '/games/sudoku',        difficulty: 'easy', est_duration_sec: 120 },
-    { game_id: 'corsi',         game_route: '/games/corsi',         difficulty: 'easy', mode: 'forward', settings: { startLen: 3 }, est_duration_sec: 90 },
-  ],
+
+
   warmup_enabled: true,
   financial_brain_day_enabled: false,
   assessment_enabled: true,
@@ -621,22 +562,8 @@ const SENIORS: ProfileDef = {
     'dots_connect',      // ошибка обратима «протянуть назад», проигрыша по времени нет          // ещё logic — vocab (когда много читали)
     'scholars_mate',  // 06.09.2026 — развилка «Шахматы»: узнавание матового узора — считать не нужно, нужно УВИДЕТЬ
   ],
-  morning_playlist: [
-    { game_id: 'schulte_table', game_route: '/games/schulte',       difficulty: 'medium', settings: { size: 5 }, est_duration_sec: 60 },
-    { game_id: 'digit_span',    game_route: '/games/digit-span',    difficulty: 'easy',   mode: 'forward', settings: { startLen: 4 }, est_duration_sec: 90 },
-    { game_id: 'trail_making',  game_route: '/games/trail-making',  difficulty: 'easy',   mode: 'A', settings: { count: 8 }, est_duration_sec: 80 },
-    { game_id: 'number_bonds',  game_route: '/games/number-bonds',  difficulty: 'easy',   settings: { trials: 8 }, est_duration_sec: 80 },
-  ],
-  evening_playlist: [
-    // 19.08.2026: вечер — её слот. Задержку между изучением и проверкой даёт число
-    // примеров, а не секундомер, поэтому правило «вечером таймеров нет» соблюдено.
-    // Уровень 6: три человека, две помехи, два варианта ответа, фактов ещё нет.
-    { game_id: 'faces_names',   game_route: '/games/faces-names',   difficulty: 'easy',   settings: { level: 6 }, est_duration_sec: 110 },
-    { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy',   settings: { pairsCount: 8 }, est_duration_sec: 120 },
-    { game_id: 'mnemonics',     game_route: '/games/mnemonics',     difficulty: 'easy',   mode: 'words', settings: { itemCount: 10 }, est_duration_sec: 90 },
-    { game_id: 'memory_matrix', game_route: '/games/memory-matrix', difficulty: 'medium', mode: 'static', settings: { size: 4 }, est_duration_sec: 120 },
-    { game_id: 'digit_span',    game_route: '/games/digit-span',    difficulty: 'easy',   mode: 'forward', settings: { startLen: 4 }, est_duration_sec: 90 },
-  ],
+
+
   warmup_enabled: true,
   financial_brain_day_enabled: false,
   assessment_enabled: true,
@@ -680,20 +607,8 @@ const EXECS: ProfileDef = {
     'scholars_mate',  // 06.09.2026 — развилка «Шахматы»: узнавание матового узора — считать не нужно, нужно УВИДЕТЬ
     'trail_making',  // 06.09.2026 — развилка «Маршруты»: соединять по порядку, не отрывая взгляда (не песочница, в отличие от dots_connect)
   ],
-  morning_playlist: [
-    { game_id: 'switching_task', game_route: '/games/switching-task', difficulty: 'medium', settings: { trials: 20 }, est_duration_sec: 120 },
-    { game_id: 'flanker',        game_route: '/games/flanker',        difficulty: 'medium', settings: { trials: 20 }, est_duration_sec: 90 },
-    { game_id: 'n_back',         game_route: '/games/n-back',         difficulty: 'medium', settings: { nLevel: 2, modality: 'single', trials: 20 }, est_duration_sec: 90 },
-    { game_id: 'math_sprint',    game_route: '/games/math-sprint',    difficulty: 'medium', settings: { duration: 60 }, est_duration_sec: 65 },
-  ],
-  evening_playlist: [
-    // 19.08.2026: имена на переговорах — прикладной навык этой аудитории. Уровень 12:
-    // четыре человека, три помехи, факт уже в деле. Отсчёта в игре нет — вечеру не мешает.
-    { game_id: 'faces_names',  game_route: '/games/faces-names',  difficulty: 'medium', settings: { level: 12 }, est_duration_sec: 170 },
-    { game_id: 'tower_london', game_route: '/games/tower-london', difficulty: 'medium', settings: { trials: 5 }, est_duration_sec: 150 },
-    { game_id: 'sudoku',       game_route: '/games/sudoku',       difficulty: 'easy',   est_duration_sec: 120 },
-    { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy',   mode: 'words', settings: { itemCount: 10 }, est_duration_sec: 90 },
-  ],
+
+
   warmup_enabled: true,
   financial_brain_day_enabled: true,   // их домен
   assessment_enabled: true,
@@ -740,18 +655,8 @@ const STUDENTS: ProfileDef = {
     'scholars_mate',  // 06.09.2026 — развилка «Шахматы»: узнавание матового узора — считать не нужно, нужно УВИДЕТЬ
     'trail_making',  // 06.09.2026 — развилка «Маршруты»: соединять по порядку, не отрывая взгляда (не песочница, в отличие от dots_connect)
   ],
-  morning_playlist: [
-    { game_id: 'n_back',         game_route: '/games/n-back',         difficulty: 'medium', settings: { nLevel: 2, modality: 'single', trials: 20 }, est_duration_sec: 90 },
-    { game_id: 'reading_span',   game_route: '/games/reading-span',   difficulty: 'medium', settings: { setSize: 4 }, est_duration_sec: 100 },
-    { game_id: 'sdmt',           game_route: '/games/sdmt',           difficulty: 'medium', settings: { duration: 60 }, est_duration_sec: 65 },
-    { game_id: 'switching_task', game_route: '/games/switching-task', difficulty: 'medium', settings: { trials: 20 }, est_duration_sec: 120 },
-  ],
-  evening_playlist: [
-    { game_id: 'reading_span', game_route: '/games/reading-span', difficulty: 'medium', settings: { setSize: 4 }, est_duration_sec: 100 },
-    { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy',   mode: 'words', settings: { itemCount: 20 }, est_duration_sec: 120 },
-    { game_id: 'anagrams',     game_route: '/games/anagrams',     difficulty: 'medium', settings: { length: 5 }, est_duration_sec: 100 },
-    { game_id: 'sudoku',       game_route: '/games/sudoku',       difficulty: 'easy',   est_duration_sec: 120 },
-  ],
+
+
   warmup_enabled: true,
   financial_brain_day_enabled: false,
   assessment_enabled: true,
@@ -844,39 +749,11 @@ const WOMEN: ProfileDef = {
   // v1.160 (репорты Вали): утро БОДРИТ, вечер УСПОКАИВАЕТ, и наборы больше не
   // пересекаются («зачем перед сном и с утра одни и те же игры»).
   // Матрица памяти уехала в утро — она на скорость («если быстро не успел, всё забыл»).
-  morning_playlist: [
-    { game_id: 'memory_matrix',    game_route: '/games/memory-matrix',    difficulty: 'easy', settings: { size: 3 }, est_duration_sec: 100 },
-    { game_id: 'picture_pairs',    game_route: '/games/picture-pairs',    difficulty: 'easy', settings: { pairsCount: 6 }, est_duration_sec: 100 },
-    { game_id: 'pattern',          game_route: '/games/pattern',          difficulty: 'easy', settings: { trials: 5 }, est_duration_sec: 90 },
-  ],
+
   // Вечер: только затормаживающее. «Найди отличие» Валя хвалит («действительно
   // затормаживает»), «Поиск предметов» — спокойный hidden-object, финал — дыхание
   // 4-7-8 («успокоение, помогает заснуть») прямо в комплексе.
-  evening_playlist: [
-    { game_id: 'find_differences', game_route: '/games/find-differences', difficulty: 'easy', settings: { diffCount: 2 }, est_duration_sec: 90 },
-    // Здесь стоял «Поиск предметов», и он был ошибкой в трёх шагах подряд.
-    // v1.170: шаг заявлял 90 с, отрабатывал за 21 → поднял раунды 8 → 20.
-    // v1.171: «первая игра три раза, а вторая двадцать — странно» → снизил до 10.
-    // v1.173: «одна игра, потом сразу дыхание» — и вот это оказалось правдой:
-    // шаг не проходился ВООБЩЕ. Причина в самой игре: цели и дистракторы
-    // получают случайный поворот, а образец нарисован в одном положении, и
-    // раунд не закрывается, пока не найдены все цели. За 14 дней — ни одной
-    // сохранённой сессии по visual_search ни у кого.
-    //
-    // Подсказку в игре починили («в любом повороте»), но в ВЕЧЕРНЕМ наборе ей
-    // не место и после этого: конъюнктивный поиск — нагрузка на внимание, а не
-    // успокоение. Ставим парные картинки: тот же жанр, что и отличия в первом
-    // шаге, из её же профиля, и заведомо проходятся.
-    // Было picture_pairs — но она же лежит в утреннем пуле, и Валя получала одну игру
-    // дважды за день: «Эта игра в утренней зарядке!!!!! Она не подходит на ночь!!!!!»
-    // (репорт на v1.185.0). Маджонг того же спокойного жанра, но в утро не попадает.
-    { game_id: 'mahjong',          game_route: '/games/mahjong',          difficulty: 'easy', est_duration_sec: 90 },
-    // Четвёртый шаг добавлен 06.08 по требованию Дениса: «сделай 4 тогда, раз не
-    // получается с тремя». Сортировка товаров — тот же казуальный жанр, что
-    // отличия и парные картинки, из её же профиля, спокойная и заведомо проходится.
-    { game_id: 'goods_sort',       game_route: '/games/goods-sort',       difficulty: 'easy', est_duration_sec: 90 },
-    { game_id: 'breathing',        game_route: '/games/breathing',        difficulty: 'easy', settings: { tech: 'calm478' }, est_duration_sec: 120 },
-  ],
+
   warmup_enabled: true,
   financial_brain_day_enabled: false,
   assessment_enabled: true,
@@ -954,18 +831,8 @@ const POLYGLOT: ProfileDef = {
   ],
   // v1.23 «Комплексы» — фиксированные утро/вечер (F1, end-to-end demo на полиглоте).
   // targetLang='en' дефолт; если UI=en, игра сама переключит цель (фолбэк в word-pairs).
-  morning_playlist: [
-    { game_id: 'word_pairs',       game_route: '/games/word-pairs',       difficulty: 'easy',   mode: 'translation', settings: { targetLang: 'en', pairCount: 15 }, est_duration_sec: 150 },
-    { game_id: 'n_back',           game_route: '/games/n-back',           difficulty: 'medium', settings: { nLevel: 2, modality: 'single', trials: 20 },               est_duration_sec: 90 },
-    { game_id: 'sdmt',             game_route: '/games/sdmt',             difficulty: 'medium', settings: { duration: 60 },                                            est_duration_sec: 65 },
-    { game_id: 'phonemic_fluency', game_route: '/games/phonemic-fluency', difficulty: 'medium', settings: { duration: 60 },                                            est_duration_sec: 65 },
-  ],
-  evening_playlist: [
-    { game_id: 'word_pairs',   game_route: '/games/word-pairs',   difficulty: 'easy',   mode: 'translation', settings: { targetLang: 'en', pairCount: 10 }, est_duration_sec: 110 },
-    { game_id: 'reading_span', game_route: '/games/reading-span', difficulty: 'easy',   settings: { setSize: 3 },                                       est_duration_sec: 90 },
-    { game_id: 'anagrams',     game_route: '/games/anagrams',     difficulty: 'medium', settings: { length: 5 },                                        est_duration_sec: 100 },
-    { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy',   mode: 'words', settings: { itemCount: 10 },                       est_duration_sec: 90 },
-  ],
+
+
   warmup_enabled: true,
   financial_brain_day_enabled: false,
   assessment_enabled: true,

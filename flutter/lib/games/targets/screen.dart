@@ -24,6 +24,7 @@ import '../../shell/setup_scroll.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -346,24 +347,46 @@ class _Field extends StatelessWidget {
           ],
         );
       case TargetsPhase.done:
-        return _Centered(
-          height: height,
+        final details = Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              // Жизни целы — значит партия кончилась на верху лестницы.
-              game.lives > 0 ? L.t('levelDone').replaceAll('{n}', '${game.level}') : L.t('sameLevelRetry'),
-              key: const Key('targets-verdict'),
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
             Text('${L.t('score')}: ${game.score}'),
-            Text(game.meanRtMs == null
-                ? '${L.t('meanReaction')}: —'
-                : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}'),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
+            Text(
+              game.meanRtMs == null
+                  ? '${L.t('meanReaction')}: —'
+                  : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}',
+            ),
           ],
+        );
+        final level = LevelLadder.current?.level;
+        final next =
+            !(game.lives > 0) ||
+                GamePreset.isWarmup ||
+                level == null ||
+                level <= game.level
+            ? null
+            : level;
+        return SizedBox(
+          height: height,
+          child: LevelResult.adapt(
+            LevelOutcomeAdapter(
+              passed: game.lives > 0,
+              playedLevel: game.level,
+              titleKey: const Key('targets-verdict'),
+              playNext: next == null
+                  ? onAgain
+                  : () {
+                      onAgain();
+                      onStart();
+                    },
+              nextLabel: next == null
+                  ? L.t('retry')
+                  : L.f('nextLevelBtn', {'n': '$next'}),
+              auto: next != null,
+              waitForWin: next != null,
+              details: details,
+            ),
+          ),
         );
       case TargetsPhase.playing:
         final r = game.current;
@@ -461,23 +484,6 @@ class TargetsShape extends StatelessWidget {
             color: _hex(color),
             shape: round ? BoxShape.circle : BoxShape.rectangle,
             borderRadius: round ? null : BorderRadius.circular(8),
-          ),
-        ),
-      );
-}
-
-class _Centered extends StatelessWidget {
-  const _Centered({required this.height, required this.children});
-  final double height;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-        height: height,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: children),
           ),
         ),
       );

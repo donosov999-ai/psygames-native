@@ -29,6 +29,7 @@ import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
@@ -77,6 +78,7 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
 
   MnemoPhase _phase = MnemoPhase.setup;
   bool _levelRun = false;
+  bool _resultReady = false;
   int _runLevel = 1;
   List<String> _items = const [];
   List<String> _shuffled = const [];
@@ -329,6 +331,7 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
     setState(() {
       _passed = passed;
       _score = score;
+      _resultReady = false;
       _phase = MnemoPhase.result;
     });
     final details = {'level': _runLevel, 'hits': score, 'errors': _errors, 'item_count': total};
@@ -354,7 +357,9 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
         details: details,
       );
     }
-    if (mounted) setState(() {});
+    if (mounted && _phase == MnemoPhase.result) {
+      setState(() => _resultReady = true);
+    }
   }
 
   /// Тексты разбора — из словаря, теми же ключами, что зовёт веб-учитель.
@@ -513,7 +518,7 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
       case MnemoPhase.pegs:
         return _pegsField(context);
       case MnemoPhase.result:
-        return _result(context);
+        return _result();
     }
   }
 
@@ -727,19 +732,63 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
     ]);
   }
 
-  Widget _result(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+  Widget _result() {
     final total = _mode == 'pegs' ? _pegTotal : _items.length;
-    return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Icon(_passed ? Icons.emoji_events_outlined : Icons.replay_outlined,
-          key: const ValueKey('mnemonics-result'), size: 44, color: _passed ? scheme.primary : scheme.onSurfaceVariant),
-      const SizedBox(height: 10),
-      Text('$_score/$total', style: Theme.of(context).textTheme.headlineMedium),
-      const SizedBox(height: 6),
-      Text('${(_elapsedMs / 1000).toStringAsFixed(1)}${L.t('secShort')}'),
-      if (_errors > 0)
-        Text('${L.t('errors')}: $_errors', style: TextStyle(color: scheme.error)),
-    ]);
+    final details = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('${(_elapsedMs / 1000).toStringAsFixed(1)}${L.t('secShort')}'),
+        if (_errors > 0) Text('${L.t('errors')}: $_errors'),
+      ],
+    );
+    final score = '$_score/$total';
+    void settings() => setState(() => _phase = MnemoPhase.setup);
+    void startLevel() => _start(byLevel: true);
+    final regularLevel = _levelRun && !GamePreset.isPreset;
+    if (!_resultReady || !regularLevel) {
+      return LevelResult.adapt(
+        ReportOutcomeAdapter(
+          title: L.t('done'),
+          titleKey: const ValueKey('mnemonics-result'),
+          score: score,
+          details: details,
+          action: _resultReady && !GamePreset.isPreset
+              ? GameResultAction(
+                key: const ValueKey('mnemonics-start'),
+                  label: L.t('start'),
+                  icon: Icons.play_arrow,
+                  onTap: startLevel,
+                )
+              : null,
+          moreActions: _resultReady && !GamePreset.isPreset
+              ? [
+                  GameResultAction(
+                    key: const ValueKey('mnemonics-setup'),
+                    label: L.t('mode'),
+                    icon: Icons.tune_rounded,
+                    onTap: settings,
+                  ),
+                ]
+              : const [],
+        ),
+      );
+    }
+    return LevelResult.adapt(
+      LevelOutcomeAdapter(
+        passed: _passed,
+        playedLevel: _runLevel,
+        nextKey: const ValueKey('mnemonics-start'),
+        titleKey: const ValueKey('mnemonics-result'),
+        score: score,
+        details: details,
+        playNext: startLevel,
+        nextLabel: _passed && _ladder.level <= _runLevel ? L.t('retry') : null,
+        auto: _passed && _ladder.level > _runLevel,
+        settings: settings,
+        settingsKey: const ValueKey('mnemonics-setup'),
+        settingsLabel: L.t('mode'),
+      ),
+    );
   }
 
   Widget? _toolbar(BuildContext context) {
@@ -748,7 +797,9 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
           child: Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: children),
         );
     switch (_phase) {
-      case MnemoPhase.setup || MnemoPhase.result:
+      case MnemoPhase.result:
+        return null;
+      case MnemoPhase.setup:
         return bar([
           FilledButton.icon(
             key: const ValueKey('mnemonics-start'),
@@ -756,12 +807,6 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
             icon: const Icon(Icons.play_arrow),
             label: Text(L.t('start')),
           ),
-          if (_phase == MnemoPhase.result)
-            OutlinedButton(
-              key: const ValueKey('mnemonics-setup'),
-              onPressed: () => setState(() => _phase = MnemoPhase.setup),
-              child: Text(L.t('mode')),
-            ),
         ]);
       case MnemoPhase.memorize:
         return bar([

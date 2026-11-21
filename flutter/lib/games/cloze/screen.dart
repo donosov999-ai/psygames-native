@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../shell/answer_feedback.dart';
+import '../../shell/audio_host.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
@@ -12,11 +13,14 @@ import '../../shell/level_ladder.dart';
 import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/voice.dart';
 import '../languages/bilingual.dart';
 import '../languages/fresh_pool.dart';
 import '../languages/json_asset.dart';
 import '../languages/lang_names.dart';
 import '../languages/lang_picker.dart';
+import '../languages/pronunciation.dart';
+import 'bank.dart';
 import 'model.dart';
 
 /// «Cloze: фразы» — экран раздела «Языки» на Flutter. Правила и сверка с живым
@@ -28,12 +32,13 @@ enum ClozePhase { config, playing, result }
 const String clozeTimeoutPick = '⏰';
 
 class ClozeScreen extends StatefulWidget {
-  const ClozeScreen({super.key, required this.state, this.clock, this.random, this.vocabOverride, this.phrasesOverride});
+  const ClozeScreen({super.key, required this.state, this.clock, this.random, this.vocabOverride, this.phrasesOverride, this.voice});
   final SharedState state;
   final int Function()? clock;
   final double Function()? random;
   final List<Map<String, String>>? vocabOverride;
   final Map<String, List<ClozePhrase>>? phrasesOverride;
+  final VoiceLayer? voice;
 
   @override
   State<ClozeScreen> createState() => _ClozeScreenState();
@@ -67,6 +72,15 @@ class _ClozeScreenState extends State<ClozeScreen> {
   Timer? _deadline;
   Timer? _tick;
   int _run = 0;
+  int? _reviewOpenedAtMs;
+  int _reviewMs = 0;
+  bool _finishing = false;
+  WordPronunciations _ipa = const {};
+  VoiceLayer? _voice;
+  Future<void>? _voiceStop;
+  int _voiceTicket = 0;
+  bool _listening = false;
+  String? _voiceMessage;
 
   int get _now => (widget.clock ?? () => DateTime.now().millisecondsSinceEpoch)();
   String get _baseLang => widget.state.language;
@@ -82,6 +96,7 @@ class _ClozeScreenState extends State<ClozeScreen> {
   @override
   void dispose() {
     _clearTimers();
+    _stopVoice();
     unawaited(_feedback.dispose());
     super.dispose();
   }
@@ -98,17 +113,15 @@ class _ClozeScreenState extends State<ClozeScreen> {
           for (final e in await loadJsonAsset('assets/vocab/translation-vocab.json') as List<dynamic>)
             (e as Map).map((k, v) => MapEntry('$k', '$v')),
         ];
-    final phrases = widget.phrasesOverride ??
-        <String, List<ClozePhrase>>{
-          for (final e in (await loadJsonAsset('assets/vocab/cloze-phrases.json') as Map).entries)
-            '${e.key}': [for (final f in (e.value as List)) ClozePhrase('${(f as Map)['text']}', '${f['answerEn']}')],
-        };
+    final phrases = widget.phrasesOverride ?? await loadClozeBank();
     final names = await LangNames.load();
+    final ipa = await loadWordPronunciations();
     if (!mounted) return;
     setState(() {
       _vocab = vocab;
       _phrases = phrases;
       _names = names;
+      _ipa = ipa;
       _targetLang = GamePreset.str('targetLang', _baseLang == 'en' ? 'es' : 'en');
       _bilingual = GamePreset.str(bilingualKey) == '1';
       _wantedSecond = GamePreset.str('lang2', pairFor(_baseLang)[1]);
@@ -146,6 +159,9 @@ class _ClozeScreenState extends State<ClozeScreen> {
       _rounds = built;
       _idx = 0;
       _picked = null;
+      _reviewOpenedAtMs = null;
+      _reviewMs = 0;
+      _voiceMessage = null;
       _correct = 0;
       _errors = 0;
       _rtSum = 0;
@@ -171,7 +187,7 @@ class _ClozeScreenState extends State<ClozeScreen> {
     _deadline = Timer(Duration(milliseconds: _timeLimitMs), _onTimeout);
   }
 
-  /// Не успел в лимит: ошибка и показ верного ответа, дальше само.
+  /// Не успел в лимит: ошибка и тот же разбор, что после обычного ответа.
   Future<void> _onTimeout() async {
     if (!mounted || _picked != null) return;
     _tick?.cancel();
@@ -183,7 +199,7 @@ class _ClozeScreenState extends State<ClozeScreen> {
     });
     await _feedback.show(clozeTimeoutPick, _rounds[idx].answer, right: false);
     if (mounted && run == _run && idx == _idx && _picked == clozeTimeoutPick) {
-      _next();
+      _afterAnswer();
     }
   }
 
@@ -205,7 +221,77 @@ class _ClozeScreenState extends State<ClozeScreen> {
       }
     });
     await _feedback.show(option, _rounds[idx].answer, right: ok);
-    if (mounted && run == _run && idx == _idx && _picked == option) _next();
+    if (mounted && run == _run && idx == _idx && _picked == option) {
+      _afterAnswer();
+    }
+  }
+
+  void _afterAnswer() {
+    // Scheduled rounds retain their original pace and never offer narration.
+    if (GamePreset.autostart ||
+        !wordPronunciationLanguages.contains(_rounds[_idx].lang)) {
+      _next();
+      return;
+    }
+    setState(() => _reviewOpenedAtMs = _now);
+  }
+
+  Future<void> _listen(ClozeRound round) async {
+    if (_reviewOpenedAtMs == null || _listening || _finishing) return;
+    final ticket = ++_voiceTicket;
+    final route = ModalRoute.of(context);
+    bool isRelevant() => mounted && ticket == _voiceTicket;
+    bool canSpeak() => isRelevant() && (route?.isCurrent ?? true);
+    setState(() {
+      _listening = true;
+      _voiceMessage = null;
+    });
+    try {
+      final voice = _voice ??= widget.voice ?? await AudioHost.voice(widget.state);
+      await _voiceStop;
+      if (!canSpeak()) return;
+      final played = await voice.speak(
+        round.completedText,
+        round.lang,
+        stillCurrent: canSpeak,
+        requireSystemVoice: true,
+      );
+      if (!played && canSpeak()) {
+        _voiceMessage = L.t(
+          voice.soundOn() ? 'srsPronunciationUnavailable' : 'voiceSoundOff',
+        );
+      }
+    } catch (_) {
+      if (canSpeak()) _voiceMessage = L.t('srsPronunciationUnavailable');
+    } finally {
+      if (isRelevant()) setState(() => _listening = false);
+    }
+  }
+
+  void _stopVoice() {
+    _voiceTicket++;
+    final voice = _voice;
+    if (_listening && voice != null) {
+      _voiceStop = _cancelVoice(voice, _voiceStop);
+    }
+    _listening = false;
+  }
+
+  Future<void> _cancelVoice(VoiceLayer voice, Future<void>? previous) async {
+    try {
+      await previous;
+      await voice.cancel();
+    } catch (_) {
+      // Optional narration must not interrupt navigation.
+    }
+  }
+
+  void _continueAfterReview() {
+    final opened = _reviewOpenedAtMs;
+    if (opened == null || _finishing) return;
+    _reviewMs += max(0, _now - opened);
+    _stopVoice();
+    _next();
   }
 
   void _next() {
@@ -218,11 +304,15 @@ class _ClozeScreenState extends State<ClozeScreen> {
     setState(() {
       _idx = next;
       _picked = null;
+      _reviewOpenedAtMs = null;
+      _voiceMessage = null;
     });
     _arm();
   }
 
   Future<void> _finish() async {
+    if (_finishing) return;
+    setState(() => _finishing = true);
     _clearTimers();
     final total = _rounds.length;
     final accuracy = total > 0 ? _correct / total : 0.0;
@@ -236,7 +326,7 @@ class _ClozeScreenState extends State<ClozeScreen> {
       'time_limit_ms': _timeLimitMs,
     };
     final score = _correct, errors = _errors;
-    final secs = ((_now - _startMs) / 1000).round();
+    final secs = (max(0, _now - _startMs - _reviewMs) / 1000).round();
     final mode = GamePreset.isPreset ? 'preset' : 'lvl$_levelPlayed';
     final diff = '$_targetLang · $total';
     if (passed) {
@@ -248,6 +338,8 @@ class _ClozeScreenState extends State<ClozeScreen> {
       setState(() {
         _passed = passed;
         _phase = ClozePhase.result;
+        _finishing = false;
+        _reviewOpenedAtMs = null;
       });
     }
   }
@@ -286,9 +378,13 @@ class _ClozeScreenState extends State<ClozeScreen> {
       return GameShell(title: L.t('cloze'), field: (c, h) => const Center(child: CircularProgressIndicator()));
     }
     final r = _phase == ClozePhase.playing ? _rounds[_idx] : null;
+    final reviewing = r != null && _reviewOpenedAtMs != null;
     return GameShell(
       title: L.t('cloze'),
-      onBack: () => Navigator.of(context).maybePop(),
+      onBack: () {
+        _stopVoice();
+        Navigator.of(context).maybePop();
+      },
       onLesson: () => openDemoLesson(context, title: L.t('cloze'), trials: _demoTrials()),
       hud: r == null
           ? const []
@@ -298,15 +394,26 @@ class _ClozeScreenState extends State<ClozeScreen> {
               HudItem(label: L.t('round'), value: '${_idx + 1}/${_rounds.length}', icon: Icons.numbers),
               HudItem(label: L.t('hud_correct'), value: '$_correct', icon: Icons.check),
               HudItem(label: L.t('hud_errors'), value: '$_errors', icon: Icons.close),
-              if (_timeLimitMs > 0)
+              if (_timeLimitMs > 0 && !reviewing)
                 HudItem(label: L.t('timeLeftLabel'), value: '$_secondsLeft ${L.t('secShort')}', icon: Icons.timer_outlined),
             ],
       field: (context, h) => switch (_phase) {
         ClozePhase.config => _config(context, h),
-        ClozePhase.playing => _phrase(context, h, r!),
+        ClozePhase.playing => reviewing ? _review(context, h, r) : _phrase(context, h, r!),
         ClozePhase.result => _result(context, h),
       },
-      toolbar: r == null ? null : _options(context, r),
+      toolbar: r == null
+          ? null
+          : reviewing
+          ? Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: FilledButton(
+                key: const Key('cloze-next'),
+                onPressed: _finishing ? null : _continueAfterReview,
+                child: Text(L.t('nextLabel')),
+              ),
+            )
+          : _options(context, r),
     );
   }
 
@@ -379,6 +486,48 @@ class _ClozeScreenState extends State<ClozeScreen> {
           ),
         ),
       );
+
+  Widget _review(BuildContext context, double h, ClozeRound round) {
+    final theme = Theme.of(context);
+    final ipa = wordIpaFor(_ipa, round.lang, round.answer);
+    return SizedBox(
+      height: h,
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                round.completedText,
+                key: const Key('cloze-completed-phrase'),
+                textAlign: TextAlign.center,
+                style: theme.textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                round.answer,
+                key: const Key('cloze-reviewed-word'),
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              if (ipa != null)
+                Text(ipa, key: const Key('cloze-ipa'), style: theme.textTheme.bodyLarge),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                key: const Key('cloze-listen-phrase'),
+                onPressed: _listening || _finishing ? null : () => _listen(round),
+                icon: const Icon(Icons.volume_up_rounded),
+                label: Text(L.t('clozeListenPhrase'), textAlign: TextAlign.center),
+              ),
+              if (_voiceMessage case final message?)
+                Semantics(liveRegion: true, child: Text(message, textAlign: TextAlign.center)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   /// Итог — общий каркаса ([LevelResult], задача e90a53d5): автопереход на следующий уровень.
   /// 🔴 Денис 12.11: «Дальше» после уровня — сразу следующая партия, не настройки.

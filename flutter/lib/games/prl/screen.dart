@@ -21,6 +21,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/session_report.dart';
 import '../../shell/setup_scroll.dart';
@@ -312,24 +313,60 @@ class _Field extends StatelessWidget {
         );
       case PrlPhase.done:
         final m = game.metrics;
-        return _Centered(
-          height: height,
+        final details = Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              // В классике исхода нет: показываем числа, а не вердикт.
-              classic
-                  ? '${L.t('hud_bank')}: ${game.bank}'
-                  : (game.passed ? L.t('levelDone').replaceAll('{n}', '${game.level}') : L.t('sameLevelRetry')),
-              key: const Key('prl-verdict'),
-              style: Theme.of(context).textTheme.titleLarge,
+              '${L.t('hud_bank')}: ${game.bank} · ${L.t('hud_reversals')}: ${m.reversals}',
+            ),
+            Text(
+              L.t('prlPass'),
+              style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
-            Text('${L.t('hud_bank')}: ${game.bank} · ${L.t('hud_reversals')}: ${m.reversals}'),
-            Text(L.t('prlPass'), style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onAgain, child: Text(L.t('start'))),
           ],
+        );
+        final level = LevelLadder.current?.level;
+        final next =
+            (classic) ||
+                !(game.passed) ||
+                GamePreset.isWarmup ||
+                level == null ||
+                level <= game.level
+            ? null
+            : level;
+        return SizedBox(
+          height: height,
+          child: LevelResult.adapt(
+            classic
+                ? ReportOutcomeAdapter(
+                    title: '${L.t('hud_bank')}: ${game.bank}',
+                    titleKey: const Key('prl-verdict'),
+                    action: GameResultAction(
+                      label: L.t('start'),
+                      icon: Icons.replay,
+                      onTap: onAgain,
+                    ),
+                    details: details,
+                  )
+                : LevelOutcomeAdapter(
+                    passed: game.passed,
+                    playedLevel: game.level,
+                    titleKey: const Key('prl-verdict'),
+                    playNext: next == null
+                        ? onAgain
+                        : () {
+                            onAgain();
+                            onStart();
+                          },
+                    nextLabel: next == null
+                        ? L.t('start')
+                        : L.f('nextLevelBtn', {'n': '$next'}),
+                    auto: next != null,
+                    waitForWin: next != null,
+                    details: details,
+                  ),
+          ),
         );
       case PrlPhase.playing:
         final t = game.pending;
@@ -367,23 +404,6 @@ class _Field extends StatelessWidget {
         );
     }
   }
-}
-
-class _Centered extends StatelessWidget {
-  const _Centered({required this.height, required this.children});
-  final double height;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-        height: height,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: children),
-          ),
-        ),
-      );
 }
 
 class _Choices extends StatelessWidget {

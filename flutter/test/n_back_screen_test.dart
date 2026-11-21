@@ -264,9 +264,8 @@ void main() {
     final first = sent.single['time_seconds'] as int;
     expect(first, inInclusiveRange(20, 120), reason: '20 проб по ~1,8 с, а не 1 789 617 778');
 
-    await tester.tap(find.text(L.t('restart')).last);
-    await tester.pump();
-    await tester.tap(find.text(L.t('start')));
+    // A won level now starts the next round directly, without going via setup.
+    await tester.tap(find.byKey(const Key('level-result-next')));
     await tester.pump();
     await play(tester, n: 2);
     final second = sent.last['time_seconds'] as int;

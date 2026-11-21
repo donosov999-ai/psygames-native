@@ -22,6 +22,7 @@ import '../../../shell/game_clock.dart';
 import '../../../shell/game_shell.dart';
 import '../../../shell/hud_time.dart';
 import '../../../shell/l10n.dart';
+import '../../../shell/level_result.dart';
 import '../../../shell/series_core.dart';
 import '../../../shell/session_report.dart';
 import '../../../shell/shared_state.dart';
@@ -474,46 +475,69 @@ class ProofSeriesPlayState extends State<ProofSeriesPlay> {
     final text = Theme.of(context).textTheme;
     final diffs = seriesDiffs(run);
     final out = _outcome;
-    String signed(int ms) => '${ms > 0 ? '+' : ''}${(ms / 1000).toStringAsFixed(1)} ${L.t('seconds')}';
+    String signed(int ms) =>
+        '${ms > 0 ? '+' : ''}${(ms / 1000).toStringAsFixed(1)} ${L.t('seconds')}';
     return SizedBox(
       height: h,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Column(key: const Key('ser-result'), children: [
-          const Icon(Icons.layers_outlined, size: 44),
-          Text(_s.seriesDone, style: text.titleLarge, textAlign: TextAlign.center),
-          const SizedBox(height: 12),
-          if (diffs == null)
-            Text(_s.notFinished,
-                key: const Key('ser-not-finished'), style: const TextStyle(color: Color(0xFFF43F5E)), textAlign: TextAlign.center)
-          else ...[
-            Text('${_s.signSpeed}: ${(run.blocks.first.timeMs / 1000).toStringAsFixed(1)} ${L.t('seconds')}',
-                key: const Key('ser-sign-speed')),
-            Text('${_s.segmentCost}: ${signed(diffs['word_minus_sign']!)}', key: const Key('ser-segment')),
-            // Цена смысла — из разностей: (T₃−T₁) − (T₂−T₁); у неполной серии её нет вовсе.
-            Text('${_s.senseCost}: ${signed(diffs['sense_minus_sign']! - diffs['word_minus_sign']!)}',
-                key: const Key('ser-sense')),
-          ],
-          if (out != null) ...[
-            const SizedBox(height: 12),
-            Text(
-              out.raised
-                  ? interpolate(_s.levelUp, {'size': out.nextLevel})
-                  : interpolate(_s.heldBy, {'block': _label(out.weakest), 'runs': out.runsLeft < 1 ? 1 : out.runsLeft}),
-              key: const Key('ser-outcome'),
-              style: text.bodySmall,
-              textAlign: TextAlign.center,
-            ),
-          ],
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            key: const Key('ser-again'),
-            onPressed: () => setState(_begin),
-            icon: const Icon(Icons.refresh),
-            label: Text(_s.again),
+      child: LevelResult.adapt(
+        ReportOutcomeAdapter(
+          title: _s.seriesDone,
+          titleKey: const Key('ser-result'),
+          icon: Icons.layers_outlined,
+          details: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (diffs == null)
+                Text(
+                  _s.notFinished,
+                  key: const Key('ser-not-finished'),
+                  style: const TextStyle(color: Color(0xFFF43F5E)),
+                  textAlign: TextAlign.center,
+                )
+              else ...[
+                Text(
+                  '${_s.signSpeed}: ${(run.blocks.first.timeMs / 1000).toStringAsFixed(1)} ${L.t('seconds')}',
+                  key: const Key('ser-sign-speed'),
+                ),
+                Text(
+                  '${_s.segmentCost}: ${signed(diffs['word_minus_sign']!)}',
+                  key: const Key('ser-segment'),
+                ),
+                // Цена смысла — из разностей: (T₃−T₁) − (T₂−T₁); у неполной серии её нет вовсе.
+                Text(
+                  '${_s.senseCost}: ${signed(diffs['sense_minus_sign']! - diffs['word_minus_sign']!)}',
+                  key: const Key('ser-sense'),
+                ),
+              ],
+              if (out != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  out.raised
+                      ? interpolate(_s.levelUp, {'size': out.nextLevel})
+                      : interpolate(_s.heldBy, {
+                          'block': _label(out.weakest),
+                          'runs': out.runsLeft < 1 ? 1 : out.runsLeft,
+                        }),
+                  key: const Key('ser-outcome'),
+                  style: text.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ],
           ),
-          TextButton(key: const Key('ser-leave'), onPressed: widget.onExit, child: Text(_s.leave)),
-        ]),
+          action: GameResultAction(
+            key: const Key('ser-again'),
+            label: _s.again,
+            icon: Icons.refresh,
+            onTap: () => setState(_begin),
+          ),
+          exit: GameResultAction(
+            key: const Key('ser-leave'),
+            label: _s.leave,
+            icon: Icons.exit_to_app,
+            onTap: widget.onExit,
+          ),
+        ),
       ),
     );
   }

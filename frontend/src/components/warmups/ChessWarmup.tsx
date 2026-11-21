@@ -15,7 +15,7 @@
 import React from 'react';
 import { WarmupCard } from '@/src/components/WarmupCard';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
-import { ШАГ_МАТ_СЕК, ШАГ_ДОСКА_СЕК } from '@/src/services/chessWarmup';
+import { темыИзФайла } from '@/src/services/chessWarmup';
 
 export const АКЦЕНТ_ШАХМАТЫ = '#8e5b2f';
 
@@ -25,10 +25,7 @@ export function ChessWarmup() {
   const доска = usePersistentLevel('chess_blind');
   return (
     <WarmupCard
-      темы={[
-        { game_id: 'scholars_mate', game_route: '/games/scholars-mate', секунд: ШАГ_МАТ_СЕК, уровень: мат.level },
-        { game_id: 'chess_blind', game_route: '/games/chess-blind', секунд: ШАГ_ДОСКА_СЕК, уровень: доска.level },
-      ]}
+      темы={темыИзФайла('chess', { scholars_mate: мат.level, chess_blind: доска.level })}
       titleKey="chessWarmupTitle"
       descKey="chessWarmupDesc"
       ярлык="шахматы"

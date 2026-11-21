@@ -23,9 +23,9 @@ const strip = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\
 
 describe('шаг программы по силам игроку', () => {
   it('есть что проверять: в программах профилей действительно стоят большие числа', () => {
-    const profiles = src('src/constants/profiles.ts');
+    const profiles = src('src/constants/defaultPlaylists.json');
     // Двадцать слов мнемоники — то самое задание со скриншота.
-    expect(/mnemonics[\s\S]{0,200}itemCount: 20/.test(profiles)).toBe(true);
+    expect(/"game_id":"mnemonics"[^}]*"itemCount":20/.test(profiles)).toBe(true);
   });
 
   it('🔴 мнемоника ограничивает пресет достигнутым уровнем', () => {

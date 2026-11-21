@@ -9,6 +9,7 @@ import '../../shell/game_shell.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/board_solver.dart';
@@ -39,28 +40,9 @@ class TowerLondonScreen extends StatefulWidget {
 
 class _TowerLondonScreenState extends State<TowerLondonScreen> {
   late final _answerFeedback = AnswerFeedback(widget.state);
-  /// 🔴 ПАРТИЯ ПРОДОЛЖАЕТСЯ САМА (Денис 24.09.2026: «во всех играх переход в
-  /// конце сломан» — то есть его нет ни в одной). Итог видно 1,8 с — тут он
-  /// длиннее, чем у уровневых игр: человеку показывают сумму лишних ходов за
-  /// пять задач, а не одну звезду.
-  Timer? _autoNext;
-
-  void _scheduleNext() {
-    _autoNext?.cancel();
-    _autoNext = Timer(const Duration(milliseconds: 1800), () {
-      if (mounted && _done) setState(_startGame);
-    });
-  }
-
-  void _cancelNext() {
-    _autoNext?.cancel();
-    _autoNext = null;
-  }
 
   @override
   void dispose() {
-    // Открытый таймер после ухода с экрана валит весь прогон проб молча.
-    _cancelNext();
     unawaited(_answerFeedback.dispose());
     super.dispose();
   }
@@ -78,6 +60,9 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
   int _errors = 0;
   bool _done = false;
   bool _passed = false;
+  bool _outcomeReady = false;
+  bool _reviewing = false;
+  int _attempt = 0;
   final List<TolState> _history = [];
 
   @override
@@ -124,12 +109,15 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
   }
 
   void _startGame() {
+    _attempt++;
     _level = _pickLevel();
     _round = 1;
     _extra = 0;
     _errors = 0;
     _done = false;
     _passed = false;
+    _outcomeReady = false;
+    _reviewing = false;
     _startRound();
   }
 
@@ -146,15 +134,14 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
   }
 
   void _restart() {
-    _cancelNext();
     setState(_startGame);
   }
 
   Future<void> _finish() async {
+    final attempt = _attempt;
     final rounds = _rounds;
     _passed = tolPassed(_extra, rounds);
     _done = true;
-    _scheduleNext();
     // Провал опускает уровень только на третий подряд — так работает общая
     // лестница; один промах ничего не стоит.
     if (_passed) {
@@ -162,7 +149,9 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
     } else {
       await _ladder.fail();
     }
-    if (mounted) setState(() {});
+    if (mounted && _attempt == attempt) {
+      setState(() => _outcomeReady = true);
+    }
   }
 
   void _tapPeg(int i) {
@@ -210,9 +199,9 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
   }
 
   void _undo() {
-    _cancelNext();
     if (_history.isEmpty) return;
     setState(() {
+      if (_done) _reviewing = true;
       _state = _history.removeLast();
       _moves = _moves > 0 ? _moves - 1 : 0;
       _sel = null;
@@ -310,42 +299,35 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
         AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _history.isEmpty ? null : _undo),
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
       ]),
-      toolbar: _done
-          ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    // ⚠️ При шаге зарядки уровень НЕ обещаем: лестница не
-                    // двигается, и «дальше уровень N» был бы прямой неправдой.
-                    _passed
-                        ? (GamePreset.isPreset
-                            // Новая строка идёт ЧЕРЕЗ СЛОВАРЬ, а не литералом:
-                            // храповик `ui_text_debt_does_not_grow` требует, чтобы
-                            // зашитого русского в файле не прибавлялось, и он прав —
-                            // в приложении двенадцать языков.
-                            ? L.f('tolWonPreset', {'e': '$_extra', 'r': '$rounds'})
-                            : '${L.f('tolWonPreset', {'e': '$_extra', 'r': '$rounds'})} · ${L.f('nextLevelBtn', {'n': '${_ladder.level}'})}')
-                        : L.f('tolFailedPreset', {'e': '$_extra', 'r': '$rounds'}),
-                    key: const ValueKey('tol-result'),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 8),
-                  FilledButton.icon(
-                    onPressed: _restart,
-                    icon: Icon(_passed ? Icons.arrow_forward : Icons.refresh),
-                    label: Text(_passed ? L.t('eyeStereoNext') : L.t('retry')),
-                  ),
-                ],
-              ),
-            )
-          : null,
+      toolbar: _done ? _outcome(rounds) : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),
         if (_history.isNotEmpty) PauseAction(label: L.t('btn_undo'), icon: Icons.undo, onPressed: _undo),
       ],
     );
+  }
+
+  Widget _outcome(int rounds) {
+    final numbers = {'e': '$_extra', 'r': '$rounds'};
+    final metric = _passed ? L.f('tolWonPreset', numbers) : L.f('tolFailedPreset', numbers);
+    const metricKey = ValueKey('tol-result');
+    if (!_outcomeReady || GamePreset.isWarmup) {
+      return LevelResult.adapt(ReportOutcomeAdapter(
+        title: metric,
+        titleKey: metricKey,
+        layout: GameOutcomeLayout.inline,
+      ));
+    }
+    final played = _level!.level;
+    final advanced = _passed && _ladder.level > played;
+    return LevelResult.adapt(LevelOutcomeAdapter(
+      passed: _passed,
+      playedLevel: played,
+      layout: GameOutcomeLayout.inline,
+      details: Text(metric, key: metricKey, textAlign: TextAlign.center),
+      playNext: _restart,
+      nextLabel: advanced ? L.f('nextLevelBtn', {'n': '${_ladder.level}'}) : L.t('retry'),
+      auto: !_reviewing && (advanced || !_passed),
+    ));
   }
 }

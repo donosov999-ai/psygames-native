@@ -3,8 +3,8 @@ import { BackHandler, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   PlaylistMeta, PlaylistStep,
-  buildMorningWarmupPlaylist, buildFinancialBatteryPlaylist, buildAssessmentPlaylist,
-  buildFixedPlaylist, buildEveningWarmupPlaylist, buildDayPlaylist, buildNightPlaylist, stepToParams,
+  buildFinancialBatteryPlaylist, buildAssessmentPlaylist,
+  resolveSlotPlaylist, prepareWarmup, quietWarmups, stepToParams,
   getCurrentWeekday, todayDateKey,
   saveWarmupHistory, WarmupHistoryEntry, Длительность,
   партияЗаШаг,
@@ -14,6 +14,8 @@ import { localSpatialHost, spatialWarmupPlaylist } from '@/src/games/spatial-cor
 import { isGameAllowed } from '@/src/constants/profiles';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { fbCorrect, fbComplete } from '@/src/services/feedback';
+import { setQuietWarmupActive } from '@/src/services/warmupAudio';
+import { setMusicSuspended } from '@/src/services/music';
 import { hostInfo, hostLeadsBetween, hostLeadsFinish, hostRendersNatively, lastStepMessage, postToHost, stepDoneMessage, type WarmupHostInfo } from '@/src/services/hostWarmup';
 import { isHostSession } from '@/src/services/nativeSessionBridge';
 import { ownerParams, parseWarmupOwner, sameWarmupOwner, type WarmupOwner } from '@/src/services/warmupOwner';
@@ -145,7 +147,7 @@ const freshOwner = (run_id: string, step_idx: number): WarmupOwner =>
 
 export function WarmupProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { profile } = useProfile();
+  const { profile, warmupSource } = useProfile();
   const [state, setState] = useState<WarmupState>(emptyState);
   // Authoritative synchronous controller; React state is its rendered mirror.
   // Do not overwrite this ref from a delayed render/layout effect.
@@ -158,7 +160,17 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navigationTimersRef = useRef(new Set<ReturnType<typeof setTimeout>>());
   const autoAdvanceHoldsRef = useRef(0);
-  const install = useCallback((next: WarmupState) => { stateRef.current = next; setState(next); }, []);
+  const install = useCallback((next: WarmupState) => {
+    const quiet = next.active && quietWarmups;
+    setQuietWarmupActive(quiet);
+    setMusicSuspended('quiet-warmup', quiet);
+    stateRef.current = next;
+    setState(next);
+  }, []);
+  useEffect(() => () => {
+    setQuietWarmupActive(false);
+    setMusicSuspended('quiet-warmup', false);
+  }, []);
   const cancelPending = useCallback(() => {
     if (advanceTimerRef.current !== null) clearTimeout(advanceTimerRef.current);
     advanceTimerRef.current = null;
@@ -226,7 +238,8 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     return 'warmup';
   };
 
-  const beginPlaylist = useCallback((meta: PlaylistMeta, localSpatial = false) => {
+  const beginPlaylist = useCallback((requested: PlaylistMeta, localSpatial = false) => {
+    const meta = prepareWarmup(requested, profile.id);
     cancelPending(); lifecycleRef.current += 1; terminalClaimsRef.current.clear();
     acceptedSessionsRef.current.clear(); recordedSessionsRef.current.clear();
     const warmupId = genUUID();
@@ -249,33 +262,13 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   const allow = useCallback((gameId: string) => isGameAllowed(profile, gameId), [profile]);
 
   const startWarmup = useCallback((duration: 5 | 10 | 15) => {
-    const wd = getCurrentWeekday();
-    // Если у профиля задан фиксированный утренний набор — используем его (минуя weekday-логику).
-    const собран = profile.morning_playlist && profile.morning_playlist.length > 0
-      ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd, allow)
-      : buildMorningWarmupPlaylist({
-          duration,
-          weekday: wd,
-          profilePlaylists: profile.custom_playlists,    // E1: per-profile override
-          allow,
-        });
-    const meta: PlaylistMeta = { ...собран, вид: 'слот' };
-    beginPlaylist(meta);
-  }, [beginPlaylist, profile, allow]);
+    beginPlaylist({ ...resolveSlotPlaylist(profile, 'morning', getCurrentWeekday(), duration, allow, warmupSource), вид: 'слот' });
+  }, [beginPlaylist, profile, allow, warmupSource]);
 
   // v1.23 «Комплексы» — вечерний комплекс (перед сном): спокойные игры из profile.evening_playlist.
   const startEvening = useCallback((duration: Длительность = 5) => {
-    const wd = getCurrentWeekday();
-    // утро сегодня → дедуп: вечер не повторяет утренние игры (утро≠вечер)
-    const morning = profile.morning_playlist && profile.morning_playlist.length > 0
-      ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd, allow)
-      : buildMorningWarmupPlaylist({ duration: 15, weekday: wd, profilePlaylists: profile.custom_playlists, allow });
-    const meta: PlaylistMeta = {
-      ...buildEveningWarmupPlaylist({ weekday: wd, excludeGameIds: morning.steps.map((s) => s.game_id), profileEvening: profile.evening_playlist, allow, duration }),
-      вид: 'слот',
-    };
-    beginPlaylist(meta);
-  }, [beginPlaylist, profile, allow]);
+    beginPlaylist({ ...resolveSlotPlaylist(profile, 'evening', getCurrentWeekday(), duration, allow, warmupSource), вид: 'слот' });
+  }, [beginPlaylist, profile, allow, warmupSource]);
 
   /**
    * Дневной перерыв и «Не спится». Оба набора фиксированные, от профиля и дня
@@ -300,12 +293,12 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   const startDay = useCallback((duration: Длительность = 5) => {
     // Фильтр профиля — как в утреннем и вечернем наборах. Без него перерыв
     // раздавал упражнения, которых в профиле нет.
-    startSlotPlaylist({ ...buildDayPlaylist(getCurrentWeekday(), allow, duration), вид: 'слот' });
-  }, [startSlotPlaylist, allow]);
+    startSlotPlaylist({ ...resolveSlotPlaylist(profile, 'day', getCurrentWeekday(), duration, allow, warmupSource), вид: 'слот' });
+  }, [startSlotPlaylist, profile, allow, warmupSource]);
 
   const startNight = useCallback((duration: Длительность = 5) => {
-    startSlotPlaylist({ ...buildNightPlaylist(getCurrentWeekday(), duration), вид: 'слот' });
-  }, [startSlotPlaylist]);
+    startSlotPlaylist({ ...resolveSlotPlaylist(profile, 'night', getCurrentWeekday(), duration, undefined, warmupSource), вид: 'слот' });
+  }, [startSlotPlaylist, profile, warmupSource]);
 
   /**
    * Готовый набор: своя серия, серия развилки, тема хаба — и повтор с итога.

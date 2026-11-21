@@ -1,36 +1,35 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../shell/answer_feedback.dart';
+import '../../shell/audio_host.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_result.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/voice.dart';
 import '../languages/bilingual.dart';
 import '../languages/lang_names.dart';
 import '../languages/lang_picker.dart';
-import '../languages/json_asset.dart';
+import '../languages/pronunciation.dart';
+import '../languages/word_bank.dart';
 import 'model.dart';
 import 'typing.dart';
 
 /// «Словарь SRS» — первый экран раздела «Языки» на Flutter.
 ///
-/// 🔴 ЗАЧЕМ ИМЕННО ЭТОТ ЭКРАН ПЕРВЫМ. Во-первых, он единственный в разделе не
-/// трогает озвучку — а замена озвучки в Flutter ещё не выбрана. Во-вторых, ровно
-/// на нём стоит 🔴-блокер с iOS (отчёт e0ad9f91, 18.09.2026): правая колонка
+/// На исходном экране был блокер на iOS (отчёт e0ad9f91, 18.09.2026): правая колонка
 /// шапки и нижний ряд ответов уходили за край экрана, и партию нельзя было
 /// закончить. Здесь этого класса беды нет по устройству каркаса: счётчики живут
 /// в `Wrap` (переносятся, а не вылезают), название — в `Expanded` с многоточием,
 /// а ряд ответов прибит снизу самим `GameShell`.
-///
-/// ⚠️ ЧЕГО ПОКА НЕТ (переносится следующим заходом, поэтому перехват маршрута
-/// НЕ ВКЛЮЧЁН — человек по-прежнему открывает веб-версию со всеми режимами):
-///   · ответ ПЕЧАТЬЮ (`typing`) — извлечение из памяти вместо узнавания;
-///   · билингво — две колоды вперемешку с раскладкой по ряду чередования.
 ///
 /// Правила и их сверка с живым TS — в `model.dart` и `test/vocab_srs_test.dart`.
 
@@ -52,6 +51,13 @@ enum VocabDirection { recognize, recall, typing }
 
 enum VocabPhase { config, playing, result }
 
+typedef _SessionQueue = ({
+  List<CardRef> cards,
+  Map<String, List<({String base, String target})>> pools,
+  int switches,
+});
+typedef _SpokenWord = ({String text, String lang});
+
 /// Сколько новых слов за подход — те же четыре значения, что в веб-версии.
 const List<int> vocabNewLimits = [5, 10, 20, 30];
 
@@ -68,6 +74,7 @@ class VocabSrsScreen extends StatefulWidget {
     this.vocabOverride,
     this.storeOverride,
     this.random,
+    this.voice,
   });
 
   final SharedState state;
@@ -82,6 +89,7 @@ class VocabSrsScreen extends StatefulWidget {
   final DeckStore? storeOverride;
 
   final double Function()? random;
+  final VoiceLayer? voice;
 
   @override
   State<VocabSrsScreen> createState() => _VocabSrsScreenState();
@@ -89,8 +97,13 @@ class VocabSrsScreen extends StatefulWidget {
 
 class _VocabSrsScreenState extends State<VocabSrsScreen> {
   late LevelLadder _runs;
+  late final SharedPreferences _preferences;
+  late final String _settingsKey;
+  late final Map<String, String> _preset;
+  late final bool _autostart;
+  late final bool _temporarySettings;
   late final _feedback = AnswerFeedback(widget.state);
-  List<VocabEntry>? _vocab;
+  WordBank? _wordBank;
   LangNames _names = LangNames.empty;
 
   VocabPhase _phase = VocabPhase.config;
@@ -104,6 +117,8 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   /// Второй язык, КАК ЕГО ВЫБРАЛ человек. Настоящий второй — [_second]: он
   /// гарантированно не совпадает ни с первым, ни с родным.
   String _wantedSecond = 'es';
+  bool _autoPronounce = false;
+  bool _pronounceBoth = false;
 
   List<CardRef> _queue = [];
   int _idx = 0;
@@ -112,8 +127,18 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   int _correct = 0;
   int _wrong = 0;
   int _shownAtMs = 0;
-  Timer? _next;
   SrsStats? _stats;
+  bool _starting = false;
+  bool _finishing = false;
+  bool _hasNext = false;
+  int? _completedLevel;
+  int? _nextReviewAt;
+  WordPronunciations _ipa = const {};
+  VoiceLayer? _voice;
+  int _voiceTicket = 0;
+  Future<void>? _voiceStop;
+  String? _voiceMessage;
+  bool _reviewReady = false;
 
   /// Набор ответа: живёт ровно одну карточку.
   TypingState? _typing;
@@ -123,7 +148,8 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   /// отвлекающих — по языку карточки: у английского и испанского расписание
   /// повторов своё, и оценка, ушедшая не в ту колоду, вернула бы карточку по
   /// чужому графику. Отвлекающие из чужого языка сделали бы ответ очевидным.
-  final Map<String, VocabSrs> _engines = {};
+  final Map<(String, String?), VocabSrs> _engines = {};
+  int _statsRequest = 0;
   Map<String, List<({String base, String target})>> _pools = const {};
 
   /// Сколько раз язык НА САМОМ ДЕЛЕ сменился за партию (0 вне билингво).
@@ -147,18 +173,36 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   /// через поимённое исключение [SharedState.extraKeys]. Гейт
   /// `flutter/test/bridge_carries_every_web_key_test.dart` сторожит, что ни один
   /// ключ веб-стороны не остался за границей.
-  String get _baseLang => widget.state.language;
+  late final String _baseLang;
 
-  String get _second => secondNotFirst(_baseLang, _targetLang, _wantedSecond);
+  String? get _second {
+    final choices = _langs.where((l) => l != _targetLang);
+    if (choices.contains(_wantedSecond)) return _wantedSecond;
+    return choices.firstOrNull;
+  }
 
   List<String> get _langsInPlay =>
-      _bilingual ? [_targetLang, _second] : [_targetLang];
+      _bilingual ? [_targetLang, _second!] : [_targetLang];
   bool get _dualRecognition =>
       _bilingual && _direction == VocabDirection.recognize;
 
   @override
   void initState() {
     super.initState();
+    _baseLang = widget.state.language;
+    // Local UI preferences, not part of the WebView/cloud progress snapshot.
+    _settingsKey = 'device_vocab_srs_settings_${widget.state.activeProfile}';
+    _preset = GamePreset.params;
+    _autostart = GamePreset.autostart;
+    _temporarySettings =
+        _autostart ||
+        [
+          'targetLang',
+          'newLimit',
+          'direction',
+          bilingualKey,
+          'lang2',
+        ].any(_preset.containsKey);
     _runs = LevelLadder(
       gameId: 'vocab_srs',
       store: SharedLevelStore(widget.state),
@@ -168,52 +212,199 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
 
   @override
   void dispose() {
-    _next?.cancel();
+    _stopVoice();
     unawaited(_feedback.dispose());
     super.dispose();
   }
 
   Future<void> _boot() async {
+    _preferences = await SharedPreferences.getInstance();
     await _runs.load();
-    final vocab =
-        widget.vocabOverride ??
-        [
-          for (final e in await loadJsonAsset(
-            'assets/vocab/translation-vocab.json',
-          ) as List<dynamic>)
-            (e as Map).map((k, v) => MapEntry('$k', '$v')),
-        ];
+    final override = widget.vocabOverride;
+    final bank = override == null
+        ? await loadWordBank()
+        : WordBank(core: override);
     final names = await LangNames.load();
+    final ipa = await loadWordPronunciations();
     if (!mounted) return;
+    final saved = _temporarySettings
+        ? const <String, Object?>{}
+        : _loadSettings();
     setState(() {
       _names = names;
-      _vocab = vocab;
+      _wordBank = bank;
+      _ipa = ipa;
       // 🔴 НАСТРОЙКИ ШАГА ЗАРЯДКИ — ИЗ АДРЕСА, КАК В ВЕБЕ (`useGamePreset`).
       // Языковая зарядка открывает словарь с `?targetLang=…&bilingual=1&lang2=…`;
       // без этого шаг зарядки открылся бы с настройками по умолчанию, и «два языка
       // вперемешку» молча стали бы одним. Умолчание языка — как в веб-версии:
       // англичанину испанский, остальным английский.
-      _targetLang = GamePreset.str(
-        'targetLang',
-        _baseLang == 'en' ? 'es' : 'en',
-      );
-      _newLimit = GamePreset.num('newLimit', 10);
-      _direction = switch (GamePreset.str('direction', 'recognize')) {
+      final defaultLang = _baseLang == 'en' ? 'es' : 'en';
+      final target = _preset['targetLang'] ?? saved['targetLang'];
+      _targetLang = target is String && _langs.contains(target)
+          ? target
+          : _langs.contains(defaultLang)
+          ? defaultLang
+          : _langs.firstOrNull ?? defaultLang;
+      final limit = _preset.containsKey('newLimit')
+          ? int.tryParse(_preset['newLimit']!)
+          : saved['newLimit'];
+      _newLimit = limit is int && vocabNewLimits.contains(limit) ? limit : 10;
+      _direction = switch (_preset['direction'] ?? saved['direction']) {
         'recall' => VocabDirection.recall,
         'typing' => VocabDirection.typing,
         _ => VocabDirection.recognize,
       };
-      _bilingual = GamePreset.str(bilingualKey) == '1';
-      _wantedSecond = GamePreset.str('lang2', pairFor(_baseLang)[1]);
+      final second = _preset['lang2'] ?? saved['lang2'];
+      _wantedSecond = second is String && _langs.contains(second)
+          ? second
+          : pairFor(_baseLang)[1];
+      final bilingual = _preset[bilingualKey] ?? saved[bilingualKey];
+      _bilingual =
+          _second != null &&
+          (bilingual == true || bilingual == 'true' || bilingual == '1');
+      _autoPronounce = saved['autoPronounce'] == true;
+      _pronounceBoth = saved['pronounceBoth'] == true;
     });
     await _refreshStats();
     // Уровень уже загружен — только теперь можно стартовать сам: иначе автостарт
     // («Вызов дня», шаг зарядки) сыграл бы первый подход человеку с двенадцатым.
-    if (mounted && GamePreset.autostart) await _start();
+    if (mounted && _autostart) await _start();
+  }
+
+  void _stopVoice() {
+    _voiceTicket++;
+    final voice = _voice;
+    if (voice != null) {
+      final previous = _voiceStop;
+      _voiceStop = _cancelVoice(voice, previous);
+    }
+  }
+
+  Future<void> _cancelVoice(VoiceLayer voice, Future<void>? previous) async {
+    try {
+      await previous;
+      await voice.cancel();
+    } catch (_) {
+      // Cancelling an optional audio aid must not stop a round.
+    }
+  }
+
+  Future<void> _speak(String word, String lang) =>
+      _speakWords([(text: word, lang: lang)]);
+
+  Future<void> _speakWords(List<_SpokenWord> words) async {
+    _stopVoice();
+    final ticket = _voiceTicket;
+    final route = ModalRoute.of(context);
+    bool current() =>
+        mounted && ticket == _voiceTicket && (route?.isCurrent ?? true);
+    setState(() => _voiceMessage = null);
+    try {
+      final voice = _voice ??=
+          widget.voice ?? await AudioHost.voice(widget.state);
+      if (!current()) return;
+      await _voiceStop;
+      if (!current()) return;
+      var missed = false;
+      for (final word in words) {
+        if (!current()) return;
+        final spoken = await voice.speak(
+          word.text,
+          word.lang,
+          stillCurrent: current,
+          requireSystemVoice: true,
+        );
+        missed |= !spoken;
+      }
+      if (missed && current()) {
+        setState(
+          () => _voiceMessage = L.t(
+            voice.soundOn() ? 'srsPronunciationUnavailable' : 'voiceSoundOff',
+          ),
+        );
+      }
+    } catch (_) {
+      if (current()) {
+        setState(() => _voiceMessage = L.t('srsPronunciationUnavailable'));
+      }
+    }
+  }
+
+  void _scheduleAutoVoice(CardRef card) {
+    if (!_autoPronounce || _temporarySettings || !appSoundOn(widget.state)) {
+      return;
+    }
+    final first = _langOf(card);
+    final words = <_SpokenWord>[
+      if (wordPronunciationLanguages.contains(first) &&
+          (_pronounceBoth || first == _targetLang))
+        (text: card.target, lang: first),
+      if (_pronounceBoth &&
+          card.secondTarget != null &&
+          wordPronunciationLanguages.contains(card.secondLang))
+        (text: card.secondTarget!, lang: card.secondLang!),
+    ];
+    if (words.isEmpty) return;
+    final ticket = _voiceTicket;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted &&
+          ticket == _voiceTicket &&
+          _phase == VocabPhase.playing &&
+          identical(_queue[_idx], card) &&
+          (ModalRoute.of(context)?.isCurrent ?? true)) {
+        unawaited(_speakWords(words));
+      }
+    });
+  }
+
+  Map<String, Object?> _loadSettings() {
+    final raw = _preferences.getString(_settingsKey);
+    if (raw == null) return const {};
+    try {
+      final value = jsonDecode(raw);
+      return value is Map<String, Object?> ? value : const {};
+    } on FormatException {
+      return const {};
+    }
+  }
+
+  void _changeSettings(VoidCallback change, {bool affectsBank = false}) {
+    if (_starting) return;
+    setState(change);
+    if (affectsBank) unawaited(_refreshStats());
+    if (_temporarySettings) return;
+    unawaited(_saveSettings());
+  }
+
+  Future<void> _saveSettings() async {
+    try {
+      final written = await _preferences.setString(
+        _settingsKey,
+        jsonEncode({
+          'targetLang': _targetLang,
+          'lang2': _wantedSecond,
+          bilingualKey: _bilingual,
+          'newLimit': _newLimit,
+          'direction': _direction.name,
+          'autoPronounce': _autoPronounce,
+          'pronounceBoth': _pronounceBoth,
+        }),
+      );
+      if (!written) throw StateError('SRS preferences were not saved');
+    } catch (error, stack) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stack,
+          library: 'SRS settings',
+        ),
+      );
+    }
   }
 
   List<String> get _langs {
-    final v = _vocab;
+    final v = _wordBank?.core;
     if (v == null || v.isEmpty) return const [];
     return [
       for (final k in v.first.keys)
@@ -221,27 +412,40 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
     ];
   }
 
-  VocabSrs _engineFor(String lang) => _engines.putIfAbsent(
-    lang,
-    () => VocabSrs(
-      vocab: _vocab ?? const [],
-      baseLang: _baseLang,
-      targetLang: lang,
-      store: widget.storeOverride ?? SharedDeckStore(widget.state),
-      nowMs: () => _now,
-      random: widget.random,
-    ),
-  );
-
-  Future<void> _refreshStats() async {
-    final s = await _engineFor(_targetLang).getStats();
-    if (mounted) setState(() => _stats = s);
+  VocabSrs _engineFor(String lang) {
+    final paired = _dualRecognition
+        ? (lang == _targetLang ? _second : _targetLang)
+        : null;
+    return _engines.putIfAbsent(
+      (lang, paired),
+      () => VocabSrs(
+        vocab:
+            _wordBank
+                ?.forLanguages({_baseLang, lang, ?paired}, interleave: true)
+                .where(
+                  (row) =>
+                      row[_baseLang] != row[lang] &&
+                      (paired == null || row[_baseLang] != row[paired]),
+                )
+                .toList() ??
+            const [],
+        baseLang: _baseLang,
+        targetLang: lang,
+        store: widget.storeOverride ?? SharedDeckStore(widget.state),
+        nowMs: () => _now,
+        random: widget.random,
+      ),
+    );
   }
 
-  Future<void> _start() async {
-    _next?.cancel();
-    _feedback.clear();
-    _engines.clear();
+  Future<void> _refreshStats() async {
+    final request = ++_statsRequest;
+    final lang = _targetLang;
+    final s = await _engineFor(lang).getStats();
+    if (mounted && request == _statsRequest) setState(() => _stats = s);
+  }
+
+  Future<_SessionQueue> _buildSessionQueue() async {
     final langs = _langsInPlay;
     final byLang = <String, List<CardRef>>{};
     final pools = <String, List<({String base, String target})>>{};
@@ -266,35 +470,67 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
       cards = byLang[_targetLang] ?? const [];
     }
 
-    if (!mounted) return;
-    if (cards.isEmpty) {
-      await _refreshStats();
-      if (mounted) setState(() => _phase = VocabPhase.result);
-      return;
+    return (cards: cards, pools: pools, switches: switches);
+  }
+
+  Future<void> _start() async {
+    if (_starting || _phase == VocabPhase.playing) return;
+    setState(() => _starting = true);
+    try {
+      _feedback.clear();
+      _engines.clear();
+      final q = await _buildSessionQueue();
+      if (!mounted) return;
+      if (q.cards.isEmpty) {
+        await _showResult(hasNext: false);
+        return;
+      }
+      setState(() {
+        _pools = q.pools;
+        _switches = q.switches;
+        _queue = q.cards;
+        _idx = 0;
+        _correct = 0;
+        _wrong = 0;
+        _picked = null;
+        _answers = 0;
+        _rtSum = 0;
+        _typosTotal = 0;
+        _reviewsDone = 0;
+        _newLearned.clear();
+        _startMs = _now;
+        _phase = VocabPhase.playing;
+        _prepare(q.cards.first);
+        _shownAtMs = _now;
+      });
+      if (_direction == VocabDirection.recognize) {
+        _scheduleAutoVoice(q.cards.first);
+      }
+    } finally {
+      if (mounted) setState(() => _starting = false);
     }
+  }
+
+  Future<void> _showResult({int? completedLevel, required bool hasNext}) async {
+    final stats = await Future.wait([
+      for (final lang in _langsInPlay) _engineFor(lang).getStats(),
+    ]);
+    if (!mounted) return;
+    final dates = stats.map((s) => s.nextDueAt).whereType<int>();
+    final next = dates.isEmpty ? null : dates.reduce((a, b) => a < b ? a : b);
     setState(() {
-      _pools = pools;
-      _switches = switches;
-      _queue = cards;
-      _idx = 0;
-      _correct = 0;
-      _wrong = 0;
-      _picked = null;
-      _answers = 0;
-      _rtSum = 0;
-      _typosTotal = 0;
-      _reviewsDone = 0;
-      _newLearned.clear();
-      _startMs = _now;
-      _phase = VocabPhase.playing;
-      _prepare(cards.first);
-      _shownAtMs = _now;
+      _stats = stats.first;
+      _nextReviewAt = next;
+      _hasNext = hasNext;
+      _completedLevel = completedLevel;
+      _phase = VocabPhase.result;
     });
   }
 
   List<CardRef> _combineDual(Map<String, List<CardRef>> byLang) {
     final first = byLang[_targetLang] ?? const [];
-    final second = byLang[_second] ?? const [];
+    final secondLang = _second!;
+    final second = byLang[secondLang] ?? const [];
     final firstById = {for (final c in first) c.id: c};
     final secondById = {for (final c in second) c.id: c};
     final ids = <String>[
@@ -306,7 +542,7 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
       final a = firstById[id], b = secondById[id];
       final base = a?.base ?? b?.base ?? _wordFor(id, _baseLang) ?? '';
       final firstTarget = a?.target ?? _wordFor(id, _targetLang) ?? '';
-      final secondTarget = b?.target ?? _wordFor(id, _second) ?? '';
+      final secondTarget = b?.target ?? _wordFor(id, secondLang) ?? '';
       if (base.isEmpty || firstTarget.isEmpty || secondTarget.isEmpty) continue;
       out.add(
         CardRef(
@@ -316,7 +552,7 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
           isNew: (a?.isNew ?? false) || (b?.isNew ?? false),
           lang: _targetLang,
           secondTarget: secondTarget,
-          secondLang: _second,
+          secondLang: secondLang,
         ),
       );
     }
@@ -326,7 +562,9 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   String? _wordFor(String id, String lang) {
     if (!id.startsWith('v:')) return null;
     final en = id.substring(2);
-    for (final word in _vocab ?? const <VocabEntry>[]) {
+    final bank = _wordBank;
+    if (bank == null) return null;
+    for (final word in [...bank.core, ...bank.extension]) {
       if (word['en'] == en) return word[lang];
     }
     return null;
@@ -336,6 +574,8 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
 
   /// Что показать под карточкой: варианты ответа или поле набора.
   void _prepare(CardRef card) {
+    _reviewReady = false;
+    _voiceMessage = null;
     if (_direction == VocabDirection.typing) {
       _typing = TypingState.create([card.target], nowMs: () => _now);
       _typos = 0;
@@ -353,7 +593,12 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
         : card.target;
     final words = [
       for (final p in pool)
-        _direction == VocabDirection.recognize ? p.base : p.target,
+        // Several words can have the same translation. Do not offer a second
+        // valid answer just because the bank stores it on another card.
+        if (_direction == VocabDirection.recognize
+            ? p.target != card.target
+            : p.base != card.base)
+          _direction == VocabDirection.recognize ? p.base : p.target,
     ];
     return _engineFor(_langOf(card)).buildOptions(right, words);
   }
@@ -379,6 +624,7 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
         : card.target;
     final rt = _now - _shownAtMs;
     final correct = option == right;
+    _stopVoice();
 
     setState(() {
       _picked = option;
@@ -417,17 +663,7 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
     await _feedback.show(option, right, right: correct);
     await grading;
     if (!mounted || _picked != option) return;
-    final next = _idx + 1;
-    if (next >= queue.length) {
-      _finish();
-      return;
-    }
-    setState(() {
-      _idx = next;
-      _picked = null;
-      _prepare(queue[next]);
-      _shownAtMs = _now;
-    });
+    await _answerChecked(card);
   }
 
   /// Нажатие клавиши при печати ответа.
@@ -468,9 +704,28 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
     await _feedback.show('typing', 'typing');
     await grading;
     if (!mounted || _picked != card.target) return;
+    await _answerChecked(card);
+  }
+
+  Future<void> _answerChecked(CardRef card) async {
+    // In an ordinary recall/typing round the answer stays readable and
+    // replayable after grading. Timed/playlist launches keep their cadence.
+    if (_direction != VocabDirection.recognize &&
+        !_autostart &&
+        wordPronunciationLanguages.contains(_langOf(card))) {
+      setState(() => _reviewReady = true);
+      _scheduleAutoVoice(card);
+      return;
+    }
+    await _advanceCard();
+  }
+
+  Future<void> _advanceCard() async {
+    _stopVoice();
+    if (_reviewReady) setState(() => _reviewReady = false);
     final next = _idx + 1;
     if (next >= _queue.length) {
-      _finish();
+      await _finish();
       return;
     }
     setState(() {
@@ -479,11 +734,27 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
       _prepare(_queue[next]);
       _shownAtMs = _now;
     });
+    if (_direction == VocabDirection.recognize) {
+      _scheduleAutoVoice(_queue[next]);
+    }
   }
 
   Future<void> _finish() async {
-    _next?.cancel();
-    final doneRun = _runs.level;
+    if (_finishing) return;
+    _finishing = true;
+    try {
+      final played = _runs.level;
+      await _recordRound(played);
+      if (!mounted) return;
+      final next = await _buildSessionQueue();
+      if (!mounted) return;
+      await _showResult(completedLevel: played, hasNext: next.cards.isNotEmpty);
+    } finally {
+      _finishing = false;
+    }
+  }
+
+  Future<void> _recordRound(int doneRun) async {
     // 🔴 ОТЧЁТ О ПАРТИИ — ОДИН, И ШЛЁТ ЕГО ЛЕСТНИЦА. `LevelLadder.win()` сама
     // отдаёт партию в веб-половину (шаг зарядки, статистика, токены, серия дней).
     // Первая редакция слала ещё и свой отчёт — проба поймала ДВЕ партии на одну
@@ -522,8 +793,66 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
         'typos': _typosTotal,
       },
     );
-    await _refreshStats();
-    if (mounted) setState(() => _phase = VocabPhase.result);
+  }
+
+  Widget _result(double height) {
+    final completed = _completedLevel;
+    final unavailable = _hasNext
+        ? null
+        : (
+            message: L.t('srsAllDone'),
+            detail: _nextReviewAt == null
+                ? null
+                : '${L.t('srsNextDue')}: ${_when(_nextReviewAt!)}',
+          );
+    void openSettings() => setState(() => _phase = VocabPhase.config);
+    if (completed == null) {
+      return SizedBox(
+        height: height,
+        child: LevelResult.adapt(
+          ReportOutcomeAdapter(
+            title: unavailable!.message,
+            details: unavailable.detail == null
+                ? null
+                : Text(unavailable.detail!),
+            action: GameResultAction(
+              key: const Key('level-result-settings'),
+              label: L.t('settings'),
+              icon: Icons.tune_rounded,
+              onTap: openSettings,
+            ),
+          ),
+        ),
+      );
+    }
+    final stats = _stats;
+    return SizedBox(
+      height: height,
+      child: LevelResult.adapt(
+        LevelOutcomeAdapter(
+          passed: true,
+          playedLevel: completed,
+          score:
+              '${L.t('hud_correct')}: $_correct · ${L.t('hud_errors')}: $_wrong',
+          details: stats == null
+              ? null
+              : Text(
+                  '${L.t('srsLearnedLabel')}: ${stats.learned}/${stats.totalWords}',
+                ),
+          playNext: _hasNext ? _start : null,
+          unavailable: unavailable,
+          nextLabel: _runs.level > completed
+              ? '${L.t('sdkNextLevel')} · ${_runs.level}'
+              : L.t('retry'),
+          settings: openSettings,
+        ),
+      ),
+    );
+  }
+
+  static String _when(int ms) {
+    final d = DateTime.fromMillisecondsSinceEpoch(ms);
+    return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}';
   }
 
   /// 🔴 РАЗБОР — ДО ПАРТИИ И НА ДАННЫХ САМОЙ ИГРЫ.
@@ -539,7 +868,7 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   /// двигает интервал; `srsTypingHint` — чем печать отличается), они уже
   /// переведены на все двенадцать языков, новых строк не заведено.
   List<DemoTrial> _demoTrials() {
-    final v = _vocab ?? const <VocabEntry>[];
+    final v = _wordBank?.core ?? const <VocabEntry>[];
     final w = v.firstWhere(
       (e) =>
           (e[_baseLang] ?? '').isNotEmpty && (e[_targetLang] ?? '').isNotEmpty,
@@ -565,13 +894,22 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_vocab == null) {
+    if (_wordBank == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     final card = _phase == VocabPhase.playing ? _queue[_idx] : null;
     return GameShell(
       title: L.t('vocabSrs'),
-      onBack: () => Navigator.of(context).maybePop(),
+      startAction: _phase == VocabPhase.config && !_autostart
+          ? GameStartAction(
+              key: const Key('vocab-start'),
+              onTap: _starting ? null : _start,
+            )
+          : null,
+      onBack: () {
+        _stopVoice();
+        Navigator.of(context).maybePop();
+      },
       onLesson: () => openDemoLesson(
         context,
         title: L.t('vocabSrs'),
@@ -608,50 +946,63 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
               ),
             ],
       field: (context, h) => switch (_phase) {
-        VocabPhase.config => _Config(
-          height: h,
-          langs: _langs,
-          targetLang: _targetLang,
-          newLimit: _newLimit,
-          direction: _direction,
-          stats: _stats,
-          runs: _runs.level,
-          bilingual: _bilingual,
-          second: _second,
-          bilingualDesc: _names.bilingualDesc(_targetLang, _second),
-          langLabel: _names.name,
-          secondChoices: [
-            for (final l in _langs)
-              if (l != _targetLang) l,
-          ],
-          onLang: (l) {
-            setState(() => _targetLang = l);
-            _refreshStats();
-          },
-          onLimit: (n) => setState(() => _newLimit = n),
-          onDirection: (d) => setState(() => _direction = d),
-          onBilingual: (v) => setState(() => _bilingual = v),
-          onSecond: (l) => setState(() => _wantedSecond = l),
-          onStart: _start,
+        VocabPhase.config => Material(
+          type: MaterialType.transparency,
+          child: _Config(
+            height: h,
+            langs: _langs,
+            targetLang: _targetLang,
+            newLimit: _newLimit,
+            direction: _direction,
+            stats: _stats,
+            runs: _runs.level,
+            bilingual: _bilingual,
+            autoPronounce: _autoPronounce,
+            pronounceBoth: _pronounceBoth,
+            second: _second,
+            bilingualDesc: _second == null
+                ? null
+                : _names.bilingualDesc(_targetLang, _second!),
+            langLabel: _names.name,
+            secondChoices: [
+              for (final l in _langs)
+                if (l != _targetLang) l,
+            ],
+            onLang: (l) =>
+                _changeSettings(() => _targetLang = l, affectsBank: true),
+            onLimit: (n) => _changeSettings(() => _newLimit = n),
+            onDirection: (d) =>
+                _changeSettings(() => _direction = d, affectsBank: true),
+            onBilingual: _second == null
+                ? null
+                : (v) =>
+                      _changeSettings(() => _bilingual = v, affectsBank: true),
+            onSecond: (l) =>
+                _changeSettings(() => _wantedSecond = l, affectsBank: true),
+            onAutoPronounce: (v) => _changeSettings(() => _autoPronounce = v),
+            onPronounceBoth: (v) => _changeSettings(() => _pronounceBoth = v),
+          ),
         ),
         VocabPhase.playing => _Card(
           height: h,
           card: card!,
           direction: _direction,
           targetLang: _langOf(card),
+          reveal: _reviewReady,
+          ipa: _ipa,
+          onSpeak: _speak,
+          voiceMessage: _picked == null || _reviewReady ? _voiceMessage : null,
         ),
-        VocabPhase.result => _Result(
-          height: h,
-          correct: _correct,
-          wrong: _wrong,
-          stats: _stats,
-          // 🔴 Денис 12.11: «Ещё раз» — сразу новая партия; настройки — отдельной кнопкой.
-          onAgain: _start,
-          onSettings: () => setState(() => _phase = VocabPhase.config),
-        ),
+        VocabPhase.result => _result(h),
       },
       toolbar: card == null
           ? null
+          : _reviewReady
+          ? FilledButton(
+              key: const Key('vocab-next-card'),
+              onPressed: _advanceCard,
+              child: Text(L.t('nextLabel')),
+            )
           : _direction == VocabDirection.typing
           ? AnswerMark(
               feedback: _feedback,
@@ -697,6 +1048,8 @@ class _Config extends StatelessWidget {
     required this.stats,
     required this.runs,
     required this.bilingual,
+    required this.autoPronounce,
+    required this.pronounceBoth,
     required this.second,
     required this.bilingualDesc,
     required this.secondChoices,
@@ -706,7 +1059,8 @@ class _Config extends StatelessWidget {
     required this.onDirection,
     required this.onBilingual,
     required this.onSecond,
-    required this.onStart,
+    required this.onAutoPronounce,
+    required this.onPronounceBoth,
   });
 
   final double height;
@@ -717,20 +1071,23 @@ class _Config extends StatelessWidget {
   final SrsStats? stats;
   final int runs;
   final bool bilingual;
+  final bool autoPronounce;
+  final bool pronounceBoth;
 
   /// Настоящий второй язык — уже не совпадающий ни с первым, ни с родным.
-  final String second;
+  final String? second;
 
   /// Подпись режима «два языка сразу» с подставленной парой.
-  final String bilingualDesc;
+  final String? bilingualDesc;
   final List<String> secondChoices;
   final String Function(String) langLabel;
   final void Function(String) onLang;
   final void Function(int) onLimit;
   final void Function(VocabDirection) onDirection;
-  final void Function(bool) onBilingual;
+  final void Function(bool)? onBilingual;
   final void Function(String) onSecond;
-  final VoidCallback onStart;
+  final ValueChanged<bool> onAutoPronounce;
+  final ValueChanged<bool> onPronounceBoth;
 
   @override
   Widget build(BuildContext context) {
@@ -738,6 +1095,7 @@ class _Config extends StatelessWidget {
     return SizedBox(
       height: height,
       child: ListView(
+        key: const Key('vocab-settings-scroll'),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
         children: [
           Text(L.t('vocabSrs'), style: Theme.of(context).textTheme.titleLarge),
@@ -781,10 +1139,12 @@ class _Config extends StatelessWidget {
             key: const Key('vocab-bilingual'),
             contentPadding: EdgeInsets.zero,
             title: Text(L.t('bilingualMode')),
-            subtitle: Text(
-              bilingualDesc,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+            subtitle: bilingualDesc == null
+                ? null
+                : Text(
+                    bilingualDesc!,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
             value: bilingual,
             onChanged: onBilingual,
           ),
@@ -799,6 +1159,35 @@ class _Config extends StatelessWidget {
               onChanged: onSecond,
             ),
           ],
+          SwitchListTile(
+            key: const Key('vocab-auto-pronounce'),
+            contentPadding: EdgeInsets.zero,
+            title: Text(L.t('srsAutoPronounce')),
+            subtitle: Text(
+              L.t('srsAutoPronounceDesc'),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            value: autoPronounce,
+            onChanged: onAutoPronounce,
+          ),
+          if (autoPronounce && bilingual)
+            Wrap(
+              spacing: 8,
+              children: [
+                ChoiceChip(
+                  key: const Key('vocab-pronounce-primary'),
+                  label: Text(L.t('srsPronouncePrimary')),
+                  selected: !pronounceBoth,
+                  onSelected: (_) => onPronounceBoth(false),
+                ),
+                ChoiceChip(
+                  key: const Key('vocab-pronounce-both'),
+                  label: Text(L.t('srsPronounceBoth')),
+                  selected: pronounceBoth,
+                  onSelected: (_) => onPronounceBoth(true),
+                ),
+              ],
+            ),
           const SizedBox(height: 16),
 
           Text(L.t('srsNewPerSession')),
@@ -842,12 +1231,6 @@ class _Config extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          FilledButton(
-            key: const Key('vocab-start'),
-            onPressed: onStart,
-            child: Text(L.t('start')),
-          ),
         ],
       ),
     );
@@ -860,12 +1243,51 @@ class _Card extends StatelessWidget {
     required this.card,
     required this.direction,
     required this.targetLang,
+    required this.reveal,
+    required this.ipa,
+    required this.onSpeak,
+    this.voiceMessage,
   });
 
   final double height;
   final CardRef card;
   final VocabDirection direction;
   final String targetLang;
+  final bool reveal;
+  final Map<String, Map<String, String>> ipa;
+  final void Function(String word, String lang) onSpeak;
+  final String? voiceMessage;
+
+  Widget _pronunciation(
+    BuildContext context,
+    String word,
+    String lang,
+    String slot,
+  ) {
+    if (!wordPronunciationLanguages.contains(lang)) {
+      return const SizedBox.shrink();
+    }
+    final text = wordIpaFor(ipa, lang, word);
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        if (text != null)
+          Text(
+            text,
+            key: Key('vocab-ipa-$slot'),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+        IconButton(
+          key: Key('vocab-speak-$slot'),
+          tooltip: '${L.t('srsListen')}: $word',
+          onPressed: () => onSpeak(word, lang),
+          icon: const Icon(Icons.volume_up_rounded),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -882,8 +1304,8 @@ class _Card extends StatelessWidget {
     return SizedBox(
       height: height,
       child: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -909,6 +1331,8 @@ class _Card extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
+              if (direction == VocabDirection.recognize)
+                _pronunciation(context, card.target, targetLang, 'first'),
               if (card.secondTarget != null) ...[
                 const SizedBox(height: 10),
                 Text(
@@ -924,92 +1348,40 @@ class _Card extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
+                _pronunciation(
+                  context,
+                  card.secondTarget!,
+                  card.secondLang!,
+                  'second',
+                ),
               ],
+              if (reveal) ...[
+                const SizedBox(height: 8),
+                Text(
+                  card.target,
+                  key: const Key('vocab-checked-word'),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                _pronunciation(context, card.target, targetLang, 'first'),
+              ],
+              if (voiceMessage case final message?)
+                Semantics(
+                  liveRegion: true,
+                  child: Text(message, textAlign: TextAlign.center),
+                ),
               const SizedBox(height: 12),
-              Text(
-                hint,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Result extends StatelessWidget {
-  const _Result({
-    required this.height,
-    required this.correct,
-    required this.wrong,
-    required this.stats,
-    required this.onAgain,
-    this.onSettings,
-  });
-
-  final double height;
-  final int correct;
-  final int wrong;
-  final SrsStats? stats;
-  final VoidCallback onAgain;
-  final VoidCallback? onSettings;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = stats;
-    return SizedBox(
-      height: height,
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                correct + wrong == 0 ? L.t('srsAllDone') : L.t('resultsTitle'),
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              if (correct + wrong > 0)
+              if (!reveal)
                 Text(
-                  '${L.t('hud_correct')}: $correct · ${L.t('hud_errors')}: $wrong',
-                ),
-              if (s != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  '${L.t('srsLearnedLabel')}: ${s.learned}/${s.totalWords}',
+                  hint,
+                  textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall,
-                ),
-                Text(
-                  // Прочерк честнее нуля: ноль читался бы как «повторять прямо сейчас».
-                  '${L.t('srsNextDue')}: ${s.nextDueAt == null ? '—' : _when(s.nextDueAt!)}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-              const SizedBox(height: 20),
-              FilledButton(
-                key: const Key('vocab-again'),
-                onPressed: onAgain,
-                child: Text(L.t('retry')),
-              ),
-              if (onSettings != null)
-                TextButton(
-                  key: const Key('vocab-to-settings'),
-                  onPressed: onSettings,
-                  child: Text(L.t('settings')),
                 ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  static String _when(int ms) {
-    final d = DateTime.fromMillisecondsSinceEpoch(ms);
-    return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}';
   }
 }
 

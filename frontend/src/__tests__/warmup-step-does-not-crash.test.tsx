@@ -23,11 +23,9 @@
  * а `str(...) as ScriptId` — приведение типа, а не проверка.
  */
 import React from 'react';
+import { темыИзФайла } from '@/src/services/chessWarmup';
 
-declare const __dirname: string;
 const TestRenderer = require('react-test-renderer');   // eslint-disable-line @typescript-eslint/no-require-imports
-const { readFileSync } = require('fs');                // eslint-disable-line @typescript-eslint/no-require-imports
-const { join } = require('path');                      // eslint-disable-line @typescript-eslint/no-require-imports
 
 /**
  * Параметры шага подставляются как параметры маршрута — так их видит экран.
@@ -53,18 +51,12 @@ afterEach(async () => {
   }
 });
 
-/** Разобрать `настройки: { ... }` из построителей шагов зарядки. */
+/** Exercise the same data as the live thematic workout, not a source-code regexp. */
 function шагиЗарядки(): { маршрут: string; параметры: Record<string, string> }[] {
-  const с = readFileSync(join(__dirname, '../services/chessWarmup.ts'), 'utf8');
-  const из: { маршрут: string; параметры: Record<string, string> }[] = [];
-  const re = /game_route:\s*'([^']+)'[^}]*?настройки:\s*\{([^}]*)\}/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(с))) {
-    const параметры: Record<string, string> = {};
-    for (const п of m[2].matchAll(/([A-Za-z_][\w]*)\s*:\s*'([^']*)'/g)) параметры[п[1]] = п[2];
-    if (Object.keys(параметры).length) из.push({ маршрут: m[1], параметры });
-  }
-  return из;
+  return темыИзФайла('words', {}).filter(x => x.настройки && Object.keys(x.настройки).length > 0)
+    .map(x => ({ маршрут: x.game_route, параметры: Object.fromEntries(
+      Object.entries(x.настройки!).map(([k, v]) => [k, String(v)]),
+    ) }));
 }
 
 async function открыть(путь: string) {

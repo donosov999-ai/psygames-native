@@ -10,6 +10,7 @@
  */
 
 import { soundOn } from '@/src/services/feedback';
+import { quietWarmupActive } from '@/src/services/warmupAudio';
 
 import { voiceUrl, letterVoiceUrl } from '@/src/services/voiceSamples';
 
@@ -116,14 +117,17 @@ function сыграть(url: string, rate: number): Promise<boolean> {
  * и правило скорости: имя буквы уже коротко, ускорять его нечем.
  */
 export async function speakLetterName(letter: string): Promise<void> {
+  if (quietWarmupActive()) return;
   const url = letterVoiceUrl(letter);
   if (url && await сыграть(url, 1)) return;
   return speak(letter, 'en', 1.2);           // записи нет — как раньше, синтезом
 }
 
 export async function speak(text: string, lang: string, rate = 0.9): Promise<void> {
+  if (quietWarmupActive()) return;
   const url = voiceUrl(text, lang);
   if (url && await сыграть(url, rate)) return;
+  if (quietWarmupActive()) return;
   return new Promise((resolve) => {
     const s = synth();
     if (!s) { resolve(); return; }

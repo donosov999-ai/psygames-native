@@ -8,6 +8,7 @@ import '../../shell/aux_action.dart';
 import '../../shell/board_solver.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
@@ -188,15 +189,16 @@ class _AnimalQueueScreenState extends State<AnimalQueueScreen> {
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
       ]),
       toolbar: _won
-          ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: FilledButton.icon(
+          ? LevelResult.adapt(ReportOutcomeAdapter(
+              layout: GameOutcomeLayout.inline,
+              title: L.t('done'),
+              action: GameResultAction(
                 key: const ValueKey('aq-next'),
-                onPressed: _next,
-                icon: const Icon(Icons.arrow_forward),
-                label: Text('${'★' * _stars} · ${L.t('level')} ${_ladder.level + 1}'),
+                onTap: _next,
+                icon: Icons.arrow_forward,
+                label: '${'★' * _stars} · ${L.t('level')} ${_ladder.level + 1}',
               ),
-            )
+            ))
           : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),

@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/cloze/model.dart';
 import 'package:psygames_flutter/games/cloze/screen.dart';
+import 'package:psygames_flutter/games/languages/fresh_pool.dart';
+import 'package:psygames_flutter/games/languages/json_asset.dart';
 import 'package:psygames_flutter/shell/answer_feedback.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
+import 'package:psygames_flutter/shell/voice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// ПАРТИЯ В CLOZE НАЖАТИЯМИ. Верный ответ выводится из ДАННЫХ (фраза → её answerEn
@@ -49,6 +52,9 @@ void main() {
     return phrases['en']!.firstWhere((p) => p.text == text).answerEn;
   }
 
+  final reviewNext = find.byKey(const Key('cloze-next'));
+  final listen = find.byKey(const Key('cloze-listen-phrase'));
+
   testWidgets('🔴 все верно в лимит — уровень пройден и партия ушла одним отчётом', (tester) async {
     final sent = <Map<String, dynamic>>[];
     SessionReport.sink = (j) async => sent.add(jsonDecode(j) as Map<String, dynamic>);
@@ -66,16 +72,21 @@ void main() {
       await tester.pump();
       expect(find.ancestor(of: option, matching: find.byKey(const Key('answer-mark-good'))), findsOneWidget);
       await tester.pump(AnswerFeedback.hold);
+      expect(reviewNext, findsOneWidget);
+      now += 6000; // Reading the review or listening is not timed gameplay.
+      await tester.tap(reviewNext);
+      await tester.pump();
     }
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.byKey(const Key('level-result')), findsOneWidget, reason: 'итог — общий каркаса');
     expect(state.get(SharedState.levelKey('cloze', 'nzt48')), '2');
     expect(sent, hasLength(1));
     expect(sent.single['game_type'], 'cloze');
+    expect(sent.single['time_seconds'], total, reason: 'review time is not included');
     expect((sent.single['details'] as Map)['time_limit_ms'], clozeLevelParams(1).timeLimitMs);
   });
 
-  testWidgets('🔴 ошибка: выбранное красное, верное зелёное, переход через 600 мс', (tester) async {
+  testWidgets('ошибка: после обратной связи показывается верное слово, не выбранное', (tester) async {
     var now = 1000;
     await tester.pumpWidget(app(() => now));
     await tester.pumpAndSettle();
@@ -92,6 +103,9 @@ void main() {
     expect(find.ancestor(of: picked, matching: find.byKey(const Key('answer-mark-bad'))), findsOneWidget);
     expect(find.ancestor(of: correct, matching: find.byKey(const Key('answer-mark-good'))), findsOneWidget);
     await tester.pump(AnswerFeedback.hold);
+    expect(tester.widget<Text>(find.byKey(const Key('cloze-reviewed-word'))).data, answer);
+    await tester.tap(reviewNext);
+    await tester.pump();
     expect(find.text('2/${clozeLevelParams(1).rounds}'), findsOneWidget);
   });
 
@@ -112,7 +126,10 @@ void main() {
     expect(find.ancestor(of: correct, matching: find.byKey(const Key('answer-mark-good'))), findsOneWidget);
     expect(find.byKey(const Key('answer-mark-bad')), findsNothing);
     await tester.pump(const Duration(milliseconds: 1300));
-    expect(find.text('2/${clozeLevelParams(1).rounds}'), findsOneWidget, reason: 'дальше само');
+    expect(reviewNext, findsOneWidget, reason: 'разбор доступен и после таймаута');
+    await tester.tap(reviewNext);
+    await tester.pump();
+    expect(find.text('2/${clozeLevelParams(1).rounds}'), findsOneWidget);
   });
 
   testWidgets('шаг зарядки: сам стартует, без лимита времени, число раундов из адреса', (tester) async {
@@ -123,7 +140,54 @@ void main() {
     expect(find.byKey(const Key('cloze-start')), findsNothing);
     expect(find.text('1/4'), findsOneWidget);
     expect(find.byIcon(Icons.timer_outlined), findsNothing, reason: 'шагу зарядки лимит не ставится');
+    await tester.tap(find.byKey(Key('cloze-option-${answerOf(tester)}')));
+    await tester.pump();
+    await tester.pump(AnswerFeedback.hold);
+    expect(find.text('2/4'), findsOneWidget, reason: 'зарядка продолжает автоматически');
+    expect(reviewNext, findsNothing);
+    expect(listen, findsNothing);
   });
+
+  for (final (language, locale) in [('en', 'en-US'), ('es', 'es-ES')]) {
+    testWidgets('$language: IPA and whole-sentence speech are available only after answering', (tester) async {
+      final backend = _ClozeVoiceProbe();
+      final voice = VoiceLayer(backend: backend, soundOn: () => true);
+      GamePreset.set({'targetLang': language});
+      await tester.pumpWidget(MaterialApp(home: ClozeScreen(state: state, clock: () => 1000, voice: voice)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('cloze-start')));
+      await tester.pump();
+      final prompt = tester.widget<Text>(find.byKey(const Key('cloze-text'))).data!;
+      final ipaBadge = find.byKey(const Key('cloze-ipa'));
+      expect(ipaBadge, findsNothing);
+      expect(listen, findsNothing);
+      expect(backend.spoken, isEmpty);
+
+      final bank = await loadJsonAsset('assets/vocab/cloze-phrases.json') as Map;
+      final extra = await loadJsonAsset('assets/vocab/cloze-phrases-expansion.json') as List;
+      final answerKey = [
+        for (final row in bank[language] as List) if (row['text'] == prompt) row['answerEn'],
+        for (final row in extra) if (row[language] == prompt) row['answerEn'],
+      ].single;
+      final rows = await loadJsonAsset('assets/vocab/translation-vocab.json') as List;
+      final target = rows.singleWhere((row) => row['en'] == answerKey)[language] as String;
+      final completed = prompt.replaceFirst('___', target);
+      await tester.tap(find.byKey(Key('cloze-option-$target')));
+      await tester.pump();
+      await tester.pump(AnswerFeedback.hold);
+      expect(find.text(completed), findsOneWidget);
+      expect(ipaBadge, findsOneWidget);
+      expect(find.byIcon(Icons.timer_outlined), findsNothing);
+      expect(backend.spoken, isEmpty, reason: 'speech is on demand');
+      await tester.tap(listen);
+      await tester.pumpAndSettle();
+      expect(backend.spoken, [(completed, locale)]);
+      await tester.tap(reviewNext);
+      await tester.pump();
+      expect(find.text('2/6'), findsOneWidget);
+      expect(listen, findsNothing);
+    });
+  }
 
   testWidgets('разбор до партии — фраза корпуса и её ответ', (tester) async {
     await tester.pumpWidget(app(() => 1000));
@@ -132,4 +196,44 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('I like ___ now'), findsWidgets);
   });
+
+  testWidgets('native game shows new phrases even if the original 60 were seen', (tester) async {
+    final base = await loadJsonAsset('assets/vocab/cloze-phrases.json') as Map;
+    final extra = await loadJsonAsset('assets/vocab/cloze-phrases-expansion.json') as List;
+    for (final lang in ['en', 'es']) {
+      await writeSeen(state, clozeSeenPool(lang), [
+        for (final row in base[lang] as List) row['text'] as String,
+      ]);
+    }
+    GamePreset.set({'wu': '1', 'targetLang': 'en', 'lang2': 'es', 'bilingual': '1', 'rounds': '4'});
+    await tester.pumpWidget(MaterialApp(home: ClozeScreen(state: state, clock: () => 1000)));
+    await tester.pumpAndSettle();
+    final text = tester.widget<Text>(find.byKey(const Key('cloze-text'))).data;
+    expect([
+      for (final row in extra) ...[row['en'], row['es']],
+    ], contains(text));
+    expect(find.text('1/4'), findsOneWidget);
+    for (final lang in ['en', 'es']) {
+      expect(readSeen(state, clozeSeenPool(lang)).length, greaterThan(60));
+    }
+  });
+}
+
+class _ClozeVoiceProbe implements VoiceBackend {
+  final spoken = <(String, String)>[];
+
+  @override
+  Future<void> cancel() async {}
+
+  @override
+  Future<bool> hasSystemVoice(String bcp47) async => true;
+
+  @override
+  Future<bool> playUrl(String url, double rate) async => false;
+
+  @override
+  Future<bool> speakSystem(String text, String bcp47, double rate) async {
+    spoken.add((text, bcp47));
+    return true;
+  }
 }

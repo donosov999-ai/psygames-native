@@ -9,6 +9,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -421,35 +422,39 @@ class _Field extends StatelessWidget {
           ],
         );
       case StopSignalPhase.done:
-        return _Centered(
+        return SizedBox(
           height: height,
-          children: [
-            Text(
-              passed
-                  ? L.t('levelDone').replaceAll('{n}', '${game.level}')
-                  : L.t('sameLevelRetry'),
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
+          child: LevelResult.adapt(
+            LevelOutcomeAdapter(
+              passed: passed,
+              playedLevel: game.level,
+              nextKey: nextLevel == null ? null : const Key('level-next'),
+              playNext: nextLevel == null ? onAgain : onContinue,
+              nextLabel: nextLevel == null
+                  ? L.t('retry')
+                  : L.f('nextLevelBtn', {'n': '$nextLevel'}),
+              auto: nextLevel != null,
+              details: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${L.t('hud_correct')}: ${game.hits} · ${L.t('hud_held')}: ${game.inhibited}',
+                  ),
+                  Text(
+                    '${L.t('hud_missed')}: ${game.misses} · ${L.t('hud_errors')}: ${game.failedStops}',
+                  ),
+                  Text(
+                    game.meanGoRtMs == null
+                        ? '${text.t('goRtLabel')}: —'
+                        : '${text.t('goRtLabel')}: ${game.meanGoRtMs} ${L.t('msShort')}',
+                  ),
+                  const SizedBox(height: 12),
+                  _ssrtBlock(context),
+                  BossOutcomeLine(boss),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text('${L.t('hud_correct')}: ${game.hits} · ${L.t('hud_held')}: ${game.inhibited}'),
-            Text('${L.t('hud_missed')}: ${game.misses} · ${L.t('hud_errors')}: ${game.failedStops}'),
-            Text(game.meanGoRtMs == null
-                ? '${text.t('goRtLabel')}: —'
-                : '${text.t('goRtLabel')}: ${game.meanGoRtMs} ${L.t('msShort')}'),
-            const SizedBox(height: 12),
-            _ssrtBlock(context),
-            BossOutcomeLine(boss),
-            const SizedBox(height: 16),
-            if (nextLevel != null)
-              FilledButton(
-                key: const Key('level-next'),
-                onPressed: onContinue,
-                child: Text(L.t('nextLevelBtn').replaceAll('{n}', '$nextLevel')),
-              )
-            else
-              FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
-          ],
+          ),
         );
       case StopSignalPhase.playing:
         return TapLatency(

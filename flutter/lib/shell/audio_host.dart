@@ -11,10 +11,11 @@ import 'voice_system.dart';
 /// держит по одному плееру на голос и на шум.
 ///
 /// Включён ли звук — как в вебе (`feedback.ts`, `soundOn`): тумблер человека
-/// (`psygames_sound_enabled`, по умолчанию включён) и тихий шаг зарядки (`calm`).
+/// (`psygames_sound_enabled`, по умолчанию включён), темп `calm` и тишина
+/// зарядки `quiet`, которая не меняет темп или личную настройку.
 bool appSoundOn(SharedState s) {
   final v = s.get('psygames_sound_enabled');
-  return (v == null || v == 'true') && !GamePreset.isCalm;
+  return (v == null || v == 'true') && !GamePreset.isCalm && !GamePreset.isQuiet;
 }
 
 class AudioHost {

@@ -140,6 +140,22 @@ void main() {
     expect(solved, '1', reason: 'собранное слово обязано попасть в счётчик');
   });
 
+  testWidgets('a completed anagrams level shows victory before starting the next round', (tester) async {
+    await _boot(tester, state);
+    for (var i = 0; i < 20 && find.byType(AnagramBoard).evaluate().isNotEmpty; i++) {
+      await _spell(tester, _board(tester).target);
+      await tester.pumpAndSettle();
+    }
+    expect(find.text(L.f('levelDone', {'n': '1'})), findsOneWidget);
+    expect(state.get('psygames_anagrams_level_nzt48'), '2');
+    final next = find.byKey(const Key('level-result-next'));
+    await tester.tap(next);
+    await tester.tap(next);
+    await tester.pumpAndSettle();
+    expect(find.byType(AnagramBoard), findsOneWidget);
+    expect(state.get('psygames_anagrams_level_nzt48'), '2');
+  });
+
   testWidgets('🔴 «Сбросить» снимает набранное, а «Проверить» не принимает мусор', (tester) async {
     await _boot(tester, state);
     await tester.tap(find.byKey(const ValueKey('letter-0')));

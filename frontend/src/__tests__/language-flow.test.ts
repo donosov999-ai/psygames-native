@@ -22,7 +22,7 @@ const читать = (rel: string): string =>
   require('fs').readFileSync(require('path').join(__dirname, rel), 'utf8') as string;
 
 const уровни = { vocab_srs: 4, cloze: 7, semantic_sort: 2, lexical_decision: 9, anagrams: 5,
-  word_pairs: 6, listening_span: 3 };
+  word_pairs: 6, phonemic_fluency: 3 };
 
 describe('языковой поток', () => {
   it('языков ровно два — английский и испанский (решение Дениса 08.09.2026)', () => {
@@ -87,7 +87,7 @@ describe('языковой поток', () => {
      */
     expect(т.slice(0, 7).map((x) => `${x.game_id}=${x.уровень}`)).toEqual([
       'vocab_srs=4', 'cloze=7', 'semantic_sort=2', 'lexical_decision=9',
-      'word_pairs=6', 'anagrams=5', 'listening_span=3',
+      'word_pairs=6', 'anagrams=5', 'phonemic_fluency=3',
     ]);
     // И дальше уровень не теряется ни на одном из кругов.
     const лестница: Record<string, number> = уровни;
@@ -116,7 +116,7 @@ describe('языковой поток', () => {
 
   it('ключи уровней перечислены и без дублей', () => {
     expect([...КЛЮЧИ_УРОВНЕЙ].sort())
-      .toEqual(['anagrams', 'cloze', 'lexical_decision', 'listening_span', 'semantic_sort',
+      .toEqual(['anagrams', 'cloze', 'lexical_decision', 'phonemic_fluency', 'semantic_sort',
         'vocab_srs', 'word_pairs']);
   });
 
@@ -407,7 +407,7 @@ describe('языковой поток', () => {
     const пути: Record<string, string> = {
       vocab_srs: 'vocab-srs', cloze: 'cloze', semantic_sort: 'semantic-sort',
       lexical_decision: 'lexical-decision', anagrams: 'anagrams',
-      word_pairs: 'word-pairs', listening_span: 'listening-span',
+      word_pairs: 'word-pairs', phonemic_fluency: 'phonemic-fluency',
     };
     const немые: string[] = [];
     for (const g of new Set(игрыПодряд())) {

@@ -4,8 +4,10 @@ import 'level_ladder.dart';
 import 'settings_screen.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'feedback_shot_upload.dart';
 
 import '../games/corsi/screen.dart';
 import '../games/n_back/screen.dart';
@@ -872,6 +874,35 @@ class _HybridAppState extends State<HybridApp> {
 
   /// Лист отзыва поверх всего, пока он открыт; null — закрыт.
   Route<void>? _feedbackRoute;
+  bool _uploadingFeedbackShot = false;
+
+  Future<void> _uploadFeedbackShot(Map<dynamic, dynamic> message) async {
+    if (!Platform.isIOS || _feedbackRoute?.isActive != true || _uploadingFeedbackShot) return;
+    final upload = FeedbackShotUpload.parse(message);
+    if (upload == null) return;
+    _uploadingFeedbackShot = true;
+    String? result;
+    try {
+      final current = Uri.tryParse(await _c.currentUrl() ?? '');
+      final local = Uri.parse(widget.server.origin);
+      if (!mounted || _feedbackRoute?.isActive != true ||
+          current == null || current.scheme != local.scheme ||
+          current.host != local.host || current.port != local.port) {
+        return;
+      }
+      result = await upload.send();
+    } catch (_) {
+      // The JS request also has a deadline (e.g. the page was torn down).
+    } finally {
+      _uploadingFeedbackShot = false;
+    }
+    if (mounted && result != null) {
+      await _c.runJavaScript(
+        'window.__psyFeedbackShotResult && window.__psyFeedbackShotResult('
+        '${jsonEncode(upload.id)},${jsonEncode(result)});',
+      ).catchError((Object _) {});
+    }
+  }
 
   /// Страница уже сказала «открыто» на этот лист: только после этого её «закрыто» закрывает лист.
   /// Иначе старая модель (`open: false`, пришедшая до `open`) захлопнула бы лист сразу.
@@ -946,6 +977,10 @@ class _HybridAppState extends State<HybridApp> {
     // Делегат оставлен: он нужен для внешних ссылок и первой загрузки.
     try {
       final m = jsonDecode(message);
+      if (m is Map && m['op'] == 'feedbackShotUpload') {
+        unawaited(_uploadFeedbackShot(m));
+        return;
+      }
       // Модель экрана зарядки, который рисуем мы (`warmup_screens.dart`).
       if (WarmupUi.accept(m)) return;
       // Ответ веб-питомца нативному гуляке (`walking_pet.dart`).
@@ -1280,6 +1315,7 @@ class _HybridAppState extends State<HybridApp> {
     }.toList()
       ..sort();
     return 'window.__psyHostNativeRoutes=${jsonEncode(routes)};'
+        'window.__psyNativeFeedbackShot=${Platform.isIOS};'
         'window.__psyMusicNativeRoute=${jsonEncode(_nativeOver == null || _openedRoute == null ? null : {'token': _nativeOver, 'route': _openedRoute})};'
         // Страница перезагрузилась под открытым нативным экраном — метка возвращается (5f9d4ea0).
         'window.__psyNativeOver=${jsonEncode(_nativeOver)};'

@@ -74,9 +74,9 @@ void main() {
     final center = find.byKey(const Key('answer-feedback-center-good'));
     expect(center, findsOneWidget, reason: 'не только цвет — большой значок по центру экрана');
     expect(t.getCenter(center), const Offset(400, 300));
-    expect(t.getSize(center), const Size.square(136));
+    expect(t.getSize(center), const Size.square(68));
     final check = find.descendant(of: center, matching: find.byIcon(Icons.check_rounded));
-    expect(t.widget<Icon>(check).size, 96);
+    expect(t.widget<Icon>(check).size, 48);
     expect(f.busy, isTrue, reason: 'пока горит — новые ответы не принимаются');
     expect(haptics, ['HapticFeedbackType.selectionClick']);
     await t.pump(const Duration(milliseconds: 590));

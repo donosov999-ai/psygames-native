@@ -17,8 +17,12 @@ const APP = path.resolve(SRC, '../app');
 const read = (p: string) => fs.readFileSync(p, 'utf-8') as string;
 
 function playlistGameIds(): string[] {
-  const blob = read(path.join(SRC, 'services/warmup.ts')) + read(path.join(SRC, 'constants/profiles.ts'));
-  return [...new Set([...blob.matchAll(/game_id:\s*'([a-z0-9_]+)'/g)].map((m) => m[1]))].sort();
+  const json = JSON.parse(read(path.join(SRC, 'constants/defaultPlaylists.json')));
+  const fixed = Object.values(json.профили as Record<string, { утро?: unknown; вечер?: unknown }>)
+    .map(p => [p.утро, p.вечер]);
+  const запас = { ...json.зарядки.запас, оценка: undefined };
+  const blob = JSON.stringify([fixed, запас]);
+  return [...new Set([...blob.matchAll(/"game_id":"([a-z0-9_]+)"/g)].map((m) => m[1]))].sort();
 }
 
 function routeById(): Record<string, string> {

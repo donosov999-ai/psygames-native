@@ -18,9 +18,7 @@
 import React from 'react';
 import { WarmupCard } from '@/src/components/WarmupCard';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
-import {
-  ШАГ_АНАГРАММЫ_СЕК, ШАГ_ФИЛВОРДЫ_СЕК, ШАГ_БЕГЛОСТЬ_СЕК,
-} from '@/src/services/chessWarmup';
+import { темыИзФайла } from '@/src/services/chessWarmup';
 
 export const АКЦЕНТ_СЛОВА = '#8b5cf6';
 
@@ -30,12 +28,7 @@ export function WordsWarmup() {
   const корректура = usePersistentLevel('proofreading');
   return (
     <WarmupCard
-      темы={[
-        { game_id: 'anagrams', game_route: '/games/anagrams', секунд: ШАГ_АНАГРАММЫ_СЕК, уровень: анаграммы.level },
-        { game_id: 'proofreading', game_route: '/games/proofreading', секунд: ШАГ_ФИЛВОРДЫ_СЕК, уровень: корректура.level, настройки: { mode: 'fillwords' } },
-        // «Беглость речи» без лестницы: там круг задаётся длительностью, а не уровнем.
-        { game_id: 'phonemic_fluency', game_route: '/games/phonemic-fluency', секунд: ШАГ_БЕГЛОСТЬ_СЕК, уровень: 1 },
-      ]}
+      темы={темыИзФайла('words', { anagrams: анаграммы.level, proofreading: корректура.level })}
       titleKey="wordsWarmupTitle"
       descKey="wordsWarmupDesc"
       ярлык="слова"

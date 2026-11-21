@@ -116,6 +116,7 @@ jobs:
           node tools/embed-hubs.mjs > /dev/null
           node tools/embed-puzzle-modes.mjs > /dev/null
           node tools/embed-puzzle-routes.mjs > /dev/null
+          node tools/audit-result-frames.mjs --check
           node tools/embed-sources.mjs > /dev/null
           node tools/embed-whats-new.mjs > /dev/null
           node --test tools/embed-whats-new.test.mjs

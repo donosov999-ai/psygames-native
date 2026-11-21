@@ -31,6 +31,53 @@ import 'l10n.dart';
 import 'shared_level_store.dart' show decodeLevelStars, encodeLevelStars;
 import 'shared_state.dart';
 
+/// Compact victory summary. Opening it leads to the same full replay map as
+/// the game header, not a second copy of the path or a mandatory extra screen.
+class VictoryLevelTrail extends StatelessWidget {
+  const VictoryLevelTrail({
+    super.key,
+    required this.played,
+    required this.current,
+    required this.stars,
+    required this.openMap,
+  });
+
+  final int played;
+  final int current;
+  final int stars;
+  final VoidCallback openMap;
+
+  @override
+  Widget build(BuildContext context) {
+    final roles = GameColors.of(context);
+    return OutlinedButton(
+      key: const Key('level-result-open-map'),
+      onPressed: openMap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            const Icon(Icons.map_outlined, size: 20),
+            Text(L.t('levelMap')),
+            Text(
+              '$played ${'★' * stars}',
+              style: TextStyle(color: roles.reward),
+            ),
+            if (current != played) ...[
+              const Icon(Icons.chevron_right_rounded, size: 19),
+              Text('$current', key: const Key('level-result-map-current')),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 String _starsKey(SharedState state, String gameId) => '${SharedState.prefix}${gameId}_stars_${state.activeProfile}';
 
 /// Звёзды по уровням (общая запись с вебом, `levelStars.ts`); пусто — побед со звёздами не было.

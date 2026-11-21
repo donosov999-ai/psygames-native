@@ -19,6 +19,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/setup_scroll.dart';
 import '../../shell/shared_level_store.dart';
@@ -391,33 +392,41 @@ class _Field extends StatelessWidget {
           ],
         );
       case InhibitionPhase.done:
-        return _Centered(
+        return SizedBox(
           height: height,
-          children: [
-            Text(
-              passed ? L.t('levelDone').replaceAll('{n}', '${game.level}') : L.t('sameLevelRetry'),
-              key: const Key('inhibition-verdict'),
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
+          child: LevelResult.adapt(
+            LevelOutcomeAdapter(
+              passed: passed,
+              playedLevel: game.level,
+              titleKey: const Key('inhibition-verdict'),
+              nextKey: nextLevel == null ? null : const Key('level-next'),
+              playNext: nextLevel == null ? onAgain : onContinue,
+              nextLabel: nextLevel == null
+                  ? L.t('retry')
+                  : L.f('nextLevelBtn', {'n': '$nextLevel'}),
+              auto: nextLevel != null,
+              details: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${L.t('hud_correct')}: ${game.hits} · ${L.t('hud_held')}: ${game.correctRejections}',
+                  ),
+                  Text(
+                    game.meanRtMs == null
+                        ? '${L.t('meanReaction')}: —'
+                        : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}',
+                  ),
+                  BossOutcomeLine(boss),
+                  const SizedBox(height: 8),
+                  Text(
+                    L.t('inhibPass'),
+                    style: Theme.of(context).textTheme.bodySmall,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text('${L.t('hud_correct')}: ${game.hits} · ${L.t('hud_held')}: ${game.correctRejections}'),
-            Text(game.meanRtMs == null
-                ? '${L.t('meanReaction')}: —'
-                : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}'),
-            BossOutcomeLine(boss),
-            const SizedBox(height: 8),
-            Text(L.t('inhibPass'), style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            if (nextLevel != null)
-              FilledButton(
-                key: const Key('level-next'),
-                onPressed: onContinue,
-                child: Text(L.t('nextLevelBtn').replaceAll('{n}', '$nextLevel')),
-              )
-            else
-              FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
-          ],
+          ),
         );
       case InhibitionPhase.playing:
         return SizedBox(
@@ -503,23 +512,6 @@ class InhibitionStimulus extends StatelessWidget {
         );
     }
   }
-}
-
-class _Centered extends StatelessWidget {
-  const _Centered({required this.height, required this.children});
-  final double height;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-        height: height,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: children),
-          ),
-        ),
-      );
 }
 
 class _GoButton extends StatelessWidget {

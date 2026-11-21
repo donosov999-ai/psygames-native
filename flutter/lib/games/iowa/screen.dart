@@ -19,6 +19,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -191,18 +192,32 @@ class _Field extends StatelessWidget {
         );
       case IowaPhase.done:
         final r = game.result;
-        return _Centered(
-          height: height,
+        final details = Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Ни «пройдено», ни «ещё раз»: у этой пробы нет исхода, есть числа.
-            Text('${L.t('hud_bank')}: ${r.finalBank}',
-                key: const Key('iowa-bank'), style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text('${L.t('hud_goodDecks')}: ${r.advantageous} · ${L.t('hud_badDecks')}: ${r.disadvantageous}'),
-            Text('${L.t('trialsLabel')}: ${r.nTrials}', key: const Key('iowa-result-trials')),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onAgain, child: Text(L.t('start'))),
+            Text(
+              '${L.t('hud_goodDecks')}: ${r.advantageous} · ${L.t('hud_badDecks')}: ${r.disadvantageous}',
+            ),
+            Text(
+              '${L.t('trialsLabel')}: ${r.nTrials}',
+              key: const Key('iowa-result-trials'),
+            ),
           ],
+        );
+        return SizedBox(
+          height: height,
+          child: LevelResult.adapt(
+            ReportOutcomeAdapter(
+              title: '${L.t('hud_bank')}: ${r.finalBank}',
+              titleKey: const Key('iowa-bank'),
+              action: GameResultAction(
+                label: L.t('start'),
+                icon: Icons.replay,
+                onTap: onAgain,
+              ),
+              details: details,
+            ),
+          ),
         );
       case IowaPhase.playing:
         final p = game.pending;

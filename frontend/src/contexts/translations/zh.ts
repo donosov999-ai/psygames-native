@@ -806,6 +806,8 @@ const t: Record<string, string> = {
   "srsDueLabel": "待复习",
   "srsOwnLabel": "自定义",
   "srsAllDone": "今天的任务完成了！",
+  "srsListen": "收听",
+  "srsPronunciationUnavailable": "此设备无法播放发音。",
   "srsNextDue": "下次复习",
   "srsNew": "新",
   // v1.29.0: lexical decision + cloze + word sort (Polyglot)

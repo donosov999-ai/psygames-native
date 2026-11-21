@@ -15,6 +15,7 @@ import '../../shell/generator/shadow.dart';
 import '../../shell/generator/store.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -725,11 +726,9 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
           onPressed: _won || _lost ? null : _solve,
         ),
       ]),
-      toolbar: _Toolbar(
+      toolbar: _won || _lost ? _outcomeBar() : _Toolbar(
         mode: _mode,
         params: step.params,
-        won: _won,
-        lost: _lost,
         reviewAfterLoss: _reviewAfterLoss,
         status: _status,
         moved: (_engine?.statePos ?? 0) > _dealPos,
@@ -738,14 +737,56 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
         onArrow: _arrow,
         onDiagonal: _diagonal,
         onPick: _pick,
-        onNext: () {
-          _deal();
-        },
       ),
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _deal),
       ],
     );
+  }
+
+  Widget _outcomeBar() {
+    if (_lost) {
+      final moves = RegExp(r'(\d+)\s*/\s*(\d+)').firstMatch(_status);
+      final summary = _mode.engineName == 'Flood' && moves != null
+          ? L.f('puzzleFloodLimit', {'moves': moves.group(1)!, 'limit': moves.group(2)!})
+          : L.t('puzzleRoundLost');
+      return LevelResult.adapt(
+        key: const Key('puzzle-loss'),
+        ReportOutcomeAdapter(
+          layout: GameOutcomeLayout.inline,
+          title: summary,
+          action: GameResultAction(
+            key: const Key('puzzle-retry'),
+            label: L.t('retry'),
+            icon: Icons.refresh,
+            onTap: _deal,
+          ),
+        ),
+      );
+    }
+    if (_reviewAfterLoss || _solverUsed || GamePreset.isWarmup) {
+      return LevelResult.adapt(ReportOutcomeAdapter(
+        layout: GameOutcomeLayout.inline,
+        title: _reviewAfterLoss ? L.t('puzzleLossReview') : L.t('done'),
+        action: GameResultAction(
+          key: const Key('next'),
+          label: _reviewAfterLoss ? L.t('retry') : L.t('puzzleNextLevel'),
+          icon: Icons.arrow_forward,
+          onTap: _deal,
+        ),
+      ));
+    }
+    final advanced = _ladder.level > _dealLevel;
+    return LevelResult.adapt(LevelOutcomeAdapter(
+      layout: GameOutcomeLayout.inline,
+      passed: true,
+      playedLevel: _dealLevel,
+      nextKey: const Key('next'),
+      playNext: _deal,
+      nextLabel: advanced ? L.t('puzzleNextLevel') : L.t('retry'),
+      waitForWin: advanced,
+      auto: advanced,
+    ));
   }
 }
 
@@ -778,13 +819,11 @@ int puzzleKeyCount(PuzzleMode mode, String params) {
   return first == null ? 9 : int.parse(first.group(1)!);
 }
 
-/// Липкий низ: ряд клавиш режима (у «Нежити» они подписаны чудовищами) и победа.
+/// Липкий низ: ряд клавиш режима (у «Нежити» они подписаны чудовищами).
 class _Toolbar extends StatelessWidget {
   const _Toolbar({
     required this.mode,
     required this.params,
-    required this.won,
-    required this.lost,
     required this.reviewAfterLoss,
     required this.status,
     this.moved = true,
@@ -793,15 +832,12 @@ class _Toolbar extends StatelessWidget {
     required this.onArrow,
     required this.onDiagonal,
     required this.onPick,
-    required this.onNext,
   });
 
   final PuzzleMode mode;
 
   /// Параметры ТЕКУЩЕЙ ступени — по ним считается ряд клавиш.
   final String params;
-  final bool won;
-  final bool lost;
   final bool reviewAfterLoss;
   final String status;
 
@@ -814,7 +850,6 @@ class _Toolbar extends StatelessWidget {
   final void Function(int side) onArrow;
   final void Function(String digit) onDiagonal;
   final void Function({bool second}) onPick;
-  final VoidCallback onNext;
 
   int get _keys => puzzleKeyCount(mode, params);
 
@@ -827,14 +862,14 @@ class _Toolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final panel = _main(context);
-    final main = reviewAfterLoss && !won && !lost
+    final main = reviewAfterLoss
         ? Column(mainAxisSize: MainAxisSize.min, children: [
             Padding(padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(L.t('puzzleLossReview'), textAlign: TextAlign.center)),
             panel,
           ])
         : panel;
-    if (won || lost || (!mode.arrows && !mode.pick)) return main;
+    if (!mode.arrows && !mode.pick) return main;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -845,36 +880,6 @@ class _Toolbar extends StatelessWidget {
   }
 
   Widget _main(BuildContext context) {
-    if (lost) {
-      final moves = RegExp(r'(\d+)\s*/\s*(\d+)').firstMatch(status);
-      final summary = mode.engineName == 'Flood' && moves != null
-          ? L.f('puzzleFloodLimit', {'moves': moves.group(1)!, 'limit': moves.group(2)!})
-          : L.t('puzzleRoundLost');
-      return Padding(
-        key: const Key('puzzle-loss'),
-        padding: const EdgeInsets.all(12),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(summary, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: 8),
-          FilledButton.icon(key: const Key('puzzle-retry'), onPressed: onNext,
-              icon: const Icon(Icons.refresh), label: Text(L.t('retry'))),
-        ]),
-      );
-    }
-    if (won) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          if (reviewAfterLoss) Text(L.t('puzzleLossReview'), textAlign: TextAlign.center),
-          FilledButton.icon(
-          key: const Key('next'),
-          onPressed: onNext,
-          icon: const Icon(Icons.arrow_forward),
-          label: Text(reviewAfterLoss ? L.t('retry') : L.t('puzzleNextLevel')),
-        ),
-        ]),
-      );
-    }
     if (!mode.digits) {
       // Singles: ввод только тычками, ряд клавиш был бы обманом.
       // Там, где касание не делает ничего, — подсказка «тяни» (веб, `ТОЛЬКО_ПРОТЯЖКА`):

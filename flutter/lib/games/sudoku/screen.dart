@@ -12,6 +12,8 @@ import '../../shell/game_clock.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/boss_round.dart';
 import '../../shell/l10n.dart';
+import '../../shell/game_preset.dart';
+import '../../shell/level_result.dart';
 import 'keypad.dart';
 import 'leave_guard.dart';
 import 'marks.dart';
@@ -2033,6 +2035,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
               zero: _isSchro,
               won: _won,
               lost: _lost,
+              playedLevel: _won && !_assisted && !_lifeSpent ? _endLevel : null,
               offer: _deathOffer
                   ? SecondLifeOffer(
                       left: _wallet.count(AbilityWallet.secondLife),
@@ -2683,6 +2686,7 @@ class _Toolbar extends StatelessWidget {
     required this.onDigit,
     required this.onErase,
     required this.onNext,
+    this.playedLevel,
     this.nextLabel,
     this.onRepeat,
     required this.paint,
@@ -2710,6 +2714,7 @@ class _Toolbar extends StatelessWidget {
   final void Function(int) onDigit;
   final VoidCallback onErase;
   final VoidCallback onNext;
+  final int? playedLevel;
   final String? nextLabel;
 
   /// «Ещё раз эту же» — только у пилота и только после проигрыша: та же трудность,
@@ -2743,51 +2748,32 @@ class _Toolbar extends StatelessWidget {
     final o = offer;
     if (o != null) return o;
     if (won || lost) {
-      final next = FilledButton.icon(
-        key: const Key('next'),
-        onPressed: onNext,
-        icon: Icon(won ? Icons.arrow_forward : Icons.refresh),
-        label: Text(nextLabel ?? (won ? L.t('sdkNextLevel') : L.t('retry'))),
-      );
       final repeat = onRepeat;
       final note = won ? (wonNote ?? lifeNote) : lostNote;
-      final Widget body = (lost && repeat != null)
-            ? Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  next,
-                  OutlinedButton.icon(
-                    key: const Key('repeat'),
-                    onPressed: repeat,
-                    icon: const Icon(Icons.replay),
-                    label: Text(L.t('sudokuRepeatSame')),
-                  ),
-                ],
-              )
-            : next;
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: note == null && boss == null
-            ? body
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (note != null) ...[
-                    Text(
-                      note,
-                      key: Key(won ? 'hidden-word' : 'lost-note'),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                  if (boss != null) ...[BossOutcomeLine(boss), const SizedBox(height: 8)],
-                  body,
-                ],
-              ),
-      );
+      final label = nextLabel ?? (won ? L.t('sdkNextLevel') : L.t('retry'));
+      final details = note == null && boss == null ? null : Column(mainAxisSize: MainAxisSize.min, children: [
+        if (note != null)
+          Text(note, key: Key(won ? 'hidden-word' : 'lost-note'), textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+        if (boss != null) BossOutcomeLine(boss),
+      ]);
+      return LevelResult.adapt(playedLevel != null && !GamePreset.isWarmup
+          ? LevelOutcomeAdapter(
+              passed: true, playedLevel: playedLevel, layout: GameOutcomeLayout.inline,
+              playNext: onNext, nextKey: const Key('next'), nextLabel: label,
+              auto: false, details: details,
+            )
+          : ReportOutcomeAdapter(
+              title: won ? L.t('done') : L.t('sameLevelRetry'),
+              layout: GameOutcomeLayout.inline,
+              details: details,
+              action: GameResultAction(key: const Key('next'), label: label,
+                  icon: won ? Icons.arrow_forward : Icons.refresh, onTap: onNext),
+              moreActions: [
+                if (lost && repeat != null)
+                  GameResultAction(key: const Key('repeat'), label: L.t('sudokuRepeatSame'), icon: Icons.replay, onTap: repeat),
+              ],
+            ));
     }
     final keys = SudokuKeys(
         n: n, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint, label: label, icon: icon, zero: zero,

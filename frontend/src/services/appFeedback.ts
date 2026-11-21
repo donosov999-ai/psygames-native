@@ -19,6 +19,7 @@ import { Platform } from 'react-native';
 import { readCrumbs, readConsoleErrors } from '@/src/services/crumbs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getSupabase, supabaseNetInfo, altSupabase, altBaseName } from '@/src/services/supabase';
+import { feedbackUploadId, uploadNativeFeedbackShot } from '@/src/services/nativeFeedbackShot';
 
 /** Каким адресом доехал этот репорт — см. пояснение в месте использования. */
 function netTrace(): { net_base: string; net_how: string } {
@@ -63,20 +64,20 @@ export function shouldRetryUpload(outcome: string): boolean {
  * помогла она или нет.
  */
 export async function uploadWithRetry(
-  attempt: (client: any) => Promise<string>,
+  attempt: (client: any, retry: boolean) => Promise<string>,
   first: any,
   alt: () => any,
   altName: string,
 ): Promise<string> {
   let out: string;
   try {
-    out = await attempt(first);
+    out = await attempt(first, false);
   } catch (e: any) {
     out = `threw:${String(e?.message ?? e).slice(0, 120)}`;
   }
   if (!shouldRetryUpload(out)) return out;
   try {
-    const second = await attempt(alt());
+    const second = await attempt(alt(), true);
     if (second === 'ok') return `ok-${altName}`;
     /**
      * 🔴 «УЖЕ ЕСТЬ» НА ВТОРОЙ ПОПЫТКЕ — ЭТО УСПЕХ ПЕРВОЙ, А НЕ ОТКАЗ.
@@ -86,11 +87,15 @@ export async function uploadWithRetry(
      * файл лежал сиротой. Случай 16.09.2026, отзыв Дениса 28a9d55c: `timeout →
      * relay:err:The resource already exists`, файл 48 959 байт нашёлся в бакете отдельно.
      */
-    if (/already exists|Duplicate/i.test(second)) return `ok-${altName}-exists`;
+    if (second.startsWith('err:') && isExistingUpload(second.slice(4))) return `ok-${altName}-exists`;
     return `${out} → ${altName}:${second}`;
   } catch (e: any) {
     return `${out} → ${altName}:threw:${String(e?.message ?? e).slice(0, 60)}`;
   }
+}
+
+function isExistingUpload(reason: string): boolean {
+  return /^(?:KeyAlreadyExists|ResourceAlreadyExists|Duplicate|(?:The resource|Asset) already exists\.?|Duplicate(?:d)? resource\.?)$/i.test(reason.trim());
 }
 
 export type FeedbackKind = 'bug' | 'idea' | 'confusion' | 'other';
@@ -372,22 +377,42 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
 
     const putFile = (
       bucket: string, name: string, blob: Blob, contentType: string, capMs: number,
-    ): Promise<string> => uploadWithRetry(
-      (client) => withTimeout<string>(
-        client.storage.from(bucket)
-          .upload(name, blob, { contentType, upsert: false })
-          .then(({ error }: any) => (error ? `err:${String(error?.message ?? error).slice(0, 120)}` : 'ok')),
-        uploadMs(blob.size, capMs), 'timeout',
-      ),
-      supabase, altSupabase, altBaseName(),
-    );
+    ): Promise<string> => {
+      const alternate = altBaseName();
+      const primary = alternate === 'direct' ? 'relay' : 'direct';
+      const timeoutMs = uploadMs(blob.size, capMs);
+      return uploadWithRetry(async (client, retry) => {
+        // On iOS bypass WKWebView for this one upload. The bucket only grants
+        // INSERT; a client HEAD would not distinguish missing from forbidden.
+        if (bucket === SHOT_BUCKET) {
+          const result = await uploadNativeFeedbackShot(retry ? alternate : primary, name, blob, timeoutMs);
+          if (result !== null) {
+            shotTransport = 'native';
+            return result;
+          }
+          shotTransport = 'web';
+        }
+        return withTimeout<string>(
+          client.storage.from(bucket).upload(name, blob, { contentType, upsert: false })
+            .then(({ error }: any) => {
+              if (!error) return 'ok';
+              if ([error.code, error.error, error.statusCode, error.message].some(
+                (code) => typeof code === 'string' && isExistingUpload(code),
+              )) return 'err:KeyAlreadyExists';
+              return `err:${String(error?.message ?? error).slice(0, 120)}`;
+            }),
+          timeoutMs, 'timeout',
+        );
+      }, supabase, altSupabase, alternate);
+    };
 
     // 1) Скриншот в приватный бакет (если снялся). Ошибка загрузки не отменяет фидбек.
     let shot_path: string | null = null;
     let shot_up: string | null = null;
+    let shotTransport: 'native' | 'web' | null = null;
     const shot_bytes = args.shot ? args.shot.size : null;
     if (args.shot) {
-      const name = `${new Date().toISOString().slice(0, 10)}/${Math.random().toString(36).slice(2)}.jpg`;
+      const name = `${new Date().toISOString().slice(0, 10)}/${feedbackUploadId()}.jpg`;
       const ts = Date.now();
       shot_up = await putFile(SHOT_BUCKET, name, args.shot, 'image/jpeg', SHOT_CAP_MS);
       shotMs = Date.now() - ts;
@@ -508,7 +533,7 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
         // Судьба скриншота — по тем же причинам, что и записи: в бакете нашлись ЧЕТЫРЕ
         // осиротевших файла (долиты, но ни в одной строке на них нет ссылки), а понять
         // по репорту, что там случилось, было нельзя.
-        ...(args.shot ? { shot_bytes, shot_up } : null),
+        ...(args.shot ? { shot_bytes, shot_up, shot_transport: shotTransport } : null),
         // audio_peak — пиковый уровень записи, 0..1. Нужен, чтобы немая заметка была
         // видна В БАЗЕ, а не только человеку: две Валины записи приехали на −91 дБ
         // (цифровая тишина), и по метаданным это было не отличить от нормальной.

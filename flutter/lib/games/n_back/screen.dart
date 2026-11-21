@@ -14,6 +14,7 @@ import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/preset_cap.dart';
@@ -113,6 +114,7 @@ class _NBackScreenState extends State<NBackScreen> {
   NbPhase _phase = NbPhase.ready;
   int _trials = nbDefaultTrials;
   int _playedLevel = 1;
+  bool _outcomeReady = false;
   int _showMs = 700;
   int _gapMs = 1100;
   bool _lit = false;
@@ -180,13 +182,14 @@ class _NBackScreenState extends State<NBackScreen> {
       // освоенного + 1 не даём (presetCap, веб `capPresetByLevel`).
       final want = nFromModeParam(GamePreset.str('mode', '')) ?? GamePreset.num('nLevel', 1);
       n = capPresetByLevel(want: want, atLevel: p.n, atTop: level >= 14);
-      final wantDual = GamePreset.str('modality', 'single') == 'dual';
+      final wantDual = !GamePreset.isQuiet && GamePreset.str('modality', 'single') == 'dual';
       modality = wantDual && _canSpeak ? NbModality.dual : NbModality.single;
       _showMs = 700;
       _gapMs = 1100;
     } else {
       n = p.n;
-      modality = p.modality == NbModality.dual && _canSpeak ? NbModality.dual : NbModality.single;
+      modality = p.modality == NbModality.dual && !GamePreset.isQuiet && _canSpeak
+          ? NbModality.dual : NbModality.single;
       _showMs = p.showMs;
       _gapMs = p.gapMs;
       lure = p.lureRate;
@@ -277,6 +280,7 @@ class _NBackScreenState extends State<NBackScreen> {
     final a = g.dual ? nbSignalDetection(g.audioCounts) : null;
     setState(() {
       _phase = NbPhase.done;
+      _outcomeReady = false;
       _lit = false;
       _readout = NbReadout(
         accuracy: g.accuracy,
@@ -320,11 +324,18 @@ class _NBackScreenState extends State<NBackScreen> {
         score: g.score, timeSeconds: seconds, errors: g.errors, mode: mode, difficulty: difficulty, details: details);
     if (g.passed) {
       final boss = await BossRound.winThenBoss(context, _ladder, type: BossType.counting, color: _accent, win: win);
-      if (mounted) setState(() => _boss = boss);
+      if (mounted && _phase == NbPhase.done) {
+        setState(() {
+          _boss = boss;
+          _outcomeReady = true;
+        });
+      }
     } else {
       await _ladder.fail(
           score: g.score, timeSeconds: seconds, errors: g.errors, mode: mode, difficulty: difficulty, details: details);
-      if (mounted) setState(() {});
+      if (mounted && _phase == NbPhase.done) {
+        setState(() => _outcomeReady = true);
+      }
     }
   }
 
@@ -370,7 +381,22 @@ class _NBackScreenState extends State<NBackScreen> {
             onStart: _start,
           ),
         NbPhase.playing => _Playing(game: g, lit: _lit, height: h),
-        NbPhase.done => _Done(readout: _readout!, strings: _strings, boss: _boss, onAgain: () => setState(_reset)),
+        NbPhase.done => _Done(
+          readout: _readout!,
+          strings: _strings,
+          boss: _boss,
+          playedLevel: _playedLevel,
+          nextLevel: !GamePreset.isWarmup && g.passed && _ladder.level > _playedLevel
+              ? _ladder.level
+              : null,
+          passed: g.passed,
+          ready: _outcomeReady,
+          onAgain: () => setState(_reset),
+          onNext: () {
+            setState(_reset);
+            _start();
+          },
+        ),
         NbPhase.revealed => NbSolution(game: g, onAgain: () => setState(_reset)),
       },
       auxRow: AuxBar(children: [
@@ -628,12 +654,27 @@ class _Buttons extends StatelessWidget {
 }
 
 class _Done extends StatelessWidget {
-  const _Done({required this.readout, required this.strings, required this.boss, required this.onAgain});
+  const _Done({
+    required this.readout,
+    required this.strings,
+    required this.boss,
+    required this.playedLevel,
+    required this.nextLevel,
+    required this.passed,
+    required this.ready,
+    required this.onAgain,
+    required this.onNext,
+  });
 
   final NbReadout readout;
   final NbStrings strings;
   final bool? boss;
+  final int playedLevel;
+  final int? nextLevel;
+  final bool passed;
+  final bool ready;
   final VoidCallback onAgain;
+  final VoidCallback onNext;
 
   @override
   Widget build(BuildContext context) {
@@ -651,10 +692,7 @@ class _Done extends StatelessWidget {
         );
     String ch(String metricKey, String channelKey) =>
         dual ? '${strings.t(metricKey)} · ${strings.t(channelKey)}' : strings.t(metricKey);
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+    final details = Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             metric(const Key('nb-accuracy'), ch('accuracy', 'channelVisual'), '${readout.accuracy}%'),
@@ -667,11 +705,19 @@ class _Done extends StatelessWidget {
             Text(strings.t('dPrimeHint'), textAlign: TextAlign.center, style: text.bodySmall),
             Text(strings.t('dPrimeWhy'), textAlign: TextAlign.center, style: text.bodySmall),
             BossOutcomeLine(boss),
-            const SizedBox(height: 12),
-            FilledButton(onPressed: onAgain, child: Text(L.t('restart'))),
           ],
-        ),
-      ),
+    );
+    return LevelResult.adapt(
+      !ready || GamePreset.isWarmup
+          ? ReportOutcomeAdapter(title: L.t('done'), details: details)
+          : LevelOutcomeAdapter(
+              passed: passed,
+              playedLevel: playedLevel,
+              playNext: nextLevel == null ? onAgain : onNext,
+              nextLabel: nextLevel == null ? L.t('restart') : L.f('nextLevelBtn', {'n': '$nextLevel'}),
+              auto: nextLevel != null,
+              details: details,
+            ),
     );
   }
 }

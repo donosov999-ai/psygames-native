@@ -15,6 +15,11 @@ import { GameSession } from '@/src/services/api';
 import { translateFor } from '@/src/contexts/LanguageContext';
 import { estimateStepSec } from '@/src/services/gameDuration';
 import { cachedLevelValue } from '@/src/services/levelCache';
+import { заводскиеЗарядки } from '@/src/services/warmupData';
+import { resolveQuietSteps } from '@/src/services/warmupPolicy';
+import type { ProfileDef } from '@/src/constants/profiles';
+
+export const quietWarmups = заводскиеЗарядки.политика.тихо;
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
@@ -175,7 +180,11 @@ function уровеньШага(gameId: string): number | null {
 const МЕРНЫЕ: ReadonlySet<string> = new Set(['assessment', 'financial-battery', 'measure-peak', 'measure-baseline']);
 
 export function stepToParams(step: PlaylistStep, slot?: WarmupSlot, track?: PlaylistMeta['track']): Record<string, string> {
-  const p: Record<string, string> = { wu: '1' };
+  const p: Record<string, string> = quietWarmups ? { wu: '1', quiet: '1' } : { wu: '1' };
+  const quietSettings = quietWarmups
+    ? resolveQuietSteps([step], заводскиеЗарядки.политика, профильДляУровня)
+        .find(s => s.game_id === step.game_id)?.settings ?? step.settings
+    : step.settings;
   // Training progresses through FULL rounds on its own persistent ladder. A fixed
   // baseline, assessment, night/rest session or deliberately fixed level stays a preset.
   // Do not carry abbreviated trials/size/startLen into a round that earns a level.
@@ -185,8 +194,8 @@ export function stepToParams(step: PlaylistStep, slot?: WarmupSlot, track?: Play
     if (step.mode) p.mode = step.mode;
     if (slot === 'evening') p.calm = '1';
     // Presentation options are not shortcuts to completion.
-    for (const key of ['delivery', 'language', 'from', 'to']) {
-      if (step.settings?.[key] !== undefined) p[key] = String(step.settings[key]);
+    for (const key of ['delivery', 'modality', 'language', 'targetLang', 'from', 'to']) {
+      if (quietSettings?.[key] !== undefined) p[key] = String(quietSettings[key]);
     }
     return p;
   }
@@ -195,8 +204,10 @@ export function stepToParams(step: PlaylistStep, slot?: WarmupSlot, track?: Play
   if (slot === 'evening' || slot === 'night') p.calm = '1';
   if (step.trials != null) p.trials = String(step.trials);
   if (step.mode) p.mode = step.mode;
-  if (step.settings) {
-    for (const k of Object.keys(step.settings)) p[k] = String(step.settings[k]);
+  if (quietSettings) {
+    for (const k of Object.keys(quietSettings)) {
+      if (k !== 'quiet' && k !== 'wu') p[k] = String(quietSettings[k]);
+    }
   }
   /* Уровень по правилу — последним и только если шаг про него молчал. */
   const замер = step.is_fixed_baseline === true || (track !== undefined && МЕРНЫЕ.has(track));
@@ -297,7 +308,7 @@ export function trainingSetFor(weekday: Weekday): PlaylistStep[] {
   for (let i = 0; i < 7; i++) {
     const d = (((weekday - i) % 7) + 7) % 7 as Weekday;
     const set = TRAINING_BY_WEEKDAY[d];
-    if (set && set !== SNAPSHOT_CORE) return set;
+    if (set && !заводскиеЗарядки.запас.дни_ядра.includes(d)) return set;
   }
   return TRAINING_BY_WEEKDAY[1];      // недостижимо: понедельник всегда свой
 }
@@ -329,10 +340,17 @@ type AllowFn = (gameId: string) => boolean;
  * Поэтому здесь ДВА среза, а не один: профиль — по желанию зовущего, песочница —
  * безусловно. Вернуть игру в зарядку можно одним снятием пометки в каталоге.
  */
-const keepAllowed = (steps: PlaylistStep[], allow?: AllowFn): PlaylistStep[] => {
-  const shown = steps.filter((s) => !isSandboxGame(s.game_id));
-  return allow ? shown.filter((s) => allow(s.game_id)) : shown;
-};
+const keepAllowed = (steps: PlaylistStep[], allow?: AllowFn, profileId = профильДляУровня): PlaylistStep[] =>
+  resolveQuietSteps(steps, заводскиеЗарядки.политика, profileId, id => !isSandboxGame(id) && (!allow || allow(id)));
+
+/** Covers externally built series and saved repeats as well as normal slot builders. */
+export function prepareWarmup(meta: PlaylistMeta, profileId?: string): PlaylistMeta {
+  const steps = resolveQuietSteps(meta.steps, заводскиеЗарядки.политика, profileId);
+  const changed = steps.length !== meta.steps.length || steps.some((s, i) => s.game_id !== meta.steps[i]?.game_id);
+  if (!changed) return { ...meta, steps };
+  const est_total_sec = sumDuration(steps);
+  return { ...meta, steps, est_total_sec, duration_min: Math.max(1, Math.round(est_total_sec / 60)) };
+}
 
 
 /**
@@ -365,13 +383,7 @@ const keepAllowed = (steps: PlaylistStep[], allow?: AllowFn): PlaylistStep[] => 
  */
 export const CORE_DAYS: ReadonlySet<Weekday> = new Set<Weekday>([1, 4, 0]);
 
-export const SNAPSHOT_CORE: PlaylistStep[] = [
-  { game_id: 'corsi',           game_route: '/games/corsi',           difficulty: 'medium', mode: 'forward', est_duration_sec: 60, is_fixed_baseline: true },
-  { game_id: 'sdmt',            game_route: '/games/sdmt',            difficulty: 'medium', mode: '60s',     est_duration_sec: 70, is_fixed_baseline: true },
-  { game_id: 'flanker',         game_route: '/games/flanker',         difficulty: 'medium', trials: 15,      est_duration_sec: 70, is_fixed_baseline: true },
-  { game_id: 'mental_rotation', game_route: '/games/mental-rotation', difficulty: 'medium', trials: 5,       est_duration_sec: 90, is_fixed_baseline: true },
-  { game_id: 'switching_task',  game_route: '/games/switching-task',  difficulty: 'medium', trials: 15,      est_duration_sec: 90, is_fixed_baseline: true },
-];
+export const SNAPSHOT_CORE: PlaylistStep[] = заводскиеЗарядки.запас.ядро;
 
 /**
  * 🔴 ЗАМЕР — ТОЛЬКО У НАБОРА, ГДЕ ЯДРО-СНИМОК ЕСТЬ ЦЕЛИКОМ И В ТОЙ ЖЕ НАСТРОЙКЕ.
@@ -411,128 +423,14 @@ export function естьЯдроСнимок(steps: readonly PlaylistStep[]): bo
 // внешнюю программу, которой пользуется Денис. Это личный график, а он утёк в общее
 // расписание — и профиль НЗТ-48, у которого своего утреннего набора нет, получал
 // по средам пустоту и подпись «Brain Workshop день» про незнакомую ему программу.
-const TRAINING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = {
-  // ПН — мягкий вход после выходных
-  1: [
-    { game_id: 'choice_rt',    game_route: '/games/choice-rt',    difficulty: 'easy',   trials: 15, mode: '2dir', est_duration_sec: 50 },
-    { game_id: 'picture_pairs',game_route: '/games/picture-pairs',difficulty: 'easy',   mode: '6 pairs',          est_duration_sec: 90 },
-    { game_id: 'math_sprint',  game_route: '/games/math-sprint',  difficulty: 'easy',   mode: '30s',              est_duration_sec: 35 },
-    { game_id: 'pattern',      game_route: '/games/pattern',      difficulty: 'easy',   trials: 5,                est_duration_sec: 90 },
-  ],
-  // ВТ — фокус + spatial training (Mental Rotation 1× из 3×/нед для слабого места)
-  2: [
-    { game_id: 'schulte_table',  game_route: '/games/schulte',         difficulty: 'medium', mode: '5x5',  est_duration_sec: 60 },
-    { game_id: 'flanker',        game_route: '/games/flanker',         difficulty: 'medium', trials: 20,    est_duration_sec: 90 },
-    { game_id: 'mental_rotation',game_route: '/games/mental-rotation', difficulty: 'easy',   trials: 5,     est_duration_sec: 90 },
-    { game_id: 'posner',         game_route: '/games/posner',          difficulty: 'medium', trials: 20,    est_duration_sec: 90 },
-    { game_id: 'sdmt',           game_route: '/games/sdmt',            difficulty: 'medium', mode: '60s',   est_duration_sec: 70 },
-    // Внимание к ДВИЖУЩЕМУСЯ — в дне его больше нет ни у кого. level 9 = две цели из
-    // 6-9 объектов: уже не «следи за одним», но ещё без перегруза (INTEGRATION §7).
-    // ⚠️ В вечерний и ночной набор НЕ ставить: раунд нельзя делать вполглаза, а
-    // вечерний слот существует ровно для обратного.
-    { game_id: 'object_tracker', game_route: '/games/object-tracker', difficulty: 'medium', settings: { level: 9 }, est_duration_sec: 60 },
-  ],
-  // СР — рабочая память. В неделе она иначе НЕ тренируется: n-back, corsi и
-  // digit span стоят только в замерах ЧТ/ВС, то есть их меряют, но не качают.
-  // Среда между ними — естественное место. Плюс анаграммы: вербальное во всей
-  // неделе тоже было только по субботам.
-  3: [
-    { game_id: 'n_back',      game_route: '/games/n-back',      difficulty: 'easy', trials: 20, mode: '1-back', est_duration_sec: 90 },
-    { game_id: 'corsi',       game_route: '/games/corsi',       difficulty: 'easy',                              est_duration_sec: 90 },
-    { game_id: 'digit_span',  game_route: '/games/digit-span',  difficulty: 'easy', mode: 'forward',             est_duration_sec: 90 },
-    { game_id: 'anagrams',    game_route: '/games/anagrams',    difficulty: 'easy',                              est_duration_sec: 90 },
-    /**
-     * Две игры лаборатории, 19.08.2026: слуховая рабочая память и метод мест. Обе
-     * про память, обеим место в дне памяти, и обе в неделе не тренируются больше нигде.
-     *
-     * ⚠️ level У «Ритма» ПРИБИТ НАРОЧНО, хотя INTEGRATION §6 уровня не называет.
-     * Без него шаг взял бы сохранённый уровень человека, а на верхних уровнях допуск
-     * ритма сжимается до 34 мс (INTEGRATION §2а: замер показал зачёт 1 партии из 3 уже
-     * на первом уровне). Прибитая третья ступень делает шаг предсказуемым, как у всех.
-     *
-     * 🔴 «Ритм и высота» НЕ идёт в EVENING_BY_WEEKDAY, NIGHT_STEPS и COOLDOWN_POOL:
-     * там calm=1 → soundOn() === false, а звук здесь и есть содержание задания.
-     * Шаг стал бы тупиком — партия не сыграна, сессия не записана, набор стоит.
-     * «Дворец памяти» вечером не запрещён технически, но требует произвольного
-     * усилия на «оживите ассоциации» — это против задачи вечернего набора.
-     */
-    { game_id: 'rhythm_pitch',  game_route: '/games/rhythm-pitch',  difficulty: 'easy', settings: { level: 3 }, est_duration_sec: 90 },
-    { game_id: 'memory_palace', game_route: '/games/memory-palace', difficulty: 'easy', settings: { level: 3 }, est_duration_sec: 180 },
-  ],
-  // ЧТ — PEAK MEASUREMENT (after BOOST)
-  4: SNAPSHOT_CORE,
-  // ПТ — Inhibition Stack (D3) + Mental Rotation (2× из 3×/нед для слабого места)
-  //   flanker    = spatial interference
-  //   stroop     = lexical interference
-  //   switching  = rule-based interference
-  //   mental_rotation = spatial cooldown (medium difficulty — повышение от ВТ easy)
-  5: [
-    { game_id: 'flanker',         game_route: '/games/flanker',         difficulty: 'medium', trials: 20,                     est_duration_sec: 90 },
-    { game_id: 'stroop',          game_route: '/games/stroop',          difficulty: 'medium', trials: 20, mode: 'classic',    est_duration_sec: 70 },
-    { game_id: 'switching_task',  game_route: '/games/switching-task',  difficulty: 'medium', trials: 20,                     est_duration_sec: 120 },
-    { game_id: 'mental_rotation', game_route: '/games/mental-rotation', difficulty: 'medium', trials: 5,                      est_duration_sec: 90 },
-  ],
-  // СБ — logic + verbal touch (Mental Rotation в 3-й раз/нед остаётся; Word Pairs добавлен
-  // как 6-я игра — следствие коллегиного решения 2: умеренная вербалка раз в неделю
-  // без выкидывания SET, который Денис любит за абстрактный attribute-mapping)
-  6: [
-    { game_id: 'schulte_table',  game_route: '/games/schulte',         difficulty: 'hard',   mode: '6x6',           est_duration_sec: 90 },
-    { game_id: 'pattern',        game_route: '/games/pattern',         difficulty: 'medium', trials: 10,            est_duration_sec: 120 },
-    { game_id: 'tower_london',   game_route: '/games/tower-london',    difficulty: 'medium', trials: 5,             est_duration_sec: 150 },
-    { game_id: 'set_game',       game_route: '/games/set-game',        difficulty: 'medium', trials: 6,             est_duration_sec: 120 },
-    { game_id: 'mental_rotation',game_route: '/games/mental-rotation', difficulty: 'medium', trials: 10,            est_duration_sec: 120 },
-    { game_id: 'word_pairs',     game_route: '/games/word-pairs',      difficulty: 'easy',   mode: '6 pairs',       est_duration_sec: 90 },
-    // Эйлеров путь: шесть вершин, граф без подсказки старта — собирается за минуту-полторы.
-    // ⚠️ Вечером не ставить: человек упирается в тупик и переигрывает, это активирующая
-    // нагрузка. Та же логика, по которой у маджонга вечером прячут секундомер.
-    { game_id: 'one_line',       game_route: '/games/one-line',        difficulty: 'medium', settings: { level: 6 }, est_duration_sec: 120 },
-  ],
-  // ВС — BASELINE MEASUREMENT (before BOOST)
-  0: SNAPSHOT_CORE,
-};
+const TRAINING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = заводскиеЗарядки.запас.утро_по_дням;
 
 // ВЕЧЕРНЯЯ РОТАЦИЯ (перед сном) — 7 дней, РАЗНЫЕ каждый вечер (раньше был фикс из 4 игр).
 // Только СПОКОЙНЫЕ игры (память + мягкая логика) — НЕ реакция/торможение перед сном.
 // Намеренно втягивает ранее не использованные игры: corsi / story_recall / span /
 // reading_span / memory_matrix / spatial_span / anagrams / number_bonds.
 // По дизайну не пересекается с утром того же дня (утро = шульте/фланкер/струп/ротация/замеры).
-const EVENING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = {
-  0: [ // ВС
-    { game_id: 'corsi',        game_route: '/games/corsi',        difficulty: 'easy',   est_duration_sec: 90 },
-    { game_id: 'story_recall', game_route: '/games/story-recall', difficulty: 'easy',   est_duration_sec: 150 },
-    { game_id: 'sudoku',       game_route: '/games/sudoku',       difficulty: 'easy',   est_duration_sec: 120 },
-  ],
-  1: [ // ПН
-    { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy', mode: 'words', settings: { itemCount: 5 }, est_duration_sec: 70 },
-    { game_id: 'digit_span',   game_route: '/games/digit-span',   difficulty: 'easy', mode: 'forward', est_duration_sec: 90 },
-    { game_id: 'hanoi',        game_route: '/games/hanoi',        difficulty: 'medium', settings: { discs: 4 }, est_duration_sec: 120 },
-  ],
-  2: [ // ВТ
-    { game_id: 'reading_span', game_route: '/games/reading-span', difficulty: 'easy',   est_duration_sec: 120 },
-    { game_id: 'memory_matrix',game_route: '/games/memory-matrix',difficulty: 'easy', mode: '4x4', est_duration_sec: 100 },
-    { game_id: 'set_game',     game_route: '/games/set-game',     difficulty: 'easy', trials: 5,    est_duration_sec: 110 },
-  ],
-  3: [ // СР
-    { game_id: 'spatial_span', game_route: '/games/spatial-span', difficulty: 'easy',   est_duration_sec: 90 },
-    { game_id: 'anagrams',     game_route: '/games/anagrams',     difficulty: 'easy',   est_duration_sec: 120 },
-    { game_id: 'sudoku',       game_route: '/games/sudoku',       difficulty: 'easy',   est_duration_sec: 120 },
-  ],
-  4: [ // ЧТ
-    { game_id: 'corsi',        game_route: '/games/corsi',        difficulty: 'easy',   est_duration_sec: 90 },
-    { game_id: 'word_pairs',   game_route: '/games/word-pairs',   difficulty: 'easy', mode: '6 pairs', est_duration_sec: 90 },
-    { game_id: 'hanoi',        game_route: '/games/hanoi',        difficulty: 'easy', settings: { discs: 3 }, est_duration_sec: 90 },
-  ],
-  5: [ // ПТ
-    { game_id: 'number_bonds', game_route: '/games/number-bonds', difficulty: 'easy',   est_duration_sec: 90 },
-    { game_id: 'picture_pairs',game_route: '/games/picture-pairs',difficulty: 'easy', settings: { pairsCount: 8 }, est_duration_sec: 120 },
-    { game_id: 'sudoku',       game_route: '/games/sudoku',       difficulty: 'easy',   est_duration_sec: 120 },
-  ],
-  6: [ // СБ
-    { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy', mode: 'words', settings: { itemCount: 6 }, est_duration_sec: 75 },
-    { game_id: 'reading_span', game_route: '/games/reading-span', difficulty: 'easy',   est_duration_sec: 120 },
-    { game_id: 'spatial_span', game_route: '/games/spatial-span', difficulty: 'easy',   est_duration_sec: 90 },
-  ],
-};
+const EVENING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = заводскиеЗарядки.запас.вечер_по_дням;
 
 // Вечерний комплекс с РОТАЦИЕЙ по дню + дедуп против утра того же дня (утро≠вечер).
 // profileEvening (если профиль задал свой фикс-вечер) имеет приоритет над ротацией.
@@ -548,11 +446,7 @@ const EVENING_BY_WEEKDAY: Record<Weekday, PlaylistStep[]> = {
  * она оправдана ежедневностью, а перерыв берут нерегулярно — разнообразия никто
  * не заметит, зато плейлистов стало бы вдвое больше.
  */
-const DAY_STEPS: PlaylistStep[] = [
-  { game_id: 'schulte_table', game_route: '/games/schulte',  difficulty: 'easy', est_duration_sec: 60 },
-  { game_id: 'flanker',       game_route: '/games/flanker',  difficulty: 'easy', settings: { trials: 20 }, est_duration_sec: 60 },
-  { game_id: 'eye_gym',       game_route: '/games/eye-gym',  difficulty: 'easy', est_duration_sec: 60 },
-];
+const DAY_STEPS: PlaylistStep[] = заводскиеЗарядки.запас.день;
 
 /**
  * НОЧНОЙ набор — «Не спится». НЕ тренировка, согласовано с Денисом 02.08.
@@ -562,13 +456,7 @@ const DAY_STEPS: PlaylistStep[] = [
  * ночь исключена из тренировочной механики (`isTrainingSlot`). Состав один:
  * дыхание 4-7-8, где выдох вдвое длиннее вдоха.
  */
-const NIGHT_STEPS: PlaylistStep[] = [
-  // dim=1 → приглушённая палитра экрана: ночью яркий градиент бодрит.
-  { game_id: 'breathing', game_route: '/games/breathing', difficulty: 'easy', settings: { tech: 'calm478', dim: 1 }, est_duration_sec: 120 },
-];
-
-/** Дыхание 4-7-8 — общий хвост всех ночных раскладок. */
-const НОЧНОЕ_ДЫХАНИЕ: PlaylistStep = NIGHT_STEPS[0];
+const NIGHT_STEPS: PlaylistStep[] = заводскиеЗарядки.запас.ночь;
 
 /**
  * 🔴 НОЧЬ — ТРИ РАСКЛАДКИ, И В НИХ НЕТ СКОРОСТИ.
@@ -592,33 +480,7 @@ const НОЧНОЕ_ДЫХАНИЕ: PlaylistStep = NIGHT_STEPS[0];
  * судоку открыты всем и так, «Пауза» открыта всем с 13.09.2026 (просьба Дениса
  * «открой всем»), остальное приходит из его же решения не перегружать каталог.
  */
-const NIGHT_BY_DURATION: Record<Длительность, PlaylistStep[]> = {
-  5: [
-    { game_id: 'puzzles', game_route: '/games/puzzles', difficulty: 'easy', mode: 'Net', est_duration_sec: 150 },
-    { game_id: 'hanoi',   game_route: '/games/hanoi',   difficulty: 'easy', mode: '3 discs', est_duration_sec: 90 },
-    НОЧНОЕ_ДЫХАНИЕ,
-  ],
-  10: [
-    { game_id: 'puzzles', game_route: '/games/puzzles', difficulty: 'easy', mode: 'Net', est_duration_sec: 150 },
-    { game_id: 'sudoku',  game_route: '/games/sudoku',  difficulty: 'easy', est_duration_sec: 140 },
-    { game_id: 'mahjong', game_route: '/games/mahjong', difficulty: 'easy', est_duration_sec: 40 },
-    { game_id: 'hanoi',   game_route: '/games/hanoi',   difficulty: 'easy', mode: '4 discs', est_duration_sec: 70 },
-    { game_id: 'pause',   game_route: '/games/pause',   difficulty: 'easy', est_duration_sec: 90 },
-    НОЧНОЕ_ДЫХАНИЕ,
-  ],
-  15: [
-    { game_id: 'puzzles', game_route: '/games/puzzles', difficulty: 'easy', mode: 'Net', est_duration_sec: 150 },
-    { game_id: 'sudoku',  game_route: '/games/sudoku',  difficulty: 'easy', est_duration_sec: 140 },
-    { game_id: 'puzzles', game_route: '/games/puzzles', difficulty: 'easy', mode: 'Untangle', est_duration_sec: 150 },
-    { game_id: 'mahjong', game_route: '/games/mahjong', difficulty: 'easy', est_duration_sec: 40 },
-    { game_id: 'hanoi',   game_route: '/games/hanoi',   difficulty: 'easy', mode: '4 discs', est_duration_sec: 70 },
-    { game_id: 'word_pairs', game_route: '/games/word-pairs', difficulty: 'easy', mode: '4 pairs', est_duration_sec: 60 },
-    { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy', mode: '6 pairs', est_duration_sec: 30 },
-    { game_id: 'pause',   game_route: '/games/pause',   difficulty: 'easy', est_duration_sec: 90 },
-    { game_id: 'eye_gym', game_route: '/games/eye-gym', difficulty: 'easy', est_duration_sec: 60 },
-    НОЧНОЕ_ДЫХАНИЕ,
-  ],
-};
+const NIGHT_BY_DURATION: Record<Длительность, PlaylistStep[]> = заводскиеЗарядки.запас.ночь_по_длине;
 
 /**
  * Дневной перерыв. Фиксированный, от дня недели не зависит.
@@ -683,9 +545,38 @@ export function установитьСеткуИзФайла(сетка: Сет�
 }
 
 /** Есть ли в файле готовая раскладка ровно на этот день, слот и длину. */
-export function изСетки(weekday: Weekday, slot: WarmupSlot, duration: Длительность): PlaylistStep[] | null {
-  const шаги = сеткаИзФайла?.[weekday]?.[slot]?.[duration];
-  return шаги && шаги.length ? шаги.map((s) => ({ ...s })) : null;
+export interface SlotPlaylistSource {
+  grid: СеткаНаборов | null;
+  day?: PlaylistStep[];
+  night?: PlaylistStep[];
+}
+
+export function изСетки(weekday: Weekday, slot: WarmupSlot, duration: Длительность,
+                       grid = сеткаИзФайла): PlaylistStep[] | null {
+  const шаги = grid?.[weekday]?.[slot]?.[duration];
+  return шаги ? шаги.map((s) => ({ ...s })) : null;
+}
+
+/** One resolver for the card and its Start action; the requested grid beats a slot default. */
+export function resolveSlotPlaylist(
+  profile: Pick<ProfileDef, 'morning_playlist' | 'evening_playlist' | 'custom_playlists'>,
+  slot: WarmupSlot, weekday: Weekday, duration: Длительность, allow?: AllowFn, source?: SlotPlaylistSource,
+): PlaylistMeta {
+  switch (slot) {
+    case 'day': return buildDayPlaylist(weekday, allow, duration, source);
+    case 'night': return buildNightPlaylist(weekday, duration, source);
+    case 'evening': {
+      const morning = resolveSlotPlaylist(profile, 'morning', weekday, 15, allow, source);
+      return buildEveningWarmupPlaylist({
+        weekday, duration, allow, profileEvening: profile.evening_playlist, source,
+        excludeGameIds: morning.steps.map(s => s.game_id),
+      });
+    }
+    default:
+      return !изСетки(weekday, slot, duration, source?.grid) && profile.morning_playlist !== undefined
+        ? buildFixedPlaylist(profile.morning_playlist, slot, weekday, allow)
+        : buildMorningWarmupPlaylist({ duration, weekday, profilePlaylists: profile.custom_playlists, allow, source });
+  }
 }
 
 /**
@@ -749,16 +640,16 @@ function вечерниеСоседи(weekday: Weekday): PlaylistStep[] {
  * `фиксПрофиля` — есть ли у профиля жёсткий набор на этот слот (`morning_playlist`
  * / `evening_playlist`); про день и ночь эта функция знает сама.
  */
-export function длинаВлияет(weekday: Weekday, slot: WarmupSlot, фиксПрофиля = false): boolean {
-  const вСетке = сеткаИзФайла?.[weekday]?.[slot];
+export function длинаВлияет(weekday: Weekday, slot: WarmupSlot, фиксПрофиля = false, source?: SlotPlaylistSource): boolean {
+  const вСетке = (source ? source.grid : сеткаИзФайла)?.[weekday]?.[slot];
   if (вСетке && Object.keys(вСетке).length > 0) return true;
-  if (slot === 'day') return !наборДня;
-  if (slot === 'night') return !наборНочи;
+  if (slot === 'day') return !(source ? source.day : наборДня);
+  if (slot === 'night') return !(source ? source.night : наборНочи);
   return !фиксПрофиля;
 }
 
-export function buildDayPlaylist(weekday: Weekday, allow?: AllowFn, duration: Длительность = 5): PlaylistMeta {
-  const готовое = изСетки(weekday, 'day', duration);
+export function buildDayPlaylist(weekday: Weekday, allow?: AllowFn, duration: Длительность = 5, source?: SlotPlaylistSource): PlaylistMeta {
+  const готовое = изСетки(weekday, 'day', duration, source?.grid);
   if (готовое) return изГотового(готовое, weekday, 'day', 'перерыв');
   /* Набор дня из файла назначен явно — ни профильным составом не режем, ни под
      длину не подгоняем: и то и другое спорило бы с решением владельца. */
@@ -769,8 +660,9 @@ export function buildDayPlaylist(weekday: Weekday, allow?: AllowFn, duration: Д
    */
   const базаДня = DAY_STEPS.filter((s) => s.game_id !== 'eye_gym');
   const глаза = DAY_STEPS.filter((s) => s.game_id === 'eye_gym');
-  const steps = наборДня
-    ? keepAllowed(наборДня.map((s) => ({ ...s })), undefined)
+  const свойДень = source ? source.day : наборДня;
+  const steps = свойДень
+    ? keepAllowed(свойДень, undefined)
     : keepAllowed([
         ...поДлине(базаДня, [...COOLDOWN_POOL, ...TRAINING_BY_WEEKDAY[weekday]], duration)
           .filter((s) => s.game_id !== 'eye_gym'),
@@ -799,10 +691,10 @@ export function buildDayPlaylist(weekday: Weekday, allow?: AllowFn, duration: Д
  *
  * Если решим гейтить и это — одна строка: `keepAllowed(..., allow)`, как в дне.
  */
-export function buildNightPlaylist(weekday: Weekday, duration: Длительность = 5): PlaylistMeta {
-  const готовое = изСетки(weekday, 'night', duration);
+export function buildNightPlaylist(weekday: Weekday, duration: Длительность = 5, source?: SlotPlaylistSource): PlaylistMeta {
+  const готовое = изСетки(weekday, 'night', duration, source?.grid);
   if (готовое) return изГотового(готовое, weekday, 'night', 'не спится', 'rest');
-  const steps = (наборНочи ?? NIGHT_BY_DURATION[duration] ?? NIGHT_STEPS).map((s) => ({ ...s }));
+  const steps = keepAllowed((source ? source.night : наборНочи) ?? NIGHT_BY_DURATION[duration] ?? NIGHT_STEPS);
   return {
     duration_min: Math.max(1, Math.round(sumDuration(steps) / 60)),
     weekday, weekday_name: WEEKDAY_NAMES[weekday],
@@ -817,11 +709,12 @@ export function buildEveningWarmupPlaylist(opts: {
   profileEvening?: PlaylistStep[];    // профильный фикс-вечер (override)
   allow?: AllowFn;                    // игры профиля; без него — весь каталог
   duration?: Длительность;            // 5 / 10 / 15 — выбор человека, как у утра
+  source?: SlotPlaylistSource;
 }): PlaylistMeta {
-  const { weekday, excludeGameIds, profileEvening, allow, duration = 5 } = opts;
-  const готовое = изСетки(weekday, 'evening', duration);
+  const { weekday, excludeGameIds, profileEvening, allow, duration = 5, source } = opts;
+  const готовое = изСетки(weekday, 'evening', duration, source?.grid);
   if (готовое) return изГотового(готовое, weekday, 'evening', 'перед сном');
-  const fixed = !!(profileEvening && profileEvening.length);
+  const fixed = profileEvening !== undefined;
   const base = fixed ? profileEvening! : EVENING_BY_WEEKDAY[weekday];
   // v1.157 (репорт Вали «почему всего одна игра перед сном?»): дедуп против утра
   // применяем ТОЛЬКО к авто-ротации. Если профиль задал вечер ЯВНО — это осознанный
@@ -842,7 +735,7 @@ export function buildEveningWarmupPlaylist(opts: {
    * вечера из семи. Добираем набором предыдущих дней; парные картинки и дыхание
    * доступны в любом профиле, поэтому что-то найдётся всегда.
    */
-  if (steps.length === 0 && allow) {
+  if (!fixed && steps.length === 0 && allow) {
     for (let i = 1; i <= 7 && steps.length === 0; i++) {
       const d = (((weekday - i) % 7) + 7) % 7 as Weekday;
       steps = keepAllowed(EVENING_BY_WEEKDAY[d].map((x) => ({ ...x })), allow);
@@ -892,14 +785,15 @@ export function buildMorningWarmupPlaylist(opts: {
   history?: GameSession[];
   profilePlaylists?: Partial<Record<Weekday, PlaylistStep[]>>;  // E1: per-profile override
   allow?: AllowFn;                    // игры профиля; без него — весь каталог
+  source?: SlotPlaylistSource;
 }): PlaylistMeta {
-  const { duration, weekday, profilePlaylists, allow } = opts;
+  const { duration, weekday, profilePlaylists, allow, source } = opts;
   /**
    * Готовая раскладка на этот день и эту длину — берётся целиком, до всех веток.
    * Замером она идёт, только если в ней есть ядро-снимок целиком (`естьЯдроСнимок`),
    * иначе это тренировка — и в четверг, и в воскресенье.
    */
-  const готовое = изСетки(weekday, 'morning', duration);
+  const готовое = изСетки(weekday, 'morning', duration, source?.grid);
   if (готовое) {
     const поДню = getTrack(weekday);
     const дорожка = (поДню === 'measure-peak' || поДню === 'measure-baseline')
@@ -1116,18 +1010,7 @@ function pickSteps(steps: PlaylistStep[], targetSec: number): PlaylistStep[] {
  * по `?wu=1` и невмешательство в личный уровень. Пул расширяется ПОСЛЕ починки
  * этих двух вещей у конкретной игры, а не вместо неё.
  */
-export const COOLDOWN_POOL: PlaylistStep[] = [
-  { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy', mode: '6 pairs', est_duration_sec: 90 },
-  { game_id: 'math_sprint',   game_route: '/games/math-sprint',   difficulty: 'easy', mode: '30s',     est_duration_sec: 35 },
-  { game_id: 'memory_matrix', game_route: '/games/memory-matrix', difficulty: 'easy', mode: '4x4',     est_duration_sec: 100 },
-  { game_id: 'find_differences', game_route: '/games/find-differences', difficulty: 'easy', mode: '4 diffs', est_duration_sec: 120 },
-  // Пополнение 08.09.2026: пятнадцатиминутка пятницы упиралась в исчерпанный пул
-  // и давала 0,72 обещанного. Обе игры прошли те же два условия, на которых
-  // отсеялись пять предыдущих кандидатов: авто-старт по `?wu=1` и невмешательство
-  // в личный уровень (гейты `playlist-autostart` и `warmup-level-drift`).
-  { game_id: 'quick_count',  game_route: '/games/quick-count',  difficulty: 'easy', est_duration_sec: 60 },
-  { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy', mode: '5 words', est_duration_sec: 60 },
-];
+export const COOLDOWN_POOL: PlaylistStep[] = заводскиеЗарядки.запас.добор;
 
 // CPT — sustained attention test. Берём только для длинных пресетов (10/15 мин)
 // и только в дни внимания (ВТ) или logic-day (СБ). НЕ в peak/baseline (ЧТ/ВС)
@@ -1136,14 +1019,8 @@ export const COOLDOWN_POOL: PlaylistStep[] = [
 // CPT 4-min ≈ 240 сек — это полноценная самостоятельная сессия, ставится в КОНЕЦ
 // серии после "разогрева" — измеряет sustained attention уже в утомлённом состоянии,
 // что и есть цель: "упадёт ли внимание на 4-м часу NZT".
-const CPT_STEP: PlaylistStep = {
-  game_id: 'cpt',
-  game_route: '/games/cpt',
-  difficulty: 'medium',
-  mode: '4min',
-  est_duration_sec: 240,
-};
-const CPT_DAYS: Set<Weekday> = new Set([2, 6]); // ВТ, СБ — attention/logic days, не measurement
+const CPT_STEP: PlaylistStep = заводскиеЗарядки.запас.финал;
+const CPT_DAYS: Set<Weekday> = new Set(заводскиеЗарядки.запас.дни_финала); // ВТ, СБ — attention/logic days, не measurement
 
 function pickCooldown(weekday: Weekday, secAvailable: number): PlaylistStep[] {
   const used = new Set(TRAINING_BY_WEEKDAY[weekday].map((s) => s.game_id));
@@ -1176,11 +1053,7 @@ function pickCooldown(weekday: Weekday, secAvailable: number): PlaylistStep[] {
 // Recommended frequency: 1×/2 weeks (cooldown enforced in UI).
 // Direct correlate of financial decision-making for Денис's business context.
 
-const FINANCIAL_BATTERY_PLAYLIST: PlaylistStep[] = [
-  { game_id: 'iowa', game_route: '/games/iowa', difficulty: 'medium', mode: '60t',          est_duration_sec: 600, is_fixed_baseline: true },
-  { game_id: 'bart', game_route: '/games/bart', difficulty: 'medium', mode: '15 balloons',  est_duration_sec: 240, is_fixed_baseline: true },
-  { game_id: 'prl',  game_route: '/games/prl',  difficulty: 'medium', mode: '60t-80%',      est_duration_sec: 600, is_fixed_baseline: true },
-];
+const FINANCIAL_BATTERY_PLAYLIST: PlaylistStep[] = заводскиеЗарядки.запас.финансы;
 
 export function buildFinancialBatteryPlaylist(): PlaylistMeta {
   const wd = getCurrentWeekday();
@@ -1218,9 +1091,7 @@ export function установитьСерииИзФайла(x: Record<string, P
 }
 
 export function buildAssessmentPlaylist(): PlaylistMeta {
-  // Lazy import to avoid circular dependency
-  const { ASSESSMENT_PLAYLIST: ЗАВОДСКОЙ } = require('@/src/services/assessment');
-  const ASSESSMENT_PLAYLIST: PlaylistStep[] = серииИзФайла?.assessment ?? ЗАВОДСКОЙ;
+  const ASSESSMENT_PLAYLIST: PlaylistStep[] = серииИзФайла?.assessment ?? заводскиеЗарядки.запас.оценка;
   const wd = getCurrentWeekday();
   return {
     duration_min: Math.round(ASSESSMENT_PLAYLIST.reduce((s: number, x: PlaylistStep) => s + x.est_duration_sec, 0) / 60),

@@ -20,6 +20,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
@@ -429,37 +430,41 @@ class _Field extends StatelessWidget {
       case SwitchPhase.done:
         final cost = game.switchCost;
         final both = game.switchRts.isNotEmpty && game.repeatRts.isNotEmpty;
-        return _Centered(
+        return SizedBox(
           height: height,
-          children: [
-            Text(
-              passed ? L.t('levelDone').replaceAll('{n}', '${game.level}') : L.t('sameLevelRetry'),
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
+          child: LevelResult.adapt(
+            LevelOutcomeAdapter(
+              passed: passed,
+              playedLevel: game.level,
+              nextKey: nextLevel == null ? null : const Key('level-next'),
+              playNext: nextLevel == null ? onAgain : onContinue,
+              nextLabel: nextLevel == null
+                  ? L.t('retry')
+                  : L.f('nextLevelBtn', {'n': '$nextLevel'}),
+              auto: nextLevel != null,
+              details: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal}',
+                  ),
+                  Text(
+                    game.meanRtMs == null
+                        ? '${L.t('meanReaction')}: —'
+                        : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}',
+                  ),
+                  // Цена переключения подписана тем же знаком ↻, которым в партии помечена
+                  // проба со сменой задачи. Прочерк честнее нуля: пустое плечо означает
+                  // «меры нет», а не «разницы нет».
+                  Text(
+                    both ? '↻ $cost ${L.t('msShort')}' : '↻ —',
+                    key: const Key('switching-cost'),
+                  ),
+                  BossOutcomeLine(boss),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text('${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal}'),
-            Text(game.meanRtMs == null
-                ? '${L.t('meanReaction')}: —'
-                : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}'),
-            // Цена переключения подписана тем же знаком ↻, которым в партии помечена
-            // проба со сменой задачи. Прочерк честнее нуля: пустое плечо означает
-            // «меры нет», а не «разницы нет».
-            Text(
-              both ? '↻ $cost ${L.t('msShort')}' : '↻ —',
-              key: const Key('switching-cost'),
-            ),
-            BossOutcomeLine(boss),
-            const SizedBox(height: 16),
-            if (nextLevel != null)
-              FilledButton(
-                key: const Key('level-next'),
-                onPressed: onContinue,
-                child: Text(L.t('nextLevelBtn').replaceAll('{n}', '$nextLevel')),
-              )
-            else
-              FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
-          ],
+          ),
         );
       case SwitchPhase.playing:
         final t = game.trial!;
@@ -541,23 +546,6 @@ class _CueBadge extends StatelessWidget {
                 child: Text('↻', key: Key('switching-switch-mark'), style: TextStyle(color: Colors.white, fontSize: 18)),
               ),
           ],
-        ),
-      );
-}
-
-class _Centered extends StatelessWidget {
-  const _Centered({required this.height, required this.children});
-  final double height;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-        height: height,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: children),
-          ),
         ),
       );
 }

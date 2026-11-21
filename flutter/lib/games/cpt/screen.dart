@@ -20,6 +20,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
@@ -362,28 +363,67 @@ class _Field extends StatelessWidget {
         );
       case CptPhase.done:
         final m = game.metrics;
-        return _Centered(
-          height: height,
+        final details = Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              // 🔴 У оборванной партии исхода НЕТ: ни «взято», ни «ещё раз».
-              game.passed == null
-                  ? L.t('hud_trials')
-                  : (game.passed! ? L.t('levelDone').replaceAll('{n}', '${game.level}') : L.t('sameLevelRetry')),
-              key: const Key('cpt-verdict'),
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
+              '${L.t('hud_correct')}: ${m.hits} · ${L.t('hud_missed')}: ${m.omissions} · '
+              '${L.t('hud_false')}: ${m.commissions}',
             ),
-            const SizedBox(height: 8),
-            Text('${L.t('hud_correct')}: ${m.hits} · ${L.t('hud_missed')}: ${m.omissions} · '
-                '${L.t('hud_false')}: ${m.commissions}'),
-            Text('${L.t('hud_trials')}: ${m.played}', key: const Key('cpt-played')),
+            Text(
+              '${L.t('hud_trials')}: ${m.played}',
+              key: const Key('cpt-played'),
+            ),
             BossOutcomeLine(boss),
             const SizedBox(height: 8),
-            Text(L.t('cptPass'), style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onAgain, child: Text(L.t('start'))),
+            Text(
+              L.t('cptPass'),
+              style: Theme.of(context).textTheme.bodySmall,
+              textAlign: TextAlign.center,
+            ),
           ],
+        );
+        final level = LevelLadder.current?.level;
+        final next =
+            (game.passed == null) ||
+                !(game.passed!) ||
+                GamePreset.isWarmup ||
+                level == null ||
+                level <= game.level
+            ? null
+            : level;
+        return SizedBox(
+          height: height,
+          child: LevelResult.adapt(
+            game.passed == null
+                ? ReportOutcomeAdapter(
+                    title: L.t('hud_trials'),
+                    titleKey: const Key('cpt-verdict'),
+                    action: GameResultAction(
+                      label: L.t('start'),
+                      icon: Icons.replay,
+                      onTap: onAgain,
+                    ),
+                    details: details,
+                  )
+                : LevelOutcomeAdapter(
+                    passed: game.passed!,
+                    playedLevel: game.level,
+                    titleKey: const Key('cpt-verdict'),
+                    playNext: next == null
+                        ? onAgain
+                        : () {
+                            onAgain();
+                            onStart();
+                          },
+                    nextLabel: next == null
+                        ? L.t('start')
+                        : L.f('nextLevelBtn', {'n': '$next'}),
+                    auto: next != null,
+                    waitForWin: next != null,
+                    details: details,
+                  ),
+          ),
         );
       case CptPhase.playing:
         final t = game.current;

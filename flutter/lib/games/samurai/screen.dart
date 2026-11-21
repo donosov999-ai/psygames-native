@@ -17,6 +17,8 @@ import '../../shell/shared_state.dart';
 import 'layout.dart';
 import 'levels.dart';
 import '../../shell/l10n.dart';
+import '../../shell/game_preset.dart';
+import '../../shell/level_result.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../sudoku/lesson.dart';
@@ -614,6 +616,7 @@ class _SamuraiScreenState extends State<SamuraiScreen> {
               : _Toolbar(
                   won: _won,
                   lost: _lost,
+                  playedLevel: _won && !_lifeSpent ? _endLevel : null,
                   onDigit: _place,
                   onErase: _erase,
                   onNext: _deal,
@@ -813,6 +816,7 @@ class _Toolbar extends StatelessWidget {
     required this.onErase,
     required this.onNext,
     this.note,
+    this.playedLevel,
   });
 
   final bool won;
@@ -823,6 +827,7 @@ class _Toolbar extends StatelessWidget {
 
   /// «Вторая жизнь потрачена — уровень за эту партию не растёт»; `null` — строки нет.
   final String? note;
+  final int? playedLevel;
 
   @override
   Widget build(BuildContext context) {
@@ -830,16 +835,18 @@ class _Toolbar extends StatelessWidget {
         ? null
         : Text(note!, key: const Key('life-spent-note'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 12));
     if (won || lost) {
-      final next = FilledButton.icon(
-        key: const Key('next'),
-        onPressed: onNext,
-        icon: Icon(won ? Icons.arrow_forward : Icons.refresh),
-        label: Text(won ? L.t('sdkNextStage') : L.t('retry')),
-      );
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: line == null ? next : Column(mainAxisSize: MainAxisSize.min, children: [line, const SizedBox(height: 8), next]),
-      );
+      return LevelResult.adapt(playedLevel != null && !GamePreset.isWarmup
+          ? LevelOutcomeAdapter(
+              passed: true, playedLevel: playedLevel, layout: GameOutcomeLayout.inline,
+              playNext: onNext, nextKey: const Key('next'), nextLabel: L.t('sdkNextStage'),
+              details: line, auto: false,
+            )
+          : ReportOutcomeAdapter(
+              title: won ? L.t('done') : L.t('sameLevelRetry'), layout: GameOutcomeLayout.inline,
+              details: line,
+              action: GameResultAction(key: const Key('next'), label: won ? L.t('sdkNextStage') : L.t('retry'),
+                  icon: won ? Icons.arrow_forward : Icons.refresh, onTap: onNext),
+            ));
     }
     final keys = LayoutBuilder(
       builder: (context, c) {

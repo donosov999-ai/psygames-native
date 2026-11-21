@@ -614,6 +614,8 @@ const t: Record<string, string> = {
   "srsDueLabel": "복습 대기",
   "srsOwnLabel": "내 단어",
   "srsAllDone": "오늘 학습 완료!",
+  "srsListen": "듣기",
+  "srsPronunciationUnavailable": "이 기기에서는 발음을 재생할 수 없습니다.",
   "srsNextDue": "다음 복습",
   "srsNew": "새 단어",
   "chessBlind": "블라인드 체스",

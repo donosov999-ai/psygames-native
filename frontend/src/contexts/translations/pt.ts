@@ -806,6 +806,8 @@ const t: Record<string, string> = {
   "srsDueLabel": "Para revisar",
   "srsOwnLabel": "Próprias",
   "srsAllDone": "Tudo feito por hoje!",
+  "srsListen": "Ouvir",
+  "srsPronunciationUnavailable": "A pronúncia não está disponível neste dispositivo.",
   "srsNextDue": "Próxima revisão",
   "srsNew": "nova",
   // v1.29.0: lexical decision + cloze + word sort (Polyglot)

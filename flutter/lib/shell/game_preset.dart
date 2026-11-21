@@ -62,6 +62,7 @@ class GamePreset {
   /// Вечерний шаг: без гонки. Экран с обратным отсчётом обязан его убрать
   /// (отчёт «нельзя таймер» от 18.08.2026).
   static bool get isCalm => _params['calm'] == '1';
+  static bool get isQuiet => isWarmup && _params['quiet'] == '1';
 
   static String str(String key, [String def = '']) {
     final v = _params[key];

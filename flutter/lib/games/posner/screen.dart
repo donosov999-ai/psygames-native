@@ -11,6 +11,7 @@ import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/setup_scroll.dart';
 import '../../shell/shared_level_store.dart';
@@ -375,37 +376,41 @@ class _Field extends StatelessWidget {
         );
       case PosnerPhase.done:
         final effect = game.validityEffectMs;
-        return _Centered(
+        return SizedBox(
           height: height,
-          children: [
-            Text(
-              passed
-                  ? L.t('levelDone').replaceAll('{n}', '${game.level}')
-                  : L.t('sameLevelRetry'),
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
+          child: LevelResult.adapt(
+            LevelOutcomeAdapter(
+              passed: passed,
+              playedLevel: game.level,
+              nextKey: nextLevel == null ? null : const Key('level-next'),
+              playNext: nextLevel == null ? onAgain : onContinue,
+              nextLabel: nextLevel == null
+                  ? L.t('retry')
+                  : L.f('nextLevelBtn', {'n': '$nextLevel'}),
+              auto: nextLevel != null,
+              details: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal} · '
+                    '${L.t('hud_errors')}: ${game.errors}',
+                  ),
+                  Text(
+                    game.meanRtMs == null
+                        ? '${L.t('meanReaction')}: —'
+                        : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}',
+                  ),
+                  // Прочерк честнее нуля: ноль означал бы «подсказка не помогает».
+                  Text(
+                    effect == null
+                        ? '${L.t('hud_cueGain')}: —'
+                        : '${L.t('hud_cueGain')}: $effect ${L.t('msShort')}',
+                  ),
+                  BossOutcomeLine(boss),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text('${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal} · '
-                '${L.t('hud_errors')}: ${game.errors}'),
-            Text(game.meanRtMs == null
-                ? '${L.t('meanReaction')}: —'
-                : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}'),
-            // Прочерк честнее нуля: ноль означал бы «подсказка не помогает».
-            Text(effect == null
-                ? '${L.t('hud_cueGain')}: —'
-                : '${L.t('hud_cueGain')}: $effect ${L.t('msShort')}'),
-            BossOutcomeLine(boss),
-            const SizedBox(height: 16),
-            if (nextLevel != null)
-              FilledButton(
-                key: const Key('level-next'),
-                onPressed: onContinue,
-                child: Text(L.t('nextLevelBtn').replaceAll('{n}', '$nextLevel')),
-              )
-            else
-              FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
-          ],
+          ),
         );
       case PosnerPhase.playing:
         final roles = GameColors.of(context);
@@ -436,23 +441,6 @@ class _Field extends StatelessWidget {
         );
     }
   }
-}
-
-class _Centered extends StatelessWidget {
-  const _Centered({required this.height, required this.children});
-  final double height;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-        height: height,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: children),
-          ),
-        ),
-      );
 }
 
 ButtonStyle _answerStyle(BuildContext context) {

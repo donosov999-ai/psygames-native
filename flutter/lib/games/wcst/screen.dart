@@ -16,6 +16,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -242,33 +243,70 @@ class _Field extends StatelessWidget {
         );
       case WcstPhase.done:
         final rc = game.ruleCatch;
-        return _Centered(
-          height: height,
+        final details = Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              classic
-                  ? '${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal}'
-                  : (game.passed
-                      ? L.t('levelDone').replaceAll('{n}', '${game.level}')
-                      : L.t('sameLevelRetry')),
-              key: const Key('wcst-verdict'),
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
+              '${L.t('hud_correct')}: ${game.hits} · ${L.t('hud_repeats')}: ${game.perseverative}',
             ),
-            const SizedBox(height: 8),
-            Text('${L.t('hud_correct')}: ${game.hits} · ${L.t('hud_repeats')}: ${game.perseverative}'),
             // ⚠️ Прочерк, а не ноль: сдвигов не было — перехватывать было нечего,
             // и ноль означал бы мгновенный перехват, которого не случалось.
             Text(
-              rc.mean == null ? '${L.t('hud_streak')}: —' : '${L.t('hud_streak')}: ${rc.mean} (${rc.shifts})',
+              rc.mean == null
+                  ? '${L.t('hud_streak')}: —'
+                  : '${L.t('hud_streak')}: ${rc.mean} (${rc.shifts})',
               key: const Key('wcst-catch'),
             ),
             const SizedBox(height: 8),
-            Text(L.t('wcstPass').replaceAll('{c}', '${game.params.persevCap}'),
-                style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onAgain, child: Text(L.t('start'))),
+            Text(
+              L.t('wcstPass').replaceAll('{c}', '${game.params.persevCap}'),
+              style: Theme.of(context).textTheme.bodySmall,
+              textAlign: TextAlign.center,
+            ),
           ],
+        );
+        final level = LevelLadder.current?.level;
+        final next =
+            (classic) ||
+                !(game.passed) ||
+                GamePreset.isWarmup ||
+                level == null ||
+                level <= game.level
+            ? null
+            : level;
+        return SizedBox(
+          height: height,
+          child: LevelResult.adapt(
+            classic
+                ? ReportOutcomeAdapter(
+                    title:
+                        '${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal}',
+                    titleKey: const Key('wcst-verdict'),
+                    action: GameResultAction(
+                      label: L.t('start'),
+                      icon: Icons.replay,
+                      onTap: onAgain,
+                    ),
+                    details: details,
+                  )
+                : LevelOutcomeAdapter(
+                    passed: game.passed,
+                    playedLevel: game.level,
+                    titleKey: const Key('wcst-verdict'),
+                    playNext: next == null
+                        ? onAgain
+                        : () {
+                            onAgain();
+                            onStart();
+                          },
+                    nextLabel: next == null
+                        ? L.t('start')
+                        : L.f('nextLevelBtn', {'n': '$next'}),
+                    auto: next != null,
+                    waitForWin: next != null,
+                    details: details,
+                  ),
+          ),
         );
       case WcstPhase.playing:
         final t = game.target!;

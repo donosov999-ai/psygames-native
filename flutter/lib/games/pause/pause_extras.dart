@@ -5,20 +5,17 @@
 //   · [PauseLevelTrail] — тропинка подходов/уровней со звёздами (веб `LevelProgressMap`,
 //     задачи 936e3a5e и af5c3ae9);
 //   · [PauseResult] — итог подхода: звёзды, уровень, время, серия дней (веб `LevelCleared`,
-//     задача b9517e77). В «Авроре» — общий [GameResultPanel] листа 15, в Classic — та же
-//     раскладка простыми виджетами.
+//     задача b9517e77). Обе темы рисует [LevelResult] через адаптер отчёта.
 //
 // Тексты — ключи общего словаря, которые уже переведены на 12 языков веб-стороной.
 library;
 
 import 'package:flutter/material.dart';
 
-import '../../shell/aurora_scope.dart';
-import '../../shell/chrome_art.dart';
 import '../../shell/game_about.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/l10n.dart';
-import '../../shell/ui_kit/game_result.dart';
+import '../../shell/level_result.dart';
 
 /// Польза упражнения строкой: значок и ключ словаря.
 typedef PauseBenefit = (IconData, String);
@@ -245,117 +242,30 @@ class PauseResult extends StatelessWidget {
   final VoidCallback onAgain;
   final VoidCallback onHome;
 
-  Widget _stars(Color color) => Text(
-    '★' * stars + '☆' * (3 - stars).clamp(0, 3),
-    key: const Key('pause-result-stars'),
-    textAlign: TextAlign.center,
-    style: TextStyle(fontSize: 40, letterSpacing: 6, color: color),
-  );
-
   @override
-  Widget build(BuildContext context) {
-    // Итог — часть игровой рамки (DESIGN_SYSTEM.md, правило 1): в «Авроре» он «Авроры», даже
-    // пока поле практики ещё классическое (маршрут не в `auroraReadyRoutes`). Тему рамки
-    // отдаёт [AuroraFrame].
-    final frame = AuroraFrame.of(context);
-    if (frame != null || ChromeArt.aurora(context)) {
-      final theme = frame ?? Theme.of(context);
-      return Theme(
-        data: theme,
-        child: Builder(builder: (context) => _aurora(context)),
-      );
-    }
-    return _classic(context);
-  }
-
-  Widget _aurora(BuildContext context) {
-    final roles = GameColors.aurora(Theme.of(context).brightness);
-    return GameResultPanel(
-      key: const Key('pause-done'),
-      won: true,
+  Widget build(BuildContext context) => LevelResult.adapt(
+    ReportOutcomeAdapter(
       title: title,
-      subtitle: subtitle,
-      hero: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.emoji_events_rounded, size: 110, color: roles.reward),
-          _stars(roles.reward),
-        ],
-      ),
-      stats: [for (final s in stats) GameResultStat(icon: s.icon, label: s.label, value: s.value)],
-      board: lines.isEmpty
+      titleKey: const Key('game-result-title'),
+      score: subtitle,
+      icon: Icons.emoji_events_rounded,
+      awardStars: stars,
+      starsKey: const Key('pause-result-stars'),
+      stats: [
+        for (final s in stats) GameResultStat(icon: s.icon, label: s.label, value: s.value, key: s.key),
+      ],
+      details: lines.isEmpty
           ? null
-          : Column(
-              children: [
-                for (final l in lines)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(l, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
-                  ),
-              ],
-            ),
-      primary: GameResultAction(key: const Key('pause-again'), label: L.t('retry'), icon: Icons.replay, onTap: onAgain),
-      pair: [
-        GameResultAction(key: const Key('pause-home'), label: L.t('goHome'), icon: Icons.home_outlined, onTap: onHome),
-      ],
-    );
-  }
-
-  Widget _classic(BuildContext context) {
-    final theme = Theme.of(context);
-    final roles = GameColors.of(context);
-    return ListView(
-      key: const Key('pause-done'),
-      padding: const EdgeInsets.all(16),
-      children: [
-        _stars(roles.reward),
-        Text(
-          title,
-          key: const Key('game-result-title'),
-          style: theme.textTheme.headlineSmall,
-          textAlign: TextAlign.center,
-        ),
-        if (subtitle != null) Text(subtitle!, style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
-        const SizedBox(height: 12),
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 16,
-          runSpacing: 12,
-          children: [
-            for (final s in stats)
-              SizedBox(
-                key: s.key,
-                width: 140,
-                child: Column(
-                  children: [
-                    Icon(s.icon, color: roles.reward),
-                    Text(s.value, style: theme.textTheme.headlineSmall, textAlign: TextAlign.center),
-                    Text(s.label, style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
-                  ],
+          : Column(mainAxisSize: MainAxisSize.min, children: [
+              for (final line in lines)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(line, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
                 ),
-              ),
-          ],
-        ),
-        for (final l in lines)
-          Padding(
-            padding: const EdgeInsets.only(top: 6),
-            child: Text(l, style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
-          ),
-        const SizedBox(height: 16),
-        FilledButton.icon(
-          key: const Key('pause-again'),
-          onPressed: onAgain,
-          icon: const Icon(Icons.replay),
-          label: Text(L.t('retry')),
-        ),
-        const SizedBox(height: 8),
-        OutlinedButton.icon(
-          key: const Key('pause-home'),
-          onPressed: onHome,
-          icon: const Icon(Icons.home_outlined),
-          label: Text(L.t('goHome')),
-        ),
-      ],
-    );
-  }
+            ]),
+      action: GameResultAction(key: const Key('pause-again'), label: L.t('retry'), icon: Icons.replay, onTap: onAgain),
+      exit: GameResultAction(key: const Key('pause-home'), label: L.t('goHome'), icon: Icons.home_outlined, onTap: onHome),
+    ),
+    key: const Key('pause-done'),
+  );
 }

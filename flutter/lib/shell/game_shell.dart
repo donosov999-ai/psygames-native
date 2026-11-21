@@ -21,6 +21,15 @@ import 'game_preset.dart';
 import 'warmup_owner.dart';
 import 'lesson.dart';
 
+/// Present only in a manual pre-game phase. A null callback keeps it visibly
+/// disabled while preparing; an absent action does not reserve space.
+class GameStartAction {
+  const GameStartAction({required this.onTap, this.key = const Key('game-start')});
+
+  final VoidCallback? onTap;
+  final Key key;
+}
+
 /// Каркас игрового экрана — перенос GameShell из React-версии PsyGames.
 ///
 /// Порядок сверху вниз закреплён решениями Дениса и не меняется играми:
@@ -39,6 +48,7 @@ class GameShell extends StatelessWidget {
     this.auxRow,
     this.suiteSwitch,
     this.toolbar,
+    this.startAction,
     this.onBack,
     this.onRules,
     this.onLesson,
@@ -76,6 +86,9 @@ class GameShell extends StatelessWidget {
 
   /// Липкий низ: клавиатура цифр, варианты ответа.
   final Widget? toolbar;
+
+  /// The game decides when it is ready to start; the shell owns the button.
+  final GameStartAction? startAction;
 
   final VoidCallback? onBack;
   final VoidCallback? onRules;
@@ -299,6 +312,14 @@ class GameShell extends StatelessWidget {
                 color: scheme.surface,
                 child: toolbar,
               ),
+            if (startAction case final action?)
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(12, 4, 12, 10),
+                  child: _GameStartTile(action: action),
+                ),
+              ),
           ],
         );
     // 🔴 ОДИН ЖУК bugFX НА ЭКРАН (канон §bugFX, решение Дениса 04.11): в игре — кнопкой в шапке,
@@ -443,7 +464,12 @@ class GameShell extends StatelessWidget {
             width: double.infinity,
             color: auroraTransparentField ? Colors.transparent : Theme.of(context).colorScheme.surface,
             child: toolbar),
-      chrome(_AuroraGameBar(onPause: () => _pause(context), aux: auxRow, jewelPause: auroraJewelPause)),
+      chrome(_AuroraGameBar(
+        onPause: () => _pause(context),
+        aux: auxRow,
+        jewelPause: auroraJewelPause,
+        start: startAction,
+      )),
     ]);
   }
 
@@ -511,7 +537,25 @@ class GameShell extends StatelessWidget {
    */
   VoidCallback? _levelMapEntry(BuildContext context) {
     final ladder = LevelLadder.current;
-    if (ladder == null || !levelMap || GamePreset.isPreset || GamePreset.isWarmup) return null;
+    return ladder == null ? null : _openMapAction(context, ladder);
+  }
+
+  /// The victory screen uses exactly the same map and replay action as the
+  /// header and pause menu. It must not bypass mode or ladder restrictions.
+  static Future<void> Function()? levelMapForVictory(
+    BuildContext context,
+    LevelLadder ladder,
+  ) {
+    if (!identical(LevelLadder.current, ladder)) return null;
+    final shell = context.findAncestorWidgetOfExactType<GameShell>();
+    return shell?._openMapAction(context, ladder);
+  }
+
+  Future<void> Function()? _openMapAction(
+    BuildContext context,
+    LevelLadder ladder,
+  ) {
+    if (!levelMap || GamePreset.isPreset || GamePreset.isWarmup) return null;
     final restart = RestartScope.of(context);
     if (_levelMapAction(context, ladder, restart) == null) return null;
     return () async {
@@ -1549,10 +1593,11 @@ class _AuroraHelpMenu extends StatelessWidget {
 /// жёлтая глянцевая «Пауза» и кнопки игры — ОДНИМ рядом равных колонок (пауза — первая колонка),
 /// подписи под кругами. Пятивкладочной панели оболочки поверх игры нет.
 class _AuroraGameBar extends StatelessWidget {
-  const _AuroraGameBar({required this.onPause, this.aux, this.jewelPause = false});
+  const _AuroraGameBar({required this.onPause, this.aux, this.jewelPause = false, this.start});
   final VoidCallback onPause;
   final Widget? aux;
   final bool jewelPause;
+  final GameStartAction? start;
 
   @override
   Widget build(BuildContext context) {
@@ -1600,6 +1645,7 @@ class _AuroraGameBar extends StatelessWidget {
     );
     // Кнопки игры из её AuxBar — в те же равные колонки, что и пауза (реф: пять равных колонок).
     final items = aux is AuxBar ? (aux! as AuxBar).auroraChildren : null;
+    final play = start == null ? null : _GameStartTile(action: start!, aurora: true);
     return Container(
       key: const Key('game-bar-aurora'),
       margin: const EdgeInsets.fromLTRB(8, 2, 8, 4),
@@ -1609,11 +1655,88 @@ class _AuroraGameBar extends StatelessWidget {
           ? Row(key: const Key('aux-bar-aurora'), crossAxisAlignment: CrossAxisAlignment.start, children: [
               Expanded(child: Center(child: pause)),
               for (final c in items) Expanded(child: Center(child: c)),
+              if (play != null) Expanded(child: Center(child: play)),
             ])
           : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               SizedBox(width: 72, child: pause),
               Expanded(child: aux ?? const SizedBox.shrink()),
+              if (play != null) SizedBox(width: 72, child: play),
             ]),
+    );
+  }
+}
+
+/// A fixed-size play jewel, visually distinct from the yellow Pause jewel.
+/// Keep the caption off the glossy surface in both themes.
+class _GameStartTile extends StatelessWidget {
+  const _GameStartTile({required this.action, this.aurora = false});
+
+  final GameStartAction action;
+  final bool aurora;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = ChromePalette.of(theme.brightness == Brightness.dark);
+    final metrics = ChromeMetrics.of(context);
+    final label = L.t('start');
+    final enabled = action.onTap != null;
+    final foreground = aurora ? palette.text : theme.colorScheme.onSurface;
+    return Semantics(
+      key: action.key,
+      button: true,
+      enabled: enabled,
+      label: label,
+      excludeSemantics: true,
+      onTap: action.onTap,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: action.onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: LayoutBuilder(builder: (context, box) {
+            final size = aurora && box.maxWidth.isFinite
+                ? metrics.circleFor(box.maxWidth)
+                : 48.0;
+            return Column(mainAxisSize: MainAxisSize.min, children: [
+              Opacity(
+                opacity: enabled ? 1 : 0.55,
+                child: Container(
+                  key: const Key('game-start-face'),
+                  width: size,
+                  height: size,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF0F725F), Color(0xFF084839), Color(0xFF062E28)],
+                    ),
+                    border: Border.all(
+                      color: aurora ? palette.goldSoft : const Color(0xFF1F8C76),
+                      width: aurora ? 2 : 1,
+                    ),
+                    boxShadow: const [
+                      BoxShadow(color: Color(0x46043126), offset: Offset(0, 2), blurRadius: 5),
+                    ],
+                  ),
+                  child: Icon(Icons.play_arrow_rounded, size: size * 0.56, color: Colors.white),
+                ),
+              ),
+              SizedBox(height: metrics.compact ? 3 : 5),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(label, maxLines: 1, style: TextStyle(
+                  color: foreground,
+                  fontSize: metrics.barLabel,
+                  fontWeight: FontWeight.w800,
+                  height: 1.1,
+                )),
+              ),
+            ]);
+          }),
+        ),
+      ),
     );
   }
 }

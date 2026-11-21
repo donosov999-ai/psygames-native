@@ -25,7 +25,9 @@
  * «прошёл» на своей тропинке.
  */
 import type { PlaylistMeta, PlaylistStep, Difficulty } from './warmup';
+import { prepareWarmup } from './warmup';
 import { estimateStepSec } from '@/src/services/gameDuration';
+import { заводскиеЗарядки } from '@/src/services/warmupData';
 
 /**
  * Сколько минут длится зарядка.
@@ -118,7 +120,7 @@ export function собратьТемуЗарядки(
 ): PlaylistMeta {
   const steps = темаШаги(темы, minutes);
   const total = замерШагов(steps);
-  return {
+  return prepareWarmup({
     duration_min: Math.max(1, Math.round(total / 60)),
     weekday: 0,
     weekday_name: '',
@@ -127,16 +129,32 @@ export function собратьТемуЗарядки(
     steps,
     est_total_sec: total,
     slot: 'day',
-  };
+  });
 }
+
+export function темыИзФайла(
+  theme: 'chess' | 'words', levels: Readonly<Record<string, number>>,
+): ТемаЗарядки[] {
+  return заводскиеЗарядки.темы[theme].map(s => ({
+    game_id: s.id, game_route: s.route, секунд: s.секунд,
+    уровень: levels[s.ключУровня] ?? 1, настройки: s.ещё,
+  }));
+}
+
+// Compatibility for callers of the earlier public duration constants.
+const секунды = (theme: 'chess' | 'words', id: string) =>
+  заводскиеЗарядки.темы[theme].find(s => s.id === id)?.секунд ?? 0;
+export const ШАГ_МАТ_СЕК = секунды('chess', 'scholars_mate');
+export const ШАГ_ДОСКА_СЕК = секунды('chess', 'chess_blind');
+export const ШАГ_АНАГРАММЫ_СЕК = секунды('words', 'anagrams');
+export const ШАГ_ФИЛВОРДЫ_СЕК = секунды('words', 'proofreading');
+export const ШАГ_БЕГЛОСТЬ_СЕК = секунды('words', 'phonemic_fluency');
 
 /**
  * Оценка длительности шага, в секундах. Взята из самих упражнений, а не на глаз:
  * · «Детский мат» — 10 позиций по 20…4 секунды на уровень плюс разбор ошибки;
  * · «Доска в уме» — ходы обдумывают, круг заметно длиннее.
  */
-export const ШАГ_МАТ_СЕК = 90;
-export const ШАГ_ДОСКА_СЕК = 150;
 
 export interface ChessWarmupOpts {
   minutes: ChessWarmupMinutes;
@@ -165,10 +183,7 @@ export function chessWarmupSteps(o: ChessWarmupOpts): PlaylistStep[] {
    * оригиналом при первой же правке — в этом проекте так уже случалось
    * с высотой полки и с правилом уровня.
    */
-  return темаШаги([
-    { game_id: 'scholars_mate', game_route: '/games/scholars-mate', секунд: ШАГ_МАТ_СЕК, уровень: o.mateLevel },
-    { game_id: 'chess_blind', game_route: '/games/chess-blind', секунд: ШАГ_ДОСКА_СЕК, уровень: o.blindLevel },
-  ], o.minutes);
+  return темаШаги(темыИзФайла('chess', { scholars_mate: o.mateLevel, chess_blind: o.blindLevel }), o.minutes);
 }
 
 export function buildChessWarmup(o: ChessWarmupOpts): PlaylistMeta {
@@ -195,9 +210,6 @@ export function buildChessWarmup(o: ChessWarmupOpts): PlaylistMeta {
  *   · филворды в «Корректуре» — найти слова в поле букв (поиск в шуме);
  *   · беглость речи — назвать слова на букву (извлечение из памяти).
  */
-export const ШАГ_АНАГРАММЫ_СЕК = 90;
-export const ШАГ_ФИЛВОРДЫ_СЕК = 120;
-export const ШАГ_БЕГЛОСТЬ_СЕК = 60;
 
 export interface WordWarmupOpts {
   minutes: WarmupMinutes;
@@ -206,26 +218,7 @@ export interface WordWarmupOpts {
 }
 
 export function wordWarmupSteps(o: WordWarmupOpts): PlaylistStep[] {
-  return темаШаги([
-    { game_id: 'anagrams', game_route: '/games/anagrams', секунд: ШАГ_АНАГРАММЫ_СЕК, уровень: o.anagramsLevel },
-    /**
-     * 🔴 `taskMode`, А НЕ `mode` — ИЗ-ЗА ЭТОГО ШАГ ПАДАЛ (отчёт Дениса 10.09.2026).
-     *
-     * У корректуры два разных параметра: `mode` — ПИСЬМЕННОСТЬ (латиница,
-     * кириллица, греческий…), `taskMode` — ВИД ЗАДАНИЯ (буквы или филворды).
-     * Здесь стояло `mode: 'fillwords'`, экран искал такую письменность в `SCRIPTS`,
-     * не находил и разбивался о `.chars` у `undefined`:
-     * «undefined is not an object (evaluating SCRIPTS[mode].chars)» — весь заход
-     * зарядки терялся на втором упражнении.
-     * ⚠️ Экран со своей стороны тоже укреплён: неизвестная письменность больше не
-     * роняет партию, а откатывается на язык интерфейса. Одной правки мало — имя
-     * параметра здесь было неверным само по себе, и филворды не включались бы даже
-     * без падения.
-     */
-    { game_id: 'proofreading', game_route: '/games/proofreading', секунд: ШАГ_ФИЛВОРДЫ_СЕК, уровень: o.proofreadingLevel, настройки: { taskMode: 'fillwords' } },
-    // «Беглость речи» без лестницы — там уровень задаёт длительность круга.
-    { game_id: 'phonemic_fluency', game_route: '/games/phonemic-fluency', секунд: ШАГ_БЕГЛОСТЬ_СЕК, уровень: 1 },
-  ], o.minutes);
+  return темаШаги(темыИзФайла('words', { anagrams: o.anagramsLevel, proofreading: o.proofreadingLevel }), o.minutes);
 }
 
 export function buildWordWarmup(o: WordWarmupOpts): PlaylistMeta {

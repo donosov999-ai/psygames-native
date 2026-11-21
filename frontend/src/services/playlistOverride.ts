@@ -24,6 +24,7 @@
  * и все берут их из объекта профиля. Поэтому правка одна, а не двадцать девять.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { заводскиеЗарядки, заводскойФайл } from '@/src/services/warmupData';
 import { GAMES } from '@/src/constants/games';
 import { заводскиеКарточкиХаба, type ЭлементХаба } from '@/src/constants/hubContents';
 import { NATIVE_ONLY_ROUTES } from '@/src/constants/nativeOnlyGames';
@@ -183,7 +184,7 @@ export function вСеткуЗарядки(сетка: СоставПрофил�
       const слот = СЛОТ_ПО_ИМЕНИ[имя];
       if (!слот) continue;
       for (const [ключДлины, шаги] of Object.entries(длины ?? {})) {
-        if (!шаги || !шаги.length) continue;
+        if (!Array.isArray(шаги)) continue;
         const длина = Number(ключДлины) as Длительность;
         ((out[д] ||= {})[слот] ||= {})[длина] = шаги;
         есть = true;
@@ -476,7 +477,7 @@ export function разобрать(текст: string): РазборСостав
               continue;
             }
             const годные = отобратьШаги(шаги, идПрофиля, `сетка ${ИМЯ_ДНЯ[д]}/${имяСлота}/${ключДлины}`, отброшено);
-            if (!годные || годные.length === 0) continue;
+            if (!годные || (!годные.length && Array.isArray(шаги) && шаги.length > 0)) continue;
             ((сетка[ключДня] ||= {})[имяСлота] ||= {})[ключДлины] = годные;
           }
         }
@@ -655,12 +656,10 @@ export interface СохранённыйСостав {
  * Теперь слоёв два: заводской файл из сборки и, поверх него, загруженный руками.
  * Пустое хранилище = заводской состав, а не «состава нет».
  */
-const ЗАВОДСКОЙ_ФАЙЛ: unknown = require('@/src/constants/defaultPlaylists.json');
-
 /** Заводской состав из сборки. Разбирается тем же путём, что и загруженный. */
 export function заводскойСостав(): СохранённыйСостав | null {
   try {
-    const р = разобрать(JSON.stringify(ЗАВОДСКОЙ_ФАЙЛ));
+    const р = разобрать(JSON.stringify(заводскойФайл));
     if (!р.состав) return null;
     return { профили: р.состав, наборы: р.наборы, порядок: р.порядок,
              хабы: р.хабы, замки: р.замки, коллекция: р.коллекция };
@@ -669,13 +668,62 @@ export function заводскойСостав(): СохранённыйСост
   }
 }
 
+/** Older imports are overlays, not a frozen copy of every unset factory cell. */
+export function совместитьСоставы(base: СохранённыйСостав, saved: Partial<СохранённыйСостав> & Pick<СохранённыйСостав, 'профили'>): СохранённыйСостав {
+  const профили = { ...base.профили };
+  for (const [id, override] of Object.entries(saved.профили)) {
+    if (!override || typeof override !== 'object') continue;
+    const factory = base.профили[id];
+    const сетка: NonNullable<СоставПрофиля['сетка']> = {};
+    for (const [day, slots] of Object.entries(factory?.сетка ?? {})) {
+      if (!slots) continue;
+      for (const [slot, lengths] of Object.entries(slots)) {
+        // A legacy fixed slot (or an explicit weekday morning) overrides
+        // inherited grid cells, but not a cell explicitly provided with it.
+        const fixed = override[slot as 'утро' | 'день' | 'вечер' | 'ночь'] !== undefined;
+        const weekly = slot === 'утро' && override.по_дням?.[Number(day) as Weekday] !== undefined;
+        if (!fixed && !weekly) (сетка[day] ||= {})[slot] = { ...lengths };
+      }
+    }
+    for (const [day, slots] of Object.entries(override.сетка ?? {})) {
+      for (const [slot, lengths] of Object.entries(slots ?? {})) {
+        ((сетка[day] ||= {})[slot] ||= {});
+        сетка[day]![slot] = { ...сетка[day]![slot], ...lengths };
+      }
+    }
+    профили[id] = { ...factory, ...override, сетка };
+    if (Array.isArray(override.наборы)) {
+      профили[id].наборы = [...new Set(override.наборы.map(
+        n => заводскиеЗарядки.переименования_наборов[n] ?? n,
+      ))];
+    }
+    if (override.по_дням !== undefined && override.утро === undefined) {
+      delete профили[id].утро;
+    }
+  }
+  const sets = new Map(base.наборы.map(n => [n.id, n]));
+  if (Array.isArray(saved.наборы)) for (const n of saved.наборы) {
+    if (typeof n?.id === 'string' && Array.isArray(n.шаги)
+        && !заводскиеЗарядки.переименования_наборов[n.id]) sets.set(n.id, n);
+  }
+  return {
+    профили, наборы: [...sets.values()],
+    порядок: saved.порядок ?? base.порядок,
+    хабы: saved.хабы ?? base.хабы,
+    замки: saved.замки ?? base.замки,
+    коллекция: saved.коллекция ?? base.коллекция,
+  };
+}
+
 /** Прочитать сохранённый состав. Пусто в хранилище = заводской файл из сборки. */
 export async function загрузить(): Promise<СохранённыйСостав | null> {
   try {
     const текст = await AsyncStorage.getItem(КЛЮЧ_СОСТАВА);
     if (!текст) return заводскойСостав();
     const прочитано = JSON.parse(текст) as Partial<СохранённыйСостав>;
-    if (!прочитано?.профили || typeof прочитано.профили !== 'object') return null;
+    if (!прочитано?.профили || typeof прочитано.профили !== 'object') return заводскойСостав();
+    const base = заводскойСостав();
+    if (base) return совместитьСоставы(base, { ...прочитано, профили: прочитано.профили });
     return {
       профили: прочитано.профили,
       наборы: Array.isArray(прочитано.наборы) ? прочитано.наборы : [],

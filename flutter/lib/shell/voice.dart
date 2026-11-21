@@ -67,7 +67,8 @@ const Map<String, String> voiceBcp47 = {
 
 /// Скорость речи: медленнее 0.6 разваливает слово на звуки, быстрее 1.6
 /// превращает в скороговорку. Границы те же, что в вебе (`tts.ts`, `сыграть`).
-double clampVoiceRate(double rate) => rate < 0.6 ? 0.6 : (rate > 1.6 ? 1.6 : rate);
+double clampVoiceRate(double rate) =>
+    rate < 0.6 ? 0.6 : (rate > 1.6 ? 1.6 : rate);
 
 /// Один голосовой слой на всё приложение.
 class VoiceLayer {
@@ -154,11 +155,13 @@ class VoiceLayer {
   bool hasRecording(String text, String lang) => sampleUrl(text, lang) != null;
 
   /// Есть ли системный голос языка — без учёта записей.
-  Future<bool> hasSystemVoice(String lang) => backend.hasSystemVoice(voiceBcp47[lang] ?? lang);
+  Future<bool> hasSystemVoice(String lang) =>
+      backend.hasSystemVoice(voiceBcp47[lang] ?? lang);
 
   /// Есть ли чем озвучить этот язык: запись или системный голос.
   Future<bool> hasVoice(String lang) async {
-    final hasSamples = (live[lang]?.isNotEmpty ?? false) ||
+    final hasSamples =
+        (live[lang]?.isNotEmpty ?? false) ||
         (samples[lang]?.isNotEmpty ?? false);
     if (hasSamples) return true;
     return backend.hasSystemVoice(voiceBcp47[lang] ?? lang);
@@ -166,14 +169,34 @@ class VoiceLayer {
 
   /// Произнести текст. `true` — прозвучало; `false` — экран обязан показать
   /// заглушку и НЕ делать вид, что упражнение идёт.
-  Future<bool> speak(String text, String lang, {double rate = 0.9}) async {
-    if (!soundOn()) return false;
+  Future<bool> speak(
+    String text,
+    String lang, {
+    double rate = 0.9,
+    bool Function()? stillCurrent,
+    bool requireSystemVoice = false,
+  }) async {
+    bool canSpeak() => soundOn() && (stillCurrent?.call() ?? true);
+    if (!canSpeak()) return false;
     final speed = clampVoiceRate(rate);
-    final url = sampleUrl(text, lang);
-    if (url != null && await backend.playUrl(url, speed)) return true;
-    // Запись не проигралась (нет сети, битый файл) — это не повод молчать:
-    // синтез остаётся вторым шансом, и в вебе он ровно так же второй.
-    return backend.speakSystem(text, voiceBcp47[lang] ?? lang, speed);
+    final liveName = live[lang]?[text];
+    final sampleName = samples[lang]?[text];
+    if (liveName != null &&
+        await backend.playUrl('$voiceLiveBase/$lang/$liveName', speed)) {
+      return true;
+    }
+    if (!canSpeak()) return false;
+    if (sampleName != null &&
+        await backend.playUrl('$voiceBase/$lang/$sampleName', speed)) {
+      return true;
+    }
+    // A stale card must not fall back to TTS after remote playback fails.
+    if (!canSpeak()) return false;
+    final locale = voiceBcp47[lang] ?? lang;
+    if (requireSystemVoice && !await backend.hasSystemVoice(locale)) {
+      return false;
+    }
+    return canSpeak() && await backend.speakSystem(text, locale, speed);
   }
 
   /// Проговорить ряд слов по очереди — «слуховой охват» и «эхо псевдослов».

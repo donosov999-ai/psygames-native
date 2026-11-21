@@ -20,6 +20,7 @@ import '../../shell/aux_action.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
@@ -295,17 +296,17 @@ class _RmetScreenState extends State<RmetScreen> {
     }
     if (s.finished) {
       final m = s.metrics;
-      return _Pad(
+      // The material is constant; a run counter is not a new difficulty.
+      return SizedBox(
         height: h,
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(m.passed ? Icons.emoji_events_outlined : Icons.replay_outlined,
-              size: 44, color: m.passed ? scheme.primary : scheme.onSurfaceVariant),
-          const SizedBox(height: 10),
-          Text('${m.hits}/${m.total}', style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 6),
-          Text('${(m.accuracy * 100).round()}%', style: Theme.of(context).textTheme.titleLarge),
-          if (m.meanRtMs > 0) Text('${(m.meanRtMs / 1000).toStringAsFixed(1)} s'),
-        ]),
+        child: LevelResult.adapt(ReportOutcomeAdapter(
+          title: L.t('done'),
+          score: '${m.hits}/${m.total}',
+          details: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text('${(m.accuracy * 100).round()}%', style: Theme.of(context).textTheme.titleLarge),
+            if (m.meanRtMs > 0) Text('${(m.meanRtMs / 1000).toStringAsFixed(1)} s'),
+          ]),
+        )),
       );
     }
     final file = s.currentFile;

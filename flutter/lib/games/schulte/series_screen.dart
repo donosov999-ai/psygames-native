@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/module_strings.dart';
 import '../../shell/restart_scope.dart';
@@ -282,27 +283,32 @@ class _SchulteSeriesScreenState extends State<SchulteSeriesScreen> {
             rule: _rule(t, blockKeyAt(s.blockIndex + 1), total),
             same: t.t('sameField'),
           ),
-        _Stage.result => _Result(t: t, run: _finished!, outcome: _outcome!, label: (k) => _label(t, k)),
+        _Stage.result => LevelResult.adapt(
+          ReportOutcomeAdapter(
+            title: t.t('seriesDone'),
+            icon: Icons.layers_outlined,
+            details: _Breakdown(
+              t: t,
+              run: _finished!,
+              outcome: _outcome!,
+              label: (k) => _label(t, k),
+            ),
+            action: GameResultAction(
+              key: const Key('series-again'),
+              label: t.t('again'),
+              icon: Icons.refresh,
+              onTap: _begin,
+            ),
+            exit: GameResultAction(
+              key: const Key('series-leave'),
+              label: t.t('leave'),
+              icon: Icons.exit_to_app,
+              onTap: () => Navigator.of(context).maybePop(),
+            ),
+          ),
+        ),
         _Stage.loading => const SizedBox.shrink(),
       },
-      toolbar: _stage == _Stage.result
-          ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: Wrap(alignment: WrapAlignment.center, spacing: 12, runSpacing: 8, children: [
-                FilledButton.icon(
-                  key: const Key('series-again'),
-                  onPressed: _begin,
-                  icon: const Icon(Icons.refresh),
-                  label: Text(t.t('again')),
-                ),
-                OutlinedButton(
-                  key: const Key('series-leave'),
-                  onPressed: () => Navigator.of(context).maybePop(),
-                  child: Text(t.t('leave')),
-                ),
-              ]),
-            )
-          : null,
     );
   }
 }
@@ -438,14 +444,20 @@ class _Interlude extends StatelessWidget {
 }
 
 /// Разбор серии: главное — две разности, T₂ − T₁ и T₃ − T₁. У неполной их нет вовсе.
-class _Result extends StatelessWidget {
-  const _Result({required this.t, required this.run, required this.outcome, required this.label});
+class _Breakdown extends StatelessWidget {
+  const _Breakdown({
+    required this.t,
+    required this.run,
+    required this.outcome,
+    required this.label,
+  });
   final ModuleStrings t;
   final SeriesRun run;
   final SeriesOutcome outcome;
   final String Function(String key) label;
 
-  String _seconds(int ms) => '${(ms / 1000).toStringAsFixed(1)} ${L.t('seconds')}';
+  String _seconds(int ms) =>
+      '${(ms / 1000).toStringAsFixed(1)} ${L.t('seconds')}';
   String _signed(int ms) => '${ms > 0 ? '+' : ''}${_seconds(ms)}';
 
   @override
@@ -453,35 +465,50 @@ class _Result extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final diffs = seriesDiffs(run);
     final base = schulteSeriesPlan.first;
-    return SingleChildScrollView(
+    return Column(
       key: const Key('series-result'),
-      padding: const EdgeInsets.all(16),
-      child: Column(children: [
-        Icon(Icons.layers_outlined, size: 44, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(height: 8),
-        Text(t.t('seriesDone'), style: text.titleLarge, textAlign: TextAlign.center),
-        const SizedBox(height: 12),
+      mainAxisSize: MainAxisSize.min,
+      children: [
         if (diffs == null)
-          Text(t.t('notFinished'),
-              key: const Key('series-not-finished'),
-              style: text.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.error),
-              textAlign: TextAlign.center)
+          Text(
+            t.t('notFinished'),
+            key: const Key('series-not-finished'),
+            style: text.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.error,
+            ),
+            textAlign: TextAlign.center,
+          )
         else
-          Column(key: const Key('series-diffs'), children: [
-            Text('${t.t('speed')}: ${_seconds(run.blocks.first.timeMs)}', style: text.bodyLarge),
-            Text('${t.t('switchCost')}: ${_signed(diffs['${schulteSeriesPlan[1]}_minus_$base']!)}', style: text.bodyLarge),
-            Text('${t.t('holdCost')}: ${_signed(diffs['${schulteSeriesPlan[2]}_minus_$base']!)}', style: text.bodyLarge),
-          ]),
+          Column(
+            key: const Key('series-diffs'),
+            children: [
+              Text(
+                '${t.t('speed')}: ${_seconds(run.blocks.first.timeMs)}',
+                style: text.bodyLarge,
+              ),
+              Text(
+                '${t.t('switchCost')}: ${_signed(diffs['${schulteSeriesPlan[1]}_minus_$base']!)}',
+                style: text.bodyLarge,
+              ),
+              Text(
+                '${t.t('holdCost')}: ${_signed(diffs['${schulteSeriesPlan[2]}_minus_$base']!)}',
+                style: text.bodyLarge,
+              ),
+            ],
+          ),
         const SizedBox(height: 12),
         Text(
           outcome.raised
               ? t.fill('levelUp', {'size': outcome.nextLevel})
-              : t.fill('heldBy', {'block': label(outcome.weakest), 'runs': math.max(1, outcome.runsLeft)}),
+              : t.fill('heldBy', {
+                  'block': label(outcome.weakest),
+                  'runs': math.max(1, outcome.runsLeft),
+                }),
           key: const Key('series-outcome'),
           style: text.bodyMedium,
           textAlign: TextAlign.center,
         ),
-      ]),
+      ],
     );
   }
 }
@@ -490,7 +517,12 @@ class _Result extends StatelessWidget {
 /// Под кнопкой — с какого поля начнётся серия и какие поля у блоков сейчас: иначе старт с минимума
 /// читается как откат. Открывает экран серии в [RestartScope] — «Заново» каркаса работает и там.
 class SchulteSeriesDoor extends StatefulWidget {
-  const SchulteSeriesDoor({super.key, required this.state, required this.ladderSize, this.text});
+  const SchulteSeriesDoor({
+    super.key,
+    required this.state,
+    required this.ladderSize,
+    this.text,
+  });
   final SharedState state;
   final int ladderSize;
 
@@ -518,9 +550,14 @@ class _SchulteSeriesDoorState extends State<SchulteSeriesDoor> {
   }
 
   Future<void> _open() async {
-    await Navigator.of(context).push(MaterialPageRoute<void>(
-      builder: (_) => RestartScope(builder: (_) => SchulteSeriesScreen(state: widget.state, text: widget.text)),
-    ));
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => RestartScope(
+          builder: (_) =>
+              SchulteSeriesScreen(state: widget.state, text: widget.text),
+        ),
+      ),
+    );
     // Серия могла поднять поле — подпись под кнопкой обязана это показать.
     if (mounted) setState(() {});
   }
@@ -529,28 +566,39 @@ class _SchulteSeriesDoorState extends State<SchulteSeriesDoor> {
   Widget build(BuildContext context) {
     final t = _t;
     if (t == null) return const SizedBox.shrink();
-    final progress = SchulteSeriesProgress.parse(widget.state.get(SchulteSeriesProgress.keyFor(widget.state.activeProfile)));
+    final progress = SchulteSeriesProgress.parse(
+      widget.state.get(
+        SchulteSeriesProgress.keyFor(widget.state.activeProfile),
+      ),
+    );
     final entry = seriesEntry(progress, widget.ladderSize);
     String grid(int n) => '$n×$n';
     final text = Theme.of(context).textTheme;
-    return Column(mainAxisSize: MainAxisSize.min, children: [
-      OutlinedButton.icon(
-        key: const Key('schulte-series-door'),
-        onPressed: _open,
-        icon: const Icon(Icons.layers_outlined),
-        label: Text(t.t('entry')),
-      ),
-      const SizedBox(height: 4),
-      Text(t.fill('startsAt', {'size': entry.level}), style: text.bodySmall, textAlign: TextAlign.center),
-      Text(
-        t.fill('yourLevels', {
-          'order': grid(entry.perBlock['order']!),
-          'alternate': grid(entry.perBlock['alternate']!),
-          'sum': grid(entry.perBlock['sum']!),
-        }),
-        style: text.bodySmall,
-        textAlign: TextAlign.center,
-      ),
-    ]);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        OutlinedButton.icon(
+          key: const Key('schulte-series-door'),
+          onPressed: _open,
+          icon: const Icon(Icons.layers_outlined),
+          label: Text(t.t('entry')),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          t.fill('startsAt', {'size': entry.level}),
+          style: text.bodySmall,
+          textAlign: TextAlign.center,
+        ),
+        Text(
+          t.fill('yourLevels', {
+            'order': grid(entry.perBlock['order']!),
+            'alternate': grid(entry.perBlock['alternate']!),
+            'sum': grid(entry.perBlock['sum']!),
+          }),
+          style: text.bodySmall,
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
   }
 }

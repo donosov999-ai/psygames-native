@@ -19,6 +19,7 @@ import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 
 /// ЭКРАН ДВИЖКА СОСУДОВ: «Переливалка», «Шарики», «Гайки».
 ///
@@ -421,14 +422,15 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
       ]),
       toolbar: _won
-          ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: FilledButton.icon(
-                onPressed: _nextPending ? null : _next,
-                icon: const Icon(Icons.arrow_forward),
-                label: Text(L.f('levelWonNext', {'s': '$stars'})),
+          ? LevelResult.adapt(ReportOutcomeAdapter(
+              layout: GameOutcomeLayout.inline,
+              title: L.t('done'),
+              action: GameResultAction(
+                onTap: _nextPending ? null : _next,
+                icon: Icons.arrow_forward,
+                label: L.f('levelWonNext', {'s': '$stars'}),
               ),
-            )
+            ))
           : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),

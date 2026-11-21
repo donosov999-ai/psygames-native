@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/session_report.dart';
 import '../../shell/shared_state.dart';
 import '../chess_common/board.dart';
@@ -613,67 +614,60 @@ class _ChessBlindSeriesScreenState extends State<ChessBlindSeriesScreen> {
     final diffs = seriesDiffs(run);
     String sec(int ms) => '${(ms / 1000).toStringAsFixed(1)} ${L.t('seconds')}';
     String signed(int ms) => '${ms > 0 ? '+' : ''}${sec(ms)}';
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            t.t('seriesDone'),
-            key: const Key('cbs-result'),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 10),
-          for (var i = 0; i < run.blocks.length; i++)
+    return LevelResult.adapt(
+      ReportOutcomeAdapter(
+        title: t.t('seriesDone'),
+        titleKey: const Key('cbs-result'),
+        details: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < run.blocks.length; i++)
+              Text(
+                '${i + 1}. ${_title(run.blocks[i].key)}: ${sec(run.blocks[i].timeMs)}',
+                key: Key('cbs-time-$i'),
+              ),
+            const SizedBox(height: 10),
+            if (diffs == null)
+              Text(
+                t.t('notFinished'),
+                key: const Key('cbs-not-finished'),
+                style: const TextStyle(color: Color(0xFFF43F5E)),
+              )
+            else ...[
+              Text(
+                '${t.t('coordSpeed')}: ${sec(run.blocks.first.timeMs)}',
+                key: const Key('cbs-t1'),
+              ),
+              Text(
+                '${t.t('knightCost')}: ${signed(diffs['knight_minus_square'] ?? 0)}',
+                key: const Key('cbs-knight-cost'),
+              ),
+              Text(
+                '${t.t('holdCost')}: ${signed(diffs['recall_minus_square'] ?? 0)}',
+                key: const Key('cbs-hold-cost'),
+              ),
+            ],
+            const SizedBox(height: 10),
             Text(
-              '${i + 1}. ${_title(run.blocks[i].key)}: ${sec(run.blocks[i].timeMs)}',
-              key: Key('cbs-time-$i'),
+              move.raised
+                  ? t.t('levelUp', {'min': move.band.min, 'max': move.band.max})
+                  : t.t('heldBy', {
+                      'block': _title(move.weakest),
+                      'runs': move.runsLeft,
+                    }),
+              key: const Key('cbs-level-move'),
             ),
-          const SizedBox(height: 10),
-          if (diffs == null)
-            Text(
-              t.t('notFinished'),
-              key: const Key('cbs-not-finished'),
-              style: const TextStyle(color: Color(0xFFF43F5E)),
-            )
-          else ...[
-            Text(
-              '${t.t('coordSpeed')}: ${sec(run.blocks.first.timeMs)}',
-              key: const Key('cbs-t1'),
-            ),
-            Text(
-              '${t.t('knightCost')}: ${signed(diffs['knight_minus_square'] ?? 0)}',
-              key: const Key('cbs-knight-cost'),
-            ),
-            Text(
-              '${t.t('holdCost')}: ${signed(diffs['recall_minus_square'] ?? 0)}',
-              key: const Key('cbs-hold-cost'),
-            ),
+            // Что стояло на самом деле там, где память подвела.
+            for (final q in _recallMisses)
+              Text('${_name(q.square!)}: ${_claim(q.truth)}'),
           ],
-          const SizedBox(height: 10),
-          Text(
-            move.raised
-                ? t.t('levelUp', {'min': move.band.min, 'max': move.band.max})
-                : t.t('heldBy', {
-                    'block': _title(move.weakest),
-                    'runs': move.runsLeft,
-                  }),
-            key: const Key('cbs-level-move'),
-          ),
-          // Что стояло на самом деле там, где память подвела.
-          for (final q in _recallMisses)
-            Text('${_name(q.square!)}: ${_claim(q.truth)}'),
-          const SizedBox(height: 16),
-          FilledButton(
-            key: const Key('cbs-again'),
-            onPressed: _begin,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(52),
-            ),
-            child: Text(t.t('entry')),
-          ),
-        ],
+        ),
+        action: GameResultAction(
+          key: const Key('cbs-again'),
+          label: t.t('entry'),
+          icon: Icons.replay_rounded,
+          onTap: _begin,
+        ),
       ),
     );
   }

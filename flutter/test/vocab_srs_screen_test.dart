@@ -5,10 +5,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/vocab_srs/model.dart';
 import 'package:psygames_flutter/games/languages/bilingual.dart';
 import 'package:psygames_flutter/games/vocab_srs/screen.dart';
+import 'package:psygames_flutter/shell/app_theme.dart';
+import 'package:psygames_flutter/shell/aurora_scope.dart';
+import 'package:psygames_flutter/shell/design_template.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
+import 'package:psygames_flutter/shell/level_result.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
+import 'package:psygames_flutter/shell/voice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// ПАРТИЯ В «СЛОВАРЬ SRS» ИГРАЕТСЯ НАЖАТИЯМИ, а не вызовом правил.
@@ -51,16 +56,47 @@ void main() {
     SessionReport.sink = null;
   });
 
-  Widget app({required int Function() clock}) => MaterialApp(
-    home: VocabSrsScreen(
-      state: state,
-      clock: clock,
-      vocabOverride: vocab,
-      storeOverride: deck,
-      random: () =>
-          0.0, // порядок вариантов закреплён: проба ищет их по подписи
+  Widget app({
+    required int Function() clock,
+    List<VocabEntry>? words,
+    VoiceLayer? voice,
+    Brightness? aurora,
+    double textScale = 1,
+  }) => MaterialApp(
+    theme: aurora == null
+        ? null
+        : applyUiTemplate(classicShellTheme(aurora), UiTemplate.aurora),
+    builder: (context, child) => MediaQuery(
+      data: MediaQuery.of(context)
+          .copyWith(textScaler: TextScaler.linear(textScale)),
+      child: child!,
+    ),
+    home: AuroraGameScope(
+      route: '/games/vocab-srs',
+      child: VocabSrsScreen(
+        state: state,
+        clock: clock,
+        vocabOverride: words ?? vocab,
+        storeOverride: deck,
+        random: () =>
+            0.0, // порядок вариантов закреплён: проба ищет их по подписи
+        voice: voice,
+      ),
     ),
   );
+
+  Future<void> showSetting(WidgetTester tester, Finder setting) async {
+    if (setting.hitTestable().evaluate().isNotEmpty) return;
+    await tester.scrollUntilVisible(
+      setting.hitTestable(),
+      100,
+      scrollable: find.descendant(
+        of: find.byKey(const Key('vocab-settings-scroll')),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
 
   /// Состояние карточки в колоде ПАРЫ. Пара по умолчанию ru→en: для русского
   /// интерфейса веб-версия предлагает английский, и колода лежит под своим ключом.
@@ -186,10 +222,91 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    expect(find.text(L.t('resultsTitle')), findsOneWidget);
+    expect(find.text(L.t('levelDone').replaceAll('{n}', '1')), findsOneWidget);
+    expect(find.text(L.t('srsAllDone')), findsOneWidget);
+    expect(find.textContaining(L.t('srsNextDue')), findsOneWidget);
+    expect(find.byKey(const Key('level-result-next')), findsNothing);
     // Счётчик прохождений лежит там же, где его пишет веб-сторона.
     expect(state.get('psygames_vocab_srs_level_nzt48'), '2');
+
+    await tester.tap(find.byKey(const Key('level-result-settings')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocab-start')));
+    await tester.pumpAndSettle();
+    expect(find.text(L.t('srsAllDone')), findsOneWidget);
+    expect(find.byKey(const Key('level-result-score')), findsNothing);
+    expect(find.byKey(const Key('level-result-next')), findsNothing);
+    expect(state.get('psygames_vocab_srs_level_nzt48'), '2');
   });
+
+  for (final (auto, dual) in [(false, false), (true, false), (true, true)]) {
+    testWidgets(
+      'after 10/10, level 2 starts ${auto ? "automatically" : "on tap"} (bilingual: $dual)',
+      (tester) async {
+        final previousAuto = LevelResult.autoAdvance;
+        LevelResult.autoAdvance = auto;
+        addTearDown(() => LevelResult.autoAdvance = previousAuto);
+        if (dual) {
+          GamePreset.set({'bilingual': '1', 'targetLang': 'en', 'lang2': 'es'});
+        }
+        final sent = <Map<String, dynamic>>[];
+        SessionReport.sink = (raw) async =>
+            sent.add(jsonDecode(raw) as Map<String, dynamic>);
+        final words = [
+          ...vocab,
+          for (var i = 6; i <= 12; i++)
+            {
+              'en': 'word $i',
+              'ru': 'слово $i',
+              'es': 'palabra $i',
+              'cat': 'things',
+            },
+        ];
+        var clock = 1000;
+        await tester.pumpWidget(app(clock: () => clock, words: words));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('vocab-start')));
+        await tester.pumpAndSettle();
+        expect(find.text('1/10'), findsOneWidget);
+        for (var i = 0; i < 10; i++) {
+          final shown = tester
+              .widget<Text>(find.byKey(const Key('vocab-word')))
+              .data!;
+          final word = words.firstWhere((w) => w['en'] == shown);
+          clock += 1000;
+          await tester.tap(find.byKey(Key('vocab-option-${word['ru']}')));
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 610));
+          await tester.pump();
+        }
+        expect(
+          find.text(L.t('levelDone').replaceAll('{n}', '1')),
+          findsOneWidget,
+        );
+        expect(find.text('${L.t('sdkNextLevel')} · 2'), findsOneWidget);
+        expect(sent, hasLength(1));
+        expect(sent.single['score'], 10);
+        if (auto) {
+          await tester.pump(const Duration(milliseconds: 1400));
+          expect(find.byKey(const Key('level-result')), findsOneWidget);
+          await tester.pump(const Duration(milliseconds: 150));
+        } else {
+          await tester.tap(find.byKey(const Key('level-result-next')));
+          // A second tap racing the first cannot record another result.
+          await tester.tap(find.byKey(const Key('level-result-next')));
+        }
+        await tester.pumpAndSettle();
+        expect(find.text('1/2'), findsOneWidget);
+        if (dual) {
+          expect(find.byKey(const Key('vocab-word-second')), findsOneWidget);
+          expect(sent.single['details']['target_lang'], 'en+es');
+        }
+        expect(find.byKey(const Key('level-result')), findsNothing);
+        expect(state.get('psygames_vocab_srs_level_nzt48'), '2');
+        expect(sent, hasLength(1));
+      },
+    );
+  }
 
   testWidgets('🔴 базовый язык берётся у веб-стороны, а не зашит в код', (
     tester,
@@ -236,6 +353,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Третье направление: ответ печатается целиком.
+      await showSetting(tester, find.byKey(const Key('vocab-dir-typing')));
       await tester.tap(find.byKey(const Key('vocab-dir-typing')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('vocab-start')));
@@ -248,6 +366,8 @@ void main() {
       final entry = vocab.firstWhere((w) => w['ru'] == shown);
       final word = entry['en']!;
       final input = find.byKey(const Key('vocab-typing-input'));
+      expect(find.byKey(const Key('vocab-speak-first')), findsNothing);
+      expect(find.byKey(const Key('vocab-ipa-first')), findsNothing);
       expect(input, findsOneWidget, reason: 'поле набора вместо вариантов');
       expect(find.byKey(Key('vocab-option-${entry['ru']}')), findsNothing);
 
@@ -274,6 +394,13 @@ void main() {
       );
       // И в ошибки сессии опечатка НЕ пошла: счётчик ошибок остался нулём.
       expect(find.text('1'), findsWidgets);
+      expect(find.byKey(const Key('vocab-checked-word')), findsOneWidget);
+      expect(find.byKey(const Key('vocab-speak-first')), findsOneWidget);
+      expect(find.byKey(const Key('vocab-ipa-first')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('vocab-next-card')));
+      await tester.pumpAndSettle();
+      expect(find.text('2/5'), findsOneWidget);
+      expect(find.byKey(const Key('vocab-speak-first')), findsNothing);
     },
   );
 
@@ -281,6 +408,7 @@ void main() {
     var clock = 1000;
     await tester.pumpWidget(app(clock: () => clock));
     await tester.pumpAndSettle();
+    await showSetting(tester, find.byKey(const Key('vocab-dir-typing')));
     await tester.tap(find.byKey(const Key('vocab-dir-typing')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('vocab-start')));
@@ -383,7 +511,10 @@ void main() {
       for (var i = 0; i < 5; i += 1) {
         await answerRight(tester, () => clock += 1000);
       }
-      expect(find.text(L.t('resultsTitle')), findsOneWidget);
+      expect(
+        find.text(L.t('levelDone').replaceAll('{n}', '1')),
+        findsOneWidget,
+      );
 
       expect(sent, hasLength(1), reason: 'одна партия — один отчёт');
       final r = sent.single;
@@ -431,6 +562,384 @@ void main() {
     expect(find.byKey(const Key('vocab-lang2')), findsOneWidget);
   });
 
+  testWidgets('profile keeps both languages, mode and limit without starting', (
+    tester,
+  ) async {
+    const key = 'device_vocab_srs_settings_nzt48';
+    final prefs = await SharedPreferences.getInstance();
+    final words = [
+      for (final item in vocab) {...item, 'de': item['en']!.toUpperCase()},
+    ];
+    Future<void> open() async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(app(clock: () => 1000, words: words));
+      await tester.pumpAndSettle();
+    }
+
+    bool bilingual() => tester
+        .widget<SwitchListTile>(find.byKey(const Key('vocab-bilingual')))
+        .value;
+    bool selected(String id) =>
+        tester.widget<ChoiceChip>(find.byKey(Key(id))).selected;
+    String? selectedLang(String field) => tester
+        .widget<DropdownButtonFormField<String>>(
+          find.descendant(
+            of: find.byKey(Key(field)),
+            matching: find.byType(DropdownButtonFormField<String>),
+          ),
+        )
+        .initialValue;
+    Future<void> pick(String field, String lang) async {
+      await tester.tap(find.byKey(Key(field)));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(Key('$field-$lang')).last,
+        warnIfMissed: false,
+      );
+      await tester.pumpAndSettle();
+    }
+
+    await open();
+    await pick('vocab-lang', 'es');
+    await tester.tap(find.byKey(const Key('vocab-bilingual')));
+    await tester.pumpAndSettle();
+    await pick('vocab-lang2', 'de');
+    await showSetting(tester, find.byKey(const Key('vocab-limit-20')));
+    await tester.tap(find.byKey(const Key('vocab-limit-20')));
+    await showSetting(tester, find.byKey(const Key('vocab-dir-recall')));
+    await tester.tap(find.byKey(const Key('vocab-dir-recall')));
+    await tester.pumpAndSettle();
+    final persisted = prefs.getString(key);
+    expect(persisted, isNotNull);
+    expect(
+      state.snapshot().containsKey(key),
+      isFalse,
+      reason: 'no cloud or WebView snapshot change',
+    );
+    expect(deck.data, isEmpty);
+
+    await prefs.reload();
+    await open();
+    expect(bilingual(), isTrue);
+    expect(selectedLang('vocab-lang'), 'es');
+    expect(selectedLang('vocab-lang2'), 'de');
+    await showSetting(tester, find.byKey(const Key('vocab-limit-20')));
+    expect(selected('vocab-limit-20'), isTrue);
+    await showSetting(tester, find.byKey(const Key('vocab-dir-recall')));
+    expect(selected('vocab-dir-recall'), isTrue);
+
+    GamePreset.set({
+      'wu': '1',
+      'targetLang': 'en',
+      'lang2': 'es',
+      'newLimit': '5',
+      'bilingual': '1',
+    });
+    await open();
+    expect(find.byKey(const Key('vocab-word-second')), findsOneWidget);
+    expect(find.text('1/5'), findsOneWidget);
+    expect(prefs.getString(key), persisted);
+
+    // A playlist may explicitly turn bilingual off for one round.
+    // Reopening from the catalog must still restore the user's on setting.
+    GamePreset.set({'wu': '1', 'targetLang': 'en', 'bilingual': '0'});
+    await open();
+    expect(find.byKey(const Key('vocab-word')), findsOneWidget);
+    expect(find.byKey(const Key('vocab-word-second')), findsNothing);
+    expect(prefs.getString(key), persisted);
+
+    GamePreset.clear();
+    await open();
+    expect(bilingual(), isTrue);
+    expect(selectedLang('vocab-lang'), 'es');
+    expect(selectedLang('vocab-lang2'), 'de');
+
+    await tester.tap(find.byKey(const Key('vocab-bilingual')));
+    await tester.pumpAndSettle();
+    await open();
+    expect(bilingual(), isFalse);
+    await tester.tap(find.byKey(const Key('vocab-bilingual')));
+    await tester.pumpAndSettle();
+    expect(
+      selectedLang('vocab-lang2'),
+      'de',
+      reason: 'keeps the second language while off',
+    );
+
+    await state.set('psygames_active_profile', 'free');
+    await open();
+    expect(bilingual(), isFalse);
+    expect(selectedLang('vocab-lang'), 'en');
+    await showSetting(tester, find.byKey(const Key('vocab-limit-10')));
+    expect(selected('vocab-limit-10'), isTrue);
+    await showSetting(tester, find.byKey(const Key('vocab-dir-recognize')));
+    expect(selected('vocab-dir-recognize'), isTrue);
+  });
+
+  testWidgets(
+    'bilingual sound is routed by word language; IPA remains without sound',
+    (tester) async {
+      final backend = _VoiceProbe();
+      var sound = true;
+      final voice = VoiceLayer(backend: backend, soundOn: () => sound);
+      GamePreset.set({
+        'auto': '1',
+        'targetLang': 'en',
+        'lang2': 'es',
+        'bilingual': '1',
+      });
+      await tester.pumpWidget(app(clock: () => 1000, voice: voice));
+      await tester.pumpAndSettle();
+      final en = tester.widget<Text>(find.byKey(const Key('vocab-word'))).data!;
+      final es = tester
+          .widget<Text>(find.byKey(const Key('vocab-word-second')))
+          .data!;
+      final speakEn = find.byKey(const Key('vocab-speak-first'));
+      final speakEs = find.byKey(const Key('vocab-speak-second'));
+      expect(find.byKey(const Key('vocab-ipa-first')), findsOneWidget);
+      expect(find.byKey(const Key('vocab-ipa-second')), findsOneWidget);
+      await tester.tap(speakEn);
+      await tester.pumpAndSettle();
+      await tester.tap(speakEs);
+      await tester.pumpAndSettle();
+      expect(backend.words, [(en, 'en-US'), (es, 'es-ES')]);
+
+      backend.available = false;
+      await tester.tap(speakEs);
+      await tester.pumpAndSettle();
+      expect(find.text(L.t('srsPronunciationUnavailable')), findsOneWidget);
+      expect(find.byKey(const Key('vocab-ipa-second')), findsOneWidget);
+      sound = false;
+      await tester.tap(speakEn);
+      await tester.pumpAndSettle();
+      expect(
+        backend.words,
+        hasLength(2),
+        reason: 'no wrong-language system fallback',
+      );
+      expect(find.text(L.t('voiceSoundOff')), findsOneWidget);
+      await answerRight(tester, () {});
+      expect(find.text('2/5'), findsOneWidget);
+      expect(find.text(L.t('voiceSoundOff')), findsNothing);
+      expect(backend.cancels, greaterThan(0));
+    },
+  );
+
+  testWidgets(
+    'real shared bank brings the new cards to bilingual recognition',
+    (tester) async {
+      GamePreset.set({'targetLang': 'en', 'lang2': 'es', 'bilingual': '1'});
+      await tester.pumpWidget(
+        MaterialApp(
+          home: VocabSrsScreen(
+            state: state,
+            clock: () => 1000,
+            storeOverride: deck,
+            random: () => 0.0,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('/706'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('vocab-start')));
+      await tester.pumpAndSettle();
+      await answerRight(tester, () {});
+      expect(find.text('ability'), findsOneWidget);
+      expect(find.text('capacidad'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('vocab-option-способность')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 610));
+      await tester.pumpAndSettle();
+      expect(stateOf('v:ability')?.reps, 1);
+      expect(stateOf('v:ability', target: 'es')?.reps, 1);
+      expect(find.text('water'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('vocab-option-вода')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 610));
+      await tester.pumpAndSettle();
+      expect(find.text('abandon'), findsOneWidget);
+      expect(find.text('abandonar'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('vocab-option-оставлять')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 610));
+      await tester.pumpAndSettle();
+      expect(stateOf('v:abandon')?.reps, 1);
+      expect(stateOf('v:abandon', target: 'es')?.reps, 1);
+    },
+  );
+
+  for (final brightness in Brightness.values) {
+    testWidgets(
+      'Aurora $brightness: SRS Start is round, fixed and removed in play',
+      (tester) async {
+        tester.view.physicalSize = const Size(640, 1136);
+        tester.view.devicePixelRatio = 2;
+        addTearDown(tester.view.reset);
+        await tester.pumpWidget(
+          app(clock: () => 1000, aurora: brightness, textScale: 2),
+        );
+        await tester.pumpAndSettle();
+        final start = find.byKey(const Key('vocab-start'));
+        final face = find.byKey(const Key('game-start-face'));
+        final pause = find.byKey(const Key('game-pause'));
+        final bilingual = find.byKey(const Key('vocab-bilingual'));
+        final bar = find.byKey(const Key('game-bar-aurora'));
+        final faceRect = tester.getRect(face);
+        expect(faceRect.width, closeTo(faceRect.height, 0.1));
+        expect(faceRect.width, inInclusiveRange(48.0, 54.0));
+        expect(faceRect.center.dx, greaterThan(tester.getCenter(pause).dx));
+        expect(tester.getCenter(pause).dy, closeTo(faceRect.center.dy, 1));
+        expect(
+          find.descendant(of: bar, matching: find.text(L.t('start'))),
+          findsOneWidget,
+        );
+        await showSetting(tester, bilingual);
+        await tester.tap(bilingual);
+        await tester.pumpAndSettle();
+        await showSetting(tester, find.byKey(const Key('vocab-dir-typing')));
+        await tester.pumpAndSettle();
+        expect(
+          tester.getRect(face),
+          faceRect,
+          reason: 'Start is outside the scrollable settings',
+        );
+        expect(tester.takeException(), isNull);
+        expect(start.hitTestable(), findsOneWidget);
+        await tester.tap(face);
+        await tester.pumpAndSettle();
+        expect(start, findsNothing);
+        expect(pause.hitTestable(), findsOneWidget);
+        expect(find.byKey(const Key('vocab-word-second')), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets(
+    'autoplay remembers one or both languages, stays quiet in workouts',
+    (tester) async {
+      final backend = _VoiceProbe();
+      final voice = VoiceLayer(backend: backend, soundOn: () => true);
+      Future<void> reopen() async {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpWidget(app(clock: () => 1000, voice: voice));
+        await tester.pumpAndSettle();
+      }
+
+      Future<void> tap(String key) async {
+        final control = find.byKey(Key(key));
+        await tester.ensureVisible(control);
+        await tester.tap(control);
+        await tester.pumpAndSettle();
+      }
+
+      String word(String key) =>
+          tester.widget<Text>(find.byKey(Key(key))).data!;
+      await reopen();
+      expect(
+        tester
+            .widget<SwitchListTile>(
+              find.byKey(const Key('vocab-auto-pronounce')),
+            )
+            .value,
+        isFalse,
+      );
+      await tap('vocab-bilingual');
+      await tap('vocab-auto-pronounce');
+      await reopen();
+      expect(
+        tester
+            .widget<ChoiceChip>(
+              find.byKey(const Key('vocab-pronounce-primary')),
+            )
+            .selected,
+        isTrue,
+      );
+      await tap('vocab-start');
+      expect(backend.words, [(word('vocab-word'), 'en-US')]);
+
+      await reopen();
+      await tap('vocab-pronounce-both');
+      await reopen();
+      expect(
+        tester
+            .widget<ChoiceChip>(find.byKey(const Key('vocab-pronounce-both')))
+            .selected,
+        isTrue,
+      );
+      backend.words.clear();
+      await tap('vocab-start');
+      expect(backend.words, [
+        (word('vocab-word'), 'en-US'),
+        (word('vocab-word-second'), 'es-ES'),
+      ]);
+      await answerRight(tester, () {});
+      expect(backend.words.skip(2), [
+        (word('vocab-word'), 'en-US'),
+        (word('vocab-word-second'), 'es-ES'),
+      ]);
+
+      backend.words.clear();
+      GamePreset.set({'wu': '1', 'quiet': '1', 'bilingual': '1'});
+      await reopen();
+      expect(find.byKey(const Key('vocab-start')), findsNothing);
+      expect(find.byKey(const Key('vocab-word-second')), findsOneWidget);
+      expect(backend.words, isEmpty);
+      GamePreset.clear();
+      await reopen();
+      expect(
+        tester
+            .widget<ChoiceChip>(find.byKey(const Key('vocab-pronounce-both')))
+            .selected,
+        isTrue,
+      );
+    },
+  );
+
+  testWidgets('recall reveals pronunciation only after grading', (
+    tester,
+  ) async {
+    final backend = _VoiceProbe();
+    await tester.pumpWidget(
+      app(
+        clock: () => 1000,
+        voice: VoiceLayer(backend: backend, soundOn: () => true),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocab-auto-pronounce')));
+    await tester.pumpAndSettle();
+    await showSetting(tester, find.byKey(const Key('vocab-dir-recall')));
+    await tester.tap(find.byKey(const Key('vocab-dir-recall')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocab-start')));
+    await tester.pumpAndSettle();
+    final shown = tester
+        .widget<Text>(find.byKey(const Key('vocab-word')))
+        .data!;
+    final word = vocab.firstWhere((w) => w['ru'] == shown)['en']!;
+    expect(find.byKey(const Key('vocab-speak-first')), findsNothing);
+    expect(find.byKey(const Key('vocab-ipa-first')), findsNothing);
+    expect(backend.words, isEmpty);
+    await tester.tap(find.byKey(Key('vocab-option-$word')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 610));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<Text>(find.byKey(const Key('vocab-checked-word'))).data,
+      word,
+    );
+    expect(find.byKey(const Key('vocab-speak-first')), findsOneWidget);
+    expect(backend.words, [(word, 'en-US')]);
+    await tester.tap(find.byKey(const Key('vocab-next-card')));
+    await tester.pumpAndSettle();
+    expect(find.text('2/5'), findsOneWidget);
+    expect(find.byKey(const Key('vocab-speak-first')), findsNothing);
+    expect(backend.words, [
+      (word, 'en-US'),
+    ], reason: 'The next hidden answer is not read.');
+  });
+
   testWidgets(
     '🔴 разбор открывается ДО партии и показывает слово из колоды этой пары',
     (tester) async {
@@ -445,4 +954,27 @@ void main() {
       expect(find.textContaining('дом'), findsWidgets);
     },
   );
+}
+
+class _VoiceProbe implements VoiceBackend {
+  bool available = true;
+  int cancels = 0;
+  final words = <(String, String)>[];
+
+  @override
+  Future<bool> playUrl(String url, double rate) async => false;
+
+  @override
+  Future<bool> speakSystem(String text, String bcp47, double rate) async {
+    words.add((text, bcp47));
+    return available;
+  }
+
+  @override
+  Future<bool> hasSystemVoice(String bcp47) async => available;
+
+  @override
+  Future<void> cancel() async {
+    cancels++;
+  }
 }

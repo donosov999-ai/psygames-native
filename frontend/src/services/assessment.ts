@@ -1,3 +1,4 @@
+import { заводскиеЗарядки } from "@/src/services/warmupData";
 /**
  * G1 — Initial Skill Assessment
  *
@@ -86,35 +87,7 @@ export const DOMAINS: DomainInfo[] = [
 //   grep -oE 'est_duration_sec: [0-9]+' src/services/assessment.ts | grep -oE '[0-9]+$' | awk '{s+=$1} END {print s" сек = "s/60" мин"}'
 // Дрейф суммы против шапки ловит assessment-metrics.test.ts.
 // Uses minimum trial counts that still give a stable biomarker reading.
-export const ASSESSMENT_PLAYLIST: PlaylistStep[] = [
-  { game_id: 'digit_span',      game_route: '/games/digit-span',       difficulty: 'medium', mode: 'forward',   est_duration_sec: 60 },
-  { game_id: 'corsi',           game_route: '/games/corsi',            difficulty: 'medium', mode: 'forward',   est_duration_sec: 60 },
-  { game_id: 'n_back',          game_route: '/games/n-back',           difficulty: 'medium', trials: 15, mode: '2-back', est_duration_sec: 70 },
-  { game_id: 'posner',          game_route: '/games/posner',           trials: 15,        est_duration_sec: 70 },
-  /**
-   * CPT 4 мин → 2 мин (bed1249e, 27.08.2026): спад бдительности виден уже ко
-   * второй минуте, а четырёхминутный шаг съедал 21% всей батареи. presetDurationSec
-   * в cpt.tsx разбирает '<N>min' — партия запишется под mode '2min'.
-   */
-  { game_id: 'cpt',             game_route: '/games/cpt',              mode: '2min',      est_duration_sec: 120 },
-  { game_id: 'sdmt',            game_route: '/games/sdmt',             difficulty: 'medium', mode: '60s',       est_duration_sec: 70 },
-  { game_id: 'flanker',         game_route: '/games/flanker',          trials: 15,        est_duration_sec: 70 },
-  { game_id: 'switching_task',  game_route: '/games/switching-task',   trials: 15,        est_duration_sec: 90 },
-  { game_id: 'pattern',         game_route: '/games/pattern',          trials: 5,         est_duration_sec: 90 },
-  { game_id: 'mental_rotation', game_route: '/games/mental-rotation',  trials: 5,         est_duration_sec: 90 },
-  { game_id: 'phonemic_fluency',game_route: '/games/phonemic-fluency', difficulty: 'medium', mode: '60s',       est_duration_sec: 70 },
-  /**
-   * 🔴 ШАГ ОБЯЗАН ОПИСЫВАТЬ ПАРТИЮ ТАК, КАК ЕЁ ЗАПИШЕТ ИГРА. Стояло mode: '10 balloons',
-   * а bart.tsx пишет mode как `${шаров}b` — и сам параметр шаров НЕ передавался,
-   * classic-прогон играл дефолтные 15. Итог: sessionFitsStep не опознавал НИ ОДНУ
-   * bart-партию (`'15b' !== '10 balloons'`), домен «риск» всегда получал z=0.
-   * settings.balloons=10 доезжает через stepToParams → num('balloons') в bart.tsx,
-   * mode '10b' совпадает с тем, что игра запишет. Сторожит assessment-metrics.test.ts.
-   */
-  // est 180 → 120 (bed1249e): десять шаров реально короче трёх минут; норма под
-  // шарик 1..32 уже починена (27.08), так что резать дальше — только в шум.
-  { game_id: 'bart',            game_route: '/games/bart',             difficulty: 'medium', mode: '10b', settings: { balloons: 10 }, est_duration_sec: 120 },
-];
+export const ASSESSMENT_PLAYLIST: PlaylistStep[] = заводскиеЗарядки.запас.оценка;
 
 export interface DomainScore {
   domain: Domain;

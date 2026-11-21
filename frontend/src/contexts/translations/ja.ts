@@ -1742,6 +1742,8 @@ const t: Record<string, string> = {
   "streakTrainingDay": "トレーニング達成",
   "benefitPairs2": "視覚的記憶をきたえる",
   "srsAllDone": "今日のぶんは終わりです！",
+  "srsListen": "聞く",
+  "srsPronunciationUnavailable": "この端末では発音を再生できません。",
   "skillListening": "きたえる力：聞き取り",
   "pattern": "数列：推論",
   "benefitPattern1": "規則を見抜く力",

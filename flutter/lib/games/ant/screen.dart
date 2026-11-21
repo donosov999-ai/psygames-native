@@ -25,6 +25,7 @@ import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/setup_scroll.dart';
 import '../../shell/shared_level_store.dart';
@@ -348,33 +349,44 @@ class _Field extends StatelessWidget {
         );
       case AntPhase.done:
         final n = game.networks;
-        return _Centered(
+        return SizedBox(
           height: height,
-          children: [
-            Text(
-              passed ? L.t('levelDone').replaceAll('{n}', '${game.level}') : L.t('sameLevelRetry'),
-              key: const Key('ant-verdict'),
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
+          child: LevelResult.adapt(
+            LevelOutcomeAdapter(
+              passed: passed,
+              playedLevel: game.level,
+              titleKey: const Key('ant-verdict'),
+              nextKey: nextLevel == null ? null : const Key('level-next'),
+              playNext: nextLevel == null ? onAgain : onContinue,
+              nextLabel: nextLevel == null
+                  ? L.t('retry')
+                  : L.f('nextLevelBtn', {'n': '$nextLevel'}),
+              auto: nextLevel != null,
+              details: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal}',
+                  ),
+                  // Три сети — рядом и подписаны каждая своим именем: общее имя не дало
+                  // бы понять, какая из трёх просела.
+                  Text(
+                    '${L.t('hud_netAlerting')}: ${n.alertingMs} ${L.t('msShort')}',
+                    key: const Key('ant-alerting'),
+                  ),
+                  Text(
+                    '${L.t('hud_netOrienting')}: ${n.orientingMs} ${L.t('msShort')}',
+                    key: const Key('ant-orienting'),
+                  ),
+                  Text(
+                    '${L.t('hud_netExecutive')}: ${n.executiveMs} ${L.t('msShort')}',
+                    key: const Key('ant-executive'),
+                  ),
+                  BossOutcomeLine(boss),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text('${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal}'),
-            // Три сети — рядом и подписаны каждая своим именем: общее имя не дало
-            // бы понять, какая из трёх просела.
-            Text('${L.t('hud_netAlerting')}: ${n.alertingMs} ${L.t('msShort')}', key: const Key('ant-alerting')),
-            Text('${L.t('hud_netOrienting')}: ${n.orientingMs} ${L.t('msShort')}', key: const Key('ant-orienting')),
-            Text('${L.t('hud_netExecutive')}: ${n.executiveMs} ${L.t('msShort')}', key: const Key('ant-executive')),
-            BossOutcomeLine(boss),
-            const SizedBox(height: 16),
-            if (nextLevel != null)
-              FilledButton(
-                key: const Key('level-next'),
-                onPressed: onContinue,
-                child: Text(L.t('nextLevelBtn').replaceAll('{n}', '$nextLevel')),
-              )
-            else
-              FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
-          ],
+          ),
         );
       case AntPhase.playing:
         final t = game.trial!;
@@ -493,23 +505,6 @@ class _Glyph extends StatelessWidget {
         child: Text(
           text,
           style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700, color: GameColors.of(context).onCell),
-        ),
-      );
-}
-
-class _Centered extends StatelessWidget {
-  const _Centered({required this.height, required this.children});
-  final double height;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-        height: height,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: children),
-          ),
         ),
       );
 }

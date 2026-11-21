@@ -30,6 +30,7 @@ import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/hud_time.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -708,20 +709,11 @@ class _Field extends StatelessWidget {
         return _ready(context);
       case ProofPhase.done:
         final f = fw;
-        return _Centered(
-          height: height,
-          children: [
-            Text(
-              game.preset
-                  ? L.t('done')
-                  : ((f != null ? f.cleared : game.passed)
-                      ? L.t('levelDone').replaceAll('{n}', '${f?.level ?? game.level}')
-                      : L.t('sameLevelRetry')),
-              key: const Key('proof-verdict'),
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
+        final played = f?.level ?? game.level;
+        final passed = f?.cleared ?? game.passed;
+        final current = LevelLadder.current?.level;
+        final advanced = !GamePreset.isWarmup && passed && current != null && current > played;
+        final details = Column(mainAxisSize: MainAxisSize.min, children: [
             if (f != null)
               Text('${L.t('label_words')}: ${f.found}/${f.total} · ${L.t('hud_errors')}: ${f.mistakes}',
                   key: const Key('proof-fw-result'))
@@ -732,9 +724,26 @@ class _Field extends StatelessWidget {
               Text('${L.t('hud_missed')}: ${game.omissionPct}%', key: const Key('proof-omission')),
             ],
             BossOutcomeLine(boss),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: onAgain, child: Text(L.t('start'))),
-          ],
+        ]);
+        return SizedBox(
+          height: height,
+          child: LevelResult.adapt(game.preset
+              ? ReportOutcomeAdapter(
+                  title: L.t('done'),
+                  titleKey: const Key('proof-verdict'),
+                  details: details,
+                  action: GameResultAction(label: L.t('start'), icon: Icons.replay, onTap: onAgain),
+                )
+              : LevelOutcomeAdapter(
+                  passed: passed,
+                  playedLevel: played,
+                  titleKey: const Key('proof-verdict'),
+                  details: details,
+                  playNext: advanced ? () { onAgain(); onStart(); } : onAgain,
+                  nextLabel: advanced ? L.f('nextLevelBtn', {'n': '$current'}) : L.t('start'),
+                  auto: advanced,
+                  waitForWin: advanced,
+                )),
         );
       case ProofPhase.playing:
         final g = game;
@@ -1029,23 +1038,6 @@ class _Cell extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-        ),
-      );
-}
-
-class _Centered extends StatelessWidget {
-  const _Centered({required this.height, required this.children});
-  final double height;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-        height: height,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: children),
           ),
         ),
       );

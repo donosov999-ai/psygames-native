@@ -13,6 +13,8 @@ import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/l10n.dart';
+import '../../shell/game_preset.dart';
+import '../../shell/level_result.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/resume_store.dart';
@@ -710,6 +712,7 @@ class _FractalScreenState extends State<FractalScreen> {
                 _MoveHint.none => null,
               },
               won: _won,
+              playedLevel: _endLevel,
               onDigit: _onKey,
               onErase: _erase,
               onNext: _deal,
@@ -1314,6 +1317,7 @@ class _Toolbar extends StatelessWidget {
     required this.onDigit,
     required this.onErase,
     required this.onNext,
+    this.playedLevel,
     required this.paint,
     required this.onPaint,
   });
@@ -1330,21 +1334,22 @@ class _Toolbar extends StatelessWidget {
   final void Function(int) onDigit;
   final VoidCallback onErase;
   final VoidCallback onNext;
+  final int? playedLevel;
   final int? paint;
   final void Function(int) onPaint;
 
   @override
   Widget build(BuildContext context) {
     if (won) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: FilledButton.icon(
-          key: const Key('next'),
-          onPressed: onNext,
-          icon: const Icon(Icons.arrow_forward),
-          label: Text(L.t('sdkNextLevel')),
-        ),
-      );
+      return LevelResult.adapt(playedLevel != null && !solutionUsed && !GamePreset.isWarmup
+          ? LevelOutcomeAdapter(
+              passed: true, playedLevel: playedLevel, layout: GameOutcomeLayout.inline,
+              playNext: onNext, nextKey: const Key('next'), nextLabel: L.t('sdkNextLevel'), auto: false,
+            )
+          : ReportOutcomeAdapter(
+              title: L.t('done'), layout: GameOutcomeLayout.inline,
+              action: GameResultAction(key: const Key('next'), label: L.t('sdkNextLevel'), icon: Icons.arrow_forward, onTap: onNext),
+            ));
     }
     final keys = SudokuKeys(n: 9, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint);
     final h = hint, pt = portal;

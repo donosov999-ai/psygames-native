@@ -614,6 +614,8 @@ const t: Record<string, string> = {
   "srsDueLabel": "Da ripassare",
   "srsOwnLabel": "Personali",
   "srsAllDone": "Per oggi è tutto!",
+  "srsListen": "Ascolta",
+  "srsPronunciationUnavailable": "La pronuncia non è disponibile su questo dispositivo.",
   "srsNextDue": "Prossimo ripasso",
   "srsNew": "nuova",
   "chessBlind": "Scacchi alla cieca",

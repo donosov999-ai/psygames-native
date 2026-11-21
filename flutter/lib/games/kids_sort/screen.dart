@@ -8,6 +8,7 @@ import '../../shell/aux_action.dart';
 import '../../shell/drop_baskets.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
@@ -297,15 +298,16 @@ class _KidsSortScreenState extends State<KidsSortScreen> {
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
       ]),
       toolbar: _done
-          ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: FilledButton.icon(
+          ? LevelResult.adapt(ReportOutcomeAdapter(
+              layout: GameOutcomeLayout.inline,
+              title: s.passed ? L.t('done') : L.t('sameLevelRetry'),
+              action: GameResultAction(
                 key: const ValueKey('ks-next'),
-                onPressed: _next,
-                icon: const Icon(Icons.arrow_forward),
-                label: Text('${'★' * s.stars} · ${L.t('level')} ${s.passed ? _ladder.level + 1 : _ladder.level}'),
+                onTap: _next,
+                icon: Icons.arrow_forward,
+                label: '${'★' * s.stars} · ${L.t('level')} ${s.passed ? _ladder.level + 1 : _ladder.level}',
               ),
-            )
+            ))
           : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),

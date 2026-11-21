@@ -33,6 +33,8 @@ class ClozeRound {
   final String answer;
   final List<String> options;
   final String lang;
+
+  String get completedText => text.replaceFirst('___', answer);
 }
 
 /// Порядок фраз ОДНОГО языка: невиданные, потом хвост вперемешку (фраза с

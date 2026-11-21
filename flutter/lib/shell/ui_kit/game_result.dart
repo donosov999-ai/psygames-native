@@ -25,11 +25,18 @@ class GameResultAction {
 
 /// Плашка показателя: «Уровень 24 → 25», «Получено +24 балла».
 class GameResultStat {
-  const GameResultStat({required this.icon, required this.label, required this.value, this.iconColor});
+  const GameResultStat({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.iconColor,
+    this.key,
+  });
 
   final IconData icon;
   final String label;
   final String value;
+  final Key? key;
 
   /// Цвет значка; по умолчанию — `reward` «Авроры».
   final Color? iconColor;
@@ -55,6 +62,7 @@ class GameResultPanel extends StatelessWidget {
     required this.won,
     required this.title,
     required this.primary,
+    this.titleKey,
     this.subtitle,
     this.hero,
     this.stats = const [],
@@ -66,6 +74,7 @@ class GameResultPanel extends StatelessWidget {
   /// Исход партии.
   final bool won;
   final String title;
+  final Key? titleKey;
 
   /// Пояснение: «Отличная работа!» или причина поражения.
   final String? subtitle;
@@ -78,8 +87,9 @@ class GameResultPanel extends StatelessWidget {
   /// Снимок поля.
   final Widget? board;
 
-  /// Главное действие (оранжевая кнопка).
-  final GameResultAction primary;
+  /// Главное действие (оранжевая кнопка). Отсутствует, например, если сессия
+  /// закончилась и следующая станет доступна позже.
+  final GameResultAction? primary;
 
   /// До двух действий в ряд под главной.
   final List<GameResultAction> pair;
@@ -94,7 +104,11 @@ class GameResultPanel extends StatelessWidget {
     final text = auroraToken('text', dark: dark)!;
     final secondary = auroraToken('textSecondary', dark: dark)!;
 
-    Widget button(GameResultAction a, {bool primary = false, bool compact = false}) => AuroraButton(
+    Widget button(
+      GameResultAction a, {
+      bool primary = false,
+      bool compact = false,
+    }) => AuroraButton(
       key: a.key,
       label: a.label,
       icon: a.icon,
@@ -119,8 +133,14 @@ class GameResultPanel extends StatelessWidget {
                   child:
                       hero ??
                       Icon(
-                        won ? Icons.emoji_events_rounded : Icons.replay_circle_filled_rounded,
-                        key: Key(won ? 'game-result-hero-won' : 'game-result-hero-lost'),
+                        won
+                            ? Icons.emoji_events_rounded
+                            : Icons.replay_circle_filled_rounded,
+                        key: Key(
+                          won
+                              ? 'game-result-hero-won'
+                              : 'game-result-hero-lost',
+                        ),
                         size: 150,
                         color: won ? roles.reward : roles.muted,
                       ),
@@ -129,9 +149,14 @@ class GameResultPanel extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 title,
-                key: const Key('game-result-title'),
+                key: titleKey ?? const Key('game-result-title'),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, height: 1.15, color: text),
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  height: 1.15,
+                  color: text,
+                ),
               ),
               if (subtitle != null) ...[
                 const SizedBox(height: 4),
@@ -139,16 +164,24 @@ class GameResultPanel extends StatelessWidget {
                   subtitle!,
                   key: const Key('game-result-subtitle'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: won ? roles.selected : secondary),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: won ? roles.selected : secondary,
+                  ),
                 ),
               ],
               if (stats.isNotEmpty) ...[
                 const SizedBox(height: 14),
                 _StatsCard(stats: stats, dark: dark, reward: roles.reward),
               ],
-              if (board != null) ...[const SizedBox(height: 14), Center(child: board!)],
-              const SizedBox(height: 16),
-              button(primary, primary: true),
+              if (board != null) ...[
+                const SizedBox(height: 14),
+                Center(child: board!),
+              ],
+              if (primary case final action?) ...[
+                const SizedBox(height: 16),
+                button(action, primary: true),
+              ],
               if (pair.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 Row(
@@ -170,7 +203,11 @@ class GameResultPanel extends StatelessWidget {
 }
 
 class _StatsCard extends StatelessWidget {
-  const _StatsCard({required this.stats, required this.dark, required this.reward});
+  const _StatsCard({
+    required this.stats,
+    required this.dark,
+    required this.reward,
+  });
 
   final List<GameResultStat> stats;
   final bool dark;
@@ -200,6 +237,7 @@ class _StatsCard extends StatelessWidget {
               ),
             Expanded(
               child: Row(
+                key: s.key,
                 children: [
                   Icon(s.icon, size: 40, color: s.iconColor ?? reward),
                   const SizedBox(width: 8),
@@ -217,7 +255,11 @@ class _StatsCard extends StatelessWidget {
                           s.value,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: text),
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: text,
+                          ),
                         ),
                       ],
                     ),

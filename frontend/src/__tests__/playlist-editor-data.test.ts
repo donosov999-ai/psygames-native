@@ -34,9 +34,12 @@ import { FIGURES } from '@/src/services/collection';
 import { translateFor } from '@/src/contexts/LanguageContext';
 import { КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ } from '@/src/games/tatham-bridge/names';
 import {
-  buildMorningWarmupPlaylist, buildEveningWarmupPlaylist, buildDayPlaylist, buildNightPlaylist,
-  buildFixedPlaylist, buildFinancialBatteryPlaylist,
+  resolveSlotPlaylist, установитьСеткуИзФайла, buildFinancialBatteryPlaylist, type PlaylistStep,
 } from '@/src/services/warmup';
+import { заводскойСостав, наложить, вСеткуЗарядки } from '@/src/services/playlistOverride';
+import { заводскиеЗарядки } from '@/src/services/warmupData';
+
+const исходныйСостав = заводскойСостав()!;
 
 
 /**
@@ -68,9 +71,10 @@ function обложкаФайлом(id: string): string {
 /** Что человек получит сегодня — с учётом профиля, дня недели и отбора игр. */
 function фактическийСостав(p: (typeof PROFILES)[number]) {
   const wd = new Date().getDay() as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  p = наложить(p, исходныйСостав.профили);
+  установитьСеткуИзФайла(вСеткуЗарядки(исходныйСостав.профили[p.id]?.сетка));
   const можно = (g: string) => isGameAllowed(p, g);
-  const шаги = (m: { steps: { game_id: string; est_duration_sec: number }[] }) =>
-    m.steps.map((ш) => ({ game_id: ш.game_id, est_duration_sec: ш.est_duration_sec }));
+  const шаги = (m: { steps: PlaylistStep[] }) => m.steps;
   /**
    * 🔴 УТРО СЧИТАЕТСЯ НА ВСЕ ТРИ ДЛИТЕЛЬНОСТИ, А НЕ НА ОДНУ.
    *
@@ -81,10 +85,8 @@ function фактическийСостав(p: (typeof PROFILES)[number]) {
    * показанный как «фактический», — это не факт, а произвольно выбранный случай.
    */
   try {
-    const утроНа = (d: 5 | 10 | 15) => шаги(p.morning_playlist?.length
-      ? buildFixedPlaylist(p.morning_playlist, 'morning', wd, можно)
-      : buildMorningWarmupPlaylist({ duration: d, weekday: wd, profilePlaylists: p.custom_playlists, allow: можно }));
-    const вечер = buildEveningWarmupPlaylist({ weekday: wd, profileEvening: p.evening_playlist, allow: можно });
+    const утроНа = (d: 5 | 10 | 15) => шаги(resolveSlotPlaylist(p, 'morning', wd, d, можно));
+    const вечер = resolveSlotPlaylist(p, 'evening', wd, 5, можно);
     /**
      * 🔴 СЕТКА: СЕМЬ ДНЕЙ × ЧЕТЫРЕ СЛОТА × ТРИ ДЛИНЫ = 84 КЛЕТКИ НА ПРОФИЛЬ.
      *
@@ -99,28 +101,23 @@ function фактическийСостав(p: (typeof PROFILES)[number]) {
       const день = д as 0 | 1 | 2 | 3 | 4 | 5 | 6;
       const поСлотам: Record<string, Record<number, { game_id: string; est_duration_sec: number }[]>> = {};
       for (const длина of [5, 10, 15] as const) {
-        const у = шаги(p.morning_playlist?.length
-          ? buildFixedPlaylist(p.morning_playlist, 'morning', день, можно)
-          : buildMorningWarmupPlaylist({ duration: длина, weekday: день, profilePlaylists: p.custom_playlists, allow: можно }));
-        ((поСлотам.утро ||= {}))[длина] = у;
-        ((поСлотам.день ||= {}))[длина] = шаги(buildDayPlaylist(день, можно, длина));
-        ((поСлотам.вечер ||= {}))[длина] = шаги(buildEveningWarmupPlaylist({
-          weekday: день, profileEvening: p.evening_playlist, allow: можно, duration: длина,
-          excludeGameIds: у.map((ш) => ш.game_id),
-        }));
-        ((поСлотам.ночь ||= {}))[длина] = шаги(buildNightPlaylist(день, длина));
+        for (const [ru, slot] of [
+          ['утро', 'morning'], ['день', 'day'], ['вечер', 'evening'], ['ночь', 'night'],
+        ] as const) ((поСлотам[ru] ||= {}))[длина] = шаги(resolveSlotPlaylist(p, slot, день, длина, можно));
       }
       сетка[д] = поСлотам;
     }
     return {
       утро5: утроНа(5), утро10: утроНа(10), утро15: утроНа(15),
       утро: утроНа(5),                      // что человек получит по умолчанию
-      день: шаги(buildDayPlaylist(wd, можно)),
-      вечер: шаги(вечер), ночь: шаги(buildNightPlaylist(wd)),
+      день: шаги(resolveSlotPlaylist(p, 'day', wd, 5, можно)),
+      вечер: шаги(вечер), ночь: шаги(resolveSlotPlaylist(p, 'night', wd, 5, можно)),
       сетка,
     };
   } catch {
     return null;
+  } finally {
+    установитьСеткуИзФайла(null);
   }
 }
 
@@ -130,6 +127,7 @@ describe('снимок состава для редактора плейлист
   const снимок = {
     app: 'PsyGames-Playlists-Data',
     format: 1,
+    зарядки: заводскиеЗарядки,
     снято: new Date().toISOString(),
     /**
      * 🔴 КАРТОЧКА ИГРЫ ДЛЯ ПРЕДПРОСМОТРА В РЕДАКТОРЕ.
@@ -245,9 +243,9 @@ describe('снимок состава для редактора плейлист
        * ⚠️ Считается на СЕГОДНЯШНИЙ день недели: недельная ротация — часть механики,
        * и «фактический набор» без дня недели был бы неправдой. День назван в снимке.
        */
-      утро: p.morning_playlist ?? null,
-      вечер: p.evening_playlist ?? null,
-      по_дням: p.custom_playlists ?? null,
+      утро: исходныйСостав.профили[p.id]?.утро ?? null,
+      вечер: исходныйСостав.профили[p.id]?.вечер ?? null,
+      по_дням: исходныйСостав.профили[p.id]?.по_дням ?? null,
       сейчас: фактическийСостав(p),
     })),
     деньНедели: new Date().getDay(),

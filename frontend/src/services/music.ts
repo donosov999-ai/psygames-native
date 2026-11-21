@@ -180,6 +180,11 @@ export function setMusicSuspended(reason: string, value: boolean): void {
     playEpoch++;
     starting = false;
     const audio = el;
+    if (reason === 'quiet-warmup' && value && audio) {
+      fadeTo(0);
+      audio.pause();
+      return;
+    }
     fadeTo(0, () => { if (audio === el && !allowed()) audio?.pause(); });
   }
 }

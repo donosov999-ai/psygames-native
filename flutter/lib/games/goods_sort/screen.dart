@@ -7,6 +7,7 @@ import '../../shell/answer_feedback.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/game_shell.dart';
@@ -749,31 +750,21 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> with WidgetsBindingOb
         AuxAction(icon: Icons.task_alt, label: _goalText(level), onPressed: null),
       ]),
       toolbar: (_won || _lost || _reviewAfterLoss)
-          ? Column(mainAxisSize: MainAxisSize.min, children: [
-              if (_reviewAfterLoss)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  child: Text(L.t('puzzleLossReview'), textAlign: TextAlign.center),
-                ),
-              if (_won) Padding(
-              padding: const EdgeInsets.all(12),
-              child: FilledButton.icon(
-                onPressed: _nextPending ? null : _next,
-                icon: const Icon(Icons.arrow_forward),
-                label: Text(_reviewAfterLoss
-                    ? L.t('restart')
-                    : L.f('levelWonNext', {'s': '${starsForMoves(_moves, level.reference)}'})),
-              ),
-            )
-              else if (_lost) Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: FilledButton.icon(
-                    onPressed: _restart,
-                    icon: const Icon(Icons.refresh),
-                    label: Text(L.t('outOfMovesRetry')),
-                  ),
-                ),
-            ])
+          ? LevelResult.adapt(ReportOutcomeAdapter(
+              layout: GameOutcomeLayout.inline,
+              title: _reviewAfterLoss ? L.t('puzzleLossReview') : _won ? L.t('done') : L.t('sameLevelRetry'),
+              action: _won
+                  ? GameResultAction(
+                      onTap: _nextPending ? null : _next,
+                      icon: Icons.arrow_forward,
+                      label: _reviewAfterLoss
+                          ? L.t('restart')
+                          : L.f('levelWonNext', {'s': '${starsForMoves(_moves, level.reference)}'}),
+                    )
+                  : _lost
+                      ? GameResultAction(onTap: _restart, icon: Icons.refresh, label: L.t('outOfMovesRetry'))
+                      : null,
+            ))
           : null,
       pauseActions: [
         if (widget.reviewAction != null) widget.reviewAction!,

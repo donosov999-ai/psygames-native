@@ -17,6 +17,7 @@ import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 
 /// ЭКРАН «ТОРТОВ» И «ПИЦЦЫ»: одна игра, две шкурки и две лестницы.
 ///
@@ -358,25 +359,29 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
         AuxAction(inPause: true, icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
       ]),
       toolbar: _won
-          ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: FilledButton.icon(
-                onPressed: _nextPending ? null : _next,
-                icon: const Icon(Icons.arrow_forward),
-                label: Text(L.f('levelWonNext', {'s': '$stars'})),
+          ? LevelResult.adapt(ReportOutcomeAdapter(
+              layout: GameOutcomeLayout.inline,
+              title: L.t('done'),
+              action: GameResultAction(
+                onTap: _nextPending ? null : _next,
+                icon: Icons.arrow_forward,
+                label: L.f('levelWonNext', {'s': '$stars'}),
               ),
-            )
+            ))
           // ТУПИК — ЭТО ПРОВАЛ УРОВНЯ, А НЕ НЕУДОБСТВО: из расклада без ходов
           // выйти можно только отменой или заново, и об этом надо сказать вслух.
           : stuck
-              ? Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: FilledButton.icon(
-                    onPressed: _history.isEmpty ? _restart : _undo,
-                    icon: Icon(_history.isEmpty ? Icons.refresh : Icons.undo),
-                    label: Text(_history.isEmpty ? L.t('noMovesRestart') : L.t('noMovesUndo')),
-                  ),
-                )
+              ? LevelResult.adapt(ReportOutcomeAdapter(
+                  layout: GameOutcomeLayout.inline,
+                  title: L.t('sameLevelRetry'),
+                  moreActions: [
+                    GameResultAction(
+                      onTap: _history.isEmpty ? _restart : _undo,
+                      icon: _history.isEmpty ? Icons.refresh : Icons.undo,
+                      label: _history.isEmpty ? L.t('noMovesRestart') : L.t('noMovesUndo'),
+                    ),
+                  ],
+                ))
               : null,
       pauseActions: [
         PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: _restart),

@@ -9,6 +9,7 @@ import '../../shell/setup_scroll.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/level_result.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
@@ -418,45 +419,43 @@ class _Field extends StatelessWidget {
         );
       case StroopPhase.done:
         final interference = game.interferenceMs;
-        return _Centered(
+        return SizedBox(
           height: height,
-          children: [
-            Text(
-              passed
-                  ? L.t('levelDone').replaceAll('{n}', '${game.level}')
-                  : L.t('sameLevelRetry'),
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
+          child: LevelResult.adapt(
+            LevelOutcomeAdapter(
+              passed: passed,
+              playedLevel: game.level,
+              nextKey: nextLevel == null
+                  ? null
+                  : const Key('stroop-next-level'),
+              playNext: nextLevel == null ? onAgain : onContinue,
+              nextLabel: nextLevel == null
+                  ? L.t('retry')
+                  : L.f('nextLevelBtn', {'n': '$nextLevel'}),
+              auto: nextLevel != null,
+              details: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal} · '
+                    '${L.t('hud_errors')}: ${game.errors}',
+                  ),
+                  Text(
+                    game.meanRtMs == null
+                        ? '${L.t('meanReaction')}: —'
+                        : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}',
+                  ),
+                  Text(
+                    // Прочерк честнее нуля: ноль означал бы «интерференции нет».
+                    interference == null
+                        ? '${L.t('hud_interference')}: —'
+                        : '${L.t('hud_interference')}: $interference ${L.t('msShort')}',
+                  ),
+                  BossOutcomeLine(boss),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              '${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal} · '
-              '${L.t('hud_errors')}: ${game.errors}',
-            ),
-            Text(
-              game.meanRtMs == null
-                  ? '${L.t('meanReaction')}: —'
-                  : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}',
-            ),
-            Text(
-              // Прочерк честнее нуля: ноль означал бы «интерференции нет».
-              interference == null
-                  ? '${L.t('hud_interference')}: —'
-                  : '${L.t('hud_interference')}: $interference ${L.t('msShort')}',
-            ),
-            BossOutcomeLine(boss),
-            const SizedBox(height: 16),
-            if (nextLevel != null)
-              FilledButton(
-                key: const Key('stroop-next-level'),
-                onPressed: onContinue,
-                child: Text(
-                  L.t('nextLevelBtn').replaceAll('{n}', '$nextLevel'),
-                ),
-              )
-            else
-              FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
-          ],
+          ),
         );
       case StroopPhase.playing:
         final t = game.trial!;
@@ -517,23 +516,6 @@ class _Field extends StatelessWidget {
         );
     }
   }
-}
-
-class _Centered extends StatelessWidget {
-  const _Centered({required this.height, required this.children});
-  final double height;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-    height: height,
-    child: Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(mainAxisSize: MainAxisSize.min, children: children),
-      ),
-    ),
-  );
 }
 
 class _DecoyRow extends StatelessWidget {
