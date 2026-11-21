@@ -11,17 +11,63 @@
 // Тексты — ключи общего словаря, которые уже переведены на 12 языков веб-стороной.
 library;
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../../shell/aurora_scope.dart';
 import '../../shell/chrome_art.dart';
 import '../../shell/game_about.dart';
 import '../../shell/game_colors.dart';
+import '../../shell/home_inputs.dart' show streakFromDayMarks;
 import '../../shell/l10n.dart';
+import '../../shell/shared_state.dart';
 import '../../shell/ui_kit/game_result.dart';
 
 /// Польза упражнения строкой: значок и ключ словаря.
 typedef PauseBenefit = (IconData, String);
+
+/// «День n из m» — прогресс цели-серии под итогом практики (веб `goalProgress` + `pickPraise` в
+/// `LevelCleared`, задача b9517e77). Цель — `psygames_streak_goal_<профиль>` (`days`: 7, 14 или 30), серия —
+/// дни подряд по меткам `psygames_earn_v1[<профиль>].days` до сегодняшнего. Строка только пока цель
+/// не достигнута (`0 < n < m`): достигнутую праздновать должно окно цели, а не итог практики.
+/// ⚠️ Считает метки, уже сохранённые приёмником партий: пока сегодняшняя ещё не легла, серия — по вчера.
+String? streakGoalLine(SharedState state, DateTime now) {
+  try {
+    final pid = state.activeProfile;
+    final goal = jsonDecode(state.get('${SharedState.prefix}streak_goal_$pid') ?? 'null');
+    final days = goal is Map ? goal['days'] : null;
+    if (days is! num || days <= 0) return null;
+    final log = jsonDecode(state.get('${SharedState.prefix}earn_v1') ?? 'null');
+    final mine = log is Map ? log[pid] : null;
+    final marks = mine is Map && mine['days'] is List ? (mine['days'] as List).cast<Object?>() : const <Object?>[];
+    final streak = streakFromDayMarks(marks, now);
+    final done = streak < days ? streak : days.toInt();
+    if (done <= 0 || done >= days) return null;
+    return L.f('goalDayOf', {'n': '$done', 'm': '${days.toInt()}'});
+  } catch (_) {
+    return null; // битая запись цели или журнала — молчим, а не ломаем итог
+  }
+}
+
+/// «Передышка для глаз»: на каждой десятой подряд завершённой практике — совет посмотреть вдаль
+/// (веб `eyeRestTracker.tickLevelStreak`, `LevelCleared`). Счётчик один на процесс, как в вебе;
+/// считает практики «Паузы» (дыхание и гимнастика), а не все игры. Отсчёта на 20 с нет: на итоге
+/// «Паузы» нет автоперехода, человек сам решает, когда нажать дальше.
+class EyeRestTracker {
+  EyeRestTracker._();
+
+  static const every = 10;
+  static int _streak = 0;
+
+  /// Завершена ещё одна практика; `true` — эта десятая подряд, показать передышку.
+  static bool tick() {
+    _streak += 1;
+    return _streak % every == 0;
+  }
+
+  static void reset() => _streak = 0;
+}
 
 /// Польза дыхания — те же три пункта, что у веба (`BREATH_BENEFITS`).
 const breathBenefits = <PauseBenefit>[

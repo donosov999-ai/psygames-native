@@ -578,6 +578,9 @@ int _streakFromDays(List<Object?> days, DateTime w) {
   return n;
 }
 
+/// Тот же счёт серии для экранов игр (итог практик «Паузы», задача b9517e77): метки дней → дней подряд.
+int streakFromDayMarks(List<Object?> days, DateTime w) => _streakFromDays(days, w);
+
 /// `daysBetween`: суток между двумя ключами `y-m-d` (по местным полночам); не разобралось — NaN.
 double _daysBetween(Object? from, String to) {
   DateTime? parse(Object? k) {

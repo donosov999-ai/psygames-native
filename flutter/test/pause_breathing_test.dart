@@ -167,6 +167,26 @@ void main() {
     expect(r['time_seconds'], 3 * 54 + 15 + 20 + 20 + 3 * 15);
   });
 
+  testWidgets('🔴 «Сменить технику» в меню паузы: назад к настройкам, подход не засчитан (задача 7caec33c)', (tester) async {
+    await open(tester);
+    await tester.tap(find.byKey(const Key('pause-start')));
+    await tester.pump();
+    await at(tester, 3000 + 20000);
+    expect(find.byKey(const Key('pause-playing')), findsOneWidget);
+    await shellPause(tester);
+    final change = find.textContaining('brChangeTech');
+    expect(change, findsOneWidget, reason: 'пункт есть в меню паузы дыхания, с названием нынешней техники');
+    expect(find.textContaining('brTechBox'), findsWidgets);
+    await tester.tap(change);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byKey(const Key('pause-config')), findsOneWidget, reason: 'вернулись к настройкам с выбором техники');
+    expect(find.byKey(const Key('pause-breath-tech')), findsOneWidget);
+    expect(reports, isEmpty, reason: 'недоведённый подход партию не пишет');
+    expect(state.get('psygames_breathing_level_nzt48'), isNull, reason: 'счётчик подходов не сдвинулся');
+    expect(state.get('psygames_breathing_streak_nzt48'), isNull, reason: 'серия не тронута');
+  });
+
   testWidgets('ночной шаг dim=1 — тёмный вид', (tester) async {
     GamePreset.set({'dim': '1'});
     await open(tester);
