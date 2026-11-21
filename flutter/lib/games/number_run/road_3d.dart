@@ -24,6 +24,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_scene/scene.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 
+import '../runner/answer_cue.dart';
 import '../runner/road.dart';
 import '../../shell/js_compat.dart' show jsRound;
 import '../../shell/game_clock.dart' show isGameHeld;
@@ -995,15 +996,16 @@ class _Road3dState extends State<Road3d> {
     _sparkGeometry.commit(count);
   }
 
-  void _popup(String text, int ink, double x) {
+  void _popup(String text, int ink, double x, {bool compact = false}) {
     final p = _popups.reduce((a, b) => a.life <= b.life ? a : b);
     _labels.set(p.node, text, _LabelSpec(ink: ink, font: 140));
     p
-      ..life = .8
+      ..life = compact ? RunnerAnswerCue.lifetime : .8
       ..y = 2.2;
     p.node
       ..visible = true
-      ..position = vm.Vector3(x, 2.2, 0);
+      ..position = vm.Vector3(x, 2.2, 0)
+      ..scale = vm.Vector3.all(compact ? .72 : 1);
   }
 
   void _stepPopups(double dt) {
@@ -1030,6 +1032,12 @@ class _Road3dState extends State<Road3d> {
       final id = e.id;
       final lane = e.lane ?? 0;
       double n(String k) => (d[k] as num?)?.toDouble() ?? 0;
+      void answerAt(double x, {double height = 1.2}) {
+        final cue = RunnerAnswerCue.fromEvent(e);
+        if (cue == null) return;
+        _popup(cue.label, cue.right ? 0xbbf7d0 : 0xffd6dc, x, compact: true);
+        _burst(x, height, 0, cue.right ? 0x22c55e : 0xff2d55, 8, spread: 2, lift: 3);
+      }
       switch (e.type) {
         case 'pickup':
           final row = id == null ? null : course.rows[id];
@@ -1048,26 +1056,19 @@ class _Road3dState extends State<Road3d> {
           }
         case 'answer':
           _rows[id]?.lanes[lane]?.visible = false;
-          final ok = d['ok'] == true;
-          _popup('${ok ? '✓ +' : '✗ −'}${_num((n('after') - n('before')).abs())}', ok ? 0xbbf7d0 : 0xffd6dc, lane * _lane);
-          _burst(lane * _lane, 1.4, 0, ok ? 0x22c55e : 0xff2d55, 26, spread: 4, lift: 5, drift: 6);
+          answerAt(lane * _lane, height: 1.4);
         case 'scale':
           _rows[id]?.flag?.visible = true;
           final delta = n('delta');
-          _popup(
-            delta > 0 ? '✓ +${_num(delta)}' : (delta < 0 ? '✗ −${_num(-delta)}' : '≈ 0'),
-            delta > 0 ? 0xbbf7d0 : (delta < 0 ? 0xffd6dc : 0xe0e7ff),
-            n('x') * _lane,
-          );
-          _burst(n('x') * _lane, 1, 0, delta > 0 ? 0x22c55e : (delta < 0 ? 0xff2d55 : 0x818cf8), 24, spread: 4, lift: 5, drift: 6);
-        case 'pickups':
-          final exact = d['exact'];
-          if (exact is Map) {
-            final delta = (exact['delta'] as num).toDouble();
-            final ok = delta > 0;
-            _popup('${ok ? '✓ +' : '≠ −'}${_num(delta.abs())}', ok ? 0xbbf7d0 : 0xffd6dc, hx);
-            _burst(hx, 1.2, 0, ok ? 0x22c55e : 0xff2d55, ok ? 30 : 16, spread: 4, lift: 5);
+          if (delta == 0) {
+            _popup('≈ 0', 0xe0e7ff, n('x') * _lane, compact: true);
+          } else {
+            answerAt(n('x') * _lane, height: 1);
           }
+        case 'pickups':
+          answerAt(hx);
+        case 'gate':
+          if (s.status == RoadStatus.running) answerAt(hx);
         case 'operation':
           _rows[id]?.lanes[lane]?.visible = false;
           final op = '${d['operation']}';
@@ -1083,11 +1084,7 @@ class _Road3dState extends State<Road3d> {
             _burst(hx, 1.4, 0, _wall['×']!, 40, spread: 4.5, lift: 6);
           }
         case 'obstacle':
-          final damage = n('damage');
-          if (damage > 0) {
-            _popup('−${_num(damage)}', 0xffd6dc, lane * _lane);
-            _burst(lane * _lane, .8, 0, 0xa63c51, 26, spread: 4, lift: 4.5, drift: 6);
-          }
+          answerAt(lane * _lane, height: .8);
       }
     }
     _seenEvents = s.events.length;

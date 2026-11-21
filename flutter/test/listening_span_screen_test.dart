@@ -20,6 +20,7 @@ import 'support/settings_fit.dart';
 class _FakeVoice implements VoiceBackend {
   _FakeVoice({required this.system});
   final bool system;
+  int? failAt;
   final spoken = <String>[];
   final langs = <String>[];
 
@@ -28,7 +29,7 @@ class _FakeVoice implements VoiceBackend {
 
   @override
   Future<bool> speakSystem(String text, String bcp47, double rate) async {
-    if (!system) return false;
+    if (!system || spoken.length == failAt) return false;
     spoken.add(text);
     langs.add(bcp47);
     return true;
@@ -142,6 +143,28 @@ void main() {
       await tapWord(tester, w);
     }
   }
+
+  testWidgets('тишина на втором слове не открывает ответы и позволяет повторить', (
+    tester,
+  ) async {
+    await boot(tester);
+    backend.failAt = 1;
+    await tester.tap(find.byKey(const Key('lspan-start')));
+    await tester.pump();
+    for (var i = 0; i < 120 &&
+        find.byKey(const Key('lspan-voice-block')).evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(backend.spoken, hasLength(1));
+    expect(find.text(L.t('srsPronunciationUnavailable')), findsOneWidget);
+    expect(grid, findsNothing);
+    expect(sent, isEmpty);
+    backend.failAt = null;
+    await tester.tap(find.byKey(const Key('lspan-start')));
+    await tester.pump();
+    await listen(tester);
+    expect(find.byKey(const Key('lspan-voice-block')), findsNothing);
+  });
 
   testWidgets('🔴 партия на слух: два раунда в порядке звучания — уровень взят, отчёт как у веба', (tester) async {
     await boot(tester, level: 1);

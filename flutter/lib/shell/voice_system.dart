@@ -67,10 +67,17 @@ abstract class ClipPlayer {
 /// повтор той же записи — с начала, без загрузки; нажатие, перебитое следующим, не
 /// уходит в системный голос — звук всё равно даст следующая просьба.
 class RecordingClips {
-  RecordingClips({required this.player, Future<Uint8List> Function(Uri url)? fetch})
+  RecordingClips({
+    required this.player,
+    Future<Uint8List> Function(Uri url)? fetch,
+    this.prepareLimit = const Duration(milliseconds: 1700),
+    this.playLimit = const Duration(seconds: 5),
+  })
       : _fetch = fetch ?? fetchRecording;
 
   final ClipPlayer player;
+  final Duration prepareLimit;
+  final Duration playLimit;
   final Future<Uint8List> Function(Uri url) _fetch;
   final Map<String, Future<Uint8List>> _bytes = {};
   String? _loaded;
@@ -80,32 +87,48 @@ class RecordingClips {
   Future<Uint8List> bytesOf(String url) => _bytes.putIfAbsent(url, () {
         final f = _fetch(Uri.parse(url));
         f.catchError((Object _) {
-          _bytes.remove(url);
+          if (identical(_bytes[url], f)) _bytes.remove(url);
           return Uint8List(0);
         });
         return f;
       });
 
-  /// `true` — прозвучало (или прозвучит у следующей просьбы); `false` — записи нет.
+  /// `false` hands a failed clip to system speech. A stale request must never
+  /// start speech after a later card or manual replay has taken over.
   Future<bool> play(String url, double speed) async {
     final ticket = ++_ticket;
+    var preparingPlayer = false;
+    Future<Uint8List>? pending;
     try {
-      final bytes = await bytesOf(url);
+      pending = bytesOf(url);
+      final bytes = await pending.timeout(prepareLimit);
       if (ticket != _ticket) return true; // перебито следующим нажатием — оно и прозвучит
+      if (bytes.isEmpty) {
+        if (identical(_bytes[url], pending)) _bytes.remove(url);
+        return false;
+      }
+      preparingPlayer = true;
       if (_loaded == url) {
-        await player.restart();
+        await player.restart().timeout(prepareLimit);
       } else {
         _loaded = null;
-        await player.load(bytes);
-        _loaded = url;
+        await player.load(bytes).timeout(prepareLimit);
       }
       if (ticket != _ticket) return true;
-      await player.play(speed);
+      _loaded = url;
+      await player.play(speed).timeout(playLimit);
       return true;
-    } on PlayerInterruptedException {
-      return true; // загрузку прервала следующая просьба — звук даст она
-    } catch (_) {
+    } catch (error) {
+      if (ticket != _ticket) return true;
+      if (!preparingPlayer && identical(_bytes[url], pending)) _bytes.remove(url);
       _loaded = null;
+      if (preparingPlayer && error is TimeoutException) {
+        try {
+          await player.stop().timeout(const Duration(milliseconds: 350));
+        } catch (_) {
+          // A broken clip player must not block the fallback voice.
+        }
+      }
       return false;
     }
   }
@@ -161,6 +184,9 @@ class JustAudioClipPlayer implements ClipPlayer {
   Future<void> play(double speed) async {
     await _p.setSpeed(speed);
     await _p.play();
+    if (_p.processingState != ProcessingState.completed) {
+      throw StateError('Voice clip did not complete');
+    }
   }
 
   @override
@@ -191,6 +217,21 @@ class SystemVoiceBackend implements VoiceBackend {
     _tts.setCancelHandler(() => _finishAppleSpeech(false));
     _tts.setErrorHandler((_) => _appleUtterance?.finish(false));
     await _tts.awaitSpeakCompletion(false).timeout(const Duration(seconds: 2));
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      await _tts.autoStopSharedSession(false).timeout(const Duration(seconds: 2));
+    }
+  }
+
+  Future<bool> _activateIPhoneSpeech(int ticket) async {
+    if (defaultTargetPlatform != TargetPlatform.iOS) return true;
+    // Clips, voice notes and interruptions can change the shared audio
+    // session between words. Reclaim it only for an actual speak request.
+    final category = await _tts.setIosAudioCategory(
+      IosTextToSpeechAudioCategory.playback,
+      const [IosTextToSpeechAudioCategoryOptions.mixWithOthers],
+    ).timeout(const Duration(seconds: 2));
+    if (category != 1 || ticket != _speechTicket) return false;
+    return await _tts.setSharedInstance(true).timeout(const Duration(seconds: 2)) == 1;
   }
 
   void _finishAppleSpeech(bool spoken) {
@@ -275,7 +316,10 @@ class SystemVoiceBackend implements VoiceBackend {
           if (identical(_appleEvents, events)) _appleEvents = null;
           rethrow;
         }
-        if (ticket != _speechTicket) return false;
+        if (ticket != _speechTicket || !await _activateIPhoneSpeech(ticket) ||
+            ticket != _speechTicket) {
+          return false;
+        }
         speech = _AppleUtterance();
         _appleUtterance = speech;
         if (await _tts.speak(text).timeout(const Duration(seconds: 2)) != 1) {
@@ -309,9 +353,11 @@ class SystemVoiceBackend implements VoiceBackend {
       // 🔴 На Android список языков синтезатора включает и НЕскачанные голоса: язык «есть»,
       // а произнести нечем. Точный ответ — isLanguageInstalled (флаг NOT_INSTALLED у голоса).
       if (defaultTargetPlatform == TargetPlatform.android) {
-        return await _tts.isLanguageInstalled(bcp47) == true;
+        return await _tts.isLanguageInstalled(bcp47)
+                .timeout(const Duration(seconds: 2)) == true;
       }
-      final languages = await _tts.getLanguages as List<dynamic>?;
+      final languages = await _tts.getLanguages
+          .timeout(const Duration(seconds: 2)) as List<dynamic>?;
       if (languages == null || languages.isEmpty) {
         // Часть платформ отдаёт пустой список до первого произнесения. В вебе
         // мы в этом случае считали «синтез есть, попробуем» — сохраняем.

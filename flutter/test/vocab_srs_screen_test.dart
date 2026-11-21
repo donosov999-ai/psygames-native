@@ -937,7 +937,11 @@ void main() {
   testWidgets(
     '🔴 разбор открывается ДО партии и показывает слово из колоды этой пары',
     (tester) async {
-      await tester.pumpWidget(app(clock: () => 1000));
+      final backend = _VoiceProbe();
+      await tester.pumpWidget(app(
+        clock: () => 1000,
+        voice: VoiceLayer(backend: backend, soundOn: () => true),
+      ));
       await tester.pumpAndSettle();
       // Партия не начата — кнопка разбора уже есть.
       expect(find.byKey(const Key('vocab-start')), findsOneWidget);
@@ -946,6 +950,16 @@ void main() {
       // Пример — первое слово словаря для пары ru→en, а не выдуманное: house → дом.
       expect(find.text('house'), findsWidgets);
       expect(find.textContaining('дом'), findsWidgets);
+      final listen = find.byKey(const Key('demo-listen'));
+      expect(backend.words, isEmpty, reason: 'help does not play automatically');
+      await tester.tap(listen);
+      await tester.pumpAndSettle();
+      expect(backend.words, [('house', 'en-US')]);
+      backend.available = false;
+      await tester.tap(listen);
+      await tester.pumpAndSettle();
+      expect(find.text(L.t('srsPronunciationUnavailable')), findsOneWidget);
+      expect(tester.takeException(), isNull);
     },
   );
 }

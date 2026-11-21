@@ -79,7 +79,7 @@ class ListeningSpanScreen extends StatefulWidget {
 }
 
 class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
-  late final _answerFeedback = AnswerFeedback(widget.state);
+  late final _answerFeedback = AnswerFeedback(widget.state, playSound: false);
 
   late LevelLadder _ladder;
   late final double Function() _rng = widget.rng ?? Random().nextDouble;
@@ -91,6 +91,7 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
   /// Язык, который учим. Не может совпасть с языком приложения.
   String _target = 'en';
   VoiceBlock? _block;
+  bool _playbackFailed = false;
   List<String> _pool = const [];
 
   ListeningSpanGame? _game;
@@ -170,6 +171,7 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
   }
 
   Future<void> _chooseTarget(String code, {bool remember = true}) async {
+    _playbackFailed = false;
     _target = code;
     _pool = lspanWordPool(
       _vocab,
@@ -191,6 +193,7 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
     _phase = LspanPhase.ready;
     _spokenIdx = 0;
     _holding = false;
+    _playbackFailed = false;
     _startedAt = null;
   }
 
@@ -201,7 +204,10 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
     if (!mounted) return;
     // И «можно» тоже записывается: иначе предупреждение прошлой попытки («включите звук»)
     // висело на экране старта и после того, как звук включили (сверка веб → натив 02.10.2026).
-    setState(() => _block = block);
+    setState(() {
+      _block = block;
+      _playbackFailed = false;
+    });
     if (block != null) return;
     _beginRound();
   }
@@ -245,8 +251,21 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
     for (var i = 0; i < g.spoken.length; i++) {
       if (!_alive(run)) return;
       setState(() => _spokenIdx = i + 1);
-      await _voice!.speak(g.spoken[i], _target);
+      final spoken = await _voice!.speak(
+        g.spoken[i],
+        _target,
+        stillCurrent: () => _alive(run),
+      );
       if (!_alive(run)) return;
+      if (!spoken) {
+        // Never ask the player to recall a word the app did not deliver.
+        setState(() {
+          _reset();
+          _block = _voice!.soundOn() ? null : VoiceBlock.soundOff;
+          _playbackFailed = _block == null;
+        });
+        return;
+      }
       // Пауза ПОСЛЕ каждого слова, и после последнего тоже: так её ставит веб (`speakSequence`).
       await _wait(g.params.gapMs);
     }
@@ -378,6 +397,7 @@ class _ListeningSpanScreenState extends State<ListeningSpanScreen> {
           names: _names,
           target: _target,
           block: _block,
+          playbackFailed: _playbackFailed,
           onTarget: (code) => _chooseTarget(code),
           onStart: _start,
         ),
@@ -456,6 +476,7 @@ class _Ready extends StatelessWidget {
     required this.names,
     required this.target,
     required this.block,
+    required this.playbackFailed,
     required this.onTarget,
     required this.onStart,
   });
@@ -465,6 +486,7 @@ class _Ready extends StatelessWidget {
   final Map<String, String> names;
   final String target;
   final VoiceBlock? block;
+  final bool playbackFailed;
   final ValueChanged<String> onTarget;
   final VoidCallback onStart;
 
@@ -509,7 +531,7 @@ class _Ready extends StatelessWidget {
             ],
             onChanged: (v) => v == null ? null : onTarget(v),
           ),
-          if (block != null) ...[
+          if (block != null || playbackFailed) ...[
             const SizedBox(height: 10),
             Container(
               key: const Key('lspan-voice-block'),
@@ -531,7 +553,9 @@ class _Ready extends StatelessWidget {
                       // Каждый ключ — своим L.t('…'): ключ внутри тернарника сборщик словаря не видит.
                       block == VoiceBlock.soundOff
                           ? L.t('voiceSoundOff')
-                          : L.t('voiceMissing'),
+                          : playbackFailed
+                              ? L.t('srsPronunciationUnavailable')
+                              : L.t('voiceMissing'),
                       style: text.bodySmall?.copyWith(
                         color: const Color(0xFFB45309),
                         fontWeight: FontWeight.w600,

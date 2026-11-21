@@ -14,6 +14,7 @@ import 'package:psygames_flutter/shell/voice_system.dart';
 /// (~/.pub-cache/hosted/pub.dev/just_audio-0.10.6/lib/just_audio.dart, play и его описание.)
 class _JustAudioLike implements AudioPlayer {
   bool _playing = false;
+  ProcessingState _state = ProcessingState.idle;
   Completer<void>? _playDone;
 
   /// Что загружали и перематывали — по порядку: адрес записи (из её байтов) или «seek».
@@ -21,9 +22,12 @@ class _JustAudioLike implements AudioPlayer {
 
   @override
   bool get playing => _playing;
+  @override
+  ProcessingState get processingState => _state;
 
   /// Запись доиграла до конца.
   void finishTrack() {
+    _state = ProcessingState.completed;
     final d = _playDone;
     _playDone = null;
     if (d != null && !d.isCompleted) d.complete();
@@ -33,11 +37,15 @@ class _JustAudioLike implements AudioPlayer {
   Future<Duration?> setAudioSource(AudioSource source,
       {bool preload = true, int? initialIndex, Duration? initialPosition}) async {
     steps.add(String.fromCharCodes((source as BytesAudioSource).bytes));
+    _state = ProcessingState.ready;
     return const Duration(milliseconds: 600);
   }
 
   @override
-  Future<void> seek(Duration? position, {int? index}) async => steps.add('seek');
+  Future<void> seek(Duration? position, {int? index}) async {
+    _state = ProcessingState.ready;
+    steps.add('seek');
+  }
 
   @override
   Future<void> setSpeed(double speed) async {}
@@ -69,6 +77,19 @@ class _JustAudioLike implements AudioPlayer {
 class _NoTts implements FlutterTts {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _IPhoneTts extends FlutterTts {
+  @override
+  Future<dynamic> setIosAudioCategory(
+    IosTextToSpeechAudioCategory category,
+    List<IosTextToSpeechAudioCategoryOptions> options, [
+    IosTextToSpeechAudioMode mode = IosTextToSpeechAudioMode.defaultMode,
+  ]) async {
+    expect(category, IosTextToSpeechAudioCategory.playback);
+    expect(options, [IosTextToSpeechAudioCategoryOptions.mixWithOthers]);
+    return 1;
+  }
 }
 
 /// 🔴 СЛОВА ЗАПИСЯМИ ПОДРЯД: каждое дожидается конца своего звучания.
@@ -121,6 +142,8 @@ void main() {
     });
     final spoken = <String>[];
     final selected = <String>[];
+    var sessionActive = false;
+    var activations = 0;
     messenger.setMockMethodCallHandler(channel, (call) async {
       switch (call.method) {
         case 'getVoices':
@@ -135,14 +158,22 @@ void main() {
           if (call.arguments == 'es-ES') return 0;
         case 'setVoice':
           selected.add((call.arguments as Map)['identifier'] as String);
+        case 'setSharedInstance':
+          expect(call.arguments, isTrue);
+          sessionActive = true;
+          activations++;
+        case 'autoStopSharedSession':
+          expect(call.arguments, isFalse);
         case 'speak':
+          if (!sessionActive) return 0;
+          sessionActive = false;
           spoken.add(call.arguments as String);
         case 'awaitSpeakCompletion':
           expect(call.arguments, isFalse);
       }
       return 1;
     });
-    final tts = FlutterTts();
+    final tts = _IPhoneTts();
     final backend = SystemVoiceBackend(tts: tts, player: _JustAudioLike());
     Future<void> event(String name) async {
       await tts.platformCallHandler(MethodCall('speak.on$name'));
@@ -167,6 +198,7 @@ void main() {
       expect(await playback, isTrue);
     }
     expect(spoken, ['house', 'water', 'agua', 'book']);
+    expect(activations, 4);
     expect(selected, ['premium-en', 'premium-en', 'enhanced-es', 'premium-en']);
   });
 }

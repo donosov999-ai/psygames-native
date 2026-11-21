@@ -1,5 +1,7 @@
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'l10n.dart';
@@ -33,6 +35,8 @@ class DemoTrial {
     this.ruleKey,
     this.rule,
     this.art,
+    this.playAudio,
+    this.stopAudio,
   });
 
   /// Сам стимул — то, что человек видит в партии.
@@ -67,6 +71,8 @@ class DemoTrial {
   /// Ключ словаря с ИМЕНЕМ ПРАВИЛА этой пробы. У Струпа правило меняется внутри
   /// партии, поэтому ключ живёт на пробе, а не на игре.
   final String? ruleKey;
+  final Future<String?> Function(bool Function() current)? playAudio;
+  final Future<void> Function()? stopAudio;
 }
 
 /// Карточка одного примера — общая на все игры семейства.
@@ -118,6 +124,8 @@ class DemoCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(trial.sub!, style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13)),
             ],
+            if (trial.playAudio != null)
+              _DemoAudioButton(key: ObjectKey(trial), trial: trial),
             if (trial.answer != null) ...[
               const SizedBox(height: 16),
               DecoratedBox(
@@ -143,6 +151,59 @@ class DemoCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _DemoAudioButton extends StatefulWidget {
+  const _DemoAudioButton({super.key, required this.trial});
+
+  final DemoTrial trial;
+
+  @override
+  State<_DemoAudioButton> createState() => _DemoAudioButtonState();
+}
+
+class _DemoAudioButtonState extends State<_DemoAudioButton> {
+  bool _busy = false;
+
+  Future<void> _play() async {
+    final route = ModalRoute.of(context);
+    setState(() => _busy = true);
+    String? message;
+    try {
+      message = await widget.trial.playAudio!(
+        () => mounted && (route?.isCurrent ?? true),
+      );
+    } catch (_) {
+      message = L.t('srsPronunciationUnavailable');
+    }
+    if (mounted) {
+      setState(() => _busy = false);
+      if (message != null && (route?.isCurrent ?? true)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_busy) unawaited(widget.trial.stopAudio?.call());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+    key: const Key('demo-listen'),
+    onPressed: _busy ? null : _play,
+    tooltip: L.t('srsListen'),
+    icon: _busy
+        ? const SizedBox.square(
+            dimension: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+        : const Icon(Icons.volume_up_rounded),
+  );
 }
 
 /// Открыть разбор-показ. Игра отдаёт примеры — всё остальное общее.

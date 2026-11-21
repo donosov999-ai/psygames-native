@@ -144,7 +144,9 @@ void main() {
     final lost = <String>[];
     for (final MapEntry(key: file, value: events) in rollout.entries) {
       final src = File('lib/games/$file').readAsStringSync();
-      final unified = src.contains('AnswerFeedback(widget.state)');
+      final unified = RegExp(
+        r'AnswerFeedback\s*\(\s*widget\.state\s*[,)]',
+      ).hasMatch(src);
       if (!unified && !src.contains('AppHaptics(widget.state)')) {
         lost.add('$file: нет AppHaptics или AnswerFeedback');
       }

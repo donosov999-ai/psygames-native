@@ -11,6 +11,7 @@ import 'package:psygames_flutter/shell/voice_system.dart';
 class FakeClipPlayer implements ClipPlayer {
   final log = <String>[];
   Object? failLoad;
+  Completer<void>? pendingPlay;
   @override
   Future<void> load(Uint8List bytes) async {
     log.add('load ${bytes.length}');
@@ -20,7 +21,10 @@ class FakeClipPlayer implements ClipPlayer {
   @override
   Future<void> restart() async => log.add('restart');
   @override
-  Future<void> play(double speed) async => log.add('play');
+  Future<void> play(double speed) async {
+    log.add('play');
+    await pendingPlay?.future;
+  }
   @override
   Future<void> stop() async => log.add('stop');
 }
@@ -64,10 +68,23 @@ void main() {
     expect(p.log.where((e) => e == 'play'), hasLength(1), reason: 'звучит один раз, а не дважды внахлёст');
   });
 
-  test('прерванная загрузка плеера (PlayerInterruptedException) — тоже «прозвучит»', () async {
+  test('прерванная без новой просьбы запись отдаётся системному голосу', () async {
     final p = FakeClipPlayer()..failLoad = PlayerInterruptedException('Loading interrupted');
     final c = RecordingClips(player: p, fetch: (u) async => Uint8List(5));
-    expect(await c.play(a, 1), isTrue);
+    expect(await c.play(a, 1), isFalse);
+  });
+
+  test('зависшая запись освобождает озвучку и позволяет сыграть следующую', () async {
+    final p = FakeClipPlayer()..pendingPlay = Completer<void>();
+    final c = RecordingClips(
+      player: p, fetch: (_) async => Uint8List(3),
+      playLimit: const Duration(milliseconds: 30),
+    );
+    expect(await c.play(a, 1), isFalse);
+    expect(p.log, ['load 3', 'play', 'stop']);
+    p.pendingPlay!.complete();
+    p.pendingPlay = null;
+    expect(await c.play(b, 1), isTrue);
   });
 
   test('🔴 сеть упала — честное «нет записи» (наверху синтез), и следующая попытка качает заново', () async {

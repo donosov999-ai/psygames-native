@@ -35,8 +35,12 @@ import 'shared_state.dart';
 typedef AnswerMarkState = ({Object? picked, Object? correct, bool right});
 
 class AnswerFeedback {
-  AnswerFeedback(this.state, {GameSoundBackend? backend})
-    : _audio = GameEffectAudio(backend: backend ?? backendFactory(), enabled: () => appSoundOn(state)),
+  AnswerFeedback(this.state, {GameSoundBackend? backend, bool playSound = true})
+    : _audio = GameEffectAudio(
+        // Spoken exercises keep the audio session for speech, not the answer chime.
+        backend: playSound ? (backend ?? backendFactory()) : null,
+        enabled: () => appSoundOn(state),
+      ),
       _haptics = AppHaptics(state);
 
   final SharedState state;

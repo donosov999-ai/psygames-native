@@ -102,7 +102,7 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   late final Map<String, String> _preset;
   late final bool _autostart;
   late final bool _temporarySettings;
-  late final _feedback = AnswerFeedback(widget.state);
+  late final _feedback = AnswerFeedback(widget.state, playSound: false);
   WordBank? _wordBank;
   LangNames _names = LangNames.empty;
 
@@ -874,6 +874,21 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   /// готовые ключи веб-версии (`vocabSrsIntroDesc` — как игра засчитывает ответ и
   /// двигает интервал; `srsTypingHint` — чем печать отличается), они уже
   /// переведены на все двенадцать языков, новых строк не заведено.
+  Future<String?> _listenLesson(
+    String word,
+    String lang,
+    bool Function() current,
+  ) async {
+    await _voiceStop;
+    if (!current()) return null;
+    final voice = _voice ??= widget.voice ?? await AudioHost.voice(widget.state);
+    if (!current()) return null;
+    if (await voice.speak(word, lang, stillCurrent: current)) return null;
+    return voice.soundOn()
+        ? L.t('srsPronunciationUnavailable')
+        : L.t('voiceSoundOff');
+  }
+
   List<DemoTrial> _demoTrials() {
     final v = _wordBank?.core ?? const <VocabEntry>[];
     final w = v.firstWhere(
@@ -883,18 +898,27 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
     );
     final base = w[_baseLang] ?? '';
     final target = w[_targetLang] ?? '';
+    final lang = _targetLang;
+    final audio = target.isNotEmpty && wordPronunciationLanguages.contains(lang)
+        ? (bool Function() current) => _listenLesson(target, lang, current)
+        : null;
+    Future<void> stop() async => await _voice?.cancel();
     return [
       DemoTrial(
         text: target,
         sub: L.t('vocabSrsHint'),
         answer: base,
         rule: L.t('vocabSrsIntroDesc'),
+        playAudio: audio,
+        stopAudio: stop,
       ),
       DemoTrial(
         text: base,
         sub: L.t('srsTypingTask'),
         answer: target,
         rule: L.t('srsTypingHint'),
+        playAudio: audio,
+        stopAudio: stop,
       ),
     ];
   }
@@ -917,11 +941,10 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
         _stopVoice();
         Navigator.of(context).maybePop();
       },
-      onLesson: () => openDemoLesson(
-        context,
-        title: L.t('vocabSrs'),
-        trials: _demoTrials(),
-      ),
+      onLesson: () {
+        _stopVoice();
+        openDemoLesson(context, title: L.t('vocabSrs'), trials: _demoTrials());
+      },
       hud: card == null
           ? const []
           : [

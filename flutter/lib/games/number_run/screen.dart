@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
-import '../../shell/answer_feedback.dart';
+import '../../shell/app_haptics.dart';
 import '../../shell/design_template.dart';
 import '../../shell/game_colors.dart';
 import '../../shell/demo_lesson.dart';
@@ -21,6 +21,7 @@ import '../../shell/session_report.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../math_slider/model.dart' show numberLocale;
+import '../runner/answer_cue.dart';
 import '../runner/road.dart';
 import 'campaign.dart';
 import 'level.dart';
@@ -210,7 +211,7 @@ bool Function(RoadCourse course, RoadState s)? numberRunAutoApply;
 
 class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProviderStateMixin {
   late final LevelLadder _ladder;
-  late final _answerFeedback = AnswerFeedback(widget.state);
+  late final _haptics = AppHaptics(widget.state);
   late final Ticker _ticker;
   final FocusNode _focus = FocusNode();
   NumberRunMode _mode = NumberRunMode.levels;
@@ -255,14 +256,12 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
   void dispose() {
     _ticker.dispose();
     _focus.dispose();
-    unawaited(_answerFeedback.dispose());
     super.dispose();
   }
 
   /// Новая раздача: разбор показывает приёмы на ЭТОЙ дороге, поэтому она строится до старта.
   void _deal() {
     LessonUsed.reset();
-    _answerFeedback.clear();
     _seed = widget.seed != null ? widget.seed! + _games : math.Random().nextInt(1000000);
     _games += 1;
     final level = _ladder.level;
@@ -309,11 +308,11 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
       final previous = _s!;
       final next = roadAdvanceFrame(previous, dt, course);
       setState(() => _s = next);
-      final wrong = next.hits + next.mistakes > previous.hits + previous.mistakes;
-      final passedRow = next.nextRow > previous.nextRow;
-      if (wrong || passedRow) {
-        final right = !wrong && passedRow;
-        unawaited(_answerFeedback.show('road', right ? 'road' : null, right: right));
+      // Only actual scoring events react. No wait, global overlay or queued
+      // sound player in the real-time frame loop.
+      for (var i = previous.events.length; i < next.events.length; i++) {
+        final cue = RunnerAnswerCue.fromEvent(next.events[i]);
+        if (cue != null) unawaited(cue.right ? _haptics.hit() : _haptics.miss());
       }
       if (next.status == RoadStatus.failed) {
         _finish();
@@ -422,10 +421,7 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
             : HudItem(label: L.t('round'), value: '${s.stage}/$campaignStageCount', icon: Icons.flag_outlined),
         HudItem(label: L.t('errors'), value: '${s.hits + s.mistakes}', icon: Icons.cancel_outlined),
       ],
-      field: (context, h) => AnswerMark(
-        feedback: _answerFeedback,
-        value: 'road',
-        child: KeyboardListener(
+      field: (context, h) => KeyboardListener(
           focusNode: _focus,
           autofocus: true,
           onKeyEvent: (e) {
@@ -434,7 +430,6 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
             if (e.logicalKey == LogicalKeyboardKey.arrowRight) _lane(1);
           },
           child: _phase == _Phase.config ? _config(course) : _play(course, s, h),
-        ),
       ),
       toolbar: _toolbar(course),
       // Забег — во весь экран: шапки, счётчиков и тулбара нет, пауза плавает внизу (Денис 11.11.2026).
@@ -762,6 +757,8 @@ class NumberRoadView extends StatelessWidget {
       final lift = jumpHeight(state);
       final carW = math.min(lw * 0.9, lw * 0.5 * numberScale(state.sum)) * (1 + lift / 8);
       final carX = w / 2 + state.x * lw;
+      final feedback = RunnerAnswerCue.recent(state);
+      final colors = GameColors.of(context);
       return ClipRect(
         child: Stack(children: [
           Positioned.fill(
@@ -816,6 +813,31 @@ class NumberRoadView extends StatelessWidget {
               ),
             ),
           ),
+          if (feedback != null)
+            Positioned(
+              left: (carX - 46).clamp(0.0, math.max(0.0, w - 92)),
+              top: math.max(0, carY - carH / 2 - lift * 4 - 34 -
+                  (MediaQuery.of(context).disableAnimations ? 0 : feedback.age * 18)),
+              width: math.min(92, w),
+              child: IgnorePointer(
+                child: Center(
+                  child: DecoratedBox(
+                    key: Key(feedback.cue.right ? 'nr-cue-good' : 'nr-cue-bad'),
+                    decoration: BoxDecoration(
+                      color: feedback.cue.right ? colors.correct : colors.wrong,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      child: Text(
+                        feedback.cue.label,
+                        style: TextStyle(color: colors.onStrong, fontSize: 13, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ]),
       );
     });

@@ -50,7 +50,7 @@ class _ClozeScreenState extends State<ClozeScreen> {
   Map<String, List<ClozePhrase>> _phrases = const {};
   LangNames _names = LangNames.empty;
   late final double Function() _rng = widget.random ?? Random().nextDouble;
-  late final _feedback = AnswerFeedback(widget.state);
+  late final _feedback = AnswerFeedback(widget.state, playSound: false);
 
   ClozePhase _phase = ClozePhase.config;
   String _targetLang = 'en';

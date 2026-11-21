@@ -13,8 +13,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/number_run/campaign.dart';
 import 'package:psygames_flutter/games/number_run/level.dart';
 import 'package:psygames_flutter/games/number_run/screen.dart';
+import 'package:psygames_flutter/games/runner/answer_cue.dart';
 import 'package:psygames_flutter/games/runner/road.dart';
 import 'package:psygames_flutter/games/runner/solver.dart';
+import 'package:psygames_flutter/shell/answer_feedback.dart';
 import 'package:psygames_flutter/shell/js_compat.dart' show jsRound;
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/lesson.dart';
@@ -46,7 +48,10 @@ void main() {
       if (level != 1) '${SharedState.prefix}number_run_level_nzt48': '$level',
     });
     final state = await SharedState.open();
-    await tester.pumpWidget(MaterialApp(home: NumberRunScreen(key: UniqueKey(), state: state, seed: seed)));
+    await tester.pumpWidget(MaterialApp(
+      builder: (_, child) => AnswerFeedbackOverlay(child: child!),
+      home: NumberRunScreen(key: UniqueKey(), state: state, seed: seed),
+    ));
     await tester.pump();
     await tester.pump();
     return state;
@@ -125,11 +130,25 @@ void main() {
     expect(find.byKey(const Key('nr-steer-center')), findsNothing, reason: 'во весь экран — без ряда кнопок');
   });
 
+  test('подсказка на дороге не выставляет галочку за нейтральный ряд', () {
+    RunnerAnswerCue? cue(String type, [Map<String, Object?> data = const {}]) =>
+        RunnerAnswerCue.fromEvent(RoadEvent({'type': type, ...data}));
+    expect(cue('pickups'), isNull);
+    expect(cue('operation'), isNull);
+    expect(cue('obstacle', {'damage': 0}), isNull);
+    expect(cue('scale', {'delta': 0}), isNull);
+    expect(cue('answer', {'ok': true, 'before': 20, 'after': 23})?.label, '✓ +3');
+    expect(cue('answer', {'ok': false, 'before': 20, 'after': 13})?.label, '✗ −7');
+    expect(cue('pickups', {'exact': {'delta': -2}})?.label, '✗ −2');
+  });
+
   testWidgets('🔴 уровень 1 стрелками: число = ядро на тех же кадрах, финал, итог и запись партии', (tester) async {
     await open(tester);
     final course = makeLevel(1, seed, countingTasks);
     var finaleFrames = 0;
     final shadow = await drive(tester, course, onFrame: (_) {
+      expect(find.byKey(const Key('answer-feedback-center-good')), findsNothing);
+      expect(find.byKey(const Key('answer-feedback-center-bad')), findsNothing);
       // Финал идёт ДО итога: лестница на экране, а кнопки «дальше» ещё нет.
       if (find.byKey(const Key('nr-finale')).evaluate().isNotEmpty && find.byKey(const Key('level-result-next')).evaluate().isEmpty) {
         finaleFrames++;
@@ -155,6 +174,27 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('${SharedState.prefix}number_run_level_nzt48'), o.passed ? '2' : '1');
     expect(o.passed, isTrue, reason: 'автопилот по пути решателя обязан пробить ≥ 5 стен: ${o.walls}');
+  });
+
+  testWidgets('блиц: компактная отметка рядом с игроком, а движение не ждёт', (tester) async {
+    const level = 4; // first level with actual arithmetic answer gates
+    await open(tester, level: level);
+    final course = makeLevel(level, seed, countingTasks);
+    var cueFrames = 0;
+    var inspected = 0;
+    final shadow = await drive(tester, course, onFrame: (_) {
+      expect(find.byKey(const Key('answer-feedback-center-good')), findsNothing);
+      expect(find.byKey(const Key('answer-feedback-center-bad')), findsNothing);
+      final local = find.byKey(const Key('nr-cue-good'));
+      if (local.evaluate().isEmpty) return;
+      cueFrames++;
+      if (inspected++ != 0) return;
+      final road = tester.getRect(find.byKey(const Key('nr-road')));
+      expect(tester.getSize(local).width, lessThan(92));
+      expect(tester.getCenter(local).dy, greaterThan(road.center.dy));
+    });
+    expect(shadow.answers.any((event) => event.ok == true), isTrue);
+    expect(cueFrames, greaterThan(1), reason: 'a local cue spans moving frames');
   });
 
   testWidgets('🔴 без руления — падение с первого моста: итог «упал», уровень не засчитан', (tester) async {
