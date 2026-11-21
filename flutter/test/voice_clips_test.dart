@@ -29,9 +29,23 @@ class FakeClipPlayer implements ClipPlayer {
   Future<void> stop() async => log.add('stop');
 }
 
+class FakeAssetClipPlayer extends FakeClipPlayer implements AssetClipPlayer {
+  @override
+  Future<void> loadAsset(String path) async => log.add('asset $path');
+}
+
 void main() {
   const a = 'https://psy-games.pro/voice/zh/a.opus';
   const b = 'https://psy-games.pro/voice/zh/b.opus';
+
+  test('bundled audio loads without HTTP, repeats from the start, and advances', () async {
+    final p = FakeAssetClipPlayer();
+    final c = RecordingClips(player: p, fetch: (_) async => throw StateError('network not allowed'));
+    expect(await c.playAsset('a.m4a', 1), isTrue);
+    expect(await c.playAsset('a.m4a', 1), isTrue);
+    expect(await c.playAsset('b.m4a', 1), isTrue);
+    expect(p.log, ['asset a.m4a', 'play', 'restart', 'play', 'asset b.m4a', 'play']);
+  });
 
   test('🔴 повтор той же записи — без новой загрузки: сеть один раз, дальше с начала', () async {
     var fetches = 0;

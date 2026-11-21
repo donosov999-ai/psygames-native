@@ -19,13 +19,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 class FakeVoice implements VoiceBackend {
   FakeVoice({this.has = true});
   final bool has;
+  bool plays = true;
   final said = <(String, String)>[];
   @override
   Future<bool> playUrl(String url, double rate) async => false;
   @override
   Future<bool> speakSystem(String text, String bcp47, double rate) async {
     said.add((text, bcp47));
-    return true;
+    return plays;
   }
 
   @override
@@ -73,6 +74,23 @@ void main() {
     }
     return (v, n);
   }
+
+  testWidgets('failed tone cannot be guessed; the speaker retries the same syllable', (tester) async {
+    final (voice, _) = await boot(tester);
+    voice.plays = false;
+    await tester.tap(find.byKey(const Key('ct-start')));
+    await tester.pump(const Duration(milliseconds: 450));
+    final option = find.byKey(const Key('ct-option-0'));
+    expect(tester.widget<FilledButton>(option).onPressed, isNull);
+    expect(find.byKey(const Key('listening-prompt-error')), findsOneWidget);
+    expect(find.byKey(const Key('ct-reveal')), findsNothing);
+    final first = voice.said.single;
+    voice.plays = true;
+    await tester.tap(find.byKey(const Key('ct-replay')));
+    await tester.pump();
+    expect(voice.said, [first, first]);
+    expect(tester.widget<FilledButton>(option).onPressed, isNotNull);
+  });
 
   testWidgets('🔴 тон: назван тон прозвучавшего слога — после ответа виден иероглиф, уровень вырос', (tester) async {
     final sent = <Map<String, dynamic>>[];

@@ -13,6 +13,7 @@ import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_result.dart';
+import '../../shell/listening_prompt.dart';
 import '../../shell/noise.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -34,6 +35,19 @@ enum PhPhase { config, playing, result }
 const Color _good = Color(0xFF22C55E);
 const Color _bad = Color(0xFFF43F5E);
 const Color _accent = Color(0xFFF7971E);
+
+String? phonemeClipPath(VoiceLayer voice, String word, String lang) {
+  final name = voice.samples[lang]?[word];
+  if (name == null || !RegExp(r'^[0-9a-f]{16}\.opus$').hasMatch(name)) return null;
+  return 'assets/voice/phoneme-pairs/$lang-${name.replaceFirst('.opus', '.m4a')}';
+}
+
+Future<bool> _sayPhoneme(
+  VoiceLayer voice, String word, String lang, double rate, bool Function() current,
+) => voice.speak(
+  word, lang, rate: rate, stillCurrent: current,
+  bundledAsset: phonemeClipPath(voice, word, lang),
+);
 
 class PhonemePairsScreen extends StatefulWidget {
   const PhonemePairsScreen({super.key, required this.state, this.clock, this.random, this.voice, this.noise});
@@ -68,7 +82,10 @@ class _PhonemePairsScreenState extends State<PhonemePairsScreen> {
   int _startMs = 0;
   bool _passed = false;
   Timer? _advance;
-  Timer? _sayLater;
+  late final _sound = ListeningPromptController(
+    isVisible: () => mounted && (ModalRoute.of(context)?.isCurrent ?? true),
+    onChange: () { if (mounted) setState(() {}); },
+  );
 
   static const String _langKey = 'psygames_phoneme_pairs_targetlang';
 
@@ -86,7 +103,7 @@ class _PhonemePairsScreenState extends State<PhonemePairsScreen> {
   @override
   void dispose() {
     _advance?.cancel();
-    _sayLater?.cancel();
+    _sound.dispose();
     _voice?.cancel();
     _noise?.stop();
     unawaited(_answerFeedback.dispose());
@@ -128,9 +145,16 @@ class _PhonemePairsScreenState extends State<PhonemePairsScreen> {
     await _checkVoice();
   }
 
-  void _start() {
+  Future<void> _start() async {
+    if (_phase == PhPhase.playing) return;
+    final voice = _voice;
+    if (voice == null) return;
+    final target = _target;
+    final block = await voice.blockedReason(target);
+    if (!mounted || target != _target || _phase == PhPhase.playing) return;
+    setState(() => _block = block);
+    if (block != null) return;
     _advance?.cancel();
-    _sayLater?.cancel();
     final data = _data!;
     final p = phLevelParams(_ladder.level);
     final all = data.pairs[_target] ?? data.pairs['en']!;
@@ -149,25 +173,24 @@ class _PhonemePairsScreenState extends State<PhonemePairsScreen> {
 
   /// Слово звучит через 400 мс после показа пробы — как в вебе.
   void _sayRound() {
-    _sayLater?.cancel();
-    _sayLater = Timer(const Duration(milliseconds: 400), _say);
-  }
-
-  Future<void> _say() async {
-    if (_phase != PhPhase.playing) return;
-    await _noise?.start(_params.snrDb);
-    await _voice?.speak(_trials[_idx].spoken, _target, rate: _params.rate);
-    await _noise?.stop();
+    final voice = _voice;
+    final word = _trials[_idx].spoken;
+    final lang = _target;
+    _sound.present(ListeningPrompt.speech(
+      voice: voice, text: word, lang: lang, rate: _params.rate,
+      bundledAsset: voice == null ? null : phonemeClipPath(voice, word, lang),
+      noise: _noise, snrDb: _params.snrDb,
+      autoDelay: const Duration(milliseconds: 400),
+    ));
   }
 
   void _replay() {
     if (_phase != PhPhase.playing || _answered != null) return;
-    _replays += 1; // не штрафуется, только считается
-    _say();
+    if (_sound.replay()) _replays += 1;
   }
 
   void _answer(int choice) {
-    if (_phase != PhPhase.playing || _answered != null) return;
+    if (_phase != PhPhase.playing || _answered != null || !_sound.canAnswer) return;
     final ok = choice == _trials[_idx].correctIdx;
     unawaited(_answerFeedback.show('answer', ok ? 'answer' : null, right: ok));
     setState(() {
@@ -253,7 +276,7 @@ class _PhonemePairsScreenState extends State<PhonemePairsScreen> {
       rnd: _lessonRandom.nextDouble,
     );
     if (playing) LessonUsed.mark();
-    _sayLater?.cancel();
+    _sound.suspend();
     await _voice?.cancel();
     await _noise?.stop();
     final steps = phLessonSteps(r.cards, _teach);
@@ -272,6 +295,7 @@ class _PhonemePairsScreenState extends State<PhonemePairsScreen> {
       ),
     ));
     await _voice?.cancel();
+    if (mounted) _sound.resume(needsPrompt: _phase == PhPhase.playing && _answered == null);
   }
 
   @override
@@ -308,7 +332,7 @@ class _PhonemePairsScreenState extends State<PhonemePairsScreen> {
       auxRow: t == null
           ? null
           : AuxBar(children: [
-              AuxAction(key: const Key('ph-replay'), icon: Icons.volume_up, label: L.t('replaySound'), onPressed: _answered == null ? _replay : null),
+              AuxAction(key: const Key('ph-replay'), icon: Icons.volume_up, label: L.t('replaySound'), onPressed: _answered == null && !_sound.playing ? _replay : null),
             ]),
       toolbar: t == null ? null : _pair(context, t),
     );
@@ -364,6 +388,10 @@ class _PhonemePairsScreenState extends State<PhonemePairsScreen> {
       child: Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Text(L.t('phPairsPickHint'), textAlign: TextAlign.center),
+          ListeningPromptStatus(
+            controller: _sound, soundOn: _voice?.soundOn() ?? false,
+            errorKey: const Key('ph-playback-error'),
+          ),
           if (_params.showWord && _answered != null) ...[
             const SizedBox(height: 12),
             Text(
@@ -401,7 +429,7 @@ class _PhonemePairsScreenState extends State<PhonemePairsScreen> {
             height: 64,
             child: FilledButton(
               key: Key('ph-word-$i'),
-              onPressed: _answered == null ? () => _answer(i) : null,
+              onPressed: _answered == null && _sound.canAnswer ? () => _answer(i) : null,
               style: FilledButton.styleFrom(
                 backgroundColor: scheme.surfaceContainerHighest,
                 foregroundColor: scheme.onSurface,
@@ -455,7 +483,12 @@ class _PhLessonBoardState extends State<_PhLessonBoard> with SingleTickerProvide
     super.initState();
     // Как в вебе: через 350 мс слова по очереди, между ними 450 мс, темп 0,9.
     final words = widget.card.speak;
-    _cue.run(words.length, (i) => widget.voice?.speak(words[i], widget.lang, rate: 0.9), gap: const Duration(milliseconds: 450));
+    _cue.run(words.length, (i) async {
+      final voice = widget.voice;
+      if (voice != null) {
+        await _sayPhoneme(voice, words[i], widget.lang, 0.9, () => mounted);
+      }
+    }, gap: const Duration(milliseconds: 450));
   }
 
   @override

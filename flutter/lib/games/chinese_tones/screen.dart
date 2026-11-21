@@ -13,6 +13,7 @@ import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_result.dart';
+import '../../shell/listening_prompt.dart';
 import '../../shell/noise.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -68,7 +69,10 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
   int _startMs = 0;
   bool _passed = false;
   Timer? _advance;
-  Timer? _sayLater;
+  late final _sound = ListeningPromptController(
+    isVisible: () => mounted && (ModalRoute.of(context)?.isCurrent ?? true),
+    onChange: () { if (mounted) setState(() {}); },
+  );
 
   int get _now => (widget.clock ?? () => DateTime.now().millisecondsSinceEpoch)();
 
@@ -82,7 +86,7 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
   @override
   void dispose() {
     _advance?.cancel();
-    _sayLater?.cancel();
+    _sound.dispose();
     _voice?.cancel();
     _noise?.stop();
     unawaited(_answerFeedback.dispose());
@@ -112,7 +116,6 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
 
   void _start() {
     _advance?.cancel();
-    _sayLater?.cancel();
     final p = ctLevelParams(_ladder.level);
     setState(() {
       _params = p;
@@ -128,25 +131,20 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
   }
 
   void _sayRound() {
-    _sayLater?.cancel();
-    _sayLater = Timer(const Duration(milliseconds: 400), _say);
-  }
-
-  Future<void> _say() async {
-    if (_phase != CtPhase.playing) return;
-    await _noise?.start(_params.snrDb);
-    await _voice?.speak(_trials[_idx].syll.zh, 'zh', rate: _params.rate);
-    await _noise?.stop();
+    _sound.present(ListeningPrompt.speech(
+      voice: _voice, text: _trials[_idx].syll.zh, lang: 'zh', rate: _params.rate,
+      noise: _noise, snrDb: _params.snrDb,
+      autoDelay: const Duration(milliseconds: 400),
+    ));
   }
 
   void _replay() {
     if (_phase != CtPhase.playing || _answered != null) return;
-    _replays += 1;
-    _say();
+    if (_sound.replay()) _replays += 1;
   }
 
   void _answer(int choice) {
-    if (_phase != CtPhase.playing || _answered != null) return;
+    if (_phase != CtPhase.playing || _answered != null || !_sound.canAnswer) return;
     final ok = choice == _trials[_idx].correctIdx;
     unawaited(_answerFeedback.show('answer', ok ? 'answer' : null, right: ok));
     setState(() {
@@ -224,8 +222,9 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
     final playing = _phase == CtPhase.playing && _idx < _trials.length;
     final r = ctLessonCards(bank: bank, exclude: playing ? _trials[_idx].syll.pinyin : null, rnd: _lessonRandom.nextDouble);
     if (playing) LessonUsed.mark();
-    _sayLater?.cancel();
+    _sound.suspend();
     await _voice?.cancel();
+    await _noise?.stop();
     final steps = ctLessonSteps(r.cards, _teach);
     if (!mounted) return;
     await Navigator.of(context).push(MaterialPageRoute<void>(
@@ -242,6 +241,7 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
       ),
     ));
     await _voice?.cancel();
+    if (mounted) _sound.resume(needsPrompt: _phase == CtPhase.playing && _answered == null);
   }
 
   @override
@@ -278,7 +278,7 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
       auxRow: t == null
           ? null
           : AuxBar(children: [
-              AuxAction(key: const Key('ct-replay'), icon: Icons.volume_up, label: L.t('replaySound'), onPressed: _answered == null ? _replay : null),
+              AuxAction(key: const Key('ct-replay'), icon: Icons.volume_up, label: L.t('replaySound'), onPressed: _answered == null && !_sound.playing ? _replay : null),
             ]),
       toolbar: t == null ? null : _options(context, t),
     );
@@ -334,6 +334,9 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
             const SizedBox(height: 8),
           ],
           Text(_params.pinyinMode ? L.t('ctPickPinyin') : L.t('ctPickTone'), textAlign: TextAlign.center),
+          ListeningPromptStatus(
+            controller: _sound, soundOn: _voice?.soundOn() ?? false,
+          ),
           // Иероглиф и пиньинь — ПОСЛЕ ответа и только на младших уровнях:
           // раньше времени они превращают слух в чтение.
           if (_params.showAfter && _answered != null) ...[
@@ -365,7 +368,7 @@ class _ChineseTonesScreenState extends State<ChineseTonesScreen> {
           height: 64,
           child: FilledButton(
             key: Key('ct-option-$i'),
-            onPressed: _answered == null ? () => _answer(i) : null,
+            onPressed: _answered == null && _sound.canAnswer ? () => _answer(i) : null,
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               backgroundColor: scheme.surfaceContainerHighest,

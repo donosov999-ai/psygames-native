@@ -123,18 +123,22 @@ class BytesAudioSource extends StreamAudioSource {
 class JustAudioNoiseBackend implements NoiseBackend {
   AudioPlayer? _player;
   bool _loaded = false;
+  int _revision = 0;
 
   @override
   Future<void> start(double gain) async {
+    final revision = ++_revision;
     try {
       final p = _player ??= AudioPlayer();
       if (!_loaded) {
         await p.setAudioSource(BytesAudioSource(pinkNoiseWav()));
+        if (revision != _revision) return;
         await p.setLoopMode(LoopMode.one);
+        if (revision != _revision) return;
         _loaded = true;
       }
       await p.setVolume(gain);
-      if (!p.playing) unawaited(p.play());
+      if (revision == _revision && !p.playing) unawaited(p.play());
     } catch (_) {
       // Звук не критичен: упражнение остаётся играбельным без помехи, как в вебе.
     }
@@ -142,6 +146,7 @@ class JustAudioNoiseBackend implements NoiseBackend {
 
   @override
   Future<void> stop() async {
+    _revision++;
     try {
       await _player?.pause();
     } catch (_) {/* уже остановлен */}

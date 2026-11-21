@@ -14,6 +14,7 @@ import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_result.dart';
+import '../../shell/listening_prompt.dart';
 import '../../shell/noise.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -92,7 +93,6 @@ class _DictationScreenState extends State<DictationScreen> {
   int _levelPlayed = 1;
   int _startMs = 0;
   bool _passed = false;
-  bool _inputOpen = true;
   TypingState? _typing;
   int? _errorAt;
 
@@ -101,8 +101,10 @@ class _DictationScreenState extends State<DictationScreen> {
   /// «не видно слова под клавиатурой»). Ответа она не раскрывает — это набор самого человека.
   String? _wrongKey;
   int _streakPos = -1, _streak = 0, _revealTo = 0;
-  Timer? _sayLater;
-  Timer? _openLater;
+  late final _sound = ListeningPromptController(
+    isVisible: () => mounted && (ModalRoute.of(context)?.isCurrent ?? true),
+    onChange: () { if (mounted) setState(() {}); },
+  );
 
   static const String _langKey = 'psygames_dictation_lang';
 
@@ -125,8 +127,7 @@ class _DictationScreenState extends State<DictationScreen> {
 
   @override
   void dispose() {
-    _sayLater?.cancel();
-    _openLater?.cancel();
+    _sound.dispose();
     _voice?.cancel();
     _noise?.stop();
     unawaited(_answerFeedback.dispose());
@@ -185,8 +186,6 @@ class _DictationScreenState extends State<DictationScreen> {
   /// зависит от движка и шаг в шаг не переносится. Здесь — Фишер–Йетс: правило то же
   /// («случайные N из годных»), а перемешивание честно равномерное.
   void _start() {
-    _sayLater?.cancel();
-    _openLater?.cancel();
     final p = dictationLevelParams(_ladder.level);
     final fit = [...levelPhrases(buildDictationPhrases(_cloze!, _vocab, _target), _ladder.level)];
     for (var i = fit.length - 1; i > 0; i -= 1) {
@@ -219,34 +218,24 @@ class _DictationScreenState extends State<DictationScreen> {
       _streakPos = -1;
       _streak = 0;
       _revealTo = 0;
-      _inputOpen = _params.delayMs == 0;
     });
-    _sayLater = Timer(const Duration(milliseconds: 450), () async {
-      await _say();
-      if (!mounted || _params.delayMs == 0) return;
-      // Пауза перед вводом: фразу удерживают в голове, а не пишут под диктовку.
-      _openLater = Timer(Duration(milliseconds: _params.delayMs), () {
-        if (mounted) setState(() => _inputOpen = true);
-      });
-    });
-  }
-
-  Future<void> _say() async {
-    if (_phase != DictationPhase.playing) return;
-    await _noise?.start(_params.snrDb);
-    await _voice?.speak(_phrases[_idx].text, _target, rate: _params.rate);
-    await _noise?.stop(); // помеха звучит ровно под речью, а не фоном партии
+    // Пауза на сложных уровнях начинается только после услышанной фразы.
+    _sound.present(ListeningPrompt.speech(
+      voice: _voice, text: phrase.text, lang: _target, rate: _params.rate,
+      noise: _noise, snrDb: _params.snrDb,
+      autoDelay: const Duration(milliseconds: 450),
+      answerDelay: Duration(milliseconds: _params.delayMs),
+    ));
   }
 
   void _replay() {
     if (_phase != DictationPhase.playing) return;
-    _replays += 1; // не штрафуется: это подача задания
-    _say();
+    if (_sound.replay()) _replays += 1;
   }
 
   void _key(String ch) {
     final st = _typing;
-    if (st == null || !_inputOpen || _phase != DictationPhase.playing) return;
+    if (st == null || !_sound.canAnswer || _phase != DictationPhase.playing) return;
     final before = st.errors;
     final r = st.pressChar(ch, blockOnError: true, lenient: true);
     final right = st.errors == before;
@@ -271,7 +260,7 @@ class _DictationScreenState extends State<DictationScreen> {
 
   void _backspace() {
     final st = _typing;
-    if (st == null || !_inputOpen) return;
+    if (st == null || !_sound.canAnswer || _phase != DictationPhase.playing) return;
     setState(() {
       st.backspace();
       _errorAt = null;
@@ -352,7 +341,9 @@ class _DictationScreenState extends State<DictationScreen> {
     );
     if (r == null) return;
     if (playing) LessonUsed.mark();
+    _sound.suspend();
     await _voice?.cancel();
+    await _noise?.stop();
     final steps = dictationLessonSteps(r.cards, _teach);
     if (!mounted) return;
     await Navigator.of(context).push(MaterialPageRoute<void>(
@@ -369,6 +360,7 @@ class _DictationScreenState extends State<DictationScreen> {
       ),
     ));
     await _voice?.cancel();
+    if (mounted) _sound.resume(needsPrompt: _phase == DictationPhase.playing);
   }
 
   @override
@@ -404,7 +396,7 @@ class _DictationScreenState extends State<DictationScreen> {
       // если тулбар позволяет, идёт в него: тянуться в низ экрана проще, чем в центр» (CHATS_RULES.md §1в).
       auxRow: playing
           ? AuxBar(children: [
-              AuxAction(key: const Key('dict-replay'), icon: Icons.volume_up, label: L.t('replaySound'), onPressed: _replay),
+              AuxAction(key: const Key('dict-replay'), icon: Icons.volume_up, label: L.t('replaySound'), onPressed: _sound.playing ? null : _replay),
             ])
           : null,
       toolbar: playing ? _answer(context) : null,
@@ -466,6 +458,9 @@ class _DictationScreenState extends State<DictationScreen> {
       child: Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Text(L.t('dictationTask'), textAlign: TextAlign.center, style: TextStyle(color: muted)),
+          ListeningPromptStatus(
+            controller: _sound, soundOn: _voice?.soundOn() ?? false,
+          ),
         ]),
       ),
     );
@@ -473,7 +468,7 @@ class _DictationScreenState extends State<DictationScreen> {
 
   Widget _answer(BuildContext context) {
     final st = _typing;
-    if (!_inputOpen || st == null) {
+    if (!_sound.unlocked || st == null) {
       return const Padding(
         padding: EdgeInsets.all(16),
         child: Icon(Icons.hourglass_empty, key: Key('dict-wait'), size: 30),

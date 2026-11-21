@@ -4922,6 +4922,13 @@ const translations: Translations = {
   // лечатся по-разному, и одно сообщение на оба случая отправляет половину людей
   // ставить голос вместо того, чтобы тронуть тумблер.
   voiceSoundOff: { ru: 'Звук выключен, а это упражнение говорит. Включите звук в настройках.', en: 'Sound is off, and this exercise speaks. Turn sound on in settings.' },
+  listeningPromptPlaying: { ru: 'Воспроизводится…', en: 'Playing audio…' },
+  listeningPromptFailed: { ru: 'Задание не прозвучало. Нажмите на динамик, чтобы повторить.', en: 'The audio did not play. Tap the speaker to try again.' },
+  clozeListenPhrase: { ru: "Прослушать фразу целиком", en: "Listen to the whole sentence" },
+  srsAutoPronounce: { ru: "Произносить слова", en: "Speak words aloud" },
+  srsAutoPronounceDesc: { ru: "Английский и испанский. В припоминании и печати — после ответа.", en: "English and Spanish. In recall and typing, words are spoken after you answer." },
+  srsPronouncePrimary: { ru: "Только основной", en: "Primary language only" },
+  srsPronounceBoth: { ru: "Оба языка", en: "Both languages" },
   voiceMissingLang: { ru: 'Голос для языка «{lang}» не найден на устройстве. Выбери другой язык.', en: 'No voice for “{lang}” found on this device. Pick another language.' },
   lspanListening: { ru: 'Слушай...', en: 'Listen...' },
   lspanWord: { ru: 'Слово', en: 'Word' },

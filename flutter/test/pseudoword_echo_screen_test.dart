@@ -18,13 +18,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 class FakeVoice implements VoiceBackend {
   FakeVoice({this.hasVoice = true});
   final bool hasVoice;
+  bool plays = true;
   final said = <(String, String, double)>[];
   @override
   Future<bool> playUrl(String url, double rate) async => false;
   @override
   Future<bool> speakSystem(String text, String bcp47, double rate) async {
     said.add((text, bcp47, rate));
-    return true;
+    return plays;
   }
 
   @override
@@ -104,6 +105,24 @@ void main() {
     await tester.pump();
     final gain = noiseGainFor(echoLevelParams(12).snrDb!);
     expect(noise.log, ['start $gain', 'stop']);
+  });
+
+  testWidgets('failed echo hides the answer style and leaves the same prompt available', (tester) async {
+    final (voice, _) = await boot(tester);
+    voice.plays = false;
+    await tester.tap(find.byKey(const Key('echo-start')));
+    await tester.pump();
+    final word = voice.said.single.$1;
+    final answer = find.byKey(Key('echo-option-$word'));
+    final disabled = tester.widget<FilledButton>(answer);
+    expect(disabled.onPressed, isNull);
+    expect(disabled.style!.backgroundColor!.resolve({WidgetState.disabled}), isNull);
+    expect(find.byKey(const Key('listening-prompt-error')), findsOneWidget);
+    voice.plays = true;
+    await tester.tap(find.byKey(const Key('echo-replay')));
+    await tester.pump();
+    expect(voice.said.map((entry) => entry.$1), [word, word]);
+    expect(tester.widget<FilledButton>(answer).onPressed, isNotNull);
   });
 
   testWidgets('повтор звука не штрафуется и говорит то же слово', (tester) async {

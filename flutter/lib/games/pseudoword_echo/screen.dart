@@ -13,6 +13,7 @@ import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/level_result.dart';
+import '../../shell/listening_prompt.dart';
 import '../../shell/noise.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -83,6 +84,10 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
   int _startMs = 0;
   bool _passed = false;
   Timer? _advance;
+  late final _sound = ListeningPromptController(
+    isVisible: () => mounted && (ModalRoute.of(context)?.isCurrent ?? true),
+    onChange: () { if (mounted) setState(() {}); },
+  );
 
   int get _now => (widget.clock ?? () => DateTime.now().millisecondsSinceEpoch)();
   String get _base => widget.state.language;
@@ -104,6 +109,7 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
   @override
   void dispose() {
     _advance?.cancel();
+    _sound.dispose();
     _voice?.cancel();
     _noise?.stop(); // помеха не переживает выход с экрана
     unawaited(_answerFeedback.dispose());
@@ -175,21 +181,24 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
       _startMs = _now;
       _phase = EchoPhase.playing;
     });
-    _say();
+    _present();
   }
 
   /// Сказать слово раунда — с шумом уровня, который гаснет, когда слово прозвучало.
   /// Повтор не штрафуется: это подача задания, а не подсказка.
-  Future<void> _say() async {
-    if (_phase != EchoPhase.playing) return;
-    final word = _rounds[_idx].word;
-    await _noise?.start(_params.snrDb);
-    await _voice?.speak(word, _target, rate: _params.rate);
-    await _noise?.stop();
+  void _present() {
+    _sound.present(ListeningPrompt.speech(
+      voice: _voice, text: _rounds[_idx].word, lang: _target, rate: _params.rate,
+      noise: _noise, snrDb: _params.snrDb,
+    ));
+  }
+
+  void _replay() {
+    if (_phase == EchoPhase.playing && _answered == null) _sound.replay();
   }
 
   void _pick(String option) {
-    if (_answered != null || _phase != EchoPhase.playing) return;
+    if (_answered != null || _phase != EchoPhase.playing || !_sound.canAnswer) return;
     final ok = option == _rounds[_idx].word;
     unawaited(_answerFeedback.show('answer', ok ? 'answer' : null, right: ok));
     setState(() {
@@ -211,7 +220,7 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
         _answered = null;
         _idx = next;
       });
-      _say();
+      _present();
     });
   }
 
@@ -294,6 +303,7 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
     }, current);
     if (example == null) return;
     if (playing) LessonUsed.mark();
+    _sound.suspend();
     await _voice?.cancel();
     await _noise?.stop();
     final vowels = _letters.vowels[_target] ?? _letters.vowels['en'] ?? '';
@@ -315,6 +325,7 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
       ),
     ));
     await _voice?.cancel();
+    if (mounted) _sound.resume(needsPrompt: _phase == EchoPhase.playing && _answered == null);
   }
 
   @override
@@ -348,7 +359,7 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
       auxRow: r == null
           ? null
           : AuxBar(children: [
-              AuxAction(key: const Key('echo-replay'), icon: Icons.volume_up, label: L.t('replaySound'), onPressed: _say),
+              AuxAction(key: const Key('echo-replay'), icon: Icons.volume_up, label: L.t('replaySound'), onPressed: _answered == null && !_sound.playing ? _replay : null),
             ]),
       toolbar: r == null ? null : _options(context, r),
     );
@@ -405,6 +416,9 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
         child: Center(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Text(L.t('pwEchoPickSpelling'), textAlign: TextAlign.center),
+            ListeningPromptStatus(
+              controller: _sound, soundOn: _voice?.soundOn() ?? false,
+            ),
           ]),
         ),
       );
@@ -433,7 +447,7 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
               height: 56,
               child: FilledButton(
                 key: Key('echo-option-$o'),
-                onPressed: _answered == null ? () => _pick(o) : null,
+                onPressed: _answered == null && _sound.canAnswer ? () => _pick(o) : null,
                 style: FilledButton.styleFrom(
                   backgroundColor: _answered == null
                       ? scheme.surfaceContainerHighest
@@ -443,8 +457,8 @@ class _PseudowordEchoScreenState extends State<PseudowordEchoScreen> {
                               ? _bad
                               : scheme.surfaceContainerHighest,
                   foregroundColor: _answered != null && (o == r.word || o == _answered) ? Colors.white : scheme.onSurface,
-                  disabledBackgroundColor: o == r.word ? _good : (o == _answered ? _bad : null),
-                  disabledForegroundColor: o == r.word || o == _answered ? Colors.white : null,
+                  disabledBackgroundColor: _answered == null ? null : (o == r.word ? _good : (o == _answered ? _bad : null)),
+                  disabledForegroundColor: _answered != null && (o == r.word || o == _answered) ? Colors.white : null,
                 ),
                 child: FittedBox(fit: BoxFit.scaleDown, child: Text(o, style: const TextStyle(fontSize: 18))),
               ),

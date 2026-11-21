@@ -48,6 +48,12 @@ abstract class VoiceBackend {
   Future<void> cancel();
 }
 
+/// Optional native playback of a packaged recording, with no network or
+/// streaming proxy. Ordinary VoiceBackend implementations need not support it.
+abstract interface class AssetVoiceBackend {
+  Future<bool> playAsset(String path, double rate);
+}
+
 /// Где лежат записи. Адреса те же, что у веб-стороны, — корпус один на оба
 /// приложения, и расходиться им нельзя.
 const String voiceBase = 'https://psy-games.pro/voice';
@@ -175,10 +181,18 @@ class VoiceLayer {
     double rate = 0.9,
     bool Function()? stillCurrent,
     bool requireSystemVoice = false,
+    String? bundledAsset,
   }) async {
     bool canSpeak() => soundOn() && (stillCurrent?.call() ?? true);
     if (!canSpeak()) return false;
     final speed = clampVoiceRate(rate);
+    final player = backend;
+    if (bundledAsset != null && player is AssetVoiceBackend) {
+      if (await (player as AssetVoiceBackend).playAsset(bundledAsset, speed)) {
+        return true;
+      }
+      if (!canSpeak()) return false;
+    }
     final liveName = live[lang]?[text];
     final sampleName = samples[lang]?[text];
     if (liveName != null &&

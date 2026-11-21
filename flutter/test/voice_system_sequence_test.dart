@@ -79,6 +79,15 @@ class _NoTts implements FlutterTts {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _HangingStopTts extends _NoTts {
+  int stops = 0;
+  @override
+  Future<dynamic> stop() {
+    stops++;
+    return Completer<dynamic>().future;
+  }
+}
+
 class _IPhoneTts extends FlutterTts {
   @override
   Future<dynamic> setIosAudioCategory(
@@ -107,6 +116,13 @@ void main() {
       await Future<void>.delayed(Duration.zero);
     }
   }
+
+  testWidgets('closing an idle exercise does not stop native speech or leave a timer', (tester) async {
+    final tts = _HangingStopTts();
+    final backend = SystemVoiceBackend(tts: tts, player: _JustAudioLike());
+    await backend.cancel();
+    expect(tts.stops, 0);
+  });
 
   test('🔴 второе слово и повтор того же слова ждут конца записи так же, как первое', () async {
     final player = _JustAudioLike();

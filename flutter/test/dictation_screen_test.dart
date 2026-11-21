@@ -21,12 +21,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// идти `pump`-ом.
 class FakeVoice implements VoiceBackend {
   final said = <String>[];
+  bool plays = true;
   @override
   Future<bool> playUrl(String url, double rate) async => false;
   @override
   Future<bool> speakSystem(String text, String bcp47, double rate) async {
     said.add(text);
-    return true;
+    return plays;
   }
 
   @override
@@ -122,6 +123,26 @@ void main() {
     }
     final first = tester.widget<Text>(find.descendant(of: find.byKey(const Key('dict-char-0')), matching: find.byType(Text)));
     expect(first.data, phrase[0], reason: 'после трёх ошибок знак открыт');
+  });
+
+  testWidgets('failed phrase stays closed; only successful replay starts the input delay', (tester) async {
+    await state.set(SharedState.levelKey('dictation', 'nzt48'), '8');
+    final voice = await boot(tester);
+    voice.plays = false;
+    await tester.tap(find.byKey(const Key('dict-start')));
+    await tester.pump(const Duration(milliseconds: 500));
+    final delay = Duration(milliseconds: dictationLevelParams(8).delayMs);
+    await tester.pump(delay);
+    expect(find.byKey(const Key('listening-prompt-error')), findsOneWidget);
+    expect(find.byKey(const Key('dict-input')), findsNothing);
+    final original = voice.said.single;
+    voice.plays = true;
+    await tester.tap(find.byKey(const Key('dict-replay')));
+    await tester.pump();
+    expect(voice.said, [original, original]);
+    expect(find.byKey(const Key('dict-input')), findsNothing);
+    await tester.pump(delay);
+    expect(find.byKey(const Key('dict-input')), findsOneWidget);
   });
 
   testWidgets('с восьмого уровня ввод открывается после паузы', (tester) async {

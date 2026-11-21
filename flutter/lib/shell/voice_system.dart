@@ -53,6 +53,10 @@ abstract class ClipPlayer {
   Future<void> stop();
 }
 
+abstract interface class AssetClipPlayer {
+  Future<void> loadAsset(String path);
+}
+
 /// 🔴 ЗАПИСЬ КАЧАЕТСЯ ОДИН РАЗ, А ПОВТОР ИГРАЕТ ИЗ ПАМЯТИ.
 ///
 /// Отчёт «Полиглота» (Android 2.53.8): «кнопку нажимаешь и ни фига, не проговаривает;
@@ -133,6 +137,35 @@ class RecordingClips {
     }
   }
 
+  Future<bool> playAsset(String path, double speed) async {
+    final assetPlayer = player;
+    if (assetPlayer is! AssetClipPlayer) return false;
+    final ticket = ++_ticket;
+    try {
+      if (_loaded == path) {
+        await player.restart().timeout(prepareLimit);
+      } else {
+        _loaded = null;
+        await (assetPlayer as AssetClipPlayer).loadAsset(path).timeout(prepareLimit);
+      }
+      if (ticket != _ticket) return true;
+      _loaded = path;
+      await player.play(speed).timeout(playLimit);
+      return true;
+    } catch (error) {
+      if (ticket != _ticket) return true;
+      _loaded = null;
+      if (error is TimeoutException) {
+        try {
+          await player.stop().timeout(const Duration(milliseconds: 350));
+        } catch (_) {
+          // Fall back to the existing voice path.
+        }
+      }
+      return false;
+    }
+  }
+
   Future<void> stop() async {
     _ticket += 1;
     _loaded = null; // после остановки — загрузить из памяти заново, а не перематывать
@@ -158,7 +191,7 @@ Future<Uint8List> fetchRecording(Uri url) async {
 }
 
 /// Настоящий плеер записи на just_audio, из байтов в памяти (Ogg Opus).
-class JustAudioClipPlayer implements ClipPlayer {
+class JustAudioClipPlayer implements ClipPlayer, AssetClipPlayer {
   JustAudioClipPlayer([AudioPlayer? player]) : _p = player ?? AudioPlayer();
   final AudioPlayer _p;
 
@@ -172,6 +205,12 @@ class JustAudioClipPlayer implements ClipPlayer {
   Future<void> load(Uint8List bytes) async {
     if (_p.playing) await _p.pause();
     await _p.setAudioSource(BytesAudioSource(bytes, contentType: 'audio/ogg'));
+  }
+
+  @override
+  Future<void> loadAsset(String path) async {
+    if (_p.playing) await _p.pause();
+    await _p.setAudioSource(AudioSource.asset(path));
   }
 
   @override
@@ -193,7 +232,7 @@ class JustAudioClipPlayer implements ClipPlayer {
   Future<void> stop() => _p.stop();
 }
 
-class SystemVoiceBackend implements VoiceBackend {
+class SystemVoiceBackend implements VoiceBackend, AssetVoiceBackend {
   SystemVoiceBackend({FlutterTts? tts, AudioPlayer? player, RecordingClips? clips})
       : _tts = tts ?? FlutterTts(),
         _clips = clips ?? RecordingClips(player: JustAudioClipPlayer(player));
@@ -202,6 +241,7 @@ class SystemVoiceBackend implements VoiceBackend {
   final RecordingClips _clips;
   _AppleUtterance? _appleUtterance;
   int _speechTicket = 0;
+  int? _nativeSpeechTicket;
   Future<void>? _appleEvents;
   Future<List<dynamic>>? _appleVoices;
 
@@ -280,6 +320,19 @@ class SystemVoiceBackend implements VoiceBackend {
   Future<bool> playUrl(String url, double rate) => _clips.play(url, clampVoiceRate(rate));
 
   @override
+  Future<bool> playAsset(String path, double rate) async {
+    final ticket = _speechTicket;
+    try {
+      if (!await _activateIPhoneSpeech(ticket) || ticket != _speechTicket) {
+        return false;
+      }
+      return await _clips.playAsset(path, clampVoiceRate(rate));
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
   Future<bool> speakSystem(String text, String bcp47, double rate) async {
     final ticket = ++_speechTicket;
     _AppleUtterance? speech;
@@ -322,6 +375,7 @@ class SystemVoiceBackend implements VoiceBackend {
         }
         speech = _AppleUtterance();
         _appleUtterance = speech;
+        _nativeSpeechTicket = ticket;
         if (await _tts.speak(text).timeout(const Duration(seconds: 2)) != 1) {
           return false;
         }
@@ -336,6 +390,7 @@ class SystemVoiceBackend implements VoiceBackend {
       }
       await _tts.awaitSpeakCompletion(true);
       if (ticket != _speechTicket) return false;
+      _nativeSpeechTicket = ticket;
       return await _tts.speak(text) == 1;
     } catch (_) {
       if (speech != null && identical(_appleUtterance, speech)) {
@@ -344,6 +399,7 @@ class SystemVoiceBackend implements VoiceBackend {
       return false;
     } finally {
       if (identical(_appleUtterance, speech)) _appleUtterance = null;
+      if (_nativeSpeechTicket == ticket) _nativeSpeechTicket = null;
     }
   }
 
@@ -380,8 +436,11 @@ class SystemVoiceBackend implements VoiceBackend {
 
   Future<void> _stopTts() async {
     final pending = _appleUtterance;
+    final wasSpeaking = pending != null || _nativeSpeechTicket != null;
     _appleUtterance = null;
+    _nativeSpeechTicket = null;
     pending?.finish(false);
+    if (!wasSpeaking) return;
     try {
       await _tts.stop().timeout(const Duration(milliseconds: 700));
     } catch (_) {/* синтезатор мог не стартовать — прерывать нечего */}
