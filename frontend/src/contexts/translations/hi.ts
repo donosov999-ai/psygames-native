@@ -3860,5 +3860,6 @@ const t: Record<string, string> = {
   "sumMixedRuleChanges": "हर राउंड में नियम बदल सकता है",
   "dropModeDrag": "खींचें",
   "dropModeTap": "छुएँ",
+  "dropInputLabel": "इनपुट",
 };
 export default t;
